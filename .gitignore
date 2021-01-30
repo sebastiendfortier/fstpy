@@ -1,0 +1,16 @@
+*.o
+__pycache__
+
+.vscode
+.cache
+.ipynb_checkpoints
+.pytest_cache
+perf.png
+plot.png
+out.std
+.coverage
+diff.png
+map.html
+mydask.png
+global.lock
+purge.lock
