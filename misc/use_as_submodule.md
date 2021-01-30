@@ -45,15 +45,20 @@ index 0000000..f94438d
 @@ -0,0 +1 @@
 +Subproject commit f94438d908aaf7de0078738a0777cd390027e46e
 ```
-## Cloning when using as a submodule
+## Cloning your project when you have submodules
+
+```
+git clone <my-proj-url> --recurse-submodules
+```
 
 ## Switching to a different commit in the submodule
 If you decide to use a different version of fstpy for your program, then `cd`
 into the submodule, fetch, checkout the version that you want.
 
-Then in the super repo, make a commit saying 
+Then in the super repo, make a commit saying that we are now using a different
+version of the submodule.
 
-
+First checking out a different commit in the submodule:
 ```bash
 [super-repo] $ cd fstpy
 [fstpy] $ git fetch
@@ -73,7 +78,7 @@ Changes not staged for commit:
       modified:   fstpy (new commits)
 
 ```
-We add `fstpy` as any file and make our commit:
+To commit the change, add `fstpy` as any file and make our commit:
 ```bash
 [super-repo] $ git add fstpy
 [super-repo] $ git status
@@ -101,3 +106,37 @@ index f94438d..78e3ea4 160000
 -Subproject commit f94438d908aaf7de0078738a0777cd390027e46e
 +Subproject commit 78e3ea4a48b756f4f61565aa098dd5dc3d6a0200
 ```
+
+## Normal life when you have submodules
+
+Git defaults are bad for submodules.
+
+This leads to some troubles that are hard to understand but are merely minor
+inconveniences when you are setup.
+
+- Checking out a commit of the super repo does not automatically checkout the
+  corresponding commits of the submodules.
+
+  We need to add the `--recurse-submodules` flag to our checkout commands.  In
+  practice, this isn't a very big deal.
+
+  If checkout and we forget, we do `git submodule update --recursive` which says
+  "checkout the proper versions of in all my submodules".
+
+- When we clone, we have to add the `--recurse-submodules` flag as well.
+
+  If we forget, we have to do `git submodule init` followed by the update
+  command `git submodule update --recursive`.
+
+So all in all, the trouble of working with submodules is not that bad unless you
+start trying to automate it: you just need to know four commands:
+```bash
+git clone --recurse-submodules
+git submodule init
+git submodule update --recursive
+git checkout --recurse-submodules
+```
+and you already knew two of those commands.
+
+You have to remember some flags, but you know what to do if you forget to put it
+and run the command.
