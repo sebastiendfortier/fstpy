@@ -1,5 +1,12 @@
-# Ensure being sourced
-if ! (return 2>/dev/null) ; then
+
+# Check that the shell script is being sourced by attempting
+# to use return outside a function, which can only be done in
+# if the script is being sourced and not if is being run.
+#
+# The true is important here to clear the previous exit
+# code.  Without this, doing `false ; source setup.sh`
+# would enter this if and call exit.
+if ! (true && (return 2>/dev/null)) ; then
     echo "$0 ERROR : This script must be sourced"
     exit 1
 fi
