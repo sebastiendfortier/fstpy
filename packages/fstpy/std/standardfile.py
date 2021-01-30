@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from utils.utils import create_1row_df_from_model, initializer, validate_df_not_empty
+import sys
 import rpnpy.librmn.all as rmn
 import pandas as pd
 import dask.dataframe as dd
@@ -131,7 +132,7 @@ class StandardFileReader:
         self.file_id = rmn.fstopenall(path, rmn.FST_RO)
 
         out = all_params(self.file_id)
-        print(out)
+        sys.stderr.write(std(out) + '\n')
         logger.info('StandardFileReader - opening file %s', path)
 
     def close(self, file):
