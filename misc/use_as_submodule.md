@@ -1,28 +1,17 @@
 # Use as git submodule
 ## Idea of git submodules
 
-A commit means a fixed state of our repo.  I.E. We checkout a commit, everything
-is as it was when we made that commit.
+A submodule is simply a directory that is a git repo.  The git of the super-repo
+threats this as a black box a single file and instead of rembering the content,
+it remembers the currently checked out commit of the submodule repo.
 
-With git submodules, this is simply achieved by saying that a commit of the
-super repo is
-
-- Fixed states for all the files
-- Fixed commits for all the submodule repos.
-
-Checking out a commit of the super repo does two things to bring back exactly
-the state of that commit.
-
-- Brings back all the files from that commit
-- For all the submodules checkout the right commits for them.
-
-If we modify files in the submodule or if we checkout a different commit in the
-submodule, this shows a a change for the super repo.
-
-The change shows as "Submodule X : modified content".
+If, in the submodule, you checkout a different commit, from the super-repo's
+point of view, the change will say there is a change: "submodule moved to a
+different commit".
 
 This means that in effect *a commit of the super repo still reliably and simply
-represents a fixed state of the repo and its submodules*
+represents a fixed state of the repo and its submodules* in the same way as if
+the submodule were some kind of single-file black-box.
 
 ## Add this repo as a submodule
 
