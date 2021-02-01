@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=1.0.1
+VERSION=1.0
 PKGNAME=fstpy_${VERSION}_ubuntu-18.04-skylake-64
 echo 'Building package '${PKGNAME}
 mkdir -p ${PKGNAME}/lib/packages/
@@ -29,9 +29,9 @@ echo 'ssm domain is '${FSTPY_SSM_BASE}
 #ssm created -d ${FSTPY_SSM_BASE}/master
 echo 'Installing package to '${FSTPY_SSM_BASE}/master
 ssm install -d ${FSTPY_SSM_BASE}/master -f /tmp/sbf000/${PKGNAME}.ssm
-echo 'Publishing package '${PKGNAME}' to '${FSTPY_SSM_BASE}/fstpy-beta-${VERSION}
-ssm created -d ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION}
-ssm publish -d ${FSTPY_SSM_BASE}/master -P ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION} -p ${PKGNAME}
+echo 'Publishing package '${PKGNAME}' to '${FSTPY_SSM_BASE}/fstpy-beta
+ssm created -d ${FSTPY_SSM_BASE}/fstpy-beta
+ssm publish -d ${FSTPY_SSM_BASE}/master -P ${FSTPY_SSM_BASE}/fstpy-beta -p ${PKGNAME}
 
 rm /tmp/sbf000/${PKGNAME}.ssm
 

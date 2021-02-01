@@ -75,28 +75,13 @@ def get_groups(df:pd.DataFrame, group_by_forecast_hour:bool=False,group_by_level
         return get_level_groups(fhour_groups)
 
 
-    
-
-
 def flatten_data_series(df) -> pd.DataFrame:
     for i in df.index:
         df.loc[i,'d'] = df.loc[i,'d'].flatten()
     return df    
 
-
-def d_to_matrix(df:pd.DataFrame) -> np.ndarray:
-    for i in df.index:
-        df.loc[i,'d']  = df.loc[i,'d'].flatten()
-    array_3d = np.stack(df['d'].to_list())
-    print(array_3d.shape,array_3d)
-    return array_3d
-
-def matrix_to_array(sm, num_rows) -> np.array:
-    array_list=np.split(sm, num_rows)
-    return np.array(array_list)
-
 def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:
-    res_df = df.copy()    
+    res_df = df.copy(deep=True)    
     res_df['key'] = None
     #drop all but first line
     res_df.drop(res_df.index[1:], inplace=True)

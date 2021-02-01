@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
+from logging import exception
 import pandas as pd
+from dictionaries.constants import get_unit_by_name,get_column_value_from_row
+from std.standardfile import reorder_dataframe,validate_df_not_empty,StandardFileError
 
+class UnitConversionError(Exception):
+   pass
 class no_conversion:
    def __init__(self, bias = 0.0,   factor = 1.0):
       pass
@@ -146,7 +151,7 @@ class factor_conversion:
       return v * self.from_factor / self.to_factor
 
 def get_temperature_converter(unit_from, unit_to):
-   from ..dictionaries.constants import get_column_value_from_row
+   
    from_expression = get_column_value_from_row(unit_from,'expression')
    to_expression = get_column_value_from_row(unit_to,'expression')
    from_factor = float(get_column_value_from_row(unit_from,'factor'))
@@ -226,14 +231,26 @@ def get_converter(unit_from, unit_to):
    converter = factor_conversion(from_factor,to_factor)
    return converter
 
-def do_unit_conversion(df:pd.DataFrame, to_unit_name:str):
-   from unit.unit import get_converter
-   from dictionaries.constants import get_unit_by_name
+def do_unit_conversion(df:pd.DataFrame, to_unit_name:str) -> pd.DataFrame:
+   validate_df_not_empty(df,'do_unit_conversion',StandardFileError)
    unit_to = get_unit_by_name(to_unit_name)
-   #convert only those rows that need to be converted
-   for i in df.index:
-      if df.loc[i,'unit'] != to_unit_name:
-         unit_from = get_unit_by_name(df.loc[i,'unit'])
+   unit_groups = df.groupby(df.unit)
+   converted_dfs = [] 
+   for _, unit_group in unit_groups:
+      current_unit = unit_group['unit'][0]
+      if current_unit == to_unit_name:
+         converted_dfs.append(unit_group)
+         continue
+      else:
+         if (df['d'].isna() != False).all():
+            raise UnitConversionError('DataFrame must be materialized to do a unit conversion!')
+         unit_from = get_unit_by_name(current_unit)
          converter = get_converter(unit_from, unit_to)
-         df.loc[i,'d'] = converter(df.loc[i,'d'])
-   return df
+         unit_group['d'] = unit_group['d'].apply(converter)
+         unit_group['unit'] = to_unit_name
+         unit_group['unit_converted'] = True
+         converted_dfs.append(unit_group)
+
+   converted_df = pd.concat(converted_dfs)
+   converted_df = reorder_dataframe(converted_df)
+   return converted_df
