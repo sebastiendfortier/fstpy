@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from utils.utils import create_1row_df_from_model, initializer, validate_df_not_empty
+from .utils import create_1row_df_from_model, initializer, validate_df_not_empty
 import sys
 import rpnpy.librmn.all as rmn
 import pandas as pd
@@ -7,7 +7,7 @@ import dask.dataframe as dd
 import numpy as np
 import datetime
 from .context import logger
-from dictionaries.constants import VCTYPES, DATYP_DICT, STDVAR, KIND_DICT, get_column_value_from_row, get_etikey_by_name
+from .constants import VCTYPES, DATYP_DICT, STDVAR, KIND_DICT, get_column_value_from_row, get_etikey_by_name
 
 class StandardFileError(Exception):
     pass
@@ -132,7 +132,7 @@ class StandardFileReader:
         self.file_id = rmn.fstopenall(path, rmn.FST_RO)
 
         out = all_params(self.file_id)
-        sys.stderr.write(std(out) + '\n')
+        sys.stderr.write(str(out) + '\n')
         logger.info('StandardFileReader - opening file %s', path)
 
     def close(self, file):

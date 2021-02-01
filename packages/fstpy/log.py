@@ -5,13 +5,11 @@ from logging.config import dictConfig
 logging_config = dict(
     version = 1,
     formatters = {
-        'f': 
+        'f':
         {
             'format': '[%(asctime)s.%(msecs)03d] [%(levelname)-7s] %(message)s',
             'datefmt' :'%H:%M:%S'
         },
-        
-        
     },
     handlers = {
         'h': {'class': 'logging.StreamHandler',
@@ -28,4 +26,4 @@ dictConfig(logging_config)
 def setup_custom_logger(name):
     logger = logging.getLogger(name)
     return logger
-    
+
