@@ -1,4 +1,5 @@
 import pandas as pd
+from .context import logger
 
 prefix='/'.join(__file__.split('/')[0:-1])
 csv_path = prefix + '/csv/'

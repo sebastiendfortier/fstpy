@@ -151,7 +151,7 @@ class factor_conversion:
       return v * self.from_factor / self.to_factor
 
 def get_temperature_converter(unit_from, unit_to):
-   
+   from .constants import get_column_value_from_row
    from_expression = get_column_value_from_row(unit_from,'expression')
    to_expression = get_column_value_from_row(unit_to,'expression')
    from_factor = float(get_column_value_from_row(unit_from,'factor'))
@@ -214,7 +214,7 @@ def get_temperature_converter(unit_from, unit_to):
    return no_conversion()
 
 def get_converter(unit_from, unit_to):
-   from dictionaries.constants import get_column_value_from_row
+   from .constants import get_column_value_from_row
    from_expression = get_column_value_from_row(unit_from,'expression')
    to_expression = get_column_value_from_row(unit_to,'expression')
    from_factor = float(get_column_value_from_row(unit_from,'factor'))
@@ -231,8 +231,8 @@ def get_converter(unit_from, unit_to):
    converter = factor_conversion(from_factor,to_factor)
    return converter
 
-def do_unit_conversion(df:pd.DataFrame, to_unit_name:str) -> pd.DataFrame:
-   validate_df_not_empty(df,'do_unit_conversion',StandardFileError)
+def do_unit_conversion(df:pd.DataFrame, to_unit_name:str):
+   from .constants import get_unit_by_name
    unit_to = get_unit_by_name(to_unit_name)
    unit_groups = df.groupby(df.unit)
    converted_dfs = [] 
