@@ -146,7 +146,7 @@ class factor_conversion:
       return v * self.from_factor / self.to_factor
 
 def get_temperature_converter(unit_from, unit_to):
-   from ..dictionaries.constants import get_column_value_from_row
+   from .constants import get_column_value_from_row
    from_expression = get_column_value_from_row(unit_from,'expression')
    to_expression = get_column_value_from_row(unit_to,'expression')
    from_factor = float(get_column_value_from_row(unit_from,'factor'))
@@ -209,7 +209,7 @@ def get_temperature_converter(unit_from, unit_to):
    return no_conversion()
 
 def get_converter(unit_from, unit_to):
-   from dictionaries.constants import get_column_value_from_row
+   from .constants import get_column_value_from_row
    from_expression = get_column_value_from_row(unit_from,'expression')
    to_expression = get_column_value_from_row(unit_to,'expression')
    from_factor = float(get_column_value_from_row(unit_from,'factor'))
@@ -228,7 +228,7 @@ def get_converter(unit_from, unit_to):
 
 def do_unit_conversion(df:pd.DataFrame, to_unit_name:str):
    from unit.unit import get_converter
-   from dictionaries.constants import get_unit_by_name
+   from .constants import get_unit_by_name
    unit_to = get_unit_by_name(to_unit_name)
    #convert only those rows that need to be converted
    for i in df.index:
