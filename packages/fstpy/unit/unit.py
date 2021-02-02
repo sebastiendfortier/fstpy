@@ -237,7 +237,7 @@ def do_unit_conversion(df:pd.DataFrame, to_unit_name:str) -> pd.DataFrame:
    unit_groups = df.groupby(df.unit)
    converted_dfs = [] 
    for _, unit_group in unit_groups:
-      current_unit = unit_group['unit'][0]
+      current_unit = unit_group.iloc[0]['unit']
       if current_unit == to_unit_name:
          converted_dfs.append(unit_group)
          continue

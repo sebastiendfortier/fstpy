@@ -77,7 +77,7 @@ def get_groups(df:pd.DataFrame, group_by_forecast_hour:bool=False,group_by_level
 
 def flatten_data_series(df) -> pd.DataFrame:
     for i in df.index:
-        df.loc[i,'d'] = df.loc[i,'d'].flatten()
+        df.at[i,'d'] = df.at[i,'d'].flatten()
     return df    
 
 def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:

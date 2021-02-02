@@ -318,16 +318,16 @@ class StandardFileWriter:
         logger.info('StandardFileWriter - writing to file %s', self.filename)  
         self.df = reorder_dataframe(self.df)
         
-        for i in self.df.index:
+        for i in range(len(self.df.index)):
             self.df = change_etiket_if_a_plugin_name(self.df,i)
-            if ('d' in self.df.columns) and (self.df.loc[i,'d'] is not None) and not identical_destination_and_record_path(self.df,i):
+            if ('d' in self.df.columns) and (self.df.at[i,'d'] is not None) and not identical_destination_and_record_path(self.df,i):
                 #in case it was flattened
                 self.reshape_data_to_original_shape(i)
-                rmn.fstecr(self.file_id, np.asfortranarray(self.df.loc[i,'d']), self.df.iloc[i].to_dict())
-            elif ('d' in self.df.columns) and (self.df.loc[i,'d'] is not None) and identical_destination_and_record_path(self.df,i):
+                rmn.fstecr(self.file_id, np.asfortranarray(self.df.at[i,'d']), self.df.iloc[i].to_dict())
+            elif ('d' in self.df.columns) and (self.df.at[i,'d'] is not None) and identical_destination_and_record_path(self.df,i):
                 logger.warning('Writing to existing file!')
                 self.df = reshape_data_to_original_shape(self.df,i)
-                rmn.fstecr(self.file_id, np.asfortranarray(self.df.loc[i,'d']), self.df.iloc[i].to_dict())
+                rmn.fstecr(self.file_id, np.asfortranarray(self.df.at[i,'d']), self.df.iloc[i].to_dict())
             else:
                 if identical_destination_and_record_path(self.df,i,self.filename):
                     update_meta_data(self.i)
@@ -351,7 +351,7 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     without_x_grid_df = select(df,'grtyp != "X"',no_fail=True)
 
     latlon_df = select(without_x_grid_df,'nomvar in [">>","^^"]',no_fail=True)
-    validate_df_not_empty(latlon_df,'get_2d_lat_lon',StandardFileError)
+    validate_df_not_empty(latlon_df,'get_2d_lat_lon - while trying to find [">>","^^"]',StandardFileError)
     
     no_meta_df = select(without_x_grid_df,'nomvar not in %s'%StandardFileReader.meta_data, no_fail=True)
 
@@ -369,7 +369,7 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
                 # lat=grid['lat']
                 # lon=grid['lon']
             except Exception:
-                logger.warning('get_lat_lon - no lat lon for this record')
+                logger.warning('get_2d_lat_lon - no lat lon for this record')
                 continue
             
             grid = rmn.gdll(g)
@@ -377,10 +377,16 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
             tactac_df = select(latlon_df,'(nomvar==">>") and (grid=="%s")'%row['grid'],no_fail=True)
             lat_df = create_1row_df_from_model(tictic_df)
             lat_df = zap(lat_df, nomvar='LAT')
-            lat_df.loc[0]['d'] = grid['lat']
+            lat_df.at[0,'d'] = grid['lat']
+            lat_df.at[0,'ni'] = grid['lat'].shape[0]
+            lat_df.at[0,'nj'] = grid['lat'].shape[1]
+            lat_df.at[0,'shape'] = grid['lat'].shape
             lon_df = create_1row_df_from_model(tactac_df)
             lon_df = zap(lon_df, nomvar='LON')
-            lon_df.loc[0]['d'] = grid['lon']
+            lon_df.at[0,'d'] = grid['lon']
+            lon_df.at[0,'ni'] = grid['lon'].shape[0]
+            lon_df.at[0,'nj'] = grid['lon'].shape[1]
+            lon_df.at[0,'shape'] = grid['lon'].shape
             latlons.append(lat_df)
             latlons.append(lon_df)
 
@@ -396,15 +402,15 @@ def update_meta_data(df, i):
     rmn.fst_edit_dir(int(key),dateo=int(d['dateo']),deet=int(d['deet']),npas=int(d['npas']),ni=int(d['ni']),nj=int(d['nj']),nk=int(d['nk']),datyp=int(d['datyp']),ip1=int(d['ip1']),ip2=int(d['ip2']),ip3=int(d['ip3']),typvar=d['typvar'],nomvar=d['nomvar'],etiket=d['etiket'],grtyp=d['grtyp'],ig1=int(d['ig1']),ig2=int(d['ig2']),ig3=int(d['ig3']),ig4=int(d['ig4']), keep_dateo=False)
 
 def identical_destination_and_record_path(df, i, filename):
-    return df.loc[i,'path'] == filename
+    return df.at[i,'path'] == filename
 
 def reshape_data_to_original_shape(df, i):
-    if df.loc[i,'d'].shape != df.loc[i,'shape']:
-        df.loc[i,'d'] = df.loc[i,'d'].reshape(df.loc[i,'shape'])
+    if df.at[i,'d'].shape != df.at[i,'shape']:
+        df.at[i,'d'] = df.at[i,'d'].reshape(df.at[i,'shape'])
     return df
 
 def change_etiket_if_a_plugin_name(df, i):
-    df.loc[i,'etiket'] = get_std_etiket(df.loc[i,'etiket'])
+    df.at[i,'etiket'] = get_std_etiket(df.at[i,'etiket'])
     return df
 
 def remove_df_columns(df,keys_to_keep = {'key','dateo', 'deet', 'npas', 'ni', 'nj', 'nk', 'datyp', 'nbits', 'ip1', 'ip2', 'ip3', 'typvar', 'nomvar', 'etiket', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'}):
@@ -440,6 +446,7 @@ def fst_to_df(file_id, exception_class,materialize,subset):
         records = [rmn.fstprm(k) for k in keys]
     #create a dataframe correspondinf to the fst file
     df = pd.DataFrame(records)
+    
     return df
 
 def fst_to_ddf(file_id, exception_class,materialize,subset):
@@ -494,67 +501,67 @@ def add_columns(df:pd.DataFrame):
     df['etiket'] = df['etiket'].str.strip()
     df['nomvar'] = df['nomvar'].str.strip()
     df['typvar'] = df['typvar'].str.strip()
-    for i in df.index:
-        nomvar = df.loc[i,'nomvar']
+    for i in range(len(df.index)):
+        nomvar = df.at[i,'nomvar']
         #find unit name value for this nomvar
         get_unit(df, i, nomvar)
         #get level and kind
-        set_level_and_kind(df, i) #float("%.6f"%-1) if df.loc[i,'kind'] == -1 else float("%.6f"%level)
+        set_level_and_kind(df, i) #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
         #create a printable date of observation for voir
-        df.loc[i,'pdateo'] = create_printable_date_of_observation(int(df.loc[i,'dateo']))
+        df.at[i,'pdateo'] = create_printable_date_of_observation(int(df.at[i,'dateo']))
         #create a printable kind for voir
-        df.loc[i,'pkind'] = KIND_DICT[int(df.loc[i,'kind'])]
+        df.at[i,'pkind'] = KIND_DICT[int(df.at[i,'kind'])]
         #calculate the forecast hour
-        df.loc[i,'fhour'] = df.loc[i,'npas'] * df.loc[i,'deet'] / 3600.
+        df.at[i,'fhour'] = df.at[i,'npas'] * df.at[i,'deet'] / 3600.
         #create a printable data type for voir
-        df.loc[i,'pdatyp'] = DATYP_DICT[df.loc[i,'datyp']]
+        df.at[i,'pdatyp'] = DATYP_DICT[df.at[i,'datyp']]
         #create a grid identifier for each record
-        df.loc[i,'grid'] = create_grid_identifier(df.loc[i,'nomvar'],df.loc[i,'ip1'],df.loc[i,'ip2'],df.loc[i,'ig1'],df.loc[i,'ig2'])
-        #print(df.loc[i,'kind'],df.loc[i,'level'])
+        df.at[i,'grid'] = create_grid_identifier(df.at[i,'nomvar'],df.at[i,'ip1'],df.at[i,'ip2'],df.at[i,'ig1'],df.at[i,'ig2'])
+        #print(df.at[i,'kind'],df.at[i,'level'])
         #set surface flag for surface levels
         set_surface(df, i, meter_levels)
         set_follow_topography(df, i)
-        df.loc[i,'e_label'],df.loc[i,'e_run'],df.loc[i,'implementation'],df.loc[i,'e_ensemble_member'] = parse_etiket(df.loc[i,'etiket'])
+        df.at[i,'e_label'],df.at[i,'e_run'],df.at[i,'implementation'],df.at[i,'e_ensemble_member'] = parse_etiket(df.at[i,'etiket'])
 
 def set_level_and_kind(df, i):
-    level, kind = get_level_and_kind(df.loc[i,'ip1'])
-    # level_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(df.loc[i,'ip1']))
+    level, kind = get_level_and_kind(df.at[i,'ip1'])
+    # level_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(df.at[i,'ip1']))
     # kind = level_kind[1]
     # level = level_kind[0]
-    df.loc[i,'kind'] = int(kind)
-    df.loc[i,'level'] = level #float("%.6f"%-1) if df.loc[i,'kind'] == -1 else float("%.6f"%level)
+    df.at[i,'kind'] = int(kind)
+    df.at[i,'level'] = level #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
 
 def get_unit(df, i, nomvar):
     unit = STDVAR.loc[STDVAR['nomvar'] == f'{nomvar}']['unit'].values
     if len(unit):
-        df.loc[i,'unit'] = unit[0]
+        df.at[i,'unit'] = unit[0]
     else:
-        df.loc[i,'unit'] = 'scalar'
+        df.at[i,'unit'] = 'scalar'
 
 def strip_df_strings(df, i):
-    df.loc[i,'etiket'] = df.loc[i,'etiket'].strip()
-    df.loc[i,'nomvar'] = df.loc[i,'nomvar'].strip()
-    df.loc[i,'typvar'] = df.loc[i,'typvar'].strip()
+    df.at[i,'etiket'] = df.at[i,'etiket'].strip()
+    df.at[i,'nomvar'] = df.at[i,'nomvar'].strip()
+    df.at[i,'typvar'] = df.at[i,'typvar'].strip()
 
 def set_follow_topography(df, i):
-    if df.loc[i,'kind'] == 1:
-        df.loc[i,'follow_topography'] = True
-    elif df.loc[i,'kind'] == 4:
-        df.loc[i,'follow_topography'] = True
-    elif df.loc[i,'kind'] == 5:
-        df.loc[i,'follow_topography'] = True
+    if df.at[i,'kind'] == 1:
+        df.at[i,'follow_topography'] = True
+    elif df.at[i,'kind'] == 4:
+        df.at[i,'follow_topography'] = True
+    elif df.at[i,'kind'] == 5:
+        df.at[i,'follow_topography'] = True
     else:
-        df.loc[i,'follow_topography'] = False
+        df.at[i,'follow_topography'] = False
 
 def set_surface(df, i, meter_levels):
-    if (df.loc[i,'kind'] == 5) and (df.loc[i,'level'] == 1):
-        df.loc[i,'surface'] = True
-    elif (df.loc[i,'kind'] == 4) and (df.loc[i,'level'] in meter_levels):
-        df.loc[i,'surface'] = True
-    elif (df.loc[i,'kind'] == 1) and (df.loc[i,'level'] == 1):
-        df.loc[i,'surface'] = True
+    if (df.at[i,'kind'] == 5) and (df.at[i,'level'] == 1):
+        df.at[i,'surface'] = True
+    elif (df.at[i,'kind'] == 4) and (df.at[i,'level'] in meter_levels):
+        df.at[i,'surface'] = True
+    elif (df.at[i,'kind'] == 1) and (df.at[i,'level'] == 1):
+        df.at[i,'surface'] = True
     else:
-        df.loc[i,'surface'] = False
+        df.at[i,'surface'] = False
 
 
 def get_level_and_kind(ip1:int):
@@ -565,8 +572,8 @@ def get_level_and_kind(ip1:int):
     level = level_kind[0]
     level = float("%.6f"%-1) if kind == -1 else float("%.6f"%level)
     return level, kind
-    #df.loc[i,'kind'] = kind
-    #df.loc[i,'level'] = float("%.6f"%-1) if df.loc[i,'kind'] == -1 else float("%.6f"%level)
+    #df.at[i,'kind'] = kind
+    #df.at[i,'level'] = float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
 
 
 def materialize(df:pd.DataFrame) -> pd.DataFrame:
@@ -574,42 +581,42 @@ def materialize(df:pd.DataFrame) -> pd.DataFrame:
         return df
     # grou by path
     path_groups = df.groupby(df.path)
+    
     mat_dfs = []
-    for _, rec_df in path_groups:
+    for _, rec_df_view in path_groups:
+        rec_df = rec_df_view.copy(deep=True)
         #get the first path in this group
         path = rec_df['path'][0]
         compare_modification_times(rec_df, path, 'materialize')
         #open the file
         file_id = rmn.fstopenall(path, filemode=rmn.FST_RO)
-        for i in rec_df.index:
+        for i in range(len(rec_df.index)):
             # if record is already materialized, skip
-            if rec_df.loc[i,'d'] is not None:
-                logger.warning('materialize - record %s %s %s %s %s %s %s already materialized'%(rec_df.loc[i,'nomvar'], rec_df.loc[i,'typvar'], rec_df.loc[i,'etiket'], rec_df.loc[i,'ip1'],rec_df.loc[i,'ip2'],rec_df.loc[i,'ip3'], rec_df.loc[i,'datev']))
-                mat_dfs.append(rec_df)   
-                continue
-            if ('dirty' in rec_df.columns) and (rec_df.loc[i,'dirty']):
-                if ('materialize_info' in rec_df.columns) and (rec_df.loc[i,'materialize_info'] is not None):
-                    # find the old record from materialize info
-                    key_list = rmn.fstinl(file_id,**rec_df.loc[i,'materialize_info'])
-                    if len(key_list) != 1:
-                        raise StandardFileError('materialize - bad record match - either none or more than one match')
-                    #found one matching records
-                    key=key_list[0]    
-            else:
-                key=rec_df.loc[i,'key']
+            if rec_df.at[i,'d'] is None:
+                key=rec_df.at[i,'key']
+                #logger.warning('materialize - record %s %s %s %s %s %s %s already materialized'%(rec_df.at[i,'nomvar'], rec_df.at[i,'typvar'], rec_df.at[i,'etiket'], rec_df.at[i,'ip1'],rec_df.at[i,'ip2'],rec_df.at[i,'ip3'], rec_df.at[i,'datev']))
+                if ('dirty' in rec_df.columns) and (rec_df.at[i,'dirty']):
+                    if ('materialize_info' in rec_df.columns) and (rec_df.at[i,'materialize_info'] is not None):
+                        # find the old record from materialize info
+                        key_list = rmn.fstinl(file_id,**rec_df.at[i,'materialize_info'])
+                        if len(key_list) != 1:
+                            raise StandardFileError('materialize - bad record match - either none or more than one match')
+                        #found one matching records
+                        key=key_list[0]    
+                
                 rec = rmn.fstluk(int(key))
-                rec_df['d'][i] = rec['d']
-                mat_dfs.append(rec_df)    
+                rec_df.at[i,'d'][i] = rec['d']
+        mat_dfs.append(rec_df)    
         rmn.fstcloseall(file_id)
-    res_df = pd.concat(mat_dfs)     
+    res_df = pd.concat(mat_dfs)   
     res_df = reorder_dataframe(res_df) 
     return res_df
 
 def reorder_dataframe(df):
     if 'grid' not in df.columns: 
-        return
-    df = df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False) 
-    df = df.reset_index(drop=True)
+        return df
+    df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False,inplace=True) 
+    df.reset_index(drop=True,inplace=True)
     return df
 
 
@@ -621,11 +628,11 @@ def compare_modification_times(df, path, caller):
 
 def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
     df = materialize(df)
-    for i in df.index:
-        df.loc[i,'d'] = df.loc[i,'d'][:dim1,:dim2].copy(deep=True)
-        df.loc[i,'shape']  = df.loc[i,'d'].shape
-        df.loc[i,'ni'] = df.loc[i,'shape'][0]
-        df.loc[i,'nj'] = df.loc[i,'shape'][1]
+    for i in range(len(df.index)):
+        df.at[i,'d'] = df.at[i,'d'][:dim1,:dim2].copy(deep=True)
+        df.at[i,'shape']  = df.at[i,'d'].shape
+        df.at[i,'ni'] = df.at[i,'shape'][0]
+        df.at[i,'nj'] = df.at[i,'shape'][1]
     df = reorder_dataframe(df)    
     return df
 
@@ -747,16 +754,17 @@ def add_empty_columns(df, columns, init):
     #df = df.reindex(columns = df.columns.tolist() + ['min','max','mean','std','min_pos','max_pos'])            
 def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
     add_empty_columns(df, ['min','max','mean','std'],np.nan)
-    add_empty_columns(df, ['min_pos','max_pos'],(np.nan,np.nan))
-    for i in df.index:
-        df.loc[i,'mean'] = df.loc[i,'d'].mean()
-        df.loc[i,'std'] = df.loc[i,'d'].std()
-        df.loc[i,'min'] = df.loc[i,'d'].min()
-        df.loc[i,'max'] = df.loc[i,'d'].max()
-        df.loc[i,'min_pos'] = np.unravel_index(df.loc[i,'d'].argmin(), (df.loc[i,'ni'],df.loc[i,'nj']))
-        df.loc[i,'min_pos'] = (df.loc[i,'min_pos'][0] + 1, df.loc[i,'min_pos'][1]+1)
-        df.loc[i,'max_pos'] = np.unravel_index(df.loc[i,'d'].argmax(), (df.loc[i,'ni'],df.loc[i,'nj']))
-        df.loc[i,'max_pos'] = (df.loc[i,'max_pos'][0] + 1, df.loc[i,'max_pos'][1]+1)
+    initializer = (np.nan,np.nan)
+    add_empty_columns(df, ['min_pos','max_pos'],None)
+    for i in range(len(df.index)):
+        df.at[i,'mean'] = df.at[i,'d'].mean()
+        df.at[i,'std'] = df.at[i,'d'].std()
+        df.at[i,'min'] = df.at[i,'d'].min()
+        df.at[i,'max'] = df.at[i,'d'].max()
+        df.at[i,'min_pos'] = np.unravel_index(df.at[i,'d'].argmin(), (df.at[i,'ni'],df.at[i,'nj']))
+        df.at[i,'min_pos'] = (df.at[i,'min_pos'][0] + 1, df.at[i,'min_pos'][1]+1)
+        df.at[i,'max_pos'] = np.unravel_index(df.at[i,'d'].argmax(), (df.at[i,'ni'],df.at[i,'nj']))
+        df.at[i,'max_pos'] = (df.at[i,'max_pos'][0] + 1, df.at[i,'max_pos'][1]+1)
     df = reorder_dataframe(df)    
     return df
 
@@ -765,7 +773,7 @@ def voir(df:pd.DataFrame):
     """Displays the metadata of the supplied records in the rpn voir format"""
     validate_df_not_empty(df,voir,StandardFileError)
     #print('    NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s) FORECASTHOUR      IP1        LEVEL        IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
-    print(df[['nomvar','typvar','etiket','ni','nj','nk','pdateo','fhour','level','ip1','ip2','ip3','deet','npas','pdatyp','nbits','grtyp','ig1','ig2','ig3','ig4']].sort_values(by=['nomvar']).reset_index(drop=True).to_string(header=True))
+    print(df[['nomvar','typvar','etiket','ni','nj','nk','pdateo','fhour','level','ip1','ip2','ip3','deet','npas','pdatyp','nbits','grtyp','ig1','ig2','ig3','ig4']].sort_values(by=['nomvar']).reset_index(drop=True).to_string(header=True, formatters={'level': '{:,.6f}'.format, 'fhour': '{:,.6f}'.format}))
 
 def validate_zap_keys(**kwargs):
     available_keys = {'grid', 'fhour', 'nomvar', 'typvar', 'etiket', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'level', 'kind', 'pkind','unit'}
@@ -794,8 +802,8 @@ def zap_kind(df:pd.DataFrame, kind_value:int) -> pd.DataFrame:
     logger.warning('zap - changed kind, triggers updating ip1 and pkind')
     df['kind'] = kind_value
     df['pkind'] = KIND_DICT[int(kind_value)]
-    for i in df.index:
-        df.loc[i,'ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, df.loc[i,'level'], kind_value)
+    for i in range(len(df.index)):
+        df.at[i,'ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, df.at[i,'level'], kind_value)
     return df
 
 def zap_pkind(df:pd.DataFrame, pkind_value:str) -> pd.DataFrame:
@@ -804,16 +812,16 @@ def zap_pkind(df:pd.DataFrame, pkind_value:str) -> pd.DataFrame:
     #invert kind dict
     PKIND_DICT = {v: k for k, v in KIND_DICT.items()}
     df['kind'] = PKIND_DICT[pkind_value]
-    for i in df.index:
-        df.loc[i,'ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, df.loc[i,'level'], df.loc[i,'kind'])
+    for i in range(len(df.index)):
+        df.at[i,'ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, df.at[i,'level'], df.at[i,'kind'])
     return df
 
 def zap_npas(df:pd.DataFrame, npas_value:int) -> pd.DataFrame:
     logger.warning('zap - changed npas, triggers updating fhour')
     df['npas'] = npas_value
-    for i in df.index:
-        df.loc[i,'fhour'] =  df.loc[i,'deet'] * df.loc[i,'npas'] / 3600.
-        df.loc[i,'ip2'] = np.floor(df.loc[i,'fhour']).astype(int)
+    for i in range(len(df.index)):
+        df.at[i,'fhour'] =  df.at[i,'deet'] * df.at[i,'npas'] / 3600.
+        df.at[i,'ip2'] = np.floor(df.at[i,'fhour']).astype(int)
     return df
 
 
@@ -821,29 +829,29 @@ def zap_fhour(df:pd.DataFrame, fhour_value:int) -> pd.DataFrame:
     logger.warning('zap - changed fhour, triggers updating npas')
     df['fhour'] = fhour_value
     df['ip2'] = np.floor(df['fhour']).astype(int)
-    for i in df.index:
-        df.loc[i,'npas'] = df.loc[i,'fhour'] * 3600. / df.loc[i,'deet']
-        df.loc[i,'npas'] = df.loc[i,'npas'].astype(int)
+    for i in range(len(df.index)):
+        df.at[i,'npas'] = df.at[i,'fhour'] * 3600. / df.at[i,'deet']
+        df.at[i,'npas'] = df.at[i,'npas'].astype(int)
     return df
 
 def create_materialize_info(df:pd.DataFrame) -> pd.DataFrame:
-    for i in df.index:
-        if df.loc[i,'d'] is not None:
+    for i in range(len(df.index)):
+        if df.at[i,'d'] is not None:
             return df
-        if df.loc[i,'key'] != None:
+        if df.at[i,'key'] != None:
             materialize_info={
-            'etiket':df.loc[i,'etiket'],
-            'datev':df.loc[i,'datev'],
-            'ip1':df.loc[i,'ip1'],
-            'ip2':df.loc[i,'ip2'],
-            'ip3':df.loc[i,'ip3'],
-            'typvar':df.loc[i,'typvar'],
-            'nomvar':df.loc[i,'nomvar']}
-            df.loc[i,'materialize_info'] = materialize_info
+            'etiket':df.at[i,'etiket'],
+            'datev':df.at[i,'datev'],
+            'ip1':df.at[i,'ip1'],
+            'ip2':df.at[i,'ip2'],
+            'ip3':df.at[i,'ip3'],
+            'typvar':df.at[i,'typvar'],
+            'nomvar':df.at[i,'nomvar']}
+            df.at[i,'materialize_info'] = materialize_info
     return df
 
 
-def zap(df:pd.DataFrame, mark:bool=True, **kwargs:dict ) -> pd.DataFrame:
+def zap(df:pd.DataFrame, mark:bool=True, validate_keys=True,**kwargs:dict ) -> pd.DataFrame:
     """ Modifies records from the input file or other supplied records according to specific criteria
         kwargs: can contain these key, value pairs to select specific records from the input file or input records
                 nomvar=str
@@ -864,8 +872,8 @@ def zap(df:pd.DataFrame, mark:bool=True, **kwargs:dict ) -> pd.DataFrame:
                 ig3=int
                 ig4=int """
     validate_df_not_empty(df,'zap',StandardFileError)            
-
-    validate_zap_keys(**kwargs)
+    if validate_zap_keys:
+        validate_zap_keys(**kwargs)
 
     logger.info('zap - ' + str(kwargs)[0:100] + '...')
 
@@ -938,23 +946,23 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
     success = True
 
     for i in common.index:
-        a = common.loc[i, 'd_x'].flatten()
-        b = common.loc[i, 'd_y'].flatten()
-        diff.loc[i, 'abs_diff'] = np.abs(a-b)
+        a = common.at[i, 'd_x'].flatten()
+        b = common.at[i, 'd_y'].flatten()
+        diff.at[i, 'abs_diff'] = np.abs(a-b)
         derr = np.where(a == 0, np.abs(1-a/b), np.abs(1-b/a))
         derr_sum=np.sum(derr)
         if isnan(derr_sum):
-            diff.loc[i, 'e_rel_max'] = 0.
-            diff.loc[i, 'e_rel_moy'] = 0.
+            diff.at[i, 'e_rel_max'] = 0.
+            diff.at[i, 'e_rel_moy'] = 0.
         else:    
-            diff.loc[i, 'e_rel_max'] = 0. if isnan(np.nanmax(derr)) else np.nanmax(derr)
-            diff.loc[i, 'e_rel_moy'] = 0. if isnan(np.nanmean(derr)) else np.nanmean(derr)
+            diff.at[i, 'e_rel_max'] = 0. if isnan(np.nanmax(derr)) else np.nanmax(derr)
+            diff.at[i, 'e_rel_moy'] = 0. if isnan(np.nanmean(derr)) else np.nanmean(derr)
         sum_a2 = np.sum(a**2)
         sum_b2 = np.sum(b**2)
-        diff.loc[i, 'var_a'] = np.mean(sum_a2)
-        diff.loc[i, 'var_b'] = np.mean(sum_b2)
-        diff.loc[i, 'moy_a'] = np.mean(a)
-        diff.loc[i, 'moy_b'] = np.mean(b)
+        diff.at[i, 'var_a'] = np.mean(sum_a2)
+        diff.at[i, 'var_b'] = np.mean(sum_b2)
+        diff.at[i, 'moy_a'] = np.mean(a)
+        diff.at[i, 'moy_b'] = np.mean(b)
         
         c_cor = np.sum(a*b)
         if sum_a2*sum_b2 != 0:
@@ -962,24 +970,24 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
         elif (sum_a2==0) and (sum_b2==0):
             c_cor = 1.0
         elif sum_a2 == 0:
-            c_cor = np.sqrt(diff.loc[i, 'var_b'])
+            c_cor = np.sqrt(diff.at[i, 'var_b'])
         else:
-            c_cor = np.sqrt(diff.loc[i, 'var_a'])
-        diff.loc[i, 'c_cor'] = c_cor 
-        diff.loc[i, 'biais']=diff.loc[i, 'moy_b']-diff.loc[i, 'moy_a']
-        diff.loc[i, 'e_max'] = np.max(diff.loc[i, 'abs_diff'])
-        diff.loc[i, 'e_moy'] = np.mean(diff.loc[i, 'abs_diff'])
+            c_cor = np.sqrt(diff.at[i, 'var_a'])
+        diff.at[i, 'c_cor'] = c_cor 
+        diff.at[i, 'biais']=diff.at[i, 'moy_b']-diff.at[i, 'moy_a']
+        diff.at[i, 'e_max'] = np.max(diff.at[i, 'abs_diff'])
+        diff.at[i, 'e_moy'] = np.mean(diff.at[i, 'abs_diff'])
         
         nbdiff = np.count_nonzero(a!=b)
-        diff.loc[i, 'diff_percent'] = nbdiff / a.size * 100.0
-        if not ((-1.000001 <= diff.loc[i, 'c_cor'] <= 1.000001) and (-0.1 <= diff.loc[i, 'e_rel_max'] <= 0.1) and (-0.1 <= diff.loc[i, 'e_rel_moy'] <= 0.1)):
-            diff.loc[i, 'nomvar'] = '<' + diff.loc[i, 'nomvar'] + '>'
+        diff.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
+        if not ((-1.000001 <= diff.at[i, 'c_cor'] <= 1.000001) and (-0.1 <= diff.at[i, 'e_rel_max'] <= 0.1) and (-0.1 <= diff.at[i, 'e_rel_moy'] <= 0.1)):
+            diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
             success = False
     return success        
 
 
 def remove_meta_for_fstcomp(df: pd.DataFrame):
-    for meta in ['!!', 'P0', 'PT', '>>', '^>','^^', 'HY', '!!SF']:
+    for meta in StandardFileReader.meta_data:
         df = df[df.nomvar != meta]
     return df
 
