@@ -6,9 +6,9 @@ A pythonic library to work with RPN standard files
 
 ![How to use as a submodule](misc/use_as_submodule.md)
 
-## Std 
+## StandardFile 
 
-![Main fstpy library](packages/fstpy/std.md)
+![Main fstpy library](packages/fstpy/standardfile.md)
 
 ## Dictionnaries
 
