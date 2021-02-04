@@ -1,6 +1,6 @@
 {
     "name": "fstpy",
-    "version": "1.0",
+    "version": "1.0.1",
     "platform": "ubuntu-18.04-skylake-64",
     "maintainer": "CMDS",
     "description": "Spooki fstpy package",

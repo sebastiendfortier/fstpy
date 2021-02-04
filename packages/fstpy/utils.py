@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
-import numpy as np
-from .context import logger
 from functools import wraps
 import inspect
+from .config import *
 
 def initializer(func):
     """
@@ -93,6 +92,6 @@ def validate_nomvar(nomvar, caller_class, error_class):
 
 def validate_df_not_empty(df, caller_class, error_class):
     if df.empty:
-        context.logger.error(caller_class + ' - no records to process')
+        logger.error(caller_class + ' - no records to process')
         raise error_class(caller_class + ' - no records to process')    
 

@@ -23,7 +23,7 @@ main(){
       real_file=$(readlink -f ${sourced_file})
   fi
 
-  spooki_pure_base_path="$(cd "$(dirname ${real_file})/../.."; pwd)"
+  fstpy_base_path="$(cd "$(dirname ${real_file})/../.."; pwd)"
 
   if in_build_dir ; then
       message "ERROR: This script is only meant for the installed version of spooki-pure. "
@@ -33,12 +33,12 @@ main(){
   warn_override_variables PYTHONPATH
 
 
-  [ -z "$PYTHONPATH" ] && export PYTHONPATH=${spooki_pure_base_path}/lib/packages || export PYTHONPATH=$PYTHONPATH:${spooki_pure_base_path}/lib/packages
+  [ -z "$PYTHONPATH" ] && export PYTHONPATH=${fstpy_base_path}/lib/packages || export PYTHONPATH=$PYTHONPATH:${fstpy_base_path}/lib/packages
 
 
   if $in_ssm ; then
       load_spooki_runtime_dependencies
-      message "SUCCESS: Using spooki-pure from ${spooki_pure_base_path}"
+      message "SUCCESS: Using spooki-pure from ${fstpy_base_path}"
   fi
 }
 
@@ -74,7 +74,7 @@ warn_override_variables(){
 # }
 
 in_build_dir(){
-    [ -e ${spooki_pure_base_path}/CMakeFiles ]
+    [ -e ${fstpy_base_path}/CMakeFiles ]
 }
 
 print_and_do(){
@@ -86,8 +86,7 @@ load_spooki_runtime_dependencies(){
     message "Loading spooki-pure runtime dependencies ..."
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
-    print_and_do python3 -m pip install --upgrade pip
-    print_and_do python3 -m pip install -r ${spooki_pure_base_path}/etc/profile.d/requirements.txt
+    #print_and_do python3 -m pip install -r ${fstpy_base_path}/etc/profile.d/requirements.txt
     message "... done loading spooki-pure runtime dependencies."
 }
 
