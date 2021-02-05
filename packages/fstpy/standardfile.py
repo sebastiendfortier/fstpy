@@ -490,7 +490,6 @@ def fst_to_df(file_id:int, exception_class, materialize:bool, subset, read_meta_
     #create a dataframe correspondinf to the fst file
     df = pd.DataFrame(records)
     assert len(df.index) == len(keys)
-    print('1',df['d'])
     return df
 
 def get_meta_record_keys(file_id):
@@ -808,7 +807,6 @@ def add_empty_columns(df, columns, init):
     #df = df.reindex(columns = df.columns.tolist() + ['min','max','mean','std','min_pos','max_pos'])            
 def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
     add_empty_columns(df, ['min','max','mean','std'],np.nan)
-    initializer = (np.nan,np.nan)
     add_empty_columns(df, ['min_pos','max_pos'],None)
     for i in df.index:
         df.at[i,'mean'] = df.at[i,'d'].mean()
@@ -890,7 +888,7 @@ def zap_fhour(df:pd.DataFrame, fhour_value:int) -> pd.DataFrame:
 
 def create_materialize_info(df:pd.DataFrame) -> pd.DataFrame:
     for i in df.index:
-        if df.at[i,'d'] is None == False:
+        if (df.at[i,'d'] is None) == False:
             return df
         if df.at[i,'key'] != None:
             materialize_info={
