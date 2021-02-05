@@ -124,8 +124,13 @@ def test_add_path_and_modification_time_wrong(raw_data_frame, input_file, file_m
 
 #materialize, add_extra_columns
 @pytest.mark.std_functions
-def test_add_missing_columns(df):
-    pass
+def test_add_missing_columns(raw_data_frame):
+    assert 'path' not in raw_data_frame.columns
+    assert 'file_modification_time' not in raw_data_frame.columns
+    df = add_path_and_modification_time(raw_data_frame, input_file, file_mod_time)
+    assert 'path' in df.columns
+    assert 'file_modification_time' in df.columns
+
 
 # @pytest.mark.std_functions
 # def test_strip_string_columns(df):

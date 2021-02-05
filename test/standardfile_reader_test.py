@@ -50,7 +50,7 @@ def test_params_add_extra_columns_false_materialize(input_file):
     assert len(df.index) == 85
     assert len(df.columns) == 34
     assert 'd' in df.columns 
-    assert df['d'] is not None
+    assert (df['d'] is None) == False
 
 @pytest.mark.std_reader
 def test_params_materialize_true(input_file):
@@ -59,7 +59,7 @@ def test_params_materialize_true(input_file):
     assert len(df.index) == 85
     assert len(df.columns) == 51   
     assert 'd' in df.columns 
-    assert df['d'] is not None
+    assert (df['d'] is None) == False
 
 @pytest.mark.std_reader
 def test_params_subset(input_file):
@@ -75,7 +75,7 @@ def test_params_materialize_true_subset(input_file):
     assert len(df.index) == 85
     assert len(df.columns) == 51   
     assert 'd' in df.columns 
-    assert df['d'] is not None
+    assert (df['d'] is None) == False
 
 @pytest.mark.std_reader
 def test_params_subset_all(input_file):

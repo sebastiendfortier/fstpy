@@ -83,41 +83,26 @@ class StandardFileReader:
         if isinstance(self.filenames, list):
             for f in self.filenames:
                 self.open(f)
-                df = self.read(f)
+                self.df = self.read(f)
                 self.close(f)
-                dfs.append(df)
-            df = pd.concat(dfs)   
-            df = reorder_dataframe(df)
-            df = self.reorder_columns(df,extra=self.add_extra_columns)
-            return df
+                dfs.append(self.df)
+            self.df = pd.concat(dfs)   
+            self.df = reorder_dataframe(self.df)
+            self.df = reorder_columns(self.df,extra=self.add_extra_columns)
+            return self.df
         else:
             f = self.filenames
             self.open(f)
-            df = self.read(f)
-            nb_rec1 = len(df.index)
+            self.df = self.read(f)
+            nb_rec1 = len(self.df.index)
             self.close(f)
-            df = reorder_dataframe(df)
-            nb_rec2 = len(df.index)
-            df = self.reorder_columns(df,extra=self.add_extra_columns)    
-            nb_rec3 = len(df.index)
+            self.df = reorder_dataframe(self.df)
+            nb_rec2 = len(self.df.index)
+            self.df = reorder_columns(self.df,extra=self.add_extra_columns)  
+            nb_rec3 = len(self.df.index)
             assert nb_rec1 == nb_rec2
             assert nb_rec2 == nb_rec3
-            return df
-
-    def reorder_columns(self, df, extra=True):
-        if extra:
-            df = df[['nomvar','unit', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'pdateo', 'ip1', 'level','pkind','ip2', 'ip3', 'deet', 'npas',
-                    'pdatyp','nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'e_run','e_implementation', 'e_ensemble_member','d','datev','pdatev','swa', 'lng', 'dltf', 'ubc',
-                    'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time','kind', 'surface', 'follow_topography', 'dirty', 'vctype',
-                    'dateo', 'fhour', 'datyp', 'grid', 'e_label','materialize_info', 'key','shape','unit_converted']]    
-        
-        else:
-            df = df[['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
-                    'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd','datev','swa', 'lng', 'dltf', 'ubc',
-                    'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time', 
-                    'dateo', 'datyp', 'materialize_info','key','shape']]    
-     
-        return df
+            return self.df
 
     def open(self,path):
         """opens the standard file and sets attributes  
@@ -151,13 +136,16 @@ class StandardFileReader:
         :rtype: pd.DataFrame
         """
         self.df = fst_to_df(self.file_id, StandardFileError, self.materialize, self.subset, self.read_meta_fields_only)
+        assert ('d' in self.df.columns) and ((self.df['d'] is None) == False) if self.materialize else True
         nb_rec1 = len(self.df.index)
         
         # create the file column and init
         self.df = add_path_and_modification_time(self.df,file,self.file_modification_time)
+        assert ('d' in self.df.columns) and ((self.df['d'] is None) == False) if self.materialize else True
         nb_rec2 = len(self.df.index)
 
         self.df = add_missing_columns(self.df, self.materialize, self.add_extra_columns)
+        assert ('d' in self.df.columns) and ((self.df['d'] is None) == False) if self.materialize else True
         nb_rec3 = len(self.df.index)
         
         assert nb_rec1 == nb_rec2
@@ -175,7 +163,6 @@ class StandardFileReader:
         # if not self.keep_meta_fields:
         #     meta_set = set(self.meta_data) #meta{'^>', '>>', '^^', '!!', '!!SF', 'HY', 'P0', 'PT', 'E1'}
         #     self.df=self.df[~self.df['nomvar'].isin(meta_set)]
-
         return self.df
         
     def set_vertical_coordinate_type(self) -> pd.DataFrame:
@@ -322,6 +309,21 @@ class StandardFileWriter:
                     self.df = reshape_data_to_original_shape(self.df,i)
                     rmn.fstecr(self.file_id, np.asfortranarray(self.df.at[i,'d']), self.df.loc[i].to_dict())     
 
+def reorder_columns(df, extra=True):
+    if extra:
+        df = df[['nomvar','unit', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'pdateo', 'ip1', 'level','pkind','ip2', 'ip3', 'deet', 'npas',
+                'pdatyp','nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'e_run','e_implementation', 'e_ensemble_member','d','datev','pdatev','swa', 'lng', 'dltf', 'ubc',
+                'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time','kind', 'surface', 'follow_topography', 'dirty', 'vctype',
+                'dateo', 'fhour', 'datyp', 'grid', 'e_label','materialize_info', 'key','shape','unit_converted']]    
+    
+    else:
+        df = df[['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
+                'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd','datev','swa', 'lng', 'dltf', 'ubc',
+                'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time', 
+                'dateo', 'datyp', 'materialize_info','key','shape']]    
+    
+    return df
+
 def add_path_and_modification_time(df, file, file_modification_time):
     # create the file column and init
     df['path'] = file
@@ -332,7 +334,8 @@ def add_path_and_modification_time(df, file, file_modification_time):
 
 def add_missing_columns(df, materialize,add_extra_columns):
     #prep the data column
-    df['d']=None
+    if not materialize:
+        df['d']=None
 
     strip_string_columns(df)
     
@@ -465,13 +468,12 @@ def fst_to_df(file_id:int, exception_class, materialize:bool, subset, read_meta_
 
     all_keys = get_all_record_keys(file_id, subset)
     if subset is None:
-        print(subset is None,number_or_records,len(all_keys))
         assert number_or_records == len(all_keys)
     assert len(all_keys) == len(set(all_keys))
 
     if read_meta_fields_only:
         keys = meta_keys      
-        if subset is not None:
+        if (subset is None) == False:
             logger.warning('subset key does not appply when getting meta data fields only')
     else:
         keys = list(set(all_keys).difference(set(meta_keys)))
@@ -488,7 +490,7 @@ def fst_to_df(file_id:int, exception_class, materialize:bool, subset, read_meta_
     #create a dataframe correspondinf to the fst file
     df = pd.DataFrame(records)
     assert len(df.index) == len(keys)
-    print(df.columns)
+    print('1',df['d'])
     return df
 
 def get_meta_record_keys(file_id):
@@ -500,7 +502,7 @@ def get_meta_record_keys(file_id):
     return meta_keys
 
 def get_all_record_keys(file_id, subset):
-    if subset is not None:
+    if (subset is None) == False:
         keys = rmn.fstinl(file_id,**subset)
     else:
         keys = rmn.fstinl(file_id)
@@ -640,7 +642,7 @@ def materialize(df:pd.DataFrame) -> pd.DataFrame:
                 key=rec_df.at[i,'key']
                 #logger.warning('materialize - record %s %s %s %s %s %s %s already materialized'%(rec_df.at[i,'nomvar'], rec_df.at[i,'typvar'], rec_df.at[i,'etiket'], rec_df.at[i,'ip1'],rec_df.at[i,'ip2'],rec_df.at[i,'ip3'], rec_df.at[i,'datev']))
                 if ('dirty' in rec_df.columns) and (rec_df.at[i,'dirty']):
-                    if ('materialize_info' in rec_df.columns) and (rec_df.at[i,'materialize_info'] is not None):
+                    if ('materialize_info' in rec_df.columns) and (rec_df.at[i,'materialize_info'] is None == False):
                         # find the old record from materialize info
                         key_list = rmn.fstinl(file_id,**rec_df.at[i,'materialize_info'])
                         if len(key_list) != 1:
@@ -888,7 +890,7 @@ def zap_fhour(df:pd.DataFrame, fhour_value:int) -> pd.DataFrame:
 
 def create_materialize_info(df:pd.DataFrame) -> pd.DataFrame:
     for i in df.index:
-        if df.at[i,'d'] is not None:
+        if df.at[i,'d'] is None == False:
             return df
         if df.at[i,'key'] != None:
             materialize_info={
