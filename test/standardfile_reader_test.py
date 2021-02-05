@@ -3,9 +3,7 @@ from packages.fstpy.standardfile import reorder_dataframe
 from fstpy.standardfile import *
 import pytest
 import pandas as pd
-import numpy as np
 from test import TMP_PATH
-import math
 
 @pytest.fixture
 def input_file():
@@ -15,7 +13,7 @@ def input_file():
 def tmp_dir():
     return TMP_PATH
 
-@pytest.mark.standardfile
+@pytest.mark.std_reader
 def test_open(input_file):
     std_file = StandardFileReader(input_file)
     assert type(std_file) == StandardFileReader   
@@ -31,21 +29,21 @@ def test_open(input_file):
 #^^ 3
 #!! 2
 #meta 9
-@pytest.mark.standardfile
+@pytest.mark.std_reader
 def test_params_read_meta_fields_only(input_file):
     std_file = StandardFileReader(input_file,read_meta_fields_only=True)
     df = std_file.to_pandas()
     assert len(df.index) == 9
     assert len(df.columns) == 51
 
-@pytest.mark.standardfile
+@pytest.mark.std_reader
 def test_params_add_extra_columns_false(input_file):
     std_file = StandardFileReader(input_file,add_extra_columns=False)
     df = std_file.to_pandas()
     assert len(df.index) == 1865
     assert len(df.columns) == 34
 
-@pytest.mark.standardfile
+@pytest.mark.std_reader
 def test_params_add_extra_columns_false_materialize(input_file):
     std_file = StandardFileReader(input_file,materialize=True,add_extra_columns=False,subset={'nomvar':'UU'})
     df = std_file.to_pandas()
@@ -54,7 +52,7 @@ def test_params_add_extra_columns_false_materialize(input_file):
     assert 'd' in df.columns 
     assert df['d'] is not None
 
-@pytest.mark.standardfile
+@pytest.mark.std_reader
 def test_params_materialize_true(input_file):
     std_file = StandardFileReader(input_file,materialize=True,subset={'nomvar':'UU'})
     df = std_file.to_pandas()
@@ -63,14 +61,14 @@ def test_params_materialize_true(input_file):
     assert 'd' in df.columns 
     assert df['d'] is not None
 
-@pytest.mark.standardfile
+@pytest.mark.std_reader
 def test_params_subset(input_file):
     std_file = StandardFileReader(input_file,subset={'nomvar':'TT'})
     df = std_file.to_pandas()
     assert len(df.index) == 85
     assert len(df.columns) == 51   
 
-@pytest.mark.standardfile
+@pytest.mark.std_reader
 def test_params_materialize_true_subset(input_file):
     std_file = StandardFileReader(input_file,materialize=True,subset={'nomvar':'TT'})
     df = std_file.to_pandas()
@@ -79,7 +77,7 @@ def test_params_materialize_true_subset(input_file):
     assert 'd' in df.columns 
     assert df['d'] is not None
 
-@pytest.mark.standardfile
+@pytest.mark.std_reader
 def test_params_subset_all(input_file):
     std_file = StandardFileReader(input_file)
     df = std_file.to_pandas()

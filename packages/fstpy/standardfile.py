@@ -234,38 +234,7 @@ class StandardFileReader:
         #logger.debug("     ldlat/dlon =%f, %f" % (g['dlat'], g['dlon']))
         #logger.debug("     xlat`/xlon1=%f, %f; xlat2/xlon2=%f, %f" % (g['xlat1'], g['xlon1'], g['xlat2'], g['xlon2']))
         #logger.debug("     ax: min=%f, max=%f; ay: min=%f, max=%f" % (g['ax'].min(), g['ax'].max(), g['ay'].min(), g['ay'].max()))
-def add_path_and_modification_time(df, file, file_modification_time):
-    # create the file column and init
-    df['path'] = file
-    #create the file mod time column and init
-    df['file_modification_time'] = file_modification_time
-    return df
 
-
-def add_missing_columns(df, materialize,add_extra_columns):
-    #prep the data column
-    df['d']=None
-
-    strip_string_columns(df)
-    
-    add_empty_columns(df, ['materialize_info'],None)
-
-    if add_extra_columns:
-        # # create parsed etiket column
-        add_empty_columns(df, ['kind'], 0)
-        add_empty_columns(df, ['level'],np.nan)
-        add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False)
-        add_empty_columns(df, ['vctype','pkind','pdateo','pdatev','fhour','pdatyp','grid','e_run','e_implementation','e_ensemble_member','e_label','unit'],'')
-        
-        #self.df = self.df.reindex(columns = self.df.columns.tolist() + ['kind','level','surface','follow_topography','vctype','pkind','pdateo','fhour','pdatyp','grid','run','implementation','e_ensemble_member','e_label','unit','materialize_info','dirty'])            
-        #add computed columns
-        add_columns(df)
-    return df    
-
-def strip_string_columns(df):
-    df['etiket'] = df['etiket'].str.strip()
-    df['nomvar'] = df['nomvar'].str.strip()
-    df['typvar'] = df['typvar'].str.strip()
 
 class StandardFileWriter:
     """fst file writer  
@@ -310,7 +279,6 @@ class StandardFileWriter:
         logger.info('StandardFileWriter - closing: %s', self.filename)
         rmn.fstcloseall(self.file_id)
 
-
     def write(self):
         """write - Writes the supplied records to the output file
 
@@ -354,6 +322,38 @@ class StandardFileWriter:
                     self.df = reshape_data_to_original_shape(self.df,i)
                     rmn.fstecr(self.file_id, np.asfortranarray(self.df.at[i,'d']), self.df.loc[i].to_dict())     
 
+def add_path_and_modification_time(df, file, file_modification_time):
+    # create the file column and init
+    df['path'] = file
+    #create the file mod time column and init
+    df['file_modification_time'] = file_modification_time
+    return df
+
+
+def add_missing_columns(df, materialize,add_extra_columns):
+    #prep the data column
+    df['d']=None
+
+    strip_string_columns(df)
+    
+    add_empty_columns(df, ['materialize_info'],None)
+
+    if add_extra_columns:
+        # # create parsed etiket column
+        add_empty_columns(df, ['kind'], 0)
+        add_empty_columns(df, ['level'],np.nan)
+        add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False)
+        add_empty_columns(df, ['vctype','pkind','pdateo','pdatev','fhour','pdatyp','grid','e_run','e_implementation','e_ensemble_member','e_label','unit'],'')
+        
+        #self.df = self.df.reindex(columns = self.df.columns.tolist() + ['kind','level','surface','follow_topography','vctype','pkind','pdateo','fhour','pdatyp','grid','run','implementation','e_ensemble_member','e_label','unit','materialize_info','dirty'])            
+        #add computed columns
+        add_columns(df)
+    return df    
+
+def strip_string_columns(df):
+    df['etiket'] = df['etiket'].str.strip()
+    df['nomvar'] = df['nomvar'].str.strip()
+    df['typvar'] = df['typvar'].str.strip()
 
 def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     """get_2d_lat_lon Gets the latitudes and longitudes as 2d arrays associated with the supplied grids
@@ -439,10 +439,22 @@ def remove_df_columns(df,keys_to_keep = {'key','dateo', 'deet', 'npas', 'ni', 'n
     return df
 
 
-def fst_to_df(file_id, exception_class, materialize, subset, read_meta_fields_only):
-    """ Reads all metadata from the imput file
-    :return: a pandas Dataframe object containig the meta data of the file
-    :rtype: pandas.Dataframe
+def fst_to_df(file_id:int, exception_class, materialize:bool, subset, read_meta_fields_only:bool) -> pd.DataFrame:
+    """[summary]
+
+    :param file_id: unit id of the fst file
+    :type file_id: int
+    :param exception_class: exception class to raise in case of error
+    :type exception_class: Exception
+    :param materialize: if True, reads the meta data and data, default False
+    :type materialize: bool
+    :param subset: passes parameters to fstinl to create a selection of records insteand of reading all records
+    :type subset: dict|None
+    :param read_meta_fields_only: if True, read only meta data fields
+    :type read_meta_fields_only: bool
+    :raises exception_class: raised exception in case of error
+    :return: all the read records as a pandas DataFrame
+    :rtype: pd.DataFrame
     """
     logger.info('read - reading records')
 
@@ -453,6 +465,7 @@ def fst_to_df(file_id, exception_class, materialize, subset, read_meta_fields_on
 
     all_keys = get_all_record_keys(file_id, subset)
     if subset is None:
+        print(subset is None,number_or_records,len(all_keys))
         assert number_or_records == len(all_keys)
     assert len(all_keys) == len(set(all_keys))
 
@@ -475,6 +488,7 @@ def fst_to_df(file_id, exception_class, materialize, subset, read_meta_fields_on
     #create a dataframe correspondinf to the fst file
     df = pd.DataFrame(records)
     assert len(df.index) == len(keys)
+    print(df.columns)
     return df
 
 def get_meta_record_keys(file_id):
