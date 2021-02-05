@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-import pytest
+from packages.fstpy.standardfile import reorder_dataframe
 from fstpy.standardfile import *
+import pytest
+import pandas as pd
+import numpy as np
 from test import TMP_PATH, TEST_PATH
 
+
 @pytest.mark.std_writer
-class TestStandardFileWriter:
-    
-    def test_a(self):
-        pass
+def a_test():
+    pass

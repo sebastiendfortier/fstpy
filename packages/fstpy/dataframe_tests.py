@@ -286,7 +286,7 @@ class BufferBase (object):
     rpnstd_metadata_list=None
 
     # Set default for minimal_metadata
-    if (rpnstd_metadata is None) == False:
+    if rpnstd_metadata is None == False:
       minimal_metadata = not rpnstd_metadata
     if minimal_metadata is None:
       minimal_metadata = True
