@@ -50,7 +50,7 @@ class StandardFileReader:
         Opens, reads the contents of an fst files or files into a pandas Dataframe and closes   
         This is due to rpn standard file limitations on working with multiple files. No data is loaded   
         only the meta data is read with ftsprm   
-
+ 
         :param filenames: [description]   
         :type filenames: [type]   
         :param keep_meta_fields: [description], defaults to False   
@@ -60,7 +60,8 @@ class StandardFileReader:
     """
     meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
     @initializer
-    def __init__(self, filenames, read_meta_fields_only=False,add_extra_columns=True,materialize=False,subset={'datev':-1, 'etiket':' ', 'ip1':-1, 'ip2':-1, 'ip3':-1, 'typvar':' ', 'nomvar':' '}):
+    def __init__(self, filenames, read_meta_fields_only=False,add_extra_columns=True,materialize=False,subset=None):
+        #{'datev':-1, 'etiket':' ', 'ip1':-1, 'ip2':-1, 'ip3':-1, 'typvar':' ', 'nomvar':' '}
         """init instance"""
         pass
 
@@ -83,51 +84,40 @@ class StandardFileReader:
             for f in self.filenames:
                 self.open(f)
                 df = self.read(f)
-                dfs.append(df)
                 self.close(f)
+                dfs.append(df)
             df = pd.concat(dfs)   
             df = reorder_dataframe(df)
-            df = self.reorder_columns(df)
+            df = self.reorder_columns(df,extra=self.add_extra_columns)
             return df
         else:
-            self.open(self.filenames)
-            df = self.read(self.filenames)
-            self.close(self.filenames)
-            if self.add_extra_columns:
-                df = reorder_dataframe(df)
-            df = self.reorder_columns(df)    
+            f = self.filenames
+            self.open(f)
+            df = self.read(f)
+            nb_rec1 = len(df.index)
+            self.close(f)
+            df = reorder_dataframe(df)
+            nb_rec2 = len(df.index)
+            df = self.reorder_columns(df,extra=self.add_extra_columns)    
+            nb_rec3 = len(df.index)
+            assert nb_rec1 == nb_rec2
+            assert nb_rec2 == nb_rec3
             return df
 
-    def reorder_columns(self, df):
-        df = df[['nomvar','unit', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'pdateo', 'ip1', 'level','pkind','ip2', 'ip3', 'deet', 'npas',
-                 'pdatyp','nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'e_run','e_implementation', 'e_ensemble_member','d','datev','pdatev','swa', 'lng', 'dltf', 'ubc',
-                'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time','kind', 'surface', 'follow_topography', 'dirty', 'vctype',
-                'dateo', 'fhour', 'datyp', 'grid', 'e_label','materialize_info', 'implementation','key','shape','unit_converted']]    
+    def reorder_columns(self, df, extra=True):
+        if extra:
+            df = df[['nomvar','unit', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'pdateo', 'ip1', 'level','pkind','ip2', 'ip3', 'deet', 'npas',
+                    'pdatyp','nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'e_run','e_implementation', 'e_ensemble_member','d','datev','pdatev','swa', 'lng', 'dltf', 'ubc',
+                    'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time','kind', 'surface', 'follow_topography', 'dirty', 'vctype',
+                    'dateo', 'fhour', 'datyp', 'grid', 'e_label','materialize_info', 'key','shape','unit_converted']]    
+        
+        else:
+            df = df[['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
+                    'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd','datev','swa', 'lng', 'dltf', 'ubc',
+                    'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time', 
+                    'dateo', 'datyp', 'materialize_info','key','shape']]    
+     
         return df
-
-    # def to_dask(self) -> dd.DataFrame:
-    #     """creates the dataframe from the provided files  
-
-    #     :return: ddf  
-    #     :rtype: dd.Dataframe  
-    #     """
-    #     dfs = []
-    #     if isinstance(self.filenames, list):
-    #         for f in self.filenames:
-    #             self.open(f)
-    #             df = self.read(f, pandas=False)
-    #             dfs.append(df)
-    #             self.close(f)
-    #         df = pd.concat(dfs)   
-    #         df = reorder_dataframe(df)
-    #         return df
-    #     else:
-    #         self.open(self.filenames)
-    #         df = self.read(self.filenames, pandas=False)
-    #         self.close(self.filenames)
-    #         if self.add_extra_columns:
-    #             df = reorder_dataframe(df)
-    #         return df
 
     def open(self,path):
         """opens the standard file and sets attributes  
@@ -160,16 +150,18 @@ class StandardFileReader:
         :return: [description]
         :rtype: pd.DataFrame
         """
-        if self.read_meta_fields_only:
-            self.df = fst_to_df(self.file_id, StandardFileError, self.materialize, self.subset, meta_fields=True)
-        else:    
-            self.df = fst_to_df(self.file_id, StandardFileError, self.materialize, self.subset)
-
+        self.df = fst_to_df(self.file_id, StandardFileError, self.materialize, self.subset, self.read_meta_fields_only)
+        nb_rec1 = len(self.df.index)
+        
         # create the file column and init
         self.df = add_path_and_modification_time(self.df,file,self.file_modification_time)
+        nb_rec2 = len(self.df.index)
 
-        add_missing_columns(self.df, self.materialize, self.add_extra_columns)
-
+        self.df = add_missing_columns(self.df, self.materialize, self.add_extra_columns)
+        nb_rec3 = len(self.df.index)
+        
+        assert nb_rec1 == nb_rec2
+        assert nb_rec2 == nb_rec3
         # self.meta_df = select(self.df, 'nomvar in %s'%self.meta_data, no_fail=True)
         # logger.debug(len(self.meta_df.index))
         # logger.debug(len(self.df.index))
@@ -251,22 +243,24 @@ def add_path_and_modification_time(df, file, file_modification_time):
 
 
 def add_missing_columns(df, materialize,add_extra_columns):
-    if not materialize:
-        #prep the data column
-        df['d']=None
+    #prep the data column
+    df['d']=None
 
     strip_string_columns(df)
     
+    add_empty_columns(df, ['materialize_info'],None)
+
     if add_extra_columns:
         # # create parsed etiket column
         add_empty_columns(df, ['kind'], 0)
         add_empty_columns(df, ['level'],np.nan)
         add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False)
         add_empty_columns(df, ['vctype','pkind','pdateo','pdatev','fhour','pdatyp','grid','e_run','e_implementation','e_ensemble_member','e_label','unit'],'')
-        add_empty_columns(df, ['materialize_info'],None)
+        
         #self.df = self.df.reindex(columns = self.df.columns.tolist() + ['kind','level','surface','follow_topography','vctype','pkind','pdateo','fhour','pdatyp','grid','run','implementation','e_ensemble_member','e_label','unit','materialize_info','dirty'])            
         #add computed columns
         add_columns(df)
+    return df    
 
 def strip_string_columns(df):
     df['etiket'] = df['etiket'].str.strip()
@@ -445,30 +439,42 @@ def remove_df_columns(df,keys_to_keep = {'key','dateo', 'deet', 'npas', 'ni', 'n
     return df
 
 
-def fst_to_df(file_id, exception_class, materialize, subset, meta_fields=False):
+def fst_to_df(file_id, exception_class, materialize, subset, read_meta_fields_only):
     """ Reads all metadata from the imput file
     :return: a pandas Dataframe object containig the meta data of the file
     :rtype: pandas.Dataframe
     """
     logger.info('read - reading records')
 
-    if meta_fields:
-        keys = get_meta_record_keys(file_id)       
-    else:
-        keys = get_record_keys(file_id, subset)
+    number_or_records = rmn.fstnbr(file_id)
 
-    # key_set = keys | meta_keys
+    meta_keys = get_meta_record_keys(file_id)
+    assert len(meta_keys) == len(set(meta_keys))
+
+    all_keys = get_all_record_keys(file_id, subset)
+    if subset is None:
+        assert number_or_records == len(all_keys)
+    assert len(all_keys) == len(set(all_keys))
+
+    if read_meta_fields_only:
+        keys = meta_keys      
+        if subset is not None:
+            logger.warning('subset key does not appply when getting meta data fields only')
+    else:
+        keys = list(set(all_keys).difference(set(meta_keys)))
+
 
     if len(keys) == 0:
         logger.error('read - no records in file')
         raise exception_class('no records in file')
+
     if materialize:
         records = [rmn.fstluk(k) for k in keys]
     else:    
         records = [rmn.fstprm(k) for k in keys]
     #create a dataframe correspondinf to the fst file
     df = pd.DataFrame(records)
-    
+    assert len(df.index) == len(keys)
     return df
 
 def get_meta_record_keys(file_id):
@@ -477,13 +483,13 @@ def get_meta_record_keys(file_id):
         keys = rmn.fstinl(file_id,nomvar=meta_name)
         if len(keys):
             meta_keys += keys
-    meta_keys = set(meta_keys)       
     return meta_keys
 
-def get_record_keys(file_id, subset):
-    meta_keys = get_meta_record_keys(file_id)
-    keys = rmn.fstinl(file_id,**subset)
-    keys = set(keys).difference(set(meta_keys))
+def get_all_record_keys(file_id, subset):
+    if subset is not None:
+        keys = rmn.fstinl(file_id,**subset)
+    else:
+        keys = rmn.fstinl(file_id)
     return keys
 
 def get_file_modification_time(path:str,caller,exception_class):
@@ -521,9 +527,9 @@ def add_columns(df:pd.DataFrame):
     for i in df.index:
         nomvar = df.at[i,'nomvar']
         #find unit name value for this nomvar
-        get_unit(df, i, nomvar)
+        df = get_unit(df, i, nomvar)
         #get level and kind
-        set_level_and_kind(df, i) #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
+        df = set_level_and_kind(df, i) #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
         #create a real date of observation
         df.at[i,'pdateo'] = create_printable_date_of_observation(int(df.at[i,'dateo']))
         #create a printable date of validity
@@ -538,9 +544,10 @@ def add_columns(df:pd.DataFrame):
         df.at[i,'grid'] = create_grid_identifier(df.at[i,'nomvar'],df.at[i,'ip1'],df.at[i,'ip2'],df.at[i,'ig1'],df.at[i,'ig2'])
         #logger.debug(df.at[i,'kind'],df.at[i,'level'])
         #set surface flag for surface levels
-        set_surface(df, i, meter_levels)
-        set_follow_topography(df, i)
-        df.at[i,'e_label'],df.at[i,'e_run'],df.at[i,'implementation'],df.at[i,'e_ensemble_member'] = parse_etiket(df.at[i,'etiket'])
+        df = set_surface(df, i, meter_levels)
+        df = set_follow_topography(df, i)
+        df.at[i,'e_label'],df.at[i,'e_run'],df.at[i,'e_implementation'],df.at[i,'e_ensemble_member'] = parse_etiket(df.at[i,'etiket'])
+    return df
 
 def set_level_and_kind(df, i):
     level, kind = get_level_and_kind(df.at[i,'ip1'])
@@ -549,6 +556,7 @@ def set_level_and_kind(df, i):
     # level = level_kind[0]
     df.at[i,'kind'] = int(kind)
     df.at[i,'level'] = level #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
+    return df
 
 def get_unit(df, i, nomvar):
     unit = STDVAR.loc[STDVAR['nomvar'] == f'{nomvar}']['unit'].values
@@ -556,11 +564,13 @@ def get_unit(df, i, nomvar):
         df.at[i,'unit'] = unit[0]
     else:
         df.at[i,'unit'] = 'scalar'
+    return df
 
 def strip_df_strings(df, i):
     df.at[i,'etiket'] = df.at[i,'etiket'].strip()
     df.at[i,'nomvar'] = df.at[i,'nomvar'].strip()
     df.at[i,'typvar'] = df.at[i,'typvar'].strip()
+    return df
 
 def set_follow_topography(df, i):
     if df.at[i,'kind'] == 1:
@@ -571,6 +581,7 @@ def set_follow_topography(df, i):
         df.at[i,'follow_topography'] = True
     else:
         df.at[i,'follow_topography'] = False
+    return df
 
 def set_surface(df, i, meter_levels):
     if (df.at[i,'kind'] == 5) and (df.at[i,'level'] == 1):
@@ -581,7 +592,7 @@ def set_surface(df, i, meter_levels):
         df.at[i,'surface'] = True
     else:
         df.at[i,'surface'] = False
-
+    return df
 
 def get_level_and_kind(ip1:int):
     #logger.debug('ip1',ip1)
@@ -633,10 +644,10 @@ def materialize(df:pd.DataFrame) -> pd.DataFrame:
     return res_df
 
 def reorder_dataframe(df):
-    if 'grid' not in df.columns: 
-        return df
-    df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False,inplace=True) 
+    if ('grid' in df.columns) and ('fhour' in df.columns) and ('level' in df.columns): 
+        df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False,inplace=True) 
     df.reset_index(drop=True,inplace=True)
+ 
     return df
 
 
