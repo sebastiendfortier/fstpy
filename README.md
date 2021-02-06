@@ -8,19 +8,19 @@ A pythonic library to work with RPN standard files
 
 ## StandardFile 
 
-![Main fstpy library](packages/fstpy/standardfile.md)
+![Main fstpy library](fstpy/standardfile.md)
 
 ## Dictionnaries
 
-![Dictionaries and constants](packages/fstpy/dictionaries.md)
+![Dictionaries and constants](fstpy/dictionaries.md)
 ## Log
 
-![Simple logging module](packages/fstpy/log.md)
+![Simple logging module](fstpy/log.md)
 
 ## Unit
 
-![Unit conversion utility](packages/fstpy/unit.md)
+![Unit conversion utility](fstpy/unit.md)
 
 ## Utils
 
-![Utilities](packages/fstpy/utils.md)
+![Utilities](fstpy/utils.md)
