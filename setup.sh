@@ -27,7 +27,7 @@ add_fstpy_to_pythonpath(){
     # On darwin, readlink does not have the -f option
     bash_source=$(python3 -c "import os; print(os.path.realpath('${BASH_SOURCE[0]}'))")
     this_dir=$(cd -P $(dirname $bash_source) 2>/dev/null && pwd)
-    fstpy_packages_dir=$this_dir/packages
+    fstpy_packages_dir=$this_dir
     export PYTHONPATH=$fstpy_packages_dir:$PYTHONPATH
 }
 
