@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
-from packages.fstpy.standardfile import reorder_dataframe
-from fstpy.standardfile import *
 import pytest
-import pandas as pd
-import numpy as np
+from fstpy.standardfile import *
 from test import TMP_PATH, TEST_PATH
 
 
 @pytest.mark.std_writer
-def a_test():
-    pass
+class TestStandardFileReader:
+
+    @pytest.fixture
+    def input_file(self):
+        return TEST_PATH + '/ReaderStd/testsFiles/source_data_5005.std'
+
+    def a_test():
+        pass

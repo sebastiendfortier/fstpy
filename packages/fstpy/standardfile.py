@@ -490,7 +490,7 @@ def fst_to_df(file_id:int, exception_class, materialize:bool, subset, read_meta_
     #create a dataframe correspondinf to the fst file
     df = pd.DataFrame(records)
     assert len(df.index) == len(keys)
-    print('1',df['d'])
+
     return df
 
 def get_meta_record_keys(file_id):
