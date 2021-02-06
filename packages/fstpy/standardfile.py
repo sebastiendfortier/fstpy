@@ -91,11 +91,10 @@ class StandardFileReader:
             self.df = reorder_columns(self.df,extra=self.add_extra_columns)
             return self.df
         else:
-            f = self.filenames
-            self.open(f)
-            self.df = self.read(f)
+            self.open(self.filenames)
+            self.df = self.read(self.filenames)
             nb_rec1 = len(self.df.index)
-            self.close(f)
+            self.close(self.filenames)
             self.df = reorder_dataframe(self.df)
             nb_rec2 = len(self.df.index)
             self.df = reorder_columns(self.df,extra=self.add_extra_columns)  
@@ -276,6 +275,7 @@ class StandardFileWriter:
         """
         logger.info('StandardFileWriter - writing to file %s', self.filename)  
 
+        
         self.meta_df = reorder_dataframe(self.meta_df)
         for i in self.meta_df.index:
             record_path = self.meta_df.at[i,'path']
@@ -287,6 +287,10 @@ class StandardFileWriter:
         self.df = reorder_dataframe(self.df)
         
         for i in self.df.index:
+            print(self.df.loc[i])
+            if ('typvar' in self.df.columns) and ('unit_converted' in self.df.columns) and (self.df.at[i,'unit_converted'] == True) and (len(self.df.at[i,'typvar']) == 1):
+                self.df.at[i,'typvar']  += 'U'
+
             record_path = self.df.at[i,'path']
             if identical_destination_and_record_path(record_path,self.filename):
                 if not self.overwrite:
@@ -310,6 +314,8 @@ class StandardFileWriter:
                     rmn.fstecr(self.file_id, np.asfortranarray(self.df.at[i,'d']), self.df.loc[i].to_dict())     
 
 def reorder_columns(df, extra=True):
+    if len(df.index) == 0:
+        return df
     if extra:
         df = df[['nomvar','unit', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'pdateo', 'ip1', 'level','pkind','ip2', 'ip3', 'deet', 'npas',
                 'pdatyp','nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'e_run','e_implementation', 'e_ensemble_member','d','datev','pdatev','swa', 'lng', 'dltf', 'ubc',
@@ -337,26 +343,28 @@ def add_missing_columns(df, materialize,add_extra_columns):
     if not materialize:
         df['d']=None
 
-    strip_string_columns(df)
+    df = strip_string_columns(df)
     
-    add_empty_columns(df, ['materialize_info'],None)
+    df = add_empty_columns(df, ['materialize_info'],None)
 
     if add_extra_columns:
         # # create parsed etiket column
-        add_empty_columns(df, ['kind'], 0)
-        add_empty_columns(df, ['level'],np.nan)
-        add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False)
-        add_empty_columns(df, ['vctype','pkind','pdateo','pdatev','fhour','pdatyp','grid','e_run','e_implementation','e_ensemble_member','e_label','unit'],'')
+        df = add_empty_columns(df, ['kind'], 0)
+        df = add_empty_columns(df, ['level'],np.nan)
+        df = add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False)
+        df = add_empty_columns(df, ['vctype','pkind','pdateo','pdatev','fhour','pdatyp','grid','e_run','e_implementation','e_ensemble_member','e_label','unit'],'')
         
         #self.df = self.df.reindex(columns = self.df.columns.tolist() + ['kind','level','surface','follow_topography','vctype','pkind','pdateo','fhour','pdatyp','grid','run','implementation','e_ensemble_member','e_label','unit','materialize_info','dirty'])            
         #add computed columns
-        add_columns(df)
+        df = add_columns(df)
     return df    
 
 def strip_string_columns(df):
-    df['etiket'] = df['etiket'].str.strip()
-    df['nomvar'] = df['nomvar'].str.strip()
-    df['typvar'] = df['typvar'].str.strip()
+    if ('etiket' in df.columns) and ('nomvar' in df.columns) and ('typvar' in df.columns):
+        df['etiket'] = df['etiket'].str.strip()
+        df['nomvar'] = df['nomvar'].str.strip()
+        df['typvar'] = df['typvar'].str.strip()
+    return df
 
 def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     """get_2d_lat_lon Gets the latitudes and longitudes as 2d arrays associated with the supplied grids
@@ -467,18 +475,20 @@ def fst_to_df(file_id:int, exception_class, materialize:bool, subset, read_meta_
     assert len(meta_keys) == len(set(meta_keys))
 
     all_keys = get_all_record_keys(file_id, subset)
+
     if subset is None:
         assert number_or_records == len(all_keys)
     assert len(all_keys) == len(set(all_keys))
 
     if read_meta_fields_only:
-        keys = meta_keys      
+        keys = meta_keys    
+        if len(keys) == 0:
+            return pd.DataFrame(dtype=object)  
         if (subset is None) == False:
             logger.warning('subset key does not appply when getting meta data fields only')
     else:
         keys = list(set(all_keys).difference(set(meta_keys)))
-
-
+ 
     if len(keys) == 0:
         logger.error('read - no records in file')
         raise exception_class('no records in file')
@@ -582,12 +592,6 @@ def get_unit(df, i, nomvar):
         df.at[i,'unit'] = 'scalar'
     return df
 
-def strip_df_strings(df, i):
-    df.at[i,'etiket'] = df.at[i,'etiket'].strip()
-    df.at[i,'nomvar'] = df.at[i,'nomvar'].strip()
-    df.at[i,'typvar'] = df.at[i,'typvar'].strip()
-    return df
-
 def set_follow_topography(df, i):
     if df.at[i,'kind'] == 1:
         df.at[i,'follow_topography'] = True
@@ -660,7 +664,7 @@ def materialize(df:pd.DataFrame) -> pd.DataFrame:
     return res_df
 
 def reorder_dataframe(df):
-    if ('grid' in df.columns) and ('fhour' in df.columns) and ('level' in df.columns): 
+    if ('grid' in df.columns) and ('fhour' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
         df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False,inplace=True) 
     df.reset_index(drop=True,inplace=True)
  
@@ -804,6 +808,7 @@ def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
 def add_empty_columns(df, columns, init):
     for col in columns:
         df.insert(len(df.columns),col,init)
+    return df    
         
     #df = df.reindex(columns = df.columns.tolist() + ['min','max','mean','std','min_pos','max_pos'])            
 def compute_stats(df:pd.DataFrame) -> pd.DataFrame:

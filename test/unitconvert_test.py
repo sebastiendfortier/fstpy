@@ -1,39 +1,44 @@
 # -*- coding: utf-8 -*-
 import pytest
 from fstpy.standardfile import *
-import pandas as pd
+from fstpy.unit import do_unit_conversion, UnitConversionError
+from fstpy.utils import delete_file
 from test import TMP_PATH, TEST_PATH
 
 
 
 @pytest.mark.unit_regtests
 class TestUnitConvert():
+
     @pytest.fixture
     def plugin_test_dir(self):
-        return TEST_PATH +"ReaderStd/testsFiles/"
+        return TEST_PATH +"UnitConvert/testsFiles/"
 
     def test_regtest_1(self,plugin_test_dir):
         pass
-    #     """Test #1 : test a case simple conversion"""
-    #     # open and read source
-    #     source0 = plugin_test_dir + "windModulus_file2cmp.std"
-    #     src_df0 = StandardFileReader(source0)()
+        """Test #1 : test a case simple conversion"""
+        # open and read source
+        source0 = plugin_test_dir + "windModulus_file2cmp.std"
+        print('reading',source0)
+        src_df0 = StandardFileReader(source0,materialize=True)()
+        print('converting')
+        #compute UnitConvert
+        df = do_unit_conversion(src_df0,'kilometer_per_hour')
+        #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit kilometer_per_hour] >> [WriterStd --output {destination_path} --noUnitConversion]
+        df = zap(df,mark=False,ip1=41394464)
+        #write the result
+        results_file = TMP_PATH + "test_1.std"
+        delete_file(results_file)
+        print('writing')
+        StandardFileWriter(results_file, df)()
 
+        # open and read comparison file
+        file_to_compare = plugin_test_dir + "unitConvertUVInKmhExtended_file2cmp.std"
 
-    #     #compute UnitConvert
-    #     df = UnitConvert(src_df0).compute()
-    #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit kilometer_per_hour] >> [WriterStd --output {destination_path} --noUnitConversion]
-
-    #     #write the result
-    #     results_file = TMP_PATH + "test_1.std"
-    #     StandardFileWriter(results_file, df, erase=True)()
-
-    #     # open and read comparison file
-    #     file_to_compare = plugin_test_dir + "unitConvertUVInKmhExtended_file2cmp.std"
-
-    #     #compare results
-    #     res = fstcomp(results_file,file_to_compare)
-    #     assert(res == True)
+        #compare results
+        res = fstcomp(results_file,file_to_compare)
+        delete_file(results_file)
+        assert(res == True)
 
 
     # def test_regtest_2(self):
