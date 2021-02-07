@@ -231,8 +231,8 @@ class StandardFileWriter:
     :type df: pd.DataFrame  
     :param erase: erase the file before writing to it, defaults to False  
     :type erase: bool, optional  
-    :param add_meta: write the metadata associated with the data frame if it exists, defaults to True  
-    :type add_meta: bool, optional  
+    :param add_meta_fields: write the metadata associated with the data frame if it exists, defaults to True  
+    :type add_meta_fields: bool, optional  
     """
     @initializer
     def __init__(self, filename:str, df:pd.DataFrame, add_meta_fields=True, overwrite=False, materialize=False):
@@ -1008,6 +1008,7 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
         a = common.at[i, 'd_x'].flatten()
         b = common.at[i, 'd_y'].flatten()
         diff.at[i, 'abs_diff'] = np.abs(a-b)
+
         derr = np.where(a == 0, np.abs(1-a/b), np.abs(1-b/a))
         derr_sum=np.sum(derr)
         if isnan(derr_sum):

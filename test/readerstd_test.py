@@ -44,95 +44,88 @@ def test_regtest_2(plugin_test_dir):
     assert(res == True)
 
 
-# def test_regtest_3():
-#     """Test #3 : test_read_write_small"""
-#     # open and read source
-#     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
-#     src_df0 = StandardFileReader(source0)()
+def test_regtest_3(plugin_test_dir):
+    """Test #3 : test_read_write_small"""
+    # open and read source
+    source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
+    src_df0 = StandardFileReader(source0)()
+
+    #write the result
+    results_file = TMP_PATH + "test_3.std"
+    StandardFileWriter(results_file, src_df0, materialize=True)()
+
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "UUVV5x5_fileSrc.std"
+
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(res == True)
 
 
-#     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+def test_regtest_5(plugin_test_dir):
+    """Test #5 : test_read_write_big"""
+    # open and read source
+    source0 = plugin_test_dir + "input_big_fileSrc.std"
+    src_df0 = StandardFileReader(source0)()
 
-#     #write the result
-#     results_file = TMP_PATH + "test_3.std"
-#     StandardFileWriter(results_file, df)()
+    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "UUVV5x5_fileSrc.std"
+    #write the result
+    results_file = TMP_PATH + "test_5.std"
+    StandardFileWriter(results_file, src_df0, materialize=True)()
 
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "input_big_fileSrc.std"
 
-
-# def test_regtest_5():
-#     """Test #5 : test_read_write_big"""
-#     # open and read source
-#     source0 = plugin_test_dir + "input_big_fileSrc.std"
-#     src_df0 = StandardFileReader(source0)()
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(res == True)
 
 
-#     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-
-#     #write the result
-#     results_file = TMP_PATH + "test_5.std"
-#     StandardFileWriter(results_file, df)()
-
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "input_big_fileSrc.std"
-
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+def test_regtest_6(plugin_test_dir):
+    """Test #6 : test_read_write_sigma12000_pressure"""
+    # open and read source
+    source0 = plugin_test_dir + "input_model"
+    src_df0 = StandardFileReader(source0)()
 
 
-# def test_regtest_6():
-#     """Test #6 : test_read_write_sigma12000_pressure"""
-#     # open and read source
-#     source0 = plugin_test_dir + "input_model"
-#     src_df0 = StandardFileReader(source0)()
+    #compute ReaderStd
+    df = select(src_df0,'nomvar in ["UU","VV","TT"]')
+    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,TT] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+
+    #write the result
+    results_file = TMP_PATH + "test_6.std"
+    StandardFileWriter(results_file, df, materialize=True)()
+
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "sigma12000_pressure_file2cmp.std"
+
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(res == True)
 
 
-#     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,TT] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-
-#     #write the result
-#     results_file = TMP_PATH + "test_6.std"
-#     StandardFileWriter(results_file, df)()
-
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "sigma12000_pressure_file2cmp.std"
-
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
-
-
-# def test_regtest_7():
+# def test_regtest_7(plugin_test_dir):
 #     """Test #7 : test_read_write_big_noMetadata"""
 #     # open and read source
 #     source0 = plugin_test_dir + "input_big_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
 
-
-#     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --noMetadata --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
 #     results_file = TMP_PATH + "test_7.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, src_df0, materialize=True, add_meta_fields=False)()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "input_big_noMeta_file2cmp.std"
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
+#     delete_file(results_file)
 #     assert(res == True)
 
 
@@ -144,7 +137,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
 #     #write the result
@@ -167,7 +160,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
 #     #write the result
@@ -196,7 +189,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --ignoreExtended --input {sources[0]} {sources[1]} {sources[2]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
@@ -219,7 +212,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
@@ -242,7 +235,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
 #     #write the result
@@ -265,7 +258,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --noUnitConversion]
 
 #     #write the result
@@ -288,7 +281,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #['[ReaderStd --ignoreExtended --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
@@ -311,7 +304,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
@@ -334,7 +327,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
@@ -357,7 +350,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
@@ -380,7 +373,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
@@ -403,7 +396,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path}]
 
 #     #write the result
@@ -426,7 +419,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --input {sources[0]}] >> [Select --fieldName FN] >> [WriterStd --output {destination_path}]
 
 #     #write the result
@@ -449,7 +442,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --input {sources[0]}] >> [Select --fieldName PR] >> [WriterStd --output {destination_path} --ignoreExtended]
 
 #     #write the result
@@ -472,7 +465,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path}]
 
 #     #write the result
@@ -495,7 +488,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --input {sources[0]}] >> [ZapSmart --fieldNameFrom AI --fieldNameTo PT] >> [WriterStd --output {destination_path}]
 
 #     #write the result
@@ -518,7 +511,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path} --writingMode APPEND]
 
 #     #write the result
@@ -541,7 +534,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path} ]
 
 #     #write the result
@@ -570,7 +563,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #[ReaderStd --input {sources[0]} {sources[1]} {sources[2]} --ignoreExtended] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
@@ -593,7 +586,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #['[ReaderStd --input {sources[0]} --ignoreExtended] >> ', '[WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE --flagMissingData]']
 
 #     #write the result
@@ -616,7 +609,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #['[ReaderStd --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
@@ -639,7 +632,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #['[ReaderStd --input {sources[0]}] >> ', '[Select --forecastHour 24] >>', '[WriterStd --output {destination_path}]']
 
 #     #write the result
@@ -662,7 +655,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #['[ReaderStd --input {sources[0]}] >>', '[Select --fieldName WGEX] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
@@ -685,7 +678,7 @@ def test_regtest_2(plugin_test_dir):
 
 
 #     #compute ReaderStd
-#     df = ReaderStd(src_df0).compute()
+#     df = ReaderStd(src_df0)
 #     #['[ReaderStd --input {sources[0]}]>>', '[WriterStd --output {destination_path}]']
 
 #     #write the result
