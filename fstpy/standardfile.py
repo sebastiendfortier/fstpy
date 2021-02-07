@@ -101,6 +101,12 @@ class StandardFileReader:
             nb_rec3 = len(self.df.index)
             assert nb_rec1 == nb_rec2
             assert nb_rec2 == nb_rec3
+            # self.df = self.df.astype(
+            #     {'ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'level':'float32','ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
+            #     'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32','swa':'int32', 'lng':'int32', 'dltf':'int32', 'ubc':'int32',
+            #     'xtra1':'int32', 'xtra2':'int32', 'xtra3':'int32', 'kind':'int32', 'dateo':'int32', 'datyp':'int32', 'key':'int32'}
+            #     ).dtypes  
+
             return self.df
 
     def open(self,path):
@@ -287,7 +293,7 @@ class StandardFileWriter:
         self.df = reorder_dataframe(self.df)
         
         for i in self.df.index:
-            print(self.df.loc[i])
+            #print(self.df.loc[i])
             if ('typvar' in self.df.columns) and ('unit_converted' in self.df.columns) and (self.df.at[i,'unit_converted'] == True) and (len(self.df.at[i,'typvar']) == 1):
                 self.df.at[i,'typvar']  += 'U'
 
