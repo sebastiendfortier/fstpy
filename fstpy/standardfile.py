@@ -490,7 +490,7 @@ def fst_to_df(file_id:int, exception_class, materialize:bool, subset, read_meta_
         keys = list(set(all_keys).difference(set(meta_keys)))
  
     if len(keys) == 0:
-        logger.error('read - no records in file')
+        logger.error('read - no records in file?')
         raise exception_class('no records in file')
 
     if materialize:
