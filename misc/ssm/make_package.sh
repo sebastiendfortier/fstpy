@@ -7,7 +7,7 @@ mkdir -p ${PKGNAME}/.ssm.d
 mkdir -p ${PKGNAME}/bin
 mkdir -p ${PKGNAME}/etc/profile.d
 
-PROJECT_ROOT=../../packages/fstpy/
+PROJECT_ROOT=../../fstpy/
 echo 'Copying files to '${PKGNAME}' directory'
 cp fstpy_setup.sh ${PKGNAME}/etc/profile.d/${PKGNAME}.sh
 cp control.json ${PKGNAME}/.ssm.d/.
