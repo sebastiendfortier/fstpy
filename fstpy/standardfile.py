@@ -101,13 +101,16 @@ class StandardFileReader:
             nb_rec3 = len(self.df.index)
             assert nb_rec1 == nb_rec2
             assert nb_rec2 == nb_rec3
-            # self.df = self.df.astype(
-            #     {'ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'level':'float32','ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
-            #     'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32','swa':'int32', 'lng':'int32', 'dltf':'int32', 'ubc':'int32',
-            #     'xtra1':'int32', 'xtra2':'int32', 'xtra3':'int32', 'kind':'int32', 'dateo':'int32', 'datyp':'int32', 'key':'int32'}
-            #     ).dtypes  
-
+            self.convert_df_dtypes()
             return self.df
+
+    def convert_df_dtypes(self):
+        if not self.df.empty:
+            self.df = self.df.astype(
+                {'ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
+                'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32','swa':'int32', 'lng':'int32', 'dltf':'int32', 'ubc':'int32',
+                'xtra1':'int32', 'xtra2':'int32', 'xtra3':'int32', 'dateo':'int32', 'datyp':'int32', 'key':'int32'}
+                )
 
     def open(self,path):
         """opens the standard file and sets attributes  
@@ -243,7 +246,7 @@ class StandardFileWriter:
     @initializer
     def __init__(self, filename:str, df:pd.DataFrame, add_meta_fields=True, overwrite=False, materialize=False):
         logger.info('StandardFileWriter %s' % filename)
-        validate_df_not_empty(self.df,StandardFileWriter,StandardFileError)
+        validate_df_not_empty(self.df,'StandardFileWriter',StandardFileError)
        
     def __call__(self):
         """opens, writes the dataframe and closes the fst file"""
@@ -257,6 +260,11 @@ class StandardFileWriter:
         if self.materialize:
             logger.info('StandardFileWriter - materialize selected')
             self.df = materialize(self.df)
+
+        nans = self.df['d'].isna()
+        print('self.overwrite',self.overwrite)
+        if nans.all() and (not self.overwrite):
+            raise StandardFileError('StandardFileWriter - no records with data to write')
 
         self.open()
         self.write()
@@ -281,17 +289,9 @@ class StandardFileWriter:
         """
         logger.info('StandardFileWriter - writing to file %s', self.filename)  
 
-        
-        self.meta_df = reorder_dataframe(self.meta_df)
-        for i in self.meta_df.index:
-            record_path = self.meta_df.at[i,'path']
-            if identical_destination_and_record_path(record_path,self.filename):
-                continue
-            else:
-                rmn.fstecr(self.file_id, np.asfortranarray(self.meta_df.at[i,'d']), self.meta_df.loc[i].to_dict())
-
+    
         self.df = reorder_dataframe(self.df)
-        
+        records_written = False
         for i in self.df.index:
             #print(self.df.loc[i])
             if ('typvar' in self.df.columns) and ('unit_converted' in self.df.columns) and (self.df.at[i,'unit_converted'] == True) and (len(self.df.at[i,'typvar']) == 1):
@@ -309,7 +309,8 @@ class StandardFileWriter:
                     else:
                         self.df = change_etiket_if_a_plugin_name(self.df,i)
                         self.df = reshape_data_to_original_shape(self.df,i)
-                        rmn.fstecr(self.file_id, np.asfortranarray(self.df.at[i,'d']), self.df.loc[i].to_dict())                 
+                        rmn.fstecr(self.file_id, np.asfortranarray(self.df.at[i,'d']), self.df.loc[i].to_dict())  
+                        records_written = True              
             else:
                 if ('d' in self.df.columns) and (self.df.at[i,'d'] is None):
                     logger.warning('StandardFileWriter - no data to write - skipping record, materialize before or use materialize parameter')
@@ -318,7 +319,17 @@ class StandardFileWriter:
                     self.df = change_etiket_if_a_plugin_name(self.df,i)
                     self.df = reshape_data_to_original_shape(self.df,i)
                     rmn.fstecr(self.file_id, np.asfortranarray(self.df.at[i,'d']), self.df.loc[i].to_dict())     
+                    records_written = True
 
+        if records_written:
+            self.meta_df = reorder_dataframe(self.meta_df)
+            for i in self.meta_df.index:
+                record_path = self.meta_df.at[i,'path']
+                if identical_destination_and_record_path(record_path,self.filename):
+                    continue
+                else:
+                    rmn.fstecr(self.file_id, np.asfortranarray(self.meta_df.at[i,'d']), self.meta_df.loc[i].to_dict())
+            
 def reorder_columns(df, extra=True):
     if len(df.index) == 0:
         return df
@@ -351,15 +362,14 @@ def add_missing_columns(df, materialize,add_extra_columns):
 
     df = strip_string_columns(df)
     
-    df = add_empty_columns(df, ['materialize_info'],None)
+    df = add_empty_columns(df, ['materialize_info'],None,'O')
 
     if add_extra_columns:
         # # create parsed etiket column
-        df = add_empty_columns(df, ['kind'], 0)
-        df = add_empty_columns(df, ['level'],np.nan)
-        df = add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False)
-        df = add_empty_columns(df, ['vctype','pkind','pdateo','pdatev','fhour','pdatyp','grid','e_run','e_implementation','e_ensemble_member','e_label','unit'],'')
-        
+        df = add_empty_columns(df, ['kind'], 0, 'int32')
+        df = add_empty_columns(df, ['level'],np.nan,'float32')
+        df = add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False,'bool')
+        df = add_empty_columns(df, ['vctype','pkind','pdateo','pdatev','fhour','pdatyp','grid','e_run','e_implementation','e_ensemble_member','e_label','unit'],'','O')
         #self.df = self.df.reindex(columns = self.df.columns.tolist() + ['kind','level','surface','follow_topography','vctype','pkind','pdateo','fhour','pdatyp','grid','run','implementation','e_ensemble_member','e_label','unit','materialize_info','dirty'])            
         #add computed columns
         df = add_columns(df)
@@ -811,9 +821,10 @@ def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
 #         vctype = result['vctype'].iloc[0]
 #     return vctype
 
-def add_empty_columns(df, columns, init):
+def add_empty_columns(df, columns, init, dtype_str):
     for col in columns:
         df.insert(len(df.columns),col,init)
+        df = df.astype({col:dtype_str})
     return df    
         
     #df = df.reindex(columns = df.columns.tolist() + ['min','max','mean','std','min_pos','max_pos'])            
@@ -836,7 +847,7 @@ def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
 
 def voir(df:pd.DataFrame):
     """Displays the metadata of the supplied records in the rpn voir format"""
-    validate_df_not_empty(df,voir,StandardFileError)
+    validate_df_not_empty(df,'voir',StandardFileError)
     #logger.debug('    NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s) FORECASTHOUR      IP1        LEVEL        IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
     print(df[['nomvar','typvar','etiket','ni','nj','nk','pdateo','fhour','level','ip1','ip2','ip3','deet','npas','pdatyp','nbits','grtyp','ig1','ig2','ig3','ig4']].sort_values(by=['nomvar']).reset_index(drop=True).to_string(header=True, formatters={'level': '{:,.6f}'.format, 'fhour': '{:,.6f}'.format}))
 
@@ -975,7 +986,7 @@ def fststat(df:pd.DataFrame):
     """ reads the data from the supplied records and calculates then displays the statistics for that record """
     logger.info('fststat')
     pd.options.display.float_format = '{:0.6E}'.format
-    validate_df_not_empty(df,fststat,StandardFileError)
+    validate_df_not_empty(df,'fststat',StandardFileError)
     df = materialize(df)
     df = compute_stats(df)
     print(df[['nomvar','typvar','level','pkind','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))

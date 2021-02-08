@@ -44,23 +44,23 @@ def test_regtest_2(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_3(plugin_test_dir):
-    """Test #3 : test_read_write_small"""
-    # open and read source
-    source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
-    src_df0 = StandardFileReader(source0)()
+# def test_regtest_3(plugin_test_dir):
+#     """Test #3 : test_read_write_small"""
+#     # open and read source
+#     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
+#     src_df0 = StandardFileReader(source0)()
 
-    #write the result
-    results_file = TMP_PATH + "test_3.std"
-    StandardFileWriter(results_file, src_df0, materialize=True)()
+#     #write the result
+#     results_file = TMP_PATH + "test_3.std"
+#     StandardFileWriter(results_file, src_df0, materialize=True)()
 
-    # open and read comparison file
-    file_to_compare = plugin_test_dir + "UUVV5x5_fileSrc.std"
+#     # open and read comparison file
+#     file_to_compare = plugin_test_dir + "UUVV5x5_fileSrc.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
-    delete_file(results_file)
-    assert(res == True)
+#     #compare results
+#     res = fstcomp(results_file,file_to_compare)
+#     delete_file(results_file)
+#     assert(res == True)
 
 
 def test_regtest_5(plugin_test_dir):

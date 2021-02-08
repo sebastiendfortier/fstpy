@@ -93,4 +93,6 @@ def test_params_subset_all(input_file):
     df = reorder_dataframe(df)
     full_df = reorder_dataframe(full_df)
     assert df.equals(full_df)
-    
+
+if  __name__=='__main__':
+    test_params_read_meta_fields_only(input_file)
