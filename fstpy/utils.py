@@ -80,10 +80,11 @@ def flatten_data_series(df) -> pd.DataFrame:
     return df    
 
 def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:
-    res_df = df.copy(deep=True)    
+    res_df = df.iloc[0].copy(deep=True).to_frame().T
     res_df['key'] = None
-    #drop all but first line
-    res_df.drop(res_df.index[1:], inplace=True)
+    res_df['materialize_info'] = None
+    res_df['path'] = None
+    res_df['file_modification_time'] = None
     return res_df
 
 def validate_nomvar(nomvar, caller_class, error_class):

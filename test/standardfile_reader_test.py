@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from pandas.core.dtypes.missing import isnull
 import pytest
 from fstpy.standardfile import *
 import pandas as pd
@@ -16,17 +17,6 @@ def test_open(input_file):
     assert type(std_file) == StandardFileReader   
     assert std_file.meta_data == StandardFileReader.meta_data
 
-#filenames, read_meta_fields_only=False,add_extra_columns=True,materialize=False,subset={'dat
-#     subset={'datev': -1, 'etiket': ' ', 'ip1': -1, 'ip2': -1, 'ip3': -1, 'typvar': ' ', 'nomvar': ' '},
-# )
-#all 1874
-#1865
-#P0 1
-#>> 3
-#^^ 3
-#!! 2
-#meta 9
-
 def test_params_read_meta_fields_only(input_file):
     std_file = StandardFileReader(input_file,read_meta_fields_only=True)
     df = std_file.to_pandas()
@@ -37,7 +27,7 @@ def test_params_read_meta_fields_only(input_file):
 def test_params_add_extra_columns_false(input_file):
     std_file = StandardFileReader(input_file,add_extra_columns=False)
     df = std_file.to_pandas()
-    assert len(df.index) == 1865
+    assert len(df.index) == 1874
     assert len(df.columns) == 34
 
 
@@ -47,7 +37,7 @@ def test_params_add_extra_columns_false_materialize(input_file):
     assert len(df.index) == 85
     assert len(df.columns) == 34
     assert 'd' in df.columns 
-    assert (df['d'] is None) == False
+    assert not df['d'].isnull().all()
 
 
 def test_params_materialize_true(input_file):
@@ -56,7 +46,7 @@ def test_params_materialize_true(input_file):
     assert len(df.index) == 85
     assert len(df.columns) == 51   
     assert 'd' in df.columns 
-    assert (df['d'] is None) == False
+    assert not df['d'].isnull().all()
 
 
 def test_params_subset(input_file):
@@ -72,7 +62,7 @@ def test_params_materialize_true_subset(input_file):
     assert len(df.index) == 85
     assert len(df.columns) == 51   
     assert 'd' in df.columns 
-    assert (df['d'] is None) == False
+    assert not df['d'].isnull().all()
 
 
 def test_params_subset_all(input_file):
@@ -93,6 +83,3 @@ def test_params_subset_all(input_file):
     df = reorder_dataframe(df)
     full_df = reorder_dataframe(full_df)
     assert df.equals(full_df)
-
-if  __name__=='__main__':
-    test_params_read_meta_fields_only(input_file)

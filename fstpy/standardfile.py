@@ -45,6 +45,10 @@ class StandardFileError(Exception):
 #        ValueError on invalid input arg value
 #        FSTDError  on any other error
 #    '''
+
+class StandardFileReaderError(Exception):
+    pass
+
 class StandardFileReader:
     """Class to handle fst files   
         Opens, reads the contents of an fst files or files into a pandas Dataframe and closes   
@@ -79,98 +83,77 @@ class StandardFileReader:
         :return: df  
         :rtype: pd.Dataframe  
         """
-        dfs = []
         if isinstance(self.filenames, list):
+            dfs = []
             for f in self.filenames:
-                self.open(f)
-                self.df = self.read(f)
-                self.close(f)
+                self.create_dataframe(f)
                 dfs.append(self.df)
             self.df = pd.concat(dfs)   
-            self.df = reorder_dataframe(self.df)
-            self.df = reorder_columns(self.df,extra=self.add_extra_columns)
             return self.df
         else:
-            self.open(self.filenames)
-            self.df = self.read(self.filenames)
-            nb_rec1 = len(self.df.index)
-            self.close(self.filenames)
-            self.df = reorder_dataframe(self.df)
-            nb_rec2 = len(self.df.index)
-            self.df = reorder_columns(self.df,extra=self.add_extra_columns)  
-            nb_rec3 = len(self.df.index)
-            assert nb_rec1 == nb_rec2
-            assert nb_rec2 == nb_rec3
-            self.convert_df_dtypes()
+            self.create_dataframe(self.filenames)
             return self.df
 
-    def convert_df_dtypes(self):
-        if not self.df.empty:
-            self.df = self.df.astype(
-                {'ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
-                'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32','swa':'int32', 'lng':'int32', 'dltf':'int32', 'ubc':'int32',
-                'xtra1':'int32', 'xtra2':'int32', 'xtra3':'int32', 'dateo':'int32', 'datyp':'int32', 'key':'int32'}
-                )
+    def create_dataframe(self, f):
+        from os.path import abspath
+        path = abspath(f)
+        self.file_id, self.file_modification_time = open_fst(path,rmn.FST_RO,'StandardFileReader',StandardFileReaderError)
+        self.df = self.read()
+        close_fst(self.file_id,path,'StandardFileReader')
+        del abspath
 
-    def open(self,path):
-        """opens the standard file and sets attributes  
+    def get_basic_dataframe(self):
+        number_or_records = rmn.fstnbr(self.file_id)
 
-        :param path: file path  
-        :type path: str
+        keys = get_all_record_keys(self.file_id, self.subset)
+
+        records = self.get_records(keys)
+
+        #create a dataframe correspondinf to the fst file
+        self.df = pd.DataFrame(records)
+
+        self.df = add_path_and_modification_time(self.df,self.filenames,self.file_modification_time)
+
+        if not self.materialize:
+            #add missing stuff when amterialized
+            self.df = add_empty_columns(self.df, ['d'],None,'O')
+
+        self.df = add_empty_columns(self.df, ['materialize_info'],None,'O')
+
+        self.df = strip_string_columns(self.df)
+
+        self.df = convert_df_dtypes(self.df)
+
+        self.df = reorder_dataframe(self.df)
+ 
+        return self.df    
+
+    def get_records(self, keys):
+        if self.materialize:
+            records = [rmn.fstluk(k) for k in keys]
+        else:    
+            records = [rmn.fstprm(k) for k in keys]
+        return records
+
+
+
+    def read(self) ->pd.DataFrame:
+        """reads the meta data of an fst file and puts it into a pandas dataframe  
+
+        :return: dataframe of records in file  
+        :rtype: pd.DataFrame  
         """
-        self.file_modification_time = get_file_modification_time(path,'StandardFileReader',StandardFileError)
-        self.file_id = rmn.fstopenall(path, rmn.FST_RO)
+        #get the basic rmnlib dataframe
+        self.df = self.get_basic_dataframe()
 
-        # out = all_params(self.file_id)
-        # sys.stderr.write(str(out) + '\n')
-        logger.info('StandardFileReader - opening file %s', path)
+        if self.read_meta_fields_only:
+            self.df = remove_data_fields(self.df)
 
-    def close(self, file):
-        """ Closes the opened file  
+        if self.add_extra_columns:
+            self.df = add_extra_columns(self.df)
 
-        :param path: file path   
-        :type path: str 
-        """
-        logger.info('StandardFileReader - closing file %s', file)
-        rmn.fstcloseall(self.file_id)
+        self.df = reorder_columns(self.df,self.add_extra_columns)  
 
-
-    def read(self, file:str) ->pd.DataFrame:
-        """reads the meta data of an fst file and puts it into a pandas dataframe
-
-        :param file: [description]
-        :type file: str
-        :return: [description]
-        :rtype: pd.DataFrame
-        """
-        self.df = fst_to_df(self.file_id, StandardFileError, self.materialize, self.subset, self.read_meta_fields_only)
-        assert ('d' in self.df.columns) and ((self.df['d'] is None) == False) if self.materialize else True
-        nb_rec1 = len(self.df.index)
-        
-        # create the file column and init
-        self.df = add_path_and_modification_time(self.df,file,self.file_modification_time)
-        assert ('d' in self.df.columns) and ((self.df['d'] is None) == False) if self.materialize else True
-        nb_rec2 = len(self.df.index)
-
-        self.df = add_missing_columns(self.df, self.materialize, self.add_extra_columns)
-        assert ('d' in self.df.columns) and ((self.df['d'] is None) == False) if self.materialize else True
-        nb_rec3 = len(self.df.index)
-        
-        assert nb_rec1 == nb_rec2
-        assert nb_rec2 == nb_rec3
-        # self.meta_df = select(self.df, 'nomvar in %s'%self.meta_data, no_fail=True)
-        # logger.debug(len(self.meta_df.index))
-        # logger.debug(len(self.df.index))
-        # if not self.meta_df.empty:
-        #     self.df = self.set_vertical_coordinate_type()
-        # logger.debug(len(self.df.index))        
-        # if self.read_meta_fields_only and not self.meta_df.empty:
-        #     self.df = self.meta_df
-        #     self.keep_meta_fields=True
-        #remove meta data from df
-        # if not self.keep_meta_fields:
-        #     meta_set = set(self.meta_data) #meta{'^>', '>>', '^^', '!!', '!!SF', 'HY', 'P0', 'PT', 'E1'}
-        #     self.df=self.df[~self.df['nomvar'].isin(meta_set)]
         return self.df
         
     def set_vertical_coordinate_type(self) -> pd.DataFrame:
@@ -230,6 +213,8 @@ class StandardFileReader:
         #logger.debug("     xlat`/xlon1=%f, %f; xlat2/xlon2=%f, %f" % (g['xlat1'], g['xlon1'], g['xlat2'], g['xlon2']))
         #logger.debug("     ax: min=%f, max=%f; ay: min=%f, max=%f" % (g['ax'].min(), g['ax'].max(), g['ay'].min(), g['ay'].max()))
 
+class StandardFileWriterError(Exception):
+    pass
 
 class StandardFileWriter:
     """fst file writer  
@@ -244,9 +229,11 @@ class StandardFileWriter:
     :type add_meta_fields: bool, optional  
     """
     @initializer
-    def __init__(self, filename:str, df:pd.DataFrame, add_meta_fields=True, overwrite=False, materialize=False):
+    def __init__(self, filename:str, df:pd.DataFrame, update_meta_only=False):
+        from os.path import abspath
         logger.info('StandardFileWriter %s' % filename)
-        validate_df_not_empty(self.df,'StandardFileWriter',StandardFileError)
+        validate_df_not_empty(self.df,'StandardFileWriter',StandardFileWriterError)
+        self.filename = abspath(self.filename)
        
     def __call__(self):
         """opens, writes the dataframe and closes the fst file"""
@@ -254,82 +241,92 @@ class StandardFileWriter:
 
 
     def to_fst(self):
-        if self.add_meta_fields:
-            self.meta_df = get_meta_data_fields(self.df)
+        self.meta_df = get_meta_data_fields(self.df,'to_fst',StandardFileWriterError)
 
-        if self.materialize:
-            logger.info('StandardFileWriter - materialize selected')
+        int_df = pd.merge(self.meta_df, self.df, how ='inner', on =['ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
+            'nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev','swa', 'lng', 'dltf', 'ubc',
+            'xtra1', 'xtra2', 'xtra3', 'dateo', 'datyp']) 
+
+        if len(self.meta_df.index) != len(int_df.index):
+            self.df = pd.concat(self.df, self.meta_df).drop_duplicates(keep=False)
+
+        if not self.update_meta_only:
             self.df = materialize(self.df)
 
-        nans = self.df['d'].isna()
-        print('self.overwrite',self.overwrite)
-        if nans.all() and (not self.overwrite):
-            raise StandardFileError('StandardFileWriter - no records with data to write')
-
-        self.open()
+        self.file_id, self.file_modification_time = open_fst(self.filename, rmn.FST_RW, 'StandardFileWriter', StandardFileWriterError)
         self.write()
-        self.close()
+        close_fst(self.file_id)
 
-    def open(self):
-        logger.info('StandardFileWriter - opening file %s', self.filename)    
-        self.file_id = rmn.fstopenall(self.filename, filemode=rmn.FST_RW)
-
-    def close(self):
-        """ Closes the opened files"""
-        logger.info('StandardFileWriter - closing: %s', self.filename)
-        rmn.fstcloseall(self.file_id)
 
     def write(self):
-        """write - Writes the supplied records to the output file
-
-        :param records: a DatafFrame to write
-        :type records: pd.DataFrame
-        :raises StandardFileError: no records to process
-        :raises StandardFileError: [read only file
-        """
         logger.info('StandardFileWriter - writing to file %s', self.filename)  
 
-    
         self.df = reorder_dataframe(self.df)
-        records_written = False
         for i in self.df.index:
-            #print(self.df.loc[i])
-            if ('typvar' in self.df.columns) and ('unit_converted' in self.df.columns) and (self.df.at[i,'unit_converted'] == True) and (len(self.df.at[i,'typvar']) == 1):
-                self.df.at[i,'typvar']  += 'U'
-
+            set_typvar(self.df,i)
             record_path = self.df.at[i,'path']
             if identical_destination_and_record_path(record_path,self.filename):
-                if not self.overwrite:
-                    logger.warning('StandardFileWriter - record path and output file are identical, updating record meta data only, use --overwrite to add records to file')
+                if self.update_meta_only:
+                    logger.warning('StandardFileWriter - record path and output file are identical, updating record meta data only')
                     update_meta_data(self.df,i)
                 else:
-                    if ('d' in self.df.columns) and (self.df.at[i,'d'] is None):
-                        logger.warning('StandardFileWriter - no data to write - skipping record, materialize before or use materialize parameter')
-                        continue
-                    else:
-                        self.df = change_etiket_if_a_plugin_name(self.df,i)
-                        self.df = reshape_data_to_original_shape(self.df,i)
-                        rmn.fstecr(self.file_id, np.asfortranarray(self.df.at[i,'d']), self.df.loc[i].to_dict())  
-                        records_written = True              
+                    logger.warning('StandardFileWriter - record path and output file are identical, adding  new records')
+                    write_dataframe_record_to_file(self.file_id,self.df,i)  
             else:
-                if ('d' in self.df.columns) and (self.df.at[i,'d'] is None):
-                    logger.warning('StandardFileWriter - no data to write - skipping record, materialize before or use materialize parameter')
-                    continue
-                else:
-                    self.df = change_etiket_if_a_plugin_name(self.df,i)
-                    self.df = reshape_data_to_original_shape(self.df,i)
-                    rmn.fstecr(self.file_id, np.asfortranarray(self.df.at[i,'d']), self.df.loc[i].to_dict())     
-                    records_written = True
+                write_dataframe_record_to_file(self.file_id,self.df,i)     
 
-        if records_written:
-            self.meta_df = reorder_dataframe(self.meta_df)
-            for i in self.meta_df.index:
-                record_path = self.meta_df.at[i,'path']
-                if identical_destination_and_record_path(record_path,self.filename):
-                    continue
-                else:
-                    rmn.fstecr(self.file_id, np.asfortranarray(self.meta_df.at[i,'d']), self.meta_df.loc[i].to_dict())
-            
+def write_dataframe_record_to_file(file_id,df,i):
+    df = change_etiket_if_a_plugin_name(df,i)
+    df = reshape_data_to_original_shape(df,i)
+    rmn.fstecr(file_id, np.asfortranarray(df.at[i,'d']), df.loc[i].to_dict())     
+
+def set_typvar(df, i):
+    if ('typvar' in df.columns) and ('unit_converted' in df.columns) and (df.at[i,'unit_converted'] == True) and (len(df.at[i,'typvar']) == 1):
+        df.at[i,'typvar']  += 'U'
+
+
+def convert_df_dtypes(df):
+    if not df.empty:
+        df = df.astype(
+            {'ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
+            'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32','swa':'int32', 'lng':'int32', 'dltf':'int32', 'ubc':'int32',
+            'xtra1':'int32', 'xtra2':'int32', 'xtra3':'int32', 'dateo':'int32', 'datyp':'int32', 'key':'int32'}
+            )
+    return df        
+
+def open_fst(path:str, mode:str, caller_class:str, error_class:Exception):
+    file_modification_time = get_file_modification_time(path,mode,caller_class,error_class)
+    file_id = rmn.fstopenall(path, mode)
+    logger.info(caller_class + ' - opening file %s', path)
+    return file_id, file_modification_time
+
+def close_fst(file_id:int, file:str,caller_class:str):
+    """Closes file associated with provided file unit number
+
+    :param file_id: [description]
+    :type file_id: int
+    :param file: [description]
+    :type file: str
+    :param caller_class: [description]
+    :type caller_class: str
+    """
+    logger.info(caller_class + ' - closing file %s', file)
+    rmn.fstcloseall(file_id)
+
+# Lightweight test for FST files.
+# Uses the same test for fstd98 random files from wkoffit.c (librmn 16.2).
+#
+# The 'isFST' test from rpnpy calls c_wkoffit, which has a bug when testing
+# many small (non-FST) files.  Under certain conditions the file handles are
+# not closed properly, which causes the application to run out of file handles
+# after testing ~1020 small non-FST files.
+def maybeFST(filename):
+  with open(filename, 'rb') as f:
+    buf = f.read(16)
+    if len(buf) < 16: return False
+    # Same check as c_wkoffit in librmn
+    return buf[12:] == b'STDR'
+
 def reorder_columns(df, extra=True):
     if len(df.index) == 0:
         return df
@@ -355,24 +352,12 @@ def add_path_and_modification_time(df, file, file_modification_time):
     return df
 
 
-def add_missing_columns(df, materialize,add_extra_columns):
-    #prep the data column
-    if not materialize:
-        df['d']=None
-
-    df = strip_string_columns(df)
-    
-    df = add_empty_columns(df, ['materialize_info'],None,'O')
-
-    if add_extra_columns:
-        # # create parsed etiket column
-        df = add_empty_columns(df, ['kind'], 0, 'int32')
-        df = add_empty_columns(df, ['level'],np.nan,'float32')
-        df = add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False,'bool')
-        df = add_empty_columns(df, ['vctype','pkind','pdateo','pdatev','fhour','pdatyp','grid','e_run','e_implementation','e_ensemble_member','e_label','unit'],'','O')
-        #self.df = self.df.reindex(columns = self.df.columns.tolist() + ['kind','level','surface','follow_topography','vctype','pkind','pdateo','fhour','pdatyp','grid','run','implementation','e_ensemble_member','e_label','unit','materialize_info','dirty'])            
-        #add computed columns
-        df = add_columns(df)
+def add_extra_columns(df):
+    df = add_empty_columns(df, ['kind'], 0, 'int32')
+    df = add_empty_columns(df, ['level'],np.nan,'float32')
+    df = add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False,'bool')
+    df = add_empty_columns(df, ['vctype','pkind','pdateo','pdatev','fhour','pdatyp','grid','e_run','e_implementation','e_ensemble_member','e_label','unit'],'','O')
+    df = fill_columns(df)
     return df    
 
 def strip_string_columns(df):
@@ -534,15 +519,17 @@ def get_all_record_keys(file_id, subset):
         keys = rmn.fstinl(file_id)
     return keys
 
-def get_file_modification_time(path:str,caller,exception_class):
-    import pathlib
-    if not rmn.isFST(path):
-        raise exception_class(caller + 'not an fst standard file!')
-    fname = pathlib.Path(path)
-    file_modification_time=fname.stat().st_mtime
-    min, sec = divmod(file_modification_time, 60)
-    hr, min = divmod(min, 60)
-    return "%d:%02d:%02d" % (hr, min, sec)
+def get_file_modification_time(path:str,mode:str,caller_class,exception_class):
+    import os.path
+    import datetime
+    import time
+    if (mode == rmn.FST_RO) and (not maybeFST(path)):
+        raise exception_class(caller_class + 'not an fst standard file!')
+   
+    file_modification_time = time.ctime(os.path.getmtime(path))
+    file_modification_time = datetime.datetime.strptime(file_modification_time, "%a %b %d %H:%M:%S %Y")
+    return file_modification_time
+
 
 def get_std_etiket(plugin_name:str):
     """get_std_etiket get the etiket corresponding to the plugin name
@@ -558,8 +545,8 @@ def get_std_etiket(plugin_name:str):
     return get_column_value_from_row(etiket, 'etiket')
 
 
-def add_columns(df:pd.DataFrame):
-    """add_columns adds columns that are'nt in the fst file
+def fill_columns(df:pd.DataFrame):
+    """fill_columns adds columns that are'nt in the fst file
 
     :param records: DataFrame to add colmns to
     :type records: pd.DataFrame
@@ -653,7 +640,7 @@ def materialize(df:pd.DataFrame) -> pd.DataFrame:
         rec_df = rec_df_view.copy(deep=True)
         #get the first path in this group
         path = rec_df.iloc[0]['path']
-        compare_modification_times(rec_df, path, 'materialize')
+        compare_modification_times(rec_df, path, rmn.FST_RO,'materialize',StandardFileError)
         #open the file
         file_id = rmn.fstopenall(path, filemode=rmn.FST_RO)
         for i in rec_df.index:
@@ -679,19 +666,18 @@ def materialize(df:pd.DataFrame) -> pd.DataFrame:
     res_df = reorder_dataframe(res_df) 
     return res_df
 
-def reorder_dataframe(df):
+def reorder_dataframe(df) -> pd.DataFrame:
     if ('grid' in df.columns) and ('fhour' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
         df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False,inplace=True) 
     df.reset_index(drop=True,inplace=True)
- 
     return df
 
 
-def compare_modification_times(df, path, caller):
+def compare_modification_times(df, path:str,mode:str, caller:str,error_class:Exception):
     df_file_modification_time = df.iloc[0]['file_modification_time']
-    file_modification_time = get_file_modification_time(path, caller, StandardFileError)
+    file_modification_time = get_file_modification_time(path,mode,caller, error_class)
     if df_file_modification_time != file_modification_time:
-        raise StandardFileError(caller + ' - original file has been modified since the start of the operation, keys might be invalid - exiting!')
+        raise error_class(caller + ' - original file has been modified since the start of the operation, keys might be invalid - exiting!')
 
 def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
     df = materialize(df)
@@ -1063,10 +1049,15 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
     return success        
 
 
-def remove_meta_for_fstcomp(df: pd.DataFrame):
+def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
     for meta in StandardFileReader.meta_data:
         df = df[df.nomvar != meta]
     return df
+
+def remove_data_fields(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]')
+    return df
+
 
 #e_rel_max   E-REL-MOY   VAR-A        C-COR        MOY-A        BIAIS       E-MAX       E-MOY
 
@@ -1086,8 +1077,8 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
         raise StandardFileError('fstcomp - one of the files is empty')
     # remove meta data {!!,>>,^^,P0,PT,HY,!!SF} from records to compare
     if exclude_meta:
-        df1 = remove_meta_for_fstcomp(df1)
-        df2 = remove_meta_for_fstcomp(df2)
+        df1 = remove_meta_data_fields(df1)
+        df2 = remove_meta_data_fields(df2)
     # logger.debug('A',df1['d'][:100].to_string())
     # logger.debug('A',df1[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())
     # logger.debug('----------')
@@ -1107,7 +1098,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     #Rows in df2 Which Are Not Available in df1
     common_with_2 = common.merge(df2, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'right_only']
     missing = pd.concat([common_with_1, common_with_2])
-    missing = remove_meta_for_fstcomp(missing)
+    missing = remove_meta_data_fields(missing)
     if len(common.index) != 0:
         if len(common_with_1.index) != 0:
             if print_unmatched:
@@ -1160,15 +1151,15 @@ def keys_to_remove(keys, the_dict):
             del the_dict[key]
 
 def get_lat_lon(df):
-    return get_meta_data_fields(df,pressure=False, vertical_descriptors=False)
+    return get_meta_data_fields(df,'get_lat_lon',StandardFileError,pressure=False, vertical_descriptors=False)
 
-def get_meta_data_fields(df,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
+def get_meta_data_fields(df,caller,error_class,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
     path_groups = df.groupby(df.path)
     meta_dfs = []
     #for each files in the df
     for _, rec_df in path_groups:
         path = rec_df.iloc[0]['path']
-        compare_modification_times(rec_df,path,'get_meta_data_fields')
+        compare_modification_times(rec_df,path,rmn.FST_RO,caller,error_class)
         
         meta_df = StandardFileReader(path,read_meta_fields_only=True)()
 
@@ -1202,7 +1193,7 @@ def add_metadata_fields(df:pd.DataFrame, latitude_and_longitude=True, pressure=T
         logger.warning('add_metadata_fields - no path to get meta from')
         return df
 
-    meta_df = get_meta_data_fields(df, latitude_and_longitude, pressure, vertical_descriptors)
+    meta_df = get_meta_data_fields(df, 'add_metadata_fields',StandardFileError,latitude_and_longitude, pressure, vertical_descriptors)
 
     res = pd.concat([df,meta_df])
 
