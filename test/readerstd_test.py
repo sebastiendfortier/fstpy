@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-from fstpy.standardfile import StandardFileError, StandardFileReader, StandardFileWriter, materialize, select, fstcomp
+from fstpy.standardfile import StandardFileReaderError, StandardFileReader, StandardFileWriter, materialize, select, fstcomp
 from fstpy.utils import delete_file
 from test import TEST_PATH, TMP_PATH
 
@@ -15,10 +15,9 @@ def test_regtest_1(plugin_test_dir):
     """Test #1 : Test l'option --input avec un fichier qui n'existe pas!"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_fileSrc_.std"
-    with pytest.raises(StandardFileError):
+    with pytest.raises(FileNotFoundError):
         src_df0 = StandardFileReader(source0)()
-    
-
+ 
 
 def test_regtest_2(plugin_test_dir):
     """Test #2 : Test avec un fichier qui possède un champ de type entier."""
@@ -33,7 +32,7 @@ def test_regtest_2(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_2.std"
-    StandardFileWriter(results_file, df, materialize=True)()
+    StandardFileWriter(results_file, df)()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "UU_VV_T6_file2cmp.std"
@@ -44,23 +43,23 @@ def test_regtest_2(plugin_test_dir):
     assert(res == True)
 
 
-# def test_regtest_3(plugin_test_dir):
-#     """Test #3 : test_read_write_small"""
-#     # open and read source
-#     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
-#     src_df0 = StandardFileReader(source0)()
+def test_regtest_3(plugin_test_dir):
+    """Test #3 : test_read_write_small"""
+    # open and read source
+    source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
+    src_df0 = StandardFileReader(source0)()
 
-#     #write the result
-#     results_file = TMP_PATH + "test_3.std"
-#     StandardFileWriter(results_file, src_df0, materialize=True)()
+    #write the result
+    results_file = TMP_PATH + "test_3.std"
+    StandardFileWriter(results_file, src_df0)()
 
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "UUVV5x5_fileSrc.std"
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "UUVV5x5_fileSrc.std"
 
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     delete_file(results_file)
-#     assert(res == True)
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(res == True)
 
 
 def test_regtest_5(plugin_test_dir):
@@ -73,7 +72,7 @@ def test_regtest_5(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_5.std"
-    StandardFileWriter(results_file, src_df0, materialize=True)()
+    StandardFileWriter(results_file, src_df0)()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "input_big_fileSrc.std"
@@ -97,7 +96,7 @@ def test_regtest_6(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_6.std"
-    StandardFileWriter(results_file, df, materialize=True)()
+    StandardFileWriter(results_file, df)()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "sigma12000_pressure_file2cmp.std"
@@ -118,7 +117,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_7.std"
-#     StandardFileWriter(results_file, src_df0, materialize=True, add_meta_fields=False)()
+#     StandardFileWriter(results_file, src_df0, add_meta_fields=False)()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "input_big_noMeta_file2cmp.std"

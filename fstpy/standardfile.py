@@ -52,15 +52,34 @@ class StandardFileReaderError(Exception):
 class StandardFileReader:
     """Class to handle fst files   
         Opens, reads the contents of an fst files or files into a pandas Dataframe and closes   
-        This is due to rpn standard file limitations on working with multiple files. No data is loaded   
-        only the meta data is read with ftsprm   
+        No data is loaded unless specified, only the meta data is read. Extra meta data is added to the dataframe.
  
-        :param filenames: [description]   
-        :type filenames: [type]   
-        :param keep_meta_fields: [description], defaults to False   
-        :type keep_meta_fields: bool, optional   
-        :param read_meta_fields_only: [description], defaults to False  
-        :type read_meta_fields_only: bool, optional    
+        :param filenames: path to file or list of paths to files   
+        :type filenames: str|list[str]   
+        :param read_meta_fields_only: when True, returns only the meta fields see StandardFileReader.meta_data, defaults to False   
+        :type read_meta_fields_only: bool, optional   
+        :param add_extra_columns: adds extra columns, defaults to True    
+                'unit':str, unit name
+                'unit_converted':bool
+                'pdateo':datetime, of the date of observation
+                'pdatev':datetime, of the date of validity
+                'level':float32, decoded ip1 level
+                'kind':int32, decoded ip1 kind
+                'pkind':str, string repr of kind int
+                'pdatyp':str, string repr of kind int
+                'e_label':str, label derived from etiket
+                'e_run':str, run derived from etiket
+                'e_implementation':str, implementation derived from etiket
+                'e_ensemble_member':str, ensemble member derived from etiket
+                'surface':bool, True if the level is a surface level
+                'follow_topography':bool, indicates if this type of level follows topography
+                'vctype':str, vertical level type
+                'fhour':time, forecast hour decoded from ip2
+        :type add_extra_columns: bool, optional    
+        :param materialize: if True, the data will be read, not just the meta data (fstluk vs fstprm)
+        :type materialize: bool, optional
+        :param subset: parameter to pass to fstinl to select specific records
+        :type subset:dict
     """
     meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
     @initializer
