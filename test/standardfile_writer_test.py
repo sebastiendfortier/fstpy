@@ -27,14 +27,14 @@ def test_invalid_path(input_file):
 
     #should crash
     std_file_writer = StandardFileWriter('/tmp/123456/1',df)
-    with pytest.raises(FSTDError):
+    with pytest.raises(FileNotFoundError):
         std_file_writer.to_fst()
 
 def test_empty_df(tmp_file):
     df = pd.DataFrame(dtype=object)
 
     #should crash
-    with pytest.raises(StandardFileError):
+    with pytest.raises(StandardFileWriterError):
         std_file_writer = StandardFileWriter(tmp_file,df)
     #std_file_writer.to_fst()
 
@@ -42,10 +42,8 @@ def test_default_not_materialized(input_file,tmp_file):
     std_file = StandardFileReader(input_file)
     df = std_file.to_pandas()
 
-
     std_file_writer = StandardFileWriter(tmp_file,df)
-    with pytest.raises(StandardFileError):
-        std_file_writer.to_fst()
+    std_file_writer.to_fst()
     
 
 def test_default_not_materialized_same_file(input_file,tmp_file):
