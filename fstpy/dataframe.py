@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import numpy
 from .std_io import open_fst, close_fst
 import rpnpy.librmn.all as rmn
 import pandas as pd
@@ -91,12 +92,14 @@ def remove_data_fields(df: pd.DataFrame) -> pd.DataFrame:
     return df    
 
 def add_extra_cols(df):
+    import numpy as np
     df = add_empty_columns(df, ['kind'], 0, 'int32')
     df = add_empty_columns(df, ['level'],np.nan,'float32')
     df = add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False,'bool')
     df = add_empty_columns(df, ['pdateo','pdatev','fhour'],None,'datetime64')
     df = add_empty_columns(df, ['vctype','pkind','pdatyp','grid','e_run','e_implementation','e_ensemble_member','e_label','unit'],'','O')
     df = fill_columns(df)
+    del numpy
     return df   
 
 def add_empty_columns(df, columns, init, dtype_str):
@@ -111,31 +114,34 @@ def fill_columns(df:pd.DataFrame):
     :param records: DataFrame to add colmns to
     :type records: pd.DataFrame
     """
+    import std_io
+    import constants
+    import numpy as np
     #add columns
     meter_levels = np.arange(0.,10.5,.5).tolist()
     for i in df.index:
         nomvar = df.at[i,'nomvar']
         #find unit name value for this nomvar
-        df = get_unit(df, i, nomvar)
+        df = std_io.get_unit(df, i, nomvar)
         #get level and kind
         df = set_level_and_kind(df, i) #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
         #create a real date of observation
-        df.at[i,'pdateo'] = create_printable_date_of_observation(int(df.at[i,'dateo']))
+        df.at[i,'pdateo'] = std_io.create_printable_date_of_observation(int(df.at[i,'dateo']))
         #create a printable date of validity
-        df.at[i,'pdatev'] = create_printable_date_of_observation(int(df.at[i,'datev']))
+        df.at[i,'pdatev'] = std_io.create_printable_date_of_observation(int(df.at[i,'datev']))
         #create a printable kind for voir
-        df.at[i,'pkind'] = KIND_DICT[int(df.at[i,'kind'])]
+        df.at[i,'pkind'] = constants.KIND_DICT[int(df.at[i,'kind'])]
         #calculate the forecast hour
         df.at[i,'fhour'] = df.at[i,'npas'] * df.at[i,'deet'] / 3600.
         #create a printable data type for voir
-        df.at[i,'pdatyp'] = DATYP_DICT[df.at[i,'datyp']]
+        df.at[i,'pdatyp'] = constants.DATYP_DICT[df.at[i,'datyp']]
         #create a grid identifier for each record
-        df.at[i,'grid'] = create_grid_identifier(df.at[i,'nomvar'],df.at[i,'ip1'],df.at[i,'ip2'],df.at[i,'ig1'],df.at[i,'ig2'])
+        df.at[i,'grid'] = std_io.create_grid_identifier(df.at[i,'nomvar'],df.at[i,'ip1'],df.at[i,'ip2'],df.at[i,'ig1'],df.at[i,'ig2'])
         #logger.debug(df.at[i,'kind'],df.at[i,'level'])
         #set surface flag for surface levels
-        set_surface(df, i, meter_levels)
-        set_follow_topography(df, i)
-        df.at[i,'e_label'],df.at[i,'e_run'],df.at[i,'e_implementation'],df.at[i,'e_ensemble_member'] = parse_etiket(df.at[i,'etiket'])
+        std_io.set_surface(df, i, meter_levels)
+        std_io.set_follow_topography(df, i)
+        df.at[i,'e_label'],df.at[i,'e_run'],df.at[i,'e_implementation'],df.at[i,'e_ensemble_member'] = std_io.parse_etiket(df.at[i,'etiket'])
         df.at[i,'d'] = (rmn.fstluk,int(df.at[i,'key']))
     return df
 
@@ -164,3 +170,26 @@ def convert_df_dtypes(df):
             'xtra1':'int32', 'xtra2':'int32', 'xtra3':'int32', 'dateo':'int32', 'datyp':'int32', 'key':'int32'}
             )
     return df      
+
+def reorder_columns(df, extra=True):
+    if df.empty:
+        return df
+    if extra:
+        df = df[['nomvar','unit', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'pdateo', 'ip1', 'level','pkind','ip2', 'ip3', 'deet', 'npas',
+                'pdatyp','nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'e_run','e_implementation', 'e_ensemble_member','d','datev','pdatev','swa', 'lng', 'dltf', 'ubc',
+                'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time','kind', 'surface', 'follow_topography', 'dirty', 'vctype',
+                'dateo', 'fhour', 'datyp', 'grid', 'e_label','materialize_info', 'key','shape','unit_converted']]    
+    
+    else:
+        df = df[['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
+                'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd','datev','swa', 'lng', 'dltf', 'ubc',
+                'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time', 
+                'datyp', 'materialize_info','key','shape']]    
+    
+    return df    
+
+def reorder_dataframe(df) -> pd.DataFrame:
+    if ('grid' in df.columns) and ('fhour' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
+        df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False,inplace=True) 
+    df.reset_index(drop=True,inplace=True)
+    return df    

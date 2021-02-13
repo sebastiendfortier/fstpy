@@ -28,4 +28,4 @@ if error == 1:
 rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
 
 #expose some functions and classes
-from .standardfile import StandardFileReader
+from standardfile import StandardFileReader

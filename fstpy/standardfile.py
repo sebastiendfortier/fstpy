@@ -3,12 +3,8 @@ from .utils import create_1row_df_from_model, initializer, validate_df_not_empty
 import rpnpy.librmn.all as rmn
 import pandas as pd
 import numpy as np
-import datetime
 from .constants import VCTYPES, DATYP_DICT, STDVAR, KIND_DICT, get_column_value_from_row, get_etikey_by_name
 from .config import logger
-
-class StandardFileError(Exception):
-    pass
 
 # fstopt(optName, optValue, setOget=0):
 #    '''
@@ -78,7 +74,7 @@ class StandardFileReader:
         :param subset: parameter to pass to fstinl to select specific records
         :type subset:dict
     """
-    from .to_pandas import to_pandas
+    from dataframe import to_pandas
     meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
     @initializer
     def __init__(self, filenames, read_meta_fields_only=False,add_extra_columns=True,materialize=False,subset=None):
@@ -169,10 +165,11 @@ class StandardFileWriter:
     """
     @initializer
     def __init__(self, filename:str, df:pd.DataFrame, update_meta_only=False):
-        from os.path import abspath
+        import os
+        import exceptions 
         logger.info('StandardFileWriter %s' % filename)
-        validate_df_not_empty(self.df,'StandardFileWriter',StandardFileWriterError)
-        self.filename = abspath(self.filename)
+        validate_df_not_empty(self.df,'StandardFileWriter',exceptions.StandardFileWriterError)
+        self.filename = os.path.abspath(self.filename)
        
     def __call__(self):
         """opens, writes the dataframe and closes the fst file"""
@@ -180,7 +177,8 @@ class StandardFileWriter:
 
 
     def to_fst(self):
-        self.meta_df = get_meta_data_fields(self.df,'to_fst',StandardFileWriterError)
+        import exceptions 
+        self.meta_df = get_meta_data_fields(self.df,'to_fst',exceptions.StandardFileWriterError)
         if not self.meta_df.empty:
             int_df = pd.merge(self.meta_df, self.df, how ='inner', on =['ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
                 'nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev','swa', 'lng', 'dltf', 'ubc',
@@ -242,33 +240,6 @@ def set_typvar(df, i):
     if ('typvar' in df.columns) and ('unit_converted' in df.columns) and (df.at[i,'unit_converted'] == True) and (len(df.at[i,'typvar']) == 1):
         df.at[i,'typvar']  += 'U'
 
-
-      
-
-
-
-
-def reorder_columns(df, extra=True):
-    if df.empty:
-        return df
-    if extra:
-        df = df[['nomvar','unit', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'pdateo', 'ip1', 'level','pkind','ip2', 'ip3', 'deet', 'npas',
-                'pdatyp','nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'e_run','e_implementation', 'e_ensemble_member','d','datev','pdatev','swa', 'lng', 'dltf', 'ubc',
-                'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time','kind', 'surface', 'follow_topography', 'dirty', 'vctype',
-                'dateo', 'fhour', 'datyp', 'grid', 'e_label','materialize_info', 'key','shape','unit_converted']]    
-    
-    else:
-        df = df[['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
-                'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd','datev','swa', 'lng', 'dltf', 'ubc',
-                'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time', 
-                'datyp', 'materialize_info','key','shape']]    
-    
-    return df
-
-
-
-
- 
 
 
 
@@ -438,13 +409,7 @@ def get_std_etiket(plugin_name:str):
 
 
 
-def get_unit(df, i, nomvar):
-    unit = STDVAR.loc[STDVAR['nomvar'] == f'{nomvar}']['unit'].values
-    if len(unit):
-        df.at[i,'unit'] = unit[0]
-    else:
-        df.at[i,'unit'] = 'scalar'
-    return df
+
 
 def set_follow_topography(df, i):
     if df.at[i,'kind'] == 1:
@@ -457,15 +422,7 @@ def set_follow_topography(df, i):
         df.at[i,'follow_topography'] = False
 
 
-def set_surface(df, i, meter_levels):
-    if (df.at[i,'kind'] == 5) and (df.at[i,'level'] == 1):
-        df.at[i,'surface'] = True
-    elif (df.at[i,'kind'] == 4) and (df.at[i,'level'] in meter_levels):
-        df.at[i,'surface'] = True
-    elif (df.at[i,'kind'] == 1) and (df.at[i,'level'] == 1):
-        df.at[i,'surface'] = True
-    else:
-        df.at[i,'surface'] = False
+
 
 
 
@@ -508,11 +465,7 @@ def materialize(df:pd.DataFrame) -> pd.DataFrame:
     res_df = reorder_dataframe(res_df) 
     return res_df
 
-def reorder_dataframe(df) -> pd.DataFrame:
-    if ('grid' in df.columns) and ('fhour' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
-        df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False,inplace=True) 
-    df.reset_index(drop=True,inplace=True)
-    return df
+
 
 
 def compare_modification_times(df, path:str,mode:str, caller:str,error_class:Exception):
@@ -531,35 +484,6 @@ def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
     df = reorder_dataframe(df)    
     return df
 
-def create_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int) -> str:
-    if nomvar in [">>", "^^", "!!", "!!SF", "HY"]:
-        grid = "".join([str(ip1),str(ip2)])
-    else:
-        grid = "".join([str(ig1),str(ig2)])
-    return grid
-
-def create_printable_date_of_observation(date:int):
-    #def stamp2datetime (date):
-    from rpnpy.rpndate import RPNDate
-    dummy_stamps = (0, 10101011)
-    if date not in dummy_stamps:
-        return RPNDate(int(date)).toDateTime().replace(tzinfo=None)
-    else:
-        return str(date)
-    # if dateo == 0:
-    #     return str(dateo)
-    # dt = rmn_dateo_to_datetime_object(dateo)
-    # return dt.strftime('%Y%m%d %H%M%S')
-
-def rmn_dateo_to_datetime_object(dateo:int):
-    res = rmn.newdate(rmn.NEWDATE_STAMP2PRINT, dateo)
-    date_str = str(res[0])
-    if res[1]:
-        time_str = str(res[1])[:-2]
-    else:
-        time_str = '000000'
-    date_str = "".join([date_str,time_str])
-    return datetime.datetime.strptime(date_str, '%Y%m%d%H%M%S')
 
 def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove) -> pd.DataFrame:
     columns = df_to_remove.columns.values.tolist()
@@ -1066,58 +990,6 @@ def add_metadata_fields(df:pd.DataFrame, latitude_and_longitude=True, pressure=T
 #         logger.debug("CB14: Found vgrid type=%s (kind=%d, vers=%d) with %d levels and diag levels=%7.2f%s (ip1=%d) and %7.2f%s (ip1=%d)" % (vtype, vkind, vver, len(tlvl), ldiagval, rmn.kindToString(ldiagkind), ip1diagt, l2diagval, rmn.kindToString(l2diagkind), ip1diagm))
 
 
-def parse_etiket(raw_etiket:str):
-    """parses the etiket of a standard file to get etiket, run, implementation and ensemble member if available
-
-    :param raw_etiket: raw etiket before parsing
-    :type raw_etiket: str
-    :return: the parsed etiket, run, implementation and ensemble member
-    :rtype: str  
-
-    >>> parse_etiket('')
-    ('', '', '', '')
-    >>> parse_etiket('R1_V710_N')
-    ('_V710_', 'R1', 'N', '')
-    """
-    import re
-    etiket = raw_etiket
-    run = None
-    implementation = None
-    ensemble_member = None
-    
-    match_run = "[RGPEAIMWNC_][\\dRLHMEA_]"
-    match_main_cmc = "\\w{5}"
-    match_main_spooki = "\\w{6}"
-    match_implementation = "[NPX]"
-    match_ensemble_member = "\\w{3}"
-    match_end = "$"
-    
-    re_match_cmc_no_ensemble = match_run + match_main_cmc + match_implementation + match_end
-    re_match_cmc_ensemble = match_run + match_main_cmc + match_implementation + match_ensemble_member + match_end
-    re_match_spooki_no_ensemble = match_run + match_main_spooki + match_implementation + match_end
-    re_match_spooki_ensemble = match_run + match_main_spooki + match_implementation + match_ensemble_member + match_end
-
-    if re.match(re_match_cmc_no_ensemble,raw_etiket):
-        run = raw_etiket[:2]
-        etiket = raw_etiket[2:7]
-        implementation = raw_etiket[7]
-    elif re.match(re_match_cmc_ensemble,raw_etiket):
-        run = raw_etiket[:2]
-        etiket = raw_etiket[2:7]
-        implementation = raw_etiket[7]
-        ensemble_member = raw_etiket[8:11]
-    elif re.match(re_match_spooki_no_ensemble,raw_etiket):
-        run = raw_etiket[:2]
-        etiket = raw_etiket[2:8]
-        implementation = raw_etiket[8]
-    elif re.match(re_match_spooki_ensemble,raw_etiket):
-        run = raw_etiket[:2]
-        etiket = raw_etiket[2:8]
-        implementation = raw_etiket[8]
-        ensemble_member = raw_etiket[9:12]
-    else:
-        etiket = raw_etiket
-    return etiket,run,implementation,ensemble_member
 
 
 
