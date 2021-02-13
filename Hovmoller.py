@@ -10,10 +10,6 @@ import matplotlib.pyplot as plt
 import metpy.calc as mpcalc
 
 
-
-
-
-
 def main():
     vv = get_dataframe_sorted_by_date()
 

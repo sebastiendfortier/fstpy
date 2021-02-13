@@ -26,7 +26,7 @@ main(){
   fstpy_base_path="$(cd "$(dirname ${real_file})/../.."; pwd)"
 
   if in_build_dir ; then
-      message "ERROR: This script is only meant for the installed version of spooki-pure. "
+      message "ERROR: This script is only meant for the installed version of fstpy. "
       return 2
   fi
 
@@ -38,7 +38,7 @@ main(){
 
   if $in_ssm ; then
       load_spooki_runtime_dependencies
-      message "SUCCESS: Using spooki-pure from ${fstpy_base_path}"
+      message "SUCCESS: Using fstpy from ${fstpy_base_path}"
   fi
 }
 
@@ -49,7 +49,7 @@ message(){
 
 require_ordenv_loaded(){
     if ! [ -v ORDENV_SETUP ] ; then
-        message "ERROR: ORDENV_SETUP is not set, ordenv must be loaded to use spooki-pure."
+        message "ERROR: ORDENV_SETUP is not set, ordenv must be loaded to use fstpy."
         return 1
     fi
 }
@@ -83,11 +83,11 @@ print_and_do(){
 }
 
 load_spooki_runtime_dependencies(){
-    message "Loading spooki-pure runtime dependencies ..."
+    message "Loading fstpy runtime dependencies ..."
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
     #print_and_do python3 -m pip install -r ${fstpy_base_path}/etc/profile.d/requirements.txt
-    message "... done loading spooki-pure runtime dependencies."
+    message "... done loading fstpy runtime dependencies."
 }
 
 main

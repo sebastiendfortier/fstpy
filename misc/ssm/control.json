@@ -3,7 +3,7 @@
     "version": "1.0.1",
     "platform": "ubuntu-18.04-skylake-64",
     "maintainer": "CMDS",
-    "description": "Spooki fstpy package",
+    "description": "fstpy package",
     "x-build-date": "2021-01-21 12:35:36",
     "x-build-platform": "ubuntu-18.04-skylake-64",
     "x-build-host": "cs4be-150p17",

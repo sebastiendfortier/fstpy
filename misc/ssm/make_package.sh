@@ -1,6 +1,26 @@
 #!/bin/bash
 VERSION=1.0.1
 PKGNAME=fstpy_${VERSION}_ubuntu-18.04-skylake-64
+
+echo '{' > control.json
+echo '    "name": "fstpy",' >> control.json
+echo '    "version": "'${VERSION}'",' >> control.json
+echo '    "platform": "'${BASE_ARCH}'",' >> control.json
+echo '    "maintainer": "CMDS",' >> control.json
+echo '    "description": "fstpy package",' >> control.json
+echo '    "x-build-date": "'`date`'",' >> control.json
+echo '    "x-build-platform": "'${BASE_ARCH}'",' >> control.json
+echo '    "x-build-host": "'${TRUE_HOST}'",' >> control.json
+echo '    "x-build-user": "'${USER}'",' >> control.json
+echo '    "x-build-uname": [' >> control.json
+echo '        "Linux",' >> control.json
+echo '        "'${TRUE_HOST}'",' >> control.json
+echo '        "3.10.0-957.el7.x86_64",' >> control.json
+echo '        "#1 SMP Thu Oct 4 20:48:51 UTC 2018",' >> control.json
+echo '        "x86_64"' >> control.json
+echo '    ]' >> control.json
+echo '}' >> control.json
+
 echo 'Building package '${PKGNAME}
 mkdir -p ${PKGNAME}/lib/packages/fstpy
 mkdir -p ${PKGNAME}/.ssm.d
@@ -16,6 +36,7 @@ cp -rf requirements.txt ${PKGNAME}/etc/profile.d/.
 echo 'Creating ssm archive '${PKGNAME}'.ssm'
 tar -zcvf ${PKGNAME}.ssm ${PKGNAME}
 echo 'Cleaning up '${PKGNAME}' directory'
+rm -rf control.json
 rm -rf ${PKGNAME}/
 
 mv ${PKGNAME}.ssm /tmp/sbf000/.

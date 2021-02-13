@@ -25,6 +25,7 @@ if pd.__version__ < '1.1.5':
 if error == 1:
     sys.exit('Requirements not met')
 
-
-
 rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
+
+#expose some functions and classes
+from .standardfile import StandardFileReader
