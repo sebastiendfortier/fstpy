@@ -109,3 +109,8 @@ def get_std_etiket(plugin_name:str):
     if len(etiket.index) == 0:
         return plugin_name
     return get_column_value_from_row(etiket, 'etiket')    
+
+def keys_to_remove(keys, the_dict):
+    for key in keys:
+        if key in the_dict:
+            del the_dict[key]    

@@ -161,6 +161,8 @@ def reorder_columns(df) -> pd.DataFrame:
     return df    
 
 def sort_dataframe(df) -> pd.DataFrame:
+    if df.empty:
+        return df
     if ('grid' in df.columns) and ('fhour' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
         df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False,inplace=True)
     else:     
