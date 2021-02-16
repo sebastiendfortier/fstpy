@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-from fstpy.standardfile import *
+from fstpy.std_reader import *
 from fstpy.unit import do_unit_conversion, UnitConversionError
 from fstpy.utils import delete_file
 from test import TMP_PATH, TEST_PATH
@@ -19,7 +19,7 @@ def test_regtest_1(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "windModulus_file2cmp.std"
     print('reading',source0)
-    src_df0 = StandardFileReader(source0,materialize=True)()
+    src_df0 = StandardFileReader(source0,load_data=True)()
     print('converting')
     #compute UnitConvert
     df = do_unit_conversion(src_df0,'kilometer_per_hour')

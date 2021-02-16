@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-from fstpy.standardfile import *
+from fstpy.std_reader import *
 from test import TEST_PATH
 
 pytestmark = [pytest.mark.zap, pytest.mark.regressions]

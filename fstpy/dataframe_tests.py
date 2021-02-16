@@ -327,7 +327,7 @@ class BufferBase (object):
     h = np.zeros(nrecs, dtype=self._headers_dtype)
 
 
-    from .standardfile import all_params
+    from .std_reader import all_params
     params = all_params(funit, out=h)
     # get all the keys
     keys = params['key']

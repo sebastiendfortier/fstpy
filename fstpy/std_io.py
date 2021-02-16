@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 import rpnpy.librmn.all as rmn
 from .config import logger
+import os.path
+import datetime
+import time
+import pathlib
+import dask.array as da
+from .exceptions import StandardFileError
+import sys
+import pandas as pd
 
 def open_fst(path:str, mode:str, caller_class:str, error_class:Exception):
     file_modification_time = get_file_modification_time(path,mode,caller_class,error_class)
@@ -12,7 +20,7 @@ def close_fst(file_id:int, file:str,caller_class:str):
     logger.info(caller_class + ' - closing file %s', file)
     rmn.fstcloseall(file_id)
 
-
+# written by Micheal Neish creator of fstd2nc
 # Lightweight test for FST files.
 # Uses the same test for fstd98 random files from wkoffit.c (librmn 16.2).
 #
@@ -28,10 +36,6 @@ def maybeFST(filename):
     return buf[12:] == b'STDR'
 
 def get_file_modification_time(path:str,mode:str,caller_class,exception_class):
-    import os.path
-    import datetime
-    import time
-    import pathlib
     file = pathlib.Path(path)
     if not file.exists():
         return datetime.datetime.now()
@@ -40,136 +44,189 @@ def get_file_modification_time(path:str,mode:str,caller_class,exception_class):
    
     file_modification_time = time.ctime(os.path.getmtime(path))
     file_modification_time = datetime.datetime.strptime(file_modification_time, "%a %b %d %H:%M:%S %Y")
-    del os.path
-    del datetime
-    del time
-    del pathlib
+
     return file_modification_time    
     
-def get_records(keys,materialize):
-    if materialize:
-        records = [rmn.fstluk(k) for k in keys]
-    else:    
-        records = [rmn.fstprm(k) for k in keys]
-    return records   
-
 def get_all_record_keys(file_id, subset):
     if (subset is None) == False:
         keys = rmn.fstinl(file_id,**subset)
     else:
         keys = rmn.fstinl(file_id)
-    return keys    
+    return keys  
 
-def get_level_and_kind(ip1:int):
-    #logger.debug('ip1',ip1)
-    level_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(ip1))
-    #logger.debug('level_kind',level_kind)
-    kind = int(level_kind[1])
-    level = level_kind[0]
-    level = float("%.6f"%-1) if kind == -1 else float("%.6f"%level)
-    return level, kind
-    #df.at[i,'kind'] = kind
-    #df.at[i,'level'] = float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
+def get_records(keys,load_data,decode,path,file_modification_time,array_container):
+    from .std_dec import create_grid_identifier,decode_meta_data
+    records = []    
+    if load_data:
+        for k in keys:
+            record = rmn.fstprm(k)
+            if record['dltf'] == 1:
+                continue
+            record = rmn.fstluk(k)
+            if array_container == 'dask.array':
+                record['d'] = da.from_array(record['d'])
+            elif array_container == 'numpy':
+                record['d'] = record['d']    
 
-def set_surface(df, i, meter_levels):
-    if (df.at[i,'kind'] == 5) and (df.at[i,'level'] == 1):
-        df.at[i,'surface'] = True
-    elif (df.at[i,'kind'] == 4) and (df.at[i,'level'] in meter_levels):
-        df.at[i,'surface'] = True
-    elif (df.at[i,'kind'] == 1) and (df.at[i,'level'] == 1):
-        df.at[i,'surface'] = True
+            del record['dltf']
+            record['fstinl_params'] = None
+            #del record['key']
+            strip_string_values(record)
+            #create a grid identifier for each record
+            record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+            remove_extra_keys(record)
+            record['path'] = path
+            record['file_modification_time'] = file_modification_time
+            if decode:
+                record['stacked'] = False
+                record.update(decode_meta_data(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+            records.append(record)
+    else:    
+        for k in keys:
+            record = rmn.fstprm(k)
+            if record['dltf'] == 1:
+                continue
+            del record['dltf']
+            record['fstinl_params'] = {
+                'datev':record['datev'],
+                'etiket':record['etiket'],
+                'ip1':record['ip1'],
+                'ip2':record['ip2'],
+                'ip3':record['ip3'],
+                'typvar':record['typvar'],
+                'nomvar':record['nomvar']
+            }
+            key  = record['key']
+            def read_record(array_container,key):
+                if array_container == 'dask.array':
+                    return da.from_array(rmn.fstluk(key)['d'])
+                elif array_container == 'numpy':
+                    return rmn.fstluk(key)['d']
+
+            record['d'] = (read_record,array_container,key)
+
+            #del record['key'] #i don't know if we need
+            strip_string_values(record)
+            #create a grid identifier for each record
+            record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+            remove_extra_keys(record)
+            record['path'] = path
+            record['file_modification_time'] = file_modification_time
+            if decode:
+                record['stacked'] = False
+                record.update(decode_meta_data(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+                
+            records.append(record)
+
+                
+    return records   
+
+def strip_string_values(record):
+    record['nomvar'] = record['nomvar'].strip()
+    record['etiket'] = record['etiket'].strip()
+    record['typvar'] = record['typvar'].strip()
+
+def remove_extra_keys(record):
+    del record['swa']
+    del record['ubc']
+    del record['lng']
+    del record['xtra1']
+    del record['xtra2']
+    del record['xtra3']
+
+
+def get_lat_lon(df):
+    return get_meta_data_fields(df,'get_lat_lon',StandardFileError,pressure=False, vertical_descriptors=False)
+
+def get_meta_data_fields(df,caller,error_class,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
+    from .std_reader import StandardFileReader,load_data
+    path_groups = df.groupby(df.path)
+    meta_dfs = []
+    #for each files in the df
+    for _, rec_df in path_groups:
+        path = rec_df.iloc[0]['path']
+        file_modification_time = rec_df.iloc[0]['file_modification_time']
+        compare_modification_times(file_modification_time,path,rmn.FST_RO,caller,error_class)
+        records = get_all_meta_data_fields_from_std_file(path, rec_df)
+        meta_df = pd.DataFrame(records)
+        #print(meta_df[['nomvar','grid']])
+        if meta_df.empty:
+            sys.stderr.write('get_meta_data_fields - no metatada in file %s'%path)
+            return df
+        grid_groups = rec_df.groupby(rec_df.grid)
+        #for each grid in the current file
+        for _,grid_df in grid_groups:
+            this_grid = grid_df.iloc[0]['grid']
+            if vertical_descriptors:
+                #print('vertical_descriptors')
+                vertical_df = meta_df.query('(nomvar in ["!!", "HY", "!!SF", "E1"]) and (grid=="%s")'%this_grid)
+                meta_dfs.append(vertical_df)
+            if pressure:
+                #print('pressure')
+                pressure_df = meta_df.query('(nomvar in ["P0", "PT"]) and (grid=="%s")'%this_grid)
+                meta_dfs.append(pressure_df)
+            if latitude_and_longitude:
+                #print('lati and longi')
+                latlon_df = meta_df.query('(nomvar in ["^>", ">>", "^^"]) and (grid=="%s")'%this_grid)
+                #print(latlon_df)
+                meta_dfs.append(latlon_df)
+                #print(latlon_df)
+              
+    if len(meta_dfs):
+        result = pd.concat(meta_dfs)
+        return result
     else:
-        df.at[i,'surface'] = False    
+        return pd.DataFrame(dtype=object)
 
-def create_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int) -> str:
-    if nomvar in [">>", "^^", "!!", "!!SF", "HY"]:
-        grid = "".join([str(ip1),str(ip2)])
-    else:
-        grid = "".join([str(ig1),str(ig2)])
-    return grid
+def get_all_meta_data_fields_from_std_file(path):
+    unit = rmn.fstopenall(path)
+    lat_keys = rmn.fstinl(unit,nomvar='^^')
+    lon_keys = rmn.fstinl(unit,nomvar='>>')
+    tictac_keys = rmn.fstinl(unit,nomvar='^>')
+    toctoc_keys = rmn.fstinl(unit,nomvar='!!')
+    hy_keys = rmn.fstinl(unit,nomvar='HY')
+    sf_keys = rmn.fstinl(unit,nomvar='!!SF')
+    e1_keys = rmn.fstinl(unit,nomvar='E1')
+    p0_keys = rmn.fstinl(unit,nomvar='P0')
+    pt_keys = rmn.fstinl(unit,nomvar='PT')
+    keys = lat_keys + lon_keys + tictac_keys + toctoc_keys + hy_keys + sf_keys + e1_keys + p0_keys + pt_keys
+    records = [rmn.fstluk(key) for key in keys]
+    rmn.fstcloseall(unit)  
+    return records
 
-def create_printable_date_of_observation(date:int):
-    #def stamp2datetime (date):
-    from rpnpy.rpndate import RPNDate
-    dummy_stamps = (0, 10101011)
-    if date not in dummy_stamps:
-        return RPNDate(int(date)).toDateTime().replace(tzinfo=None)
-    else:
-        return str(date)
+
+def compare_modification_times(df_file_modification_time, path:str,mode:str, caller:str,error_class:Exception):
+    file_modification_time = get_file_modification_time(path,mode,caller, error_class)
+    if df_file_modification_time != file_modification_time:
+        raise error_class(caller + ' - original file has been modified since the start of the operation, keys might be invalid - exiting!')
+#df_file_modification_time = df.iloc[0]['file_modification_time']
+
+
+
+
+
+
     # if dateo == 0:
     #     return str(dateo)
     # dt = rmn_dateo_to_datetime_object(dateo)
     # return dt.strftime('%Y%m%d %H%M%S')
 
-def rmn_dateo_to_datetime_object(dateo:int):
-    import datetime
-    res = rmn.newdate(rmn.NEWDATE_STAMP2PRINT, dateo)
-    date_str = str(res[0])
-    if res[1]:
-        time_str = str(res[1])[:-2]
-    else:
-        time_str = '000000'
-    date_str = "".join([date_str,time_str])
-    return datetime.datetime.strptime(date_str, '%Y%m%d%H%M%S')
+# def rmn_dateo_to_datetime_object(dateo:int):
+#     import datetime
+#     res = rmn.newdate(rmn.NEWDATE_STAMP2PRINT, dateo)
+#     date_str = str(res[0])
+#     if res[1]:
+#         time_str = str(res[1])[:-2]
+#     else:
+#         time_str = '000000'
+#     date_str = "".join([date_str,time_str])
+#     return datetime.datetime.strptime(date_str, '%Y%m%d%H%M%S')
 
-def get_unit(df, i, nomvar):
-    import constants
-    unit = constants.STDVAR.loc[constants.STDVAR['nomvar'] == f'{nomvar}']['unit'].values
-    if len(unit):
-        df.at[i,'unit'] = unit[0]
-    else:
-        df.at[i,'unit'] = 'scalar'
-    return df
 
-def parse_etiket(raw_etiket:str):
-    """parses the etiket of a standard file to get etiket, run, implementation and ensemble member if available
 
-    :param raw_etiket: raw etiket before parsing
-    :type raw_etiket: str
-    :return: the parsed etiket, run, implementation and ensemble member
-    :rtype: str  
 
-    >>> parse_etiket('')
-    ('', '', '', '')
-    >>> parse_etiket('R1_V710_N')
-    ('_V710_', 'R1', 'N', '')
-    """
-    import re
-    etiket = raw_etiket
-    run = None
-    implementation = None
-    ensemble_member = None
-    
-    match_run = "[RGPEAIMWNC_][\\dRLHMEA_]"
-    match_main_cmc = "\\w{5}"
-    match_main_spooki = "\\w{6}"
-    match_implementation = "[NPX]"
-    match_ensemble_member = "\\w{3}"
-    match_end = "$"
-    
-    re_match_cmc_no_ensemble = match_run + match_main_cmc + match_implementation + match_end
-    re_match_cmc_ensemble = match_run + match_main_cmc + match_implementation + match_ensemble_member + match_end
-    re_match_spooki_no_ensemble = match_run + match_main_spooki + match_implementation + match_end
-    re_match_spooki_ensemble = match_run + match_main_spooki + match_implementation + match_ensemble_member + match_end
 
-    if re.match(re_match_cmc_no_ensemble,raw_etiket):
-        run = raw_etiket[:2]
-        etiket = raw_etiket[2:7]
-        implementation = raw_etiket[7]
-    elif re.match(re_match_cmc_ensemble,raw_etiket):
-        run = raw_etiket[:2]
-        etiket = raw_etiket[2:7]
-        implementation = raw_etiket[7]
-        ensemble_member = raw_etiket[8:11]
-    elif re.match(re_match_spooki_no_ensemble,raw_etiket):
-        run = raw_etiket[:2]
-        etiket = raw_etiket[2:8]
-        implementation = raw_etiket[8]
-    elif re.match(re_match_spooki_ensemble,raw_etiket):
-        run = raw_etiket[:2]
-        etiket = raw_etiket[2:8]
-        implementation = raw_etiket[8]
-        ensemble_member = raw_etiket[9:12]
-    else:
-        etiket = raw_etiket
-    return etiket,run,implementation,ensemble_member
+# def convert_rmnkind_to_string(kind):
+#     return constants.KIND_DICT[int(kind)]
+
+  

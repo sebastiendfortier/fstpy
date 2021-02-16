@@ -1,141 +1,146 @@
 # -*- coding: utf-8 -*-
+from fstpy.dataframe import sort_dataframe
 from .utils import create_1row_df_from_model, initializer, validate_df_not_empty
 import rpnpy.librmn.all as rmn
 import pandas as pd
 import numpy as np
-from .constants import VCTYPES, DATYP_DICT, STDVAR, KIND_DICT, get_column_value_from_row, get_etikey_by_name
+from .constants import VCTYPES, KIND_DICT, get_column_value_from_row, get_etikey_by_name
 from .config import logger
-
-# fstopt(optName, optValue, setOget=0):
-#    '''
-#    Set or print FST option.
-
-#    fstopt(optName, optValue)
-#    fstopt(optName, optValue, setOget)
-
-#    Args:
-#        optName  : name of option to be set or printed
-#                   or one of these constants:
-#                   FSTOP_MSGLVL, FSTOP_TOLRNC, FSTOP_PRINTOPT, FSTOP_TURBOCOMP
-#                   FSTOP_FASTIO, FSTOP_IMAGE, FSTOP_REDUCTION32
-#        optValue : value to be set (int or string)
-#                   or one of these constants:
-#                   for optName=FSTOP_MSGLVL:
-#                      FSTOPI_MSG_DEBUG,   FSTOPI_MSG_INFO,  FSTOPI_MSG_WARNING,
-#                      FSTOPI_MSG_ERROR,   FSTOPI_MSG_FATAL, FSTOPI_MSG_SYSTEM,
-#                      FSTOPI_MSG_CATAST
-#                   for optName=FSTOP_TOLRNC:
-#                      FSTOPI_TOL_NONE,    FSTOPI_TOL_DEBUG, FSTOPI_TOL_INFO,
-#                      FSTOPI_TOL_WARNING, FSTOPI_TOL_ERROR, FSTOPI_TOL_FATAL
-#                   for optName=FSTOP_TURBOCOMP:
-#                      FSTOPS_TURBO_FAST, FSTOPS_TURBO_BEST
-#                   for optName=FSTOP_FASTIO, FSTOP_IMAGE, FSTOP_REDUCTION32:
-#                      FSTOPL_TRUE, FSTOPL_FALSE
-#        setOget  : define mode, set or print/get
-#                   one of these constants: FSTOP_SET, FSTOP_GET
-#                   default: set mode
-#    Returns:
-#        None
-#    Raises:
-#        TypeError  on wrong input arg types
-#        ValueError on invalid input arg value
-#        FSTDError  on any other error
-#    '''
+from .std_dec import get_level_and_kind
+from .exceptions import StandardFileError
+import sys
+from .config import logger
 
 class StandardFileReader:
     """Class to handle fst files   
         Opens, reads the contents of an fst files or files into a pandas Dataframe and closes   
-        No data is loaded unless specified, only the meta data is read. Extra meta data is added to the dataframe.
+        No data is loaded unless specified, only the meta data is read. Extra meta data is added to the dataframe if specified.
  
         :param filenames: path to file or list of paths to files   
         :type filenames: str|list[str]   
-        :param read_meta_fields_only: when True, returns only the meta fields see StandardFileReader.meta_data, defaults to False   
-        :type read_meta_fields_only: bool, optional   
-        :param add_extra_columns: adds extra columns, defaults to True    
+        :param decode_meta_data: adds extra columns, defaults to True    
                 'unit':str, unit name
                 'unit_converted':bool
+                'description':str, field description
                 'pdateo':datetime, of the date of observation
                 'pdatev':datetime, of the date of validity
                 'level':float32, decoded ip1 level
                 'kind':int32, decoded ip1 kind
                 'pkind':str, string repr of kind int
                 'pdatyp':str, string repr of kind int
-                'e_label':str, label derived from etiket
-                'e_run':str, run derived from etiket
-                'e_implementation':str, implementation derived from etiket
-                'e_ensemble_member':str, ensemble member derived from etiket
+                'label':str, label derived from etiket
+                'run':str, run derived from etiket
+                'implementation':str, implementation derived from etiket
+                'ensemble_member':str, ensemble member derived from etiket
                 'surface':bool, True if the level is a surface level
                 'follow_topography':bool, indicates if this type of level follows topography
                 'vctype':str, vertical level type
                 'fhour':time, forecast hour decoded from ip2
-        :type add_extra_columns: bool, optional    
-        :param materialize: if True, the data will be read, not just the meta data (fstluk vs fstprm)
-        :type materialize: bool, optional
+        :type decode_meta_data: bool, optional    
+        :param load_data: if True, the data will be read, not just the meta data (fstluk vs fstprm)
+        :type load_data: bool, optional
         :param subset: parameter to pass to fstinl to select specific records
         :type subset:dict
     """
-    from dataframe import to_pandas
     meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
     @initializer
-    def __init__(self, filenames, read_meta_fields_only=False,add_extra_columns=True,materialize=False,subset=None):
+    def __init__(self, filenames, keep_all_meta_data=False,decode_meta_data=False,load_data=False,subset=None,array_container='numpy',stack=False):
         #{'datev':-1, 'etiket':' ', 'ip1':-1, 'ip2':-1, 'ip3':-1, 'typvar':' ', 'nomvar':' '}
         """init instance"""
+        if self.array_container not in ['numpy','dask.array']:
+            sys.stderr.write('wrong type of array container specified, defaulting to numpy')
+            self.array_container = 'numpy'
         pass
-
-    def __call__(self):
-        """calls the to_pandas method  
+        
+    def to_pandas(self) -> pd.DataFrame:
+        """creates the dataframe from the provided files  
 
         :return: df  
         :rtype: pd.Dataframe  
         """
-        return self.to_pandas()
-        
-
-        
-    def set_vertical_coordinate_type(self) -> pd.DataFrame:
-        newdfs=[]
-        grid_groups = self.df.groupby(self.df.grid)
-        for _, grid in grid_groups:
-            toctoc, p0, e1, pt, hy, sf, vcode = self.get_meta_fields_exists(grid)
-            kind_groups = grid.groupby(grid.kind)
-            for _, kind_group in kind_groups:
-                #these kinds are not defined
-                without_meta = select(kind_group,'(kind not in [-1,3,6])',no_fail=True)
-                if not without_meta.empty:
-                    #logger.debug(without_meta.iloc[0]['nomvar'])
-                    kind = without_meta.iloc[0]['kind']
-                    kind_group['vctype'] = 'UNKNOWN'
-                    #vctype_dict = {'kind':kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
-                    vctyte_df = VCTYPES.query('(kind==%s) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%s)'%(kind,toctoc,p0,e1,pt,hy,sf,vcode))
-                    if not vctyte_df.empty:
-                        if len(vctyte_df.index)>1:
-                            logger.warning('set_vertical_coordinate_type - more than one match!!!')
-                        kind_group['vctype'] = vctyte_df.iloc[0]['vctype']
-                    newdfs.append(kind_group)
-
-        df = pd.concat(newdfs)
+        from .dataframe import create_dataframe
+        if isinstance(self.filenames, list):
+            dfs = []
+            for file in set(self.filenames):
+                df = create_dataframe(file,self.decode_meta_data,self.load_data,self.subset,self.array_container)
+                dfs.append(df)
+            df = pd.concat(dfs)   
+            # return df
+        else:
+            df = create_dataframe(self.filenames,self.decode_meta_data,self.load_data,self.subset,self.array_container)
+            # return df
         return df    
 
+def stack_arrays(df):
+    import numpy as np
+    import pandas as pd
+    from .std_dec import decode_ip1
+    df = load_data(df)
+    df_list = []
+    grid_groups = df.groupby(df.grid)
+    for _, grid_df in grid_groups:
+        for nomvar in grid_df.nomvar.unique():
+            if nomvar in ['>>','^^','!!','!!SF','HY','P0','PT']:
+                to_stack_df = grid_df.query('nomvar=="%s"'%nomvar)
+                df_list.append(to_stack_df)
+                continue
+            to_stack_df = grid_df.query('nomvar=="%s"'%nomvar)
+            if len(to_stack_df.d) == 1:
+                df_list.append(to_stack_df)
+                continue
+            if 'level' not in  to_stack_df.columns:   
+                to_stack_df['level'] = None
+                to_stack_df['kind'] = None
+                for i in to_stack_df.index:
+                    to_stack_df.at[i,'level'], to_stack_df.at[i,'kind'], _ = decode_ip1(to_stack_df.at[i,'ip1'])
+            to_stack_df.sort_values(by=['level'],ascending=False,inplace=True)    
+            #print('stacking %s with %s levels'%(nomvar, len(to_stack_df.level)))
+            var = create_1row_df_from_model(to_stack_df)
+            #print(var.index)
+            data_list = to_stack_df['d'].to_list()
+            stacked_data = np.stack(data_list)
+            #print(type(stacked_data),type(var.at[0,'d']))
+            var['stacked'] = True
+            var['ip1'] = None
+            var['level'] = None
+            var['kind'] = None
+            var['key'] = None
+            var.at[0,'level'] = to_stack_df['level'].to_numpy()
+            var.at[0,'kind'] = to_stack_df['kind'].to_numpy()
+            var.at[0,'d'] = stacked_data
+            var.at[0,'ip1'] = to_stack_df['ip1'].to_numpy()
+            var.at[0,'key'] = to_stack_df['key'].to_numpy()
+            var.at[0,'shape'] = (len(var.at[0,'ip1']),var.at[0,'ni'],var.at[0,'nj'])
+            var.at[0,'nk'] = len(var.at[0,'ip1'])
+            df_list.append(var)
+
+    if len(df_list) > 1:
+        new_df = pd.concat(df_list)
+    else:   
+        new_df = df_list[0]
+    new_df = sort_dataframe(new_df)    
+    new_df.reset_index(inplace=True,drop=True)    
+    return new_df
 
 
-def get_meta_fields_exists(grid):
-    toctoc = select(grid,'nomvar=="!!"',no_fail=True)
-    if not toctoc.empty:
-        vcode = toctoc.iloc[0]['ig1']
-        toctoc = True
-    else:
-        vcode = -1
-        toctoc = False
-    p0 = meta_exists(grid,"P0")
-    e1 = meta_exists(grid,"E1")
-    pt = meta_exists(grid,"PT")
-    hy = meta_exists(grid,"HY")
-    sf = meta_exists(grid,"!!SF")
-    return toctoc, p0, e1, pt, hy, sf, vcode
 
-def meta_exists(grid, nomvar) -> bool:
-    df = select(grid,'nomvar=="%s"'%nomvar,no_fail=True)
-    return not df.empty
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
 
 
 
@@ -151,99 +156,50 @@ def meta_exists(grid, nomvar) -> bool:
 
 
 
-class StandardFileWriter:
-    """fst file writer  
-
-    :param filename: file to write to  
-    :type filename: str  
-    :param df: dataframe to write  
-    :type df: pd.DataFrame  
-    :param erase: erase the file before writing to it, defaults to False  
-    :type erase: bool, optional  
-    :param add_meta_fields: write the metadata associated with the data frame if it exists, defaults to True  
-    :type add_meta_fields: bool, optional  
-    """
-    @initializer
-    def __init__(self, filename:str, df:pd.DataFrame, update_meta_only=False):
-        import os
-        import exceptions 
-        logger.info('StandardFileWriter %s' % filename)
-        validate_df_not_empty(self.df,'StandardFileWriter',exceptions.StandardFileWriterError)
-        self.filename = os.path.abspath(self.filename)
-       
-    def __call__(self):
-        """opens, writes the dataframe and closes the fst file"""
-        self.to_fst()
 
 
-    def to_fst(self):
-        import exceptions 
-        self.meta_df = get_meta_data_fields(self.df,'to_fst',exceptions.StandardFileWriterError)
-        if not self.meta_df.empty:
-            int_df = pd.merge(self.meta_df, self.df, how ='inner', on =['ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
-                'nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev','swa', 'lng', 'dltf', 'ubc',
-                'xtra1', 'xtra2', 'xtra3', 'dateo', 'datyp']) 
-
-            if len(int_df.index) and len(self.meta_df.index) != len(int_df.index):
-                self.df = pd.concat(self.df, self.meta_df).drop_duplicates(keep=False)
-
-        if not self.update_meta_only:
-            self.df = materialize(self.df)
-
-        self.file_id, self.file_modification_time = open_fst(self.filename, rmn.FST_RW, 'StandardFileWriter', StandardFileWriterError)
-        self.write()
-        close_fst(self.file_id,self.filename,'StandardFileWriter')
-
-
-    def write(self):
-        logger.info('StandardFileWriter - writing to file %s', self.filename)  
-
-        self.df = reorder_dataframe(self.df)
-        for i in self.df.index:
-            set_typvar(self.df,i)
-            record_path = self.df.at[i,'path']
-            if identical_destination_and_record_path(record_path,self.filename):
-                if self.update_meta_only:
-                    logger.warning('StandardFileWriter - record path and output file are identical, updating record meta data only')
-                    update_meta_data(self.df,i)
-                else:
-                    logger.warning('StandardFileWriter - record path and output file are identical, adding  new records')
-                    write_dataframe_record_to_file(self.file_id,self.df,i)  
-            else:
-                write_dataframe_record_to_file(self.file_id,self.df,i)     
-
-
-def materialize2(df):
+def load_data(df):
     import dask.array as da
+    from .dataframe import sort_dataframe
     path_groups = df.groupby(df.path)
     res_list = []
     for _,path_df in path_groups:
         unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
+        #path_df.sort_values(by=['key'],inplace=True)
         for i in path_df.index:
-            if isinstance(path_df.at[i,'d'],tuple):
-                #call stored function with param, rmn.fstluk(key)
-                path_df.at[i,'d'] = da.from_array(path_df.at[i,'d'][0](path_df.at[i,'d'][1])['d'])
-                path_df.at[i,'key'] = None
-                path_df.at[i,'materialize_info'] = None
-                # path_df.at[i,'path'] = None
+            if isinstance(path_df.at[i,'d'],da.core.Array):
+                continue
+            if isinstance(path_df.at[i,'d'],np.ndarray):
+                # if path_df.at[i,'d'].dtype == 'O':
+                #     path_df.at[i,'d'] = path_df.at[i,'d'].tolist()
+                #     j_list = []
+                #     for j in path_df.at[i,'d']:
+                #         j_list.append(j[0](j[1],j[2]))
+                #     path_df.at[i,'d'] = j_list
+                #     path_df.at[i,'fstinl_params'] = None   
+                    continue
+            #call stored function with param, rmn.fstluk(key) 
+            path_df.at[i,'d'] = path_df.at[i,'d'][0](path_df.at[i,'d'][1],path_df.at[i,'d'][2])
+            path_df.at[i,'fstinl_params'] = None
+            # path_df.at[i,'path'] = None
         res_list.append(path_df)
         rmn.fstcloseall(unit)
-    res_df = pd.concat(res_list)    
+    if len(res_list) >= 1:
+        res_df = pd.concat(res_list)    
+    else:
+        res_df = df
+    res_df = sort_dataframe(res_df)
+    res_df.reset_index(drop=True,inplace=True)
     return res_df    
 
-def write_dataframe_record_to_file(file_id,df,i):
-    df = change_etiket_if_a_plugin_name(df,i)
-    df = reshape_data_to_original_shape(df,i)
-    rmn.fstecr(file_id, np.asfortranarray(df.at[i,'d']), df.loc[i].to_dict())     
 
-def set_typvar(df, i):
-    if ('typvar' in df.columns) and ('unit_converted' in df.columns) and (df.at[i,'unit_converted'] == True) and (len(df.at[i,'typvar']) == 1):
-        df.at[i,'typvar']  += 'U'
+
 
 
 
 
 def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
+    from .std_io import get_lat_lon
     """get_2d_lat_lon Gets the latitudes and longitudes as 2d arrays associated with the supplied grids
 
     :return: a pandas Dataframe object containing the lat and lon meta data of the grids
@@ -300,126 +256,63 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     latlon.reset_index(inplace=True,drop=True)
     return latlon
 
-def update_meta_data(df, i):
-    d = df.loc[i].to_dict()
-    key = d['key']
-    del d['key']
-    rmn.fst_edit_dir(int(key),dateo=int(d['dateo']),deet=int(d['deet']),npas=int(d['npas']),ni=int(d['ni']),nj=int(d['nj']),nk=int(d['nk']),datyp=int(d['datyp']),ip1=int(d['ip1']),ip2=int(d['ip2']),ip3=int(d['ip3']),typvar=d['typvar'],nomvar=d['nomvar'],etiket=d['etiket'],grtyp=d['grtyp'],ig1=int(d['ig1']),ig2=int(d['ig2']),ig3=int(d['ig3']),ig4=int(d['ig4']), keep_dateo=False)
-
-def identical_destination_and_record_path(record_path, filename):
-    return record_path == filename
-
-def reshape_data_to_original_shape(df, i):
-    if df.at[i,'d'].shape != df.at[i,'shape']:
-        df.at[i,'d'] = df.at[i,'d'].reshape(df.at[i,'shape'])
-    return df
-
-def change_etiket_if_a_plugin_name(df, i):
-    df.at[i,'etiket'] = get_std_etiket(df.at[i,'etiket'])
-    return df
-
-def remove_df_columns(df,keys_to_keep = {'key','dateo', 'deet', 'npas', 'ni', 'nj', 'nk', 'datyp', 'nbits', 'ip1', 'ip2', 'ip3', 'typvar', 'nomvar', 'etiket', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'}):
-    d = df.iloc[0].to_dict()
-    d_keys = set(d.keys())
-    keys_to_remove = list(d_keys-keys_to_keep)
-    #keys_to_keep = {'dateo', 'datev', 'deet', 'npas', 'ni', 'nj', 'nk', 'nbits', 'datyp', 'ip1', 'ip2', 'ip3', 'typvar', 'nomvar', 'etiket', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'}
-    df = df.drop(columns=keys_to_remove)
-    return df
 
 
-def fst_to_df(file_id:int, exception_class, materialize:bool, subset, read_meta_fields_only:bool) -> pd.DataFrame:
-    """[summary]
 
-    :param file_id: unit id of the fst file
-    :type file_id: int
-    :param exception_class: exception class to raise in case of error
-    :type exception_class: Exception
-    :param materialize: if True, reads the meta data and data, default False
-    :type materialize: bool
-    :param subset: passes parameters to fstinl to create a selection of records insteand of reading all records
-    :type subset: dict|None
-    :param read_meta_fields_only: if True, read only meta data fields
-    :type read_meta_fields_only: bool
-    :raises exception_class: raised exception in case of error
-    :return: all the read records as a pandas DataFrame
-    :rtype: pd.DataFrame
-    """
-    logger.info('read - reading records')
 
-    number_or_records = rmn.fstnbr(file_id)
+# def fst_to_df(file_id:int, exception_class, load_data:bool, subset) -> pd.DataFrame:
+#     """[summary]
 
-    meta_keys = get_meta_record_keys(file_id)
-    assert len(meta_keys) == len(set(meta_keys))
+#     :param file_id: unit id of the fst file
+#     :type file_id: int
+#     :param exception_class: exception class to raise in case of error
+#     :type exception_class: Exception
+#     :param load_data: if True, reads the meta data and data, default False
+#     :type load_data: bool
+#     :param subset: passes parameters to fstinl to create a selection of records insteand of reading all records
+#     :type subset: dict|None
+#     :raises exception_class: raised exception in case of error
+#     :return: all the read records as a pandas DataFrame
+#     :rtype: pd.DataFrame
+#     """
+#     logger.info('read - reading records')
 
-    all_keys = get_all_record_keys(file_id, subset)
+#     number_or_records = rmn.fstnbr(file_id)
 
-    if subset is None:
-        assert number_or_records == len(all_keys)
-    assert len(all_keys) == len(set(all_keys))
+#     meta_keys = get_meta_record_keys(file_id)
+#     assert len(meta_keys) == len(set(meta_keys))
 
-    if read_meta_fields_only:
-        keys = meta_keys    
-        if len(keys) == 0:
-            return pd.DataFrame(dtype=object)  
-        if (subset is None) == False:
-            logger.warning('subset key does not appply when getting meta data fields only')
-    else:
-        keys = list(set(all_keys).difference(set(meta_keys)))
+#     all_keys = get_all_record_keys(file_id, subset)
+
+#     if subset is None:
+#         assert number_or_records == len(all_keys)
+#     assert len(all_keys) == len(set(all_keys))
+
+#     keys = list(set(all_keys).difference(set(meta_keys)))
  
-    if len(keys) == 0:
-        logger.error('read - no records in file?')
-        raise exception_class('no records in file')
+#     if len(keys) == 0:
+#         logger.error('read - no records in file?')
+#         raise exception_class('no records in file')
 
-    if materialize:
-        records = [rmn.fstluk(k) for k in keys]
-    else:    
-        records = [rmn.fstprm(k) for k in keys]
-    #create a dataframe correspondinf to the fst file
-    df = pd.DataFrame(records)
-    if materialize:
-        df['key']=None
-    assert len(df.index) == len(keys)
+#     if load_data:
+#         records = [rmn.fstluk(k) for k in keys]
+#     else:    
+#         records = [rmn.fstprm(k) for k in keys]
+#     #create a dataframe correspondinf to the fst file
+#     df = pd.DataFrame(records)
+#     if load_data:
+#         df['key']=None
+#     assert len(df.index) == len(keys)
 
-    return df
+#     return df
 
-def get_meta_record_keys(file_id):
-    meta_keys = []
-    for meta_name in StandardFileReader.meta_data:
-        keys = rmn.fstinl(file_id,nomvar=meta_name)
-        if len(keys):
-            meta_keys += keys
-    return meta_keys
-
-
-
-
-def get_std_etiket(plugin_name:str):
-    """get_std_etiket get the etiket corresponding to the plugin name
-
-    :param plugin_name: plugin name
-    :type plugin_name: str
-    :return: etiket corresponding to plugin name in etiket db
-    :rtype: str
-    """
-    etiket = get_etikey_by_name(plugin_name)
-    if len(etiket.index) == 0:
-        return plugin_name
-    return get_column_value_from_row(etiket, 'etiket')
-
-
-
-
-
-
-def set_follow_topography(df, i):
-    if df.at[i,'kind'] == 1:
-        df.at[i,'follow_topography'] = True
-    elif df.at[i,'kind'] == 4:
-        df.at[i,'follow_topography'] = True
-    elif df.at[i,'kind'] == 5:
-        df.at[i,'follow_topography'] = True
-    else:
-        df.at[i,'follow_topography'] = False
+# def get_meta_record_keys(file_id):
+#     meta_keys = []
+#     for meta_name in StandardFileReader.meta_data:
+#         keys = rmn.fstinl(file_id,nomvar=meta_name)
+#         if len(keys):
+#             meta_keys += keys
+#     return meta_keys
 
 
 
@@ -428,69 +321,69 @@ def set_follow_topography(df, i):
 
 
 
-def materialize(df:pd.DataFrame) -> pd.DataFrame:
-    if 'path' not in df:
-        return df
-    # grou by path
-    path_groups = df.groupby(df.path)
+
+
+
+
+
+
+
+
+
+
+
+
+# def load_data(df:pd.DataFrame) -> pd.DataFrame:
+#     if 'path' not in df:
+#         return df
+#     # grou by path
+#     path_groups = df.groupby(df.path)
     
-    mat_dfs = []
-    for _, rec_df_view in path_groups:
-        rec_df = rec_df_view.copy(deep=True)
-        #get the first path in this group
-        path = rec_df.iloc[0]['path']
-        compare_modification_times(rec_df, path, rmn.FST_RO,'materialize',StandardFileError)
-        #open the file
-        file_id = rmn.fstopenall(path, filemode=rmn.FST_RO)
-        for i in rec_df.index:
-            # if record is already materialized, skip
-            if rec_df.at[i,'d'] is None:
-                key=rec_df.at[i,'key']
-                #logger.warning('materialize - record %s %s %s %s %s %s %s already materialized'%(rec_df.at[i,'nomvar'], rec_df.at[i,'typvar'], rec_df.at[i,'etiket'], rec_df.at[i,'ip1'],rec_df.at[i,'ip2'],rec_df.at[i,'ip3'], rec_df.at[i,'datev']))
-                if ('dirty' in rec_df.columns) and (rec_df.at[i,'dirty']):
-                    if ('materialize_info' in rec_df.columns) and (rec_df.at[i,'materialize_info'] is None == False):
-                        # find the old record from materialize info
-                        key_list = rmn.fstinl(file_id,**rec_df.at[i,'materialize_info'])
-                        if len(key_list) != 1:
-                            raise StandardFileError('materialize - bad record match - either none or more than one match')
-                        #found one matching records
-                        key=key_list[0]    
+#     mat_dfs = []
+#     for _, rec_df_view in path_groups:
+#         rec_df = rec_df_view.copy(deep=True)
+#         #get the first path in this group
+#         path = rec_df.iloc[0]['path']
+#         compare_modification_times(rec_df, path, rmn.FST_RO,'load_data',StandardFileError)
+#         #open the file
+#         file_id = rmn.fstopenall(path, filemode=rmn.FST_RO)
+#         for i in rec_df.index:
+#             # if record is already load_datad, skip
+#             if rec_df.at[i,'d'] is None:
+#                 key=rec_df.at[i,'key']
+#                 #logger.warning('load_data - record %s %s %s %s %s %s %s already load_datad'%(rec_df.at[i,'nomvar'], rec_df.at[i,'typvar'], rec_df.at[i,'etiket'], rec_df.at[i,'ip1'],rec_df.at[i,'ip2'],rec_df.at[i,'ip3'], rec_df.at[i,'datev']))
+#                 if ('dirty' in rec_df.columns) and (rec_df.at[i,'dirty']):
+#                     if ('fstinl_params' in rec_df.columns) and (rec_df.at[i,'fstinl_params'] is None == False):
+#                         # find the old record from load_data info
+#                         key_list = rmn.fstinl(file_id,**rec_df.at[i,'fstinl_params'])
+#                         if len(key_list) != 1:
+#                             raise StandardFileError('load_data - bad record match - either none or more than one match')
+#                         #found one matching records
+#                         key=key_list[0]    
                 
-                rec = rmn.fstluk(int(key))
-                rec_df.at[i,'d'] = rec['d']
-                rec_df.at[i,'key']=None
-        mat_dfs.append(rec_df)    
-        rmn.fstcloseall(file_id)
-    res_df = pd.concat(mat_dfs)   
-    res_df = reorder_dataframe(res_df) 
-    return res_df
+#                 rec = rmn.fstluk(int(key))
+#                 rec_df.at[i,'d'] = rec['d']
+#                 rec_df.at[i,'key']=None
+#         mat_dfs.append(rec_df)    
+#         rmn.fstcloseall(file_id)
+#     res_df = pd.concat(mat_dfs)   
+#     res_df = sort_dataframe(res_df) 
+#     return res_df
 
 
 
 
-def compare_modification_times(df, path:str,mode:str, caller:str,error_class:Exception):
-    df_file_modification_time = df.iloc[0]['file_modification_time']
-    file_modification_time = get_file_modification_time(path,mode,caller, error_class)
-    if df_file_modification_time != file_modification_time:
-        raise error_class(caller + ' - original file has been modified since the start of the operation, keys might be invalid - exiting!')
 
-def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
-    df = materialize(df)
-    for i in df.index:
-        df.at[i,'d'] = df.at[i,'d'][:dim1,:dim2].copy(deep=True)
-        df.at[i,'shape']  = df.at[i,'d'].shape
-        df.at[i,'ni'] = df.at[i,'shape'][0]
-        df.at[i,'nj'] = df.at[i,'shape'][1]
-    df = reorder_dataframe(df)    
-    return df
+
 
 
 def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove) -> pd.DataFrame:
     columns = df_to_remove.columns.values.tolist()
     columns.remove('d')
-    columns.remove('materialize_info')
+    columns.remove('fstinl_params')
     tmp_df = pd.concat([df_to_remove_from, df_to_remove]).drop_duplicates(subset=columns,keep=False)
-    tmp_df = reorder_dataframe(tmp_df)
+    tmp_df = sort_dataframe(tmp_df)
+    tmp_df.reset_index(inplace=True,drop=True) 
     return tmp_df
 
 class SelectError(Exception):
@@ -518,9 +411,9 @@ def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_meta_data=Fals
     if exclude:
         columns = df.columns.values.tolist()
         columns.remove('d')
-        columns.remove('materialize_info')
+        columns.remove('fstinl_params')
         tmp_df = pd.concat([df, tmp_df]).drop_duplicates(subset=columns,keep=False)
-    tmp_df = reorder_dataframe(tmp_df) 
+    tmp_df = sort_dataframe(tmp_df) 
     return tmp_df
 
 
@@ -529,7 +422,7 @@ def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
     df = remove_from_df(df,selection_df)
     zapped_df = zap(selection_df,mark=False,**kwargs)
     res_df = pd.concat([df,zapped_df])
-    res_df = reorder_dataframe(res_df)
+    res_df = sort_dataframe(res_df)
     return res_df
 
 def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
@@ -574,7 +467,11 @@ def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
 #     return vctype
 
 
-        
+def add_empty_columns(df, columns, init, dtype_str):
+    for col in columns:
+        df.insert(len(df.columns),col,init)
+        df = df.astype({col:dtype_str})
+    return df         
     #df = df.reindex(columns = df.columns.tolist() + ['min','max','mean','std','min_pos','max_pos'])            
 def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
     add_empty_columns(df, ['min','max','mean','std'],np.nan,'float32')
@@ -589,7 +486,7 @@ def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
         df.at[i,'min_pos'] = (df.at[i,'min_pos'][0] + 1, df.at[i,'min_pos'][1]+1)
         df.at[i,'max_pos'] = np.unravel_index(df.at[i,'d'].argmax(), (df.at[i,'ni'],df.at[i,'nj']))
         df.at[i,'max_pos'] = (df.at[i,'max_pos'][0] + 1, df.at[i,'max_pos'][1]+1)
-    df = reorder_dataframe(df)    
+    #df = fstpy.dataframe.sort_dataframe(df)    
     return df
 
 
@@ -608,10 +505,9 @@ def validate_zap_keys(**kwargs):
         raise StandardFileError("zap - can't find modifiable key in available keys")
 
 def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
-    import std_io
     logger.warning('zap - changed ip1, triggers updating level and kind')
     df.loc[:,'ip1'] = ip1_value
-    level, kind = std_io.get_level_and_kind(ip1_value)
+    level, kind = get_level_and_kind(ip1_value)
     df.loc[:,'level'] = level
     df.loc[:,'kind'] = kind
     df.loc[:,'pkind'] = KIND_DICT[int(kind)]
@@ -659,12 +555,12 @@ def zap_fhour(df:pd.DataFrame, fhour_value:int) -> pd.DataFrame:
         df.at[i,'npas'] = df.at[i,'npas'].astype(int)
     return df
 
-def create_materialize_info(df:pd.DataFrame) -> pd.DataFrame:
+def create_load_data_info(df:pd.DataFrame) -> pd.DataFrame:
     for i in df.index:
         if df.at[i,'d'] is None == False:
             return df
         if df.at[i,'key'] != None:
-            materialize_info={
+            fstinl_params={
             'etiket':df.at[i,'etiket'],
             'datev':df.at[i,'datev'],
             'ip1':df.at[i,'ip1'],
@@ -672,7 +568,7 @@ def create_materialize_info(df:pd.DataFrame) -> pd.DataFrame:
             'ip3':df.at[i,'ip3'],
             'typvar':df.at[i,'typvar'],
             'nomvar':df.at[i,'nomvar']}
-            df.at[i,'materialize_info'] = materialize_info
+            df.at[i,'fstinl_params'] = fstinl_params
     return df
 
 
@@ -702,7 +598,7 @@ def zap(df:pd.DataFrame, mark:bool=True, validate_keys=True,**kwargs:dict ) -> p
 
     logger.info('zap - ' + str(kwargs)[0:100] + '...')
 
-    res_df = create_materialize_info(df)
+    res_df = create_load_data_info(df)
     res_df.loc[:,'dirty'] = True
     #res_df['key'] = np.nan
     for k,v in kwargs.items():
@@ -728,7 +624,7 @@ def zap(df:pd.DataFrame, mark:bool=True, validate_keys=True,**kwargs:dict ) -> p
         res_df.loc[:,k] = v
     if mark:
         res_df.loc[:,'typvar'] = res_df['typvar'].str.cat([ 'Z' for x in res_df.index])
-    res_df = reorder_dataframe(res_df) 
+    res_df = sort_dataframe(res_df) 
     return res_df
 
 def fststat(df:pd.DataFrame):
@@ -736,7 +632,7 @@ def fststat(df:pd.DataFrame):
     logger.info('fststat')
     pd.options.display.float_format = '{:0.6E}'.format
     validate_df_not_empty(df,'fststat',StandardFileError)
-    df = materialize(df)
+    df = load_data(df)
     df = compute_stats(df)
     print(df[['nomvar','typvar','level','pkind','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
 
@@ -894,9 +790,9 @@ def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 
         raise StandardFileError('fstcomp - %s does not exist' % file2)    
     # open and read files
     df1 = StandardFileReader(file1)()
-    df1 = materialize(df1)
+    df1 = load_data(df1)
     df2 = StandardFileReader(file2)()
-    df2 = materialize(df2)
+    df2 = load_data(df2)
     return fstcomp_df(df1, df2, columns, print_unmatched=True if verbose else False)
 
 
@@ -906,48 +802,6 @@ def keys_to_remove(keys, the_dict):
         if key in the_dict:
             del the_dict[key]
 
-def get_lat_lon(df):
-    return get_meta_data_fields(df,'get_lat_lon',StandardFileError,pressure=False, vertical_descriptors=False)
-
-def get_meta_data_fields(df,caller,error_class,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
-    path_groups = df.groupby(df.path)
-    meta_dfs = []
-    #for each files in the df
-    for _, rec_df in path_groups:
-        path = rec_df.iloc[0]['path']
-        compare_modification_times(rec_df,path,rmn.FST_RO,caller,error_class)
-        
-        meta_df = StandardFileReader(path,read_meta_fields_only=True)()
-
-        if meta_df.empty:
-            logger.warning('get_meta_data_fields - no metatada in file %s'%path)
-            return df
-        grid_groups = rec_df.groupby(rec_df.grid)
-        #for each grid in the current file
-        for _,grid_df in grid_groups:
-            this_grid = grid_df.iloc[0]['grid']
-            if vertical_descriptors:
-                #print('vertical_descriptors')
-                vertical_df = select(meta_df,'(nomvar in ["!!", "HY", "!!SF", "E1"]) and (grid=="%s")'%this_grid, no_fail=True)
-                vertical_df = materialize2(vertical_df)
-                meta_dfs.append(vertical_df)
-            if pressure:
-                #print('pressure')
-                pressure_df = select(meta_df,'(nomvar in ["P0", "PT"]) and (grid=="%s")'%this_grid, no_fail=True)
-                pressure_df = materialize2(pressure_df)
-                meta_dfs.append(pressure_df)
-            if latitude_and_longitude:
-                #print('lati and longi')
-                latlon_df = select(meta_df,'(nomvar in ["^>", ">>", "^^"]) and (grid=="%s")'%this_grid, no_fail=True)
-                #print(latlon_df)
-                latlon_df = materialize2(latlon_df)
-                meta_dfs.append(latlon_df)
-                #print(latlon_df)
-    if len(meta_dfs):
-        result = pd.concat(meta_dfs)
-        return result
-    else:
-        return pd.DataFrame(dtype=object)
 
 def add_metadata_fields(df:pd.DataFrame, latitude_and_longitude=True, pressure=True, vertical_descriptors=True) -> pd.DataFrame:
     if 'path' not in df:

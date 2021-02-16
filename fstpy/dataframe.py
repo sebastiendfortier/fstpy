@@ -1,86 +1,57 @@
 # -*- coding: utf-8 -*-
-import numpy
-from .std_io import open_fst, close_fst
+import fstpy.std_io as std_io
 import rpnpy.librmn.all as rmn
 import pandas as pd
+import os
+import sys
+from .exceptions import StandardFileReaderError
+from .constants import VCTYPES
 
-def to_pandas(self) -> pd.DataFrame:
-        """creates the dataframe from the provided files  
 
-        :return: df  
-        :rtype: pd.Dataframe  
-        """
-        if isinstance(self.filenames, list):
-            dfs = []
-            for file in set(self.filenames):
-                df = create_dataframe(file,self.read_meta_fields_only,self.add_extra_columns,self.materialize,self.subset)
-                dfs.append(df)
-            df = pd.concat(dfs)   
-            return df
-        else:
-            df = create_dataframe(self.filenames,self.read_meta_fields_only,self.add_extra_columns,self.materialize,self.subset)
-            return df
-
-def create_dataframe(file,read_meta_fields_only,add_extra_columns,materialize,subset) -> pd.DataFrame:
-    import os
-    import exceptions
+def create_dataframe(file,decode_meta_data,load_data,subset,array_container) -> pd.DataFrame:
     path = os.path.abspath(file)
-    file_id, file_modification_time = open_fst(path,rmn.FST_RO,'StandardFileReader',exceptions.StandardFileReaderError)
-    df = read(file_id,path,file_modification_time, materialize,subset,read_meta_fields_only,add_extra_columns)
-    close_fst(file_id,path,'StandardFileReader')
-    del os
-    del exceptions
+    file_id, file_modification_time = std_io.open_fst(path,rmn.FST_RO,'StandardFileReader',StandardFileReaderError)
+    df = read_and_fill_dataframe(file_id,path, file_modification_time, load_data,subset,decode_meta_data,array_container)
+    std_io.close_fst(file_id,path,'StandardFileReader')
     return df            
-    
-def get_basic_dataframe(file_id,filenames,file_modification_time, materialize,subset):
-    import std_io
-    keys = std_io.get_all_record_keys(file_id, subset)
 
-    records = std_io.get_records(keys,materialize)
-
-    #create a dataframe correspondinf to the fst file
-    df = pd.DataFrame(records)
-
-    df = std_io.add_path_and_modification_time(df,filenames,file_modification_time)
-
-    if not materialize:
-        #add missing stuff when materialized
-        df = add_empty_columns(df, ['d'],None,'O')
-
-    df = add_empty_columns(df, ['materialize_info'],None,'O')
-
-    df = strip_string_columns(df)
-
-    df = convert_df_dtypes(df)
-    del std_io
-    return df    
-
-def read(file_id,filenames,file_modification_time, materialize,subset,read_meta_fields_only,add_extra_columns) ->pd.DataFrame:
+def read_and_fill_dataframe(file_id,filenames,file_modification_time, load_data,subset,decode_meta_data,array_container) ->pd.DataFrame:
     """reads the meta data of an fst file and puts it into a pandas dataframe  
 
     :return: dataframe of records in file  
     :rtype: pd.DataFrame  
     """
     #get the basic rmnlib dataframe
-    df = get_basic_dataframe(file_id,filenames,file_modification_time, materialize,subset)
+    df = get_all_records_from_file_and_format(file_id,filenames,decode_meta_data,file_modification_time, load_data,subset,array_container)
 
-    if read_meta_fields_only:
-        df = remove_data_fields(df)
+    df = reorder_columns(df)  
 
-    if add_extra_columns:
-        df = add_extra_cols(df)
-
-    df = reorder_columns(df,add_extra_columns)  
-
-    df = reorder_dataframe(df)
+    df = sort_dataframe(df)
     return df
 
-def add_path_and_modification_time(df, file, file_modification_time):
-    # create the file column and init
-    df['path'] = file
-    #create the file mod time column and init
-    df['file_modification_time'] = file_modification_time
-    return df
+def get_all_records_from_file_and_format(file_id,filenames,decode_meta_data,file_modification_time, load_data,subset,array_container):
+    keys = std_io.get_all_record_keys(file_id, subset)
+
+    records = std_io.get_records(keys,load_data,decode_meta_data,filenames,file_modification_time,array_container)
+
+    #create a dataframe correspondinf to the fst file
+    df = pd.DataFrame(records)
+
+    df = convert_df_dtypes(df,decode_meta_data)
+
+    return df    
+
+
+
+
+
+
+# def add_path_and_modification_time(df, file, file_modification_time):
+#     # create the file column and init
+#     df['path'] = file
+#     #create the file mod time column and init
+#     df['file_modification_time'] = file_modification_time
+#     return df
 
 def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
     for meta in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]:
@@ -91,105 +62,162 @@ def remove_data_fields(df: pd.DataFrame) -> pd.DataFrame:
     df = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]')
     return df    
 
-def add_extra_cols(df):
-    import numpy as np
-    df = add_empty_columns(df, ['kind'], 0, 'int32')
-    df = add_empty_columns(df, ['level'],np.nan,'float32')
-    df = add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False,'bool')
-    df = add_empty_columns(df, ['pdateo','pdatev','fhour'],None,'datetime64')
-    df = add_empty_columns(df, ['vctype','pkind','pdatyp','grid','e_run','e_implementation','e_ensemble_member','e_label','unit'],'','O')
-    df = fill_columns(df)
-    del numpy
-    return df   
+# def add_extra_cols(df):
+#     df = add_empty_columns(df, ['kind'], 0, 'int32')
+#     df = add_empty_columns(df, ['level'],np.nan,'float32')
+#     df = add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False,'bool')
+#     df = add_empty_columns(df, ['pdateo','pdatev','fhour'],None,'datetime64')
+#     df = add_empty_columns(df, ['vctype','pkind','pdatyp','grid','run','implementation','ensemble_member','label','unit'],'','O')
+#     df = fill_columns(df)
+#     return df   
 
-def add_empty_columns(df, columns, init, dtype_str):
-    for col in columns:
-        df.insert(len(df.columns),col,init)
-        df = df.astype({col:dtype_str})
-    return df       
+# def add_empty_columns(df, columns, init, dtype_str):
+#     for col in columns:
+#         df.insert(len(df.columns),col,init)
+#         df = df.astype({col:dtype_str})
+#     return df       
 
-def fill_columns(df:pd.DataFrame):
-    """fill_columns adds columns that are'nt in the fst file
+# def fill_columns(df:pd.DataFrame):
+#     """fill_columns adds columns that are'nt in the fst file
 
-    :param records: DataFrame to add colmns to
-    :type records: pd.DataFrame
-    """
-    import std_io
-    import constants
-    import numpy as np
-    #add columns
-    meter_levels = np.arange(0.,10.5,.5).tolist()
-    for i in df.index:
-        nomvar = df.at[i,'nomvar']
-        #find unit name value for this nomvar
-        df = std_io.get_unit(df, i, nomvar)
-        #get level and kind
-        df = set_level_and_kind(df, i) #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
-        #create a real date of observation
-        df.at[i,'pdateo'] = std_io.create_printable_date_of_observation(int(df.at[i,'dateo']))
-        #create a printable date of validity
-        df.at[i,'pdatev'] = std_io.create_printable_date_of_observation(int(df.at[i,'datev']))
-        #create a printable kind for voir
-        df.at[i,'pkind'] = constants.KIND_DICT[int(df.at[i,'kind'])]
-        #calculate the forecast hour
-        df.at[i,'fhour'] = df.at[i,'npas'] * df.at[i,'deet'] / 3600.
-        #create a printable data type for voir
-        df.at[i,'pdatyp'] = constants.DATYP_DICT[df.at[i,'datyp']]
-        #create a grid identifier for each record
-        df.at[i,'grid'] = std_io.create_grid_identifier(df.at[i,'nomvar'],df.at[i,'ip1'],df.at[i,'ip2'],df.at[i,'ig1'],df.at[i,'ig2'])
-        #logger.debug(df.at[i,'kind'],df.at[i,'level'])
-        #set surface flag for surface levels
-        std_io.set_surface(df, i, meter_levels)
-        std_io.set_follow_topography(df, i)
-        df.at[i,'e_label'],df.at[i,'e_run'],df.at[i,'e_implementation'],df.at[i,'e_ensemble_member'] = std_io.parse_etiket(df.at[i,'etiket'])
-        df.at[i,'d'] = (rmn.fstluk,int(df.at[i,'key']))
-    return df
+#     :param records: DataFrame to add colmns to
+#     :type records: pd.DataFrame
+#     """
 
-def set_level_and_kind(df, i):
-    import std_io
-    level, kind = std_io.get_level_and_kind(df.at[i,'ip1'])
-    # level_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(df.at[i,'ip1']))
-    # kind = level_kind[1]
-    # level = level_kind[0]
-    df.at[i,'kind'] = int(kind)
-    df.at[i,'level'] = level #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
-    return df    
+#     #add columns
+#     meter_levels = np.arange(0.,10.5,.5).tolist()
+#     for i in df.index:
+#         nomvar = df.at[i,'nomvar']
+#         #find unit name value for this nomvar
+#         df = std_io.get_unit_and_description(df, i, nomvar)
+#         #get level and kind
+#         df = set_level_and_kind(df, i) #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
+#         #create a real date of observation
+#         df.at[i,'pdateo'] = std_io.convert_rmndate_to_datetime(int(df.at[i,'dateo']))
+#         #create a printable date of validity
+#         df.at[i,'pdatev'] = std_io.convert_rmndate_to_datetime(int(df.at[i,'datev']))
+#         #create a printable kind for voir
+#         df.at[i,'pkind'] = convert_rmnkind_to_string(df.at[i,'kind'])
+#         #calculate the forecast hour
+#         df.at[i,'fhour'] = df.at[i,'npas'] * df.at[i,'deet'] / 3600.
+#         #create a printable data type for voir
+#         df.at[i,'pdatyp'] = constants.DATYP_DICT[df.at[i,'datyp']]
+#         #create a grid identifier for each record
+#         df.at[i,'grid'] = std_io.create_grid_identifier(df.at[i,'nomvar'],df.at[i,'ip1'],df.at[i,'ip2'],df.at[i,'ig1'],df.at[i,'ig2'])
+#         #logger.debug(df.at[i,'kind'],df.at[i,'level'])
+#         #set surface flag for surface levels
+#         std_io.set_surface(df, i, meter_levels)
+#         std_io.set_follow_topography(df, i)
+#         df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = std_io.parse_etiket(df.at[i,'etiket'])
+#         df.at[i,'d'] = (rmn.fstluk,int(df.at[i,'key']))
+#     return df
 
-def strip_string_columns(df):
-    if ('etiket' in df.columns) and ('nomvar' in df.columns) and ('typvar' in df.columns):
-        df['etiket'] = df['etiket'].str.strip()
-        df['nomvar'] = df['nomvar'].str.strip()
-        df['typvar'] = df['typvar'].str.strip()
-    return df    
 
-def convert_df_dtypes(df):
+
+# def set_level_and_kind(df, i):
+#     level, kind = std_io.get_level_and_kind(df.at[i,'ip1'])
+#     # level_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(df.at[i,'ip1']))
+#     # kind = level_kind[1]
+#     # level = level_kind[0]
+#     df.at[i,'kind'] = int(kind)
+#     df.at[i,'level'] = level #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
+#     return df    
+
+# def strip_string_columns(df):
+#     if ('etiket' in df.columns) and ('nomvar' in df.columns) and ('typvar' in df.columns):
+#         df['etiket'] = df['etiket'].str.strip()
+#         df['nomvar'] = df['nomvar'].str.strip()
+#         df['typvar'] = df['typvar'].str.strip()
+#     return df    
+
+def convert_df_dtypes(df,decoded):
     if not df.empty:
-        df = df.astype(
-            {'ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
-            'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32','swa':'int32', 'lng':'int32', 'dltf':'int32', 'ubc':'int32',
-            'xtra1':'int32', 'xtra2':'int32', 'xtra3':'int32', 'dateo':'int32', 'datyp':'int32', 'key':'int32'}
-            )
+        if not decoded:    
+            df = df.astype(
+                {'ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
+                'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32',
+                'dateo':'int32', 'datyp':'int32'}
+                )
+        else:
+            df = df.astype(
+                {'ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
+                'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32',
+                'dateo':'int32', 'datyp':'int32',
+                'level':'float32','kind':'int32','ip2_dec':'float32','ip2_kind':'int32','ip3_dec':'float32','ip3_kind':'int32'}
+                )
+                
     return df      
 
-def reorder_columns(df, extra=True):
+def reorder_columns(df) -> pd.DataFrame:
     if df.empty:
         return df
-    if extra:
-        df = df[['nomvar','unit', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'pdateo', 'ip1', 'level','pkind','ip2', 'ip3', 'deet', 'npas',
-                'pdatyp','nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'e_run','e_implementation', 'e_ensemble_member','d','datev','pdatev','swa', 'lng', 'dltf', 'ubc',
-                'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time','kind', 'surface', 'follow_topography', 'dirty', 'vctype',
-                'dateo', 'fhour', 'datyp', 'grid', 'e_label','materialize_info', 'key','shape','unit_converted']]    
+    all_columns = set(df.columns.to_list())    
     
-    else:
-        df = df[['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
-                'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd','datev','swa', 'lng', 'dltf', 'ubc',
-                'xtra1', 'xtra2', 'xtra3', 'path', 'file_modification_time', 
-                'datyp', 'materialize_info','key','shape']]    
-    
+    ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
+            'datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
+    all_columns = all_columns.difference(set(ordered))
+    ordered.extend(list(all_columns)) 
+    df = df[ordered]    
     return df    
 
-def reorder_dataframe(df) -> pd.DataFrame:
+def sort_dataframe(df) -> pd.DataFrame:
     if ('grid' in df.columns) and ('fhour' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
-        df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False,inplace=True) 
+        df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False,inplace=True)
+    else:     
+        df.sort_values(by=['nomvar'],ascending=False,inplace=True)
     df.reset_index(drop=True,inplace=True)
     return df    
+
+def set_vertical_coordinate_type(df) -> pd.DataFrame:
+    newdfs=[]
+    grid_groups = df.groupby(df.grid)
+    for _, grid in grid_groups:
+        toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(grid)
+        kind_groups = grid.groupby(grid.kind)
+        for _, kind_group in kind_groups:
+            #these kinds are not defined
+            without_meta = kind_group.query('(kind not in [-1,3,6])')
+            if not without_meta.empty:
+                #logger.debug(without_meta.iloc[0]['nomvar'])
+                kind = without_meta.iloc[0]['kind']
+                kind_group['vctype'] = 'UNKNOWN'
+                #vctype_dict = {'kind':kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
+                vctyte_df = VCTYPES.query('(kind==%s) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%s)'%(kind,toctoc,p0,e1,pt,hy,sf,vcode))
+                if not vctyte_df.empty:
+                    if len(vctyte_df.index)>1:
+                        logger.warning('set_vertical_coordinate_type - more than one match!!!')
+                    kind_group['vctype'] = vctyte_df.iloc[0]['vctype']
+                newdfs.append(kind_group)
+
+        df = pd.concat(newdfs)
+        return df    
+
+def get_meta_fields_exists(grid):
+    toctoc = grid.query('nomvar=="!!"')
+    if not toctoc.empty:
+        vcode = toctoc.iloc[0]['ig1']
+        toctoc = True
+    else:
+        vcode = -1
+        toctoc = False
+    p0 = meta_exists(grid,"P0")
+    e1 = meta_exists(grid,"E1")
+    pt = meta_exists(grid,"PT")
+    hy = meta_exists(grid,"HY")
+    sf = meta_exists(grid,"!!SF")
+    return toctoc, p0, e1, pt, hy, sf, vcode
+
+def meta_exists(grid, nomvar) -> bool:
+    df = grid.query('nomvar=="%s"'%nomvar)
+    return not df.empty
+
+
+def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
+    df = load_data(df)
+    for i in df.index:
+        df.at[i,'d'] = df.at[i,'d'][:dim1,:dim2].copy(deep=True)
+        df.at[i,'shape']  = df.at[i,'d'].shape
+        df.at[i,'ni'] = df.at[i,'shape'][0]
+        df.at[i,'nj'] = df.at[i,'shape'][1]
+    df = sort_dataframe(df)    
+    return df

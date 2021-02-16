@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import pytest
-from fstpy.standardfile import *
+from fstpy.std_reader import *
 import pandas as pd
 from test import TMP_PATH, TEST_PATH
-
+import datetime
 
 pytestmark = [pytest.mark.std_functions, pytest.mark.unit_tests]
 
@@ -52,15 +52,15 @@ def file_mod_time():
 
 @pytest.fixture
 def full_data_frame(raw_dict):
-    import datetime
+
     rec_dict_to_add = {
         'pdateo': datetime.datetime(2020, 7, 14, 12, 0),
         'level': 1.5,
         'pkind': 'M',
         'pdatyp': 'f',
-        'e_run': 'R1',
-        'e_implementation': 'N',
-        'e_ensemble_member': None,
+        'run': 'R1',
+        'implementation': 'N',
+        'ensemble_member': None,
         'd': None,
         'pdatev': datetime.datetime(2020, 7, 14, 18, 0),
         'path': '/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std',
@@ -70,13 +70,12 @@ def full_data_frame(raw_dict):
         'dirty': False,
         'vctype': '',
         'fhour': 6.0,
-        'e_label': '_V710_',
-        'materialize_info': None,
+        'label': '_V710_',
+        'fstinl_params': None,
         'unit_converted': False
         }
     final_dict = dict(rec_dict_to_add, **raw_dict)    
     df = pd.DataFrame(final_dict)   
-    del datetime
     return df
 
 @pytest.fixture
@@ -84,14 +83,14 @@ def no_extra_data_frame(raw_dict):
     rec_dict_to_add = {
         'path': '/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std',
         'file_modification_time': '446325:47:42',
-        'materialize_info': None,
+        'fstinl_params': None,
         }
     final_dict = dict(rec_dict_to_add, **raw_dict)    
     df = pd.DataFrame(final_dict)        
     return df
 
 @pytest.fixture
-def raw_materialized_data_frame(raw_dict):
+def raw_load_datad_data_frame(raw_dict):
     rec_dict_to_add = {
         'd': None,
         }
@@ -123,7 +122,7 @@ def test_add_path_and_modification_time_wrong(raw_data_frame, input_file, file_m
     assert df.iloc[0]['path'] != 'dummy_file'
     assert df.iloc[0]['file_modification_time'] != '12345'
 
-#materialize, add_extra_columns
+#load_data, decode_meta_data
 def test_add_missing_columns(raw_data_frame, input_file, file_mod_time):
     assert 'path' not in raw_data_frame.columns
     assert 'file_modification_time' not in raw_data_frame.columns
@@ -161,7 +160,7 @@ def test_add_missing_columns(raw_data_frame, input_file, file_mod_time):
 #     pass
 
 
-# def test_fst_to_df(file_id, exception_class, materialize, subset, read_meta_fields_only):
+# def test_fst_to_df(file_id, exception_class, load_data, subset, read_meta_fields_only):
 #     pass
 
 
@@ -209,11 +208,11 @@ def test_add_missing_columns(raw_data_frame, input_file, file_mod_time):
 #     pass
 
 
-# def test_materialize(df:pd.DataFrame) -> pd.DataFrame:
+# def test_load_data(df:pd.DataFrame) -> pd.DataFrame:
 #     pass
 
 
-# def test_reorder_dataframe(df):
+# def test_sort_dataframe(df):
 #     pass
 
 
@@ -289,7 +288,7 @@ def test_add_missing_columns(raw_data_frame, input_file, file_mod_time):
 #     pass
 
 
-# def test_create_materialize_info(df:pd.DataFrame) -> pd.DataFrame:
+# def test_create_load_data_info(df:pd.DataFrame) -> pd.DataFrame:
 #     pass
 
 

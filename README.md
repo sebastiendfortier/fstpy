@@ -17,7 +17,7 @@ A pythonic library to work with RPN standard files transformed into [pandas](htt
       - [Linux](#linux)
   * [Files](#files)
     + [Misc](#misc)
-    + [StandardFile](#standardfile)
+    + [StandardFileReader](#std_reader)
     + [Dictionnaries](#dictionnaries)
     + [Log](#log)
     + [Unit](#unit)
@@ -52,11 +52,11 @@ create a link in your science home directory to the sitestore to put conda envir
 > `% #`get fstpy ssm package
 > `% `. ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.1      
 > `% #`inside your script    
-> `% `from fstpy.standardfile import *    
+> `% `from fstpy.std_reader import *    
  
 ### Usage example   
 > `% `data_path = prefix + '/data/'    
-> `% `from fstpy.standardfile import StandardFileReader, StandardFileWriter, voir, fststat, select   
+> `% `from fstpy.std_reader import StandardFileReader, StandardFileWriter, voir, fststat, select   
 > `% #`setup your file to read    
 > `% `records=StandardFileReader(data_path + 'ttuvre.std')()    
 > `% #`display selected records in a rpn voir format    
@@ -119,9 +119,9 @@ use ssh link to clone the project [fstpy gitlab](https://gitlab.science.gc.ca/sb
 
 ![How to use as a submodule](misc/use_as_submodule.md)
 
-### StandardFile 
+### StandardFileReader 
 
-![Main fstpy library](fstpy/standardfile.md)
+![Main fstpy library](fstpy/std_reader.md)
 
 ### Dictionnaries
 

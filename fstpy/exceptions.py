@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-class StandardFileErrror(Exception):
+class StandardFileError(Exception):
     pass
 
 class StandardFileReaderError(Exception):

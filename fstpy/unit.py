@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
-from .standardfile import reorder_dataframe
+from .std_reader import sort_dataframe
 
 class UnitConversionError(Exception):
    pass
@@ -241,7 +241,7 @@ def do_unit_conversion(df:pd.DataFrame, to_unit_name:str):
          continue
       else:
          if (df['d'].isna() != False).all():
-            raise UnitConversionError('DataFrame must be materialized to do a unit conversion!')
+            raise UnitConversionError('DataFrame must be load_datad to do a unit conversion!')
          unit_from = get_unit_by_name(current_unit)
          converter = get_converter(unit_from, unit_to)
          unit_group['d'] = unit_group['d'].apply(converter)
@@ -250,5 +250,5 @@ def do_unit_conversion(df:pd.DataFrame, to_unit_name:str):
          converted_dfs.append(unit_group)
 
    converted_df = pd.concat(converted_dfs)
-   converted_df = reorder_dataframe(converted_df)
+   converted_df = sort_dataframe(converted_df)
    return converted_df

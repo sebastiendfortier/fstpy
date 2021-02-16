@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-from fstpy.standardfile import StandardFileReaderError, StandardFileReader, StandardFileWriter, materialize, select, fstcomp
+from fstpy.std_reader import StandardFileReaderError, StandardFileReader, StandardFileWriter, load_data, select, fstcomp
 from fstpy.utils import delete_file
 from test import TEST_PATH, TMP_PATH
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from fstpy.standardfile import StandardFileReader,get_lat_lon,select
+from fstpy.std_reader import StandardFileReader,get_lat_lon,select
 import xarray as xr 
 import numpy as np
 import cartopy.crs as ccrs
@@ -239,7 +239,7 @@ def rotate_vv_values_arrays(vv):
         vv.at[i,'d'] = np.rot90(vv.at[i,'d'])
 
 def get_dataframe_sorted_by_date():
-    df = StandardFileReader('/fs/homeu1/eccc/cmd/cmda/pbu000/hovmuller/p_levels/reg/VV_250hPa_RU_0.3d',materialize=True,subset={'nomvar':'VV'})()
+    df = StandardFileReader('/fs/homeu1/eccc/cmd/cmda/pbu000/hovmuller/p_levels/reg/VV_250hPa_RU_0.3d',load_data=True,subset={'nomvar':'VV'})()
 
     vv = df.copy(deep=True)
 
