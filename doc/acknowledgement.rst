@@ -4,13 +4,20 @@ Contributors
 
 Great thanks to: 
 
-* To *Dikra Khedhaouiria*
+* To *Phillipe Carphin*
   for
 
-    * Including a stageIV reader to radar_tools
+    * Inspiring the use of pandas
 
-* To *Madalina Surcel* 
-  for
+* To *Dominik Jacques*
+for
 
-    * Her great contribution to geo_tools and 
-    * a review of the radar_tools section. 
+    * Awsome domUtils project
+    * a great structure of what should be a python project
+
+* To *Micheal Neish*
+for
+
+    * Awsome fstd2nc project
+    * great insights on how to develop xarray structure from fstfile
+    * great functions to work on fst files

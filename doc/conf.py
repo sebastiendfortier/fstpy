@@ -21,32 +21,14 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'domutils'
-copyright = '2019, Dominik Jacques'
-author = 'Dominik Jacques'
+project = 'fstpy'
+copyright = '2021, Sébastien Fortier'
+author = 'Sébastien Fortier'
 
 # The full version, including alpha/beta/rc tags
 with open('../VERSION', encoding='utf-8') as f:
     version = f.read()
 release = version
-
-# Download test data if needed
-if not os.path.isdir('../test_data') :
-    #test_data is not there, download it
-
-    try:
-        #move up one directory
-        current = os.getcwd()
-        parent  = os.path.dirname(current)
-        os.chdir(parent)
-        #make script executable if it is not
-        shell_script = './download_test_data.sh'
-        if not os.access(shell_script, os.X_OK):
-            os.chmod(shell_script, 0o755)
-        #runt script to download data 
-        os.system(shell_script)
-    except:
-        raise RuntimeError('something went wrong downloading the test data')
 
 
 # -- General configuration ---------------------------------------------------

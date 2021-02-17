@@ -1,6 +1,6 @@
-Legs API
+Std Reader API
 ====================================
 
-.. automodule:: domutils.legs.legs
+.. automodule:: fstpy.std_reader
    :members: 
 

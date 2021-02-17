@@ -1,5 +1,5 @@
-.. domutils documentation master file, created by
-   sphinx-quickstart on Fri Jun 28 14:27:39 2019.
+.. fstpy documentation master file, created by
+   sphinx-quickstart on Wed Feb 17 2021.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
     Indices and tables
@@ -9,43 +9,43 @@
     * :ref:`modindex`
     * :ref:`search`
     
-    .. currentmodule:: legs.legs
+    .. currentmodule:: fstpy.std_reader
     .. autofunction:: __init__
     .. autofunction:: plot_data
 
-domutils
+fstpy
 ================
 
-The package **domutils** provides 3 modules:
+The package **fstpy** provides these modules:
 
 
 .. toctree::
-   :caption: Legs 
+   :caption: std_reader 
    :maxdepth: 1
 
-   legsTutorial
-   legsDoc
-   legsResources
+   std_readerTutorial
+   std_readerDoc
+   std_readerResources
 
-For easy construction of custom color mappings & palettes:
+For easy construction of pandas Dataframe from CMC standard files:
 
 
 .. toctree::
-   :caption: geo_tools
+   :caption: dataframe_utils
    :maxdepth: 1
 
-   geoDoc
+   dataframe_utils
 
-For handling geographical projections of data with arbitrary lat/lon coordinates.
+Helpers for handling CMC standardfile pandas DataFrames.
 
 .. toctree::
-   :caption: radar_tools
+   :caption: std_writer
    :maxdepth: 2
 
-   radarTutorialIndex
-   radarDoc
+   std_writerTutorialIndex
+   std_writerDoc
 
-To get radar moisaics in various formats and construct accumulations on the fly. 
+To write the pandas Dataframes to CMC standard files. 
 
 
 

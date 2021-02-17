@@ -4,11 +4,10 @@ channels:
       - conda-forge
 
 dependencies:
-      - python=3.7
+      - python=3.6
+      - rpnpy
       - numpy
-      - scipy 
-      - cartopy 
-      - matplotlib
-      - h5py
+      - pandas 
+      - xarray
       - conda-forge::sphinx-autodoc-typehints 
       - conda-forge::sphinx-gallery

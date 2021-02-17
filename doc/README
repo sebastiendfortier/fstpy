@@ -1,6 +1,6 @@
 
-This works in domutils_dev
-    source activate domutils_dev
+This works in fstpy_dev
+    source activate fstpy_dev
 
 ----------------------------------------------
 For running the tests:
