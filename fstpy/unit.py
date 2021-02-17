@@ -2,8 +2,7 @@
 import pandas as pd
 from .std_reader import sort_dataframe
 
-class UnitConversionError(Exception):
-   pass
+
 class no_conversion:
    def __init__(self, bias = 0.0,   factor = 1.0):
       pass
@@ -231,6 +230,7 @@ def get_converter(unit_from, unit_to):
 
 def do_unit_conversion(df:pd.DataFrame, to_unit_name:str):
    from .constants import get_unit_by_name
+   from .exceptions import UnitConversionError
    unit_to = get_unit_by_name(to_unit_name)
    unit_groups = df.groupby(df.unit)
    converted_dfs = [] 

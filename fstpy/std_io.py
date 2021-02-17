@@ -115,9 +115,7 @@ def get_records(keys,load_data,decode,path,file_modification_time,array_containe
             if decode:
                 record['stacked'] = False
                 record.update(decode_meta_data(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
-                
             records.append(record)
-
                 
     return records   
 
@@ -198,10 +196,10 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     return latlon
 
 def get_lat_lon(df):
-    return get_meta_data_fields(df,'get_lat_lon',StandardFileError,pressure=False, vertical_descriptors=False)
+    return get_grid_metadata_fields(df,'get_lat_lon',StandardFileError,pressure=False, vertical_descriptors=False)
 
-def get_meta_data_fields(df,caller,error_class,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
-    from .std_reader import StandardFileReader,load_data
+def get_grid_metadata_fields(df,caller,error_class,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
+    from .std_io import compare_modification_times
     path_groups = df.groupby(df.path)
     meta_dfs = []
     #for each files in the df
@@ -209,7 +207,7 @@ def get_meta_data_fields(df,caller,error_class,latitude_and_longitude=True, pres
         path = rec_df.iloc[0]['path']
         file_modification_time = rec_df.iloc[0]['file_modification_time']
         compare_modification_times(file_modification_time,path,rmn.FST_RO,caller,error_class)
-        records = get_all_meta_data_fields_from_std_file(path, rec_df)
+        records = get_all_grid_metadata_fields_from_std_file(path)
         meta_df = pd.DataFrame(records)
         #print(meta_df[['nomvar','grid']])
         if meta_df.empty:
@@ -240,7 +238,9 @@ def get_meta_data_fields(df,caller,error_class,latitude_and_longitude=True, pres
     else:
         return pd.DataFrame(dtype=object)
 
-def get_all_meta_data_fields_from_std_file(path):
+def get_all_grid_metadata_fields_from_std_file(path):
+    from .std_dec import create_grid_identifier
+     
     unit = rmn.fstopenall(path)
     lat_keys = rmn.fstinl(unit,nomvar='^^')
     lon_keys = rmn.fstinl(unit,nomvar='>>')
@@ -252,7 +252,18 @@ def get_all_meta_data_fields_from_std_file(path):
     p0_keys = rmn.fstinl(unit,nomvar='P0')
     pt_keys = rmn.fstinl(unit,nomvar='PT')
     keys = lat_keys + lon_keys + tictac_keys + toctoc_keys + hy_keys + sf_keys + e1_keys + p0_keys + pt_keys
-    records = [rmn.fstluk(key) for key in keys]
+    records=[]
+    for key in keys:
+        record = rmn.fstluk(key)
+        record['fstinl_params'] = None
+        #del record['key']
+        strip_string_values(record)
+        #create a grid identifier for each record
+        record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+        remove_extra_keys(record)
+        record['path'] = path
+        record['file_modification_time'] = get_file_modification_time(path,rmn.FST_RO,'get_all_meta_data_fields_from_std_file',StandardFileError)
+        records.append(record)
     rmn.fstcloseall(unit)  
     return records
 

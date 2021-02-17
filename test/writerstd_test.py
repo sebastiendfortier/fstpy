@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-from fstpy.std_reader import *
+import fstpy
 from test import TEST_PATH
 
 

@@ -278,7 +278,7 @@ def load_data(df):
 #         logger.warning('add_metadata_fields - no path to get meta from')
 #         return df
 
-#     meta_df = get_meta_data_fields(df, 'add_metadata_fields',StandardFileError,latitude_and_longitude, pressure, vertical_descriptors)
+#     meta_df = get_grid_metadata_fields(df, 'add_metadata_fields',StandardFileError,latitude_and_longitude, pressure, vertical_descriptors)
 
 #     res = pd.concat([df,meta_df])
 

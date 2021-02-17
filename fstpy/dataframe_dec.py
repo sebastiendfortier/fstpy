@@ -29,8 +29,6 @@ def get_unit_and_description_columns(nomvar_col:pd.Series):
 
 
 def create_decoded_dateo_column(dateo_col:pd.Series):
-    #create a real date of observation
-    #dec_record['pdateo'] = convert_rmndate_to_datetime(int(dateo))
     from .std_dec import convert_rmndate_to_datetime
     pdateo = dateo_col.copy(deep=True)
     for i in dateo_col.index:

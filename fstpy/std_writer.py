@@ -5,7 +5,7 @@ import os
 import rpnpy.librmn.all as rmn
 from .utils import initializer, validate_df_not_empty
 from .dataframe import sort_dataframe
-from .std_io import get_meta_data_fields,open_fst,close_fst
+from .std_io import get_grid_metadata_fields,open_fst,close_fst
 from .logger_config import logger
 
 
@@ -17,10 +17,6 @@ class StandardFileWriter:
     :type filename: str  
     :param df: dataframe to write  
     :type df: pd.DataFrame  
-    :param erase: erase the file before writing to it, defaults to False  
-    :type erase: bool, optional  
-    :param add_meta_fields: write the metadata associated with the data frame if it exists, defaults to True  
-    :type add_meta_fields: bool, optional  
     """
     @initializer
     def __init__(self, filename:str, df:pd.DataFrame, update_meta_only=False):
@@ -31,14 +27,19 @@ class StandardFileWriter:
        
     def to_fst(self):
         from .std_reader import load_data
-        self.meta_df = get_meta_data_fields(self.df,'to_fst',StandardFileWriterError)
+       
+        self.meta_df = get_grid_metadata_fields(self.df,'to_fst',StandardFileWriterError)
+
         if not self.meta_df.empty:
             int_df = pd.merge(self.meta_df, self.df, how ='inner', on =['ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
-                'nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev','swa', 'lng', 'ubc',
-                'xtra1', 'xtra2', 'xtra3', 'dateo', 'datyp']) 
+                'nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp']) 
 
-            if len(int_df.index) and len(self.meta_df.index) != len(int_df.index):
-                self.df = pd.concat(self.df, self.meta_df).drop_duplicates(keep=False)
+            if len(int_df.index) and (len(self.meta_df.index) != len(int_df.index)):
+                self.df.drop(columns = 'fstinl_params',inplace=True,errors='ignore')
+                self.meta_df.drop(columns='fstinl_params',inplace=True,errors='ignore')
+                print(self.df.columns,self.df.dtypes)
+                print(self.meta_df.columns,self.meta_df.dtypes)
+                self.df = pd.concat([self.df, self.meta_df]).drop_duplicates(keep=False)
 
         if not self.update_meta_only:
             self.df = load_data(self.df)
@@ -66,6 +67,7 @@ class StandardFileWriter:
                 write_dataframe_record_to_file(self.file_id,self.df,i)     
 
 def write_dataframe_record_to_file(file_id,df,i):
+    import numpy as np
     df = change_etiket_if_a_plugin_name(df,i)
     df = reshape_data_to_original_shape(df,i)
     rmn.fstecr(file_id, np.asfortranarray(df.at[i,'d']), df.loc[i].to_dict())     
@@ -105,6 +107,7 @@ def get_std_etiket(plugin_name:str):
     :return: etiket corresponding to plugin name in etiket db
     :rtype: str
     """
+    from .constants import get_etikey_by_name,get_column_value_from_row
     etiket = get_etikey_by_name(plugin_name)
     if len(etiket.index) == 0:
         return plugin_name

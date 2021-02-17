@@ -10,3 +10,6 @@ class StandardFileWriterError(Exception):
 
 class SelectError(Exception):
     pass
+
+class UnitConversionError(Exception):
+   pass

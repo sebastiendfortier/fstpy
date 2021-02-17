@@ -8,7 +8,7 @@ import numpy as np
 import rpnpy.librmn.all as rmn
 
 def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False) -> bool:
-    from .std_reader import load_data
+    from .std_reader import load_data,StandardFileReader
     logger.info('fstcomp -A %s -B %s'%(file1,file2))
     import os
     if not os.path.exists(file1):
@@ -18,18 +18,19 @@ def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 
         logger.error('fstcomp - %s does not exist' % file2)
         raise StandardFileError('fstcomp - %s does not exist' % file2)    
     # open and read files
-    df1 = fstpy.StandardFileReader(file1)()
+    df1 = StandardFileReader(file1).to_pandas()
     df1 = load_data(df1)
-    df2 = fstpy.StandardFileReader(file2)()
+    df2 = StandardFileReader(file2).to_pandas()
     df2 = load_data(df2)
     return fstcomp_df(df1, df2, columns, print_unmatched=True if verbose else False)
 
 def voir(df:pd.DataFrame):
     from .utils import validate_df_not_empty
+    import sys
     """Displays the metadata of the supplied records in the rpn voir format"""
     validate_df_not_empty(df,'voir',StandardFileError)
     #logger.debug('    NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s) FORECASTHOUR      IP1        LEVEL        IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
-    print(df.sort_values(by=['nomvar']).reset_index(drop=True).to_string(header=True))
+    sys.stdout.writelines(df.sort_values(by=['nomvar']).reset_index(drop=True).to_string(header=True))
 
 
 
@@ -273,13 +274,13 @@ def add_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
 
 def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
     diff['etiket'] = diff['etiket_x']
-    diff['pkind'] = diff['pkind_x']
+    #diff['kind'] = diff['kind_x']
     #diff['ip2'] = diff['ip2_x']
     #diff['ip3'] = diff['ip3_x']
     diff.drop(columns=['abs_diff'], inplace=True)
     return diff
 
-def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False) -> bool:
+def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False) -> bool:
     df1.sort_values(by=columns,inplace=True)
     df2.sort_values(by=columns,inplace=True)
     success = False
@@ -327,20 +328,20 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
                 logger.info(common_with_2.to_string())
     else:
         logger.error('fstcomp - no common df to compare')
-        logger.error('A',df1[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].to_string())
+        logger.error('A',df1[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].to_string())
         logger.error('----------')
-        logger.error('B',df2[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].to_string())
+        logger.error('B',df2[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].to_string())
         raise StandardFileError('fstcomp - no common df to compare')
     diff = common.copy()
     diff = add_fstcomp_columns(diff)
     success = compute_fstcomp_stats(common, diff)
     diff = del_fstcomp_columns(diff)
     if len(diff.index):
-        logger.info(diff[['nomvar', 'etiket', 'level', 'pkind', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'biais', 'e_max', 'e_moy','diff_percent']].to_string(formatters={'level': '{:,.6f}'.format,'diff_percent': '{:,.1f}%'.format}))
+        logger.info(diff[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'biais', 'e_max', 'e_moy','diff_percent']].to_string(formatters={'level': '{:,.6f}'.format,'diff_percent': '{:,.1f}%'.format}))
         #logger.debug(diff[['nomvar', 'etiket', 'pkind', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'bias', 'e_max', 'e_moy']].to_string())
     if len(missing.index):
         logger.info('missing df')
-        logger.info(missing[['nomvar', 'etiket', 'level', 'pkind', 'ip2', 'ip3']].to_string(header=False, formatters={'level': '{:,.6f}'.format}))
+        logger.info(missing[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3']].to_string(header=False, formatters={'level': '{:,.6f}'.format}))
         #logger.debug(missing[['nomvar', 'etiket', 'pkind', 'ip2', 'ip3']].to_string(header=False))
     return success
 

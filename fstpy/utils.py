@@ -2,7 +2,7 @@
 import pandas as pd
 from functools import wraps
 import inspect
-from .config import *
+from .logger_config import logger
 
 def initializer(func):
     """
