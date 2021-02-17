@@ -42,7 +42,6 @@ Helpers for handling CMC standardfile pandas DataFrames.
    :caption: std_writer
    :maxdepth: 2
 
-   std_writerTutorialIndex
    std_writerDoc
 
 To write the pandas Dataframes to CMC standard files. 

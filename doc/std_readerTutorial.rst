@@ -59,7 +59,7 @@ See the contents of the dataframe
     >>> fstpy.voir(df)
 
 
-fstpy.select sub-sets of data
+select sub-sets of data
 -----------------------------
 
 '''Note''': fstpy.select is a wrapper for pandas.DataFrame.query method 
