@@ -1,51 +1,8 @@
 # -*- coding: utf-8 -*-
-from numpy.lib.function_base import disp
-import rpnpy.librmn.all as rmn
 import xarray as xr
 import numpy as np
 
-def to_xarray(self):
-    df = self.to_pandas()
-    from .std_reader import get_lat_lon
-    data_list = []
-    grid_groups = df.groupby(df.grid)
-    for _,grid_df in grid_groups:
-        lat_lon_df = get_lat_lon(grid_df)
-        longitudes = get_longitude_data_array(lat_lon_df)
-        #print(longitudes.shape)
-        latitudes = get_latitude_data_array(lat_lon_df)
-        #print(latitudes.shape)
-        pdateo_groups = grid_df.groupby(grid_df.pdateo)
-        for _,dateo_df in pdateo_groups:
-            fhour_groups = dateo_df.groupby(dateo_df.fhour)
-            for _,fhour_df in fhour_groups:
-                nomvar_groups = fhour_df.groupby(fhour_df.nomvar)
-                for _,nomvar_df in nomvar_groups:
-                    levels = get_level_data_array(nomvar_df)
-                    nomvar_df.sort_values(by=['level'],ascending=False,inplace=True)
-                    attribs = nomvar_df.iloc[-1].to_dict()
-                    attribs = remove_keys(nomvar_df,attribs,['ip1','ip2','pkind','datyp','dateo','datev','grid','fstinl_params','d','path','file_modification_time','ensemble_member','implementation','run','label'])
-                    attribs = set_attrib(nomvar_df,attribs,'etiket')
-                    attribs = set_attrib(nomvar_df,attribs,'level')
-                    attribs = set_attrib(nomvar_df,attribs,'kind')
-                    attribs = set_attrib(nomvar_df,attribs,'surface')
-                    nomvar = nomvar_df.iloc[-1]['nomvar']
-                    data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, levels, latitudes, longitudes))    
 
-    d = {}                
-    for variable in data_list:
-        d.update({["level", "lon", "lat"]:variable})
-
-    ds = xr.Dataset(
-        data_vars=d,
-        coords=dict(
-            level = levels,
-            lon = longitudes,
-            lat = latitudes,
-        ),
-        attrs=dict(description="Weather related data."),
-    )
-    return disp
 
 def remove_keys(nomvar_df,a_dict,keys):
     for k in keys:

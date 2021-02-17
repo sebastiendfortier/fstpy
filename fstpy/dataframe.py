@@ -6,6 +6,7 @@ import os
 import sys
 from .exceptions import StandardFileReaderError
 from .constants import VCTYPES
+from .logger_config import logger
 
 
 def create_dataframe(file,decode_meta_data,load_data,subset,array_container) -> pd.DataFrame:
@@ -215,6 +216,7 @@ def meta_exists(grid, nomvar) -> bool:
 
 
 def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
+    from .std_reader import load_data
     df = load_data(df)
     for i in df.index:
         df.at[i,'d'] = df.at[i,'d'][:dim1,:dim2].copy(deep=True)
@@ -223,3 +225,38 @@ def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
         df.at[i,'nj'] = df.at[i,'shape'][1]
     df = sort_dataframe(df)    
     return df
+
+def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove) -> pd.DataFrame:
+    columns = df_to_remove.columns.values.tolist()
+    columns.remove('d')
+    columns.remove('fstinl_params')
+    tmp_df = pd.concat([df_to_remove_from, df_to_remove]).drop_duplicates(subset=columns,keep=False)
+    tmp_df = sort_dataframe(tmp_df)
+    tmp_df.reset_index(inplace=True,drop=True) 
+    return tmp_df
+
+def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
+    from .exceptions import StandardFileError
+    from .dataframe_utils import select
+    #logger.debug('1',df[['nomvar','surface','level','kind']])
+    if len(names)<=1:
+        logger.error('get_intersecting_levels - not enough names to process')
+        raise StandardFileError('not enough names to process')
+    firstdf = select(df, 'nomvar == "%s"' % names[0])
+    if df.empty:
+        logger.error('get_intersecting_levels - no records to intersect')
+        raise StandardFileError('get_intersecting_levels - no records to intersect')
+    common_levels = set(firstdf.level.unique())
+    query_strings = []
+    for name in names:
+        current_query = 'nomvar == "%s"' % name
+        currdf = select(df,'%s' % current_query)
+        levels = set(currdf.level.unique())
+        common_levels = common_levels.intersection(levels)
+        query_strings.append(current_query)
+    query_strings = " or ".join(tuple(query_strings))
+    query_res = select(df,'(%s) and (level in %s)' % (query_strings, list(common_levels)))
+    if query_res.empty:
+        logger.error('get_intersecting_levels - no intersecting levels found')
+        return
+    return query_res    

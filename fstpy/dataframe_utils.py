@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import fstpy
 import pandas as pd
-from .config import logger
+from .logger_config import logger
 from .dataframe import remove_meta_data_fields
-from .exceptions import StandardFileError
+from .exceptions import StandardFileError, SelectError
 import numpy as np
 import rpnpy.librmn.all as rmn
 
@@ -102,6 +102,44 @@ def fststat(df:pd.DataFrame):
     df = compute_stats(df)
     print(df[['nomvar','typvar','level','pkind','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
 
+def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_meta_data=False, loose_match=False, no_fail=False, engine=None) -> pd.DataFrame:
+    from .dataframe import sort_dataframe
+    # print a summay ry of query
+    #logger.info('select %s' % query_str[0:100])
+    # warn if selecting by fhour
+    if 'fhour' in query_str:
+        logger.warning('select - selecting fhour might not return expected results - it is a claculated value (fhour = deet * npas / 3600.)')
+        logger.info('select - avalable forecast hours are %s' % list(df.fhour.unique()))
+    if isinstance(engine,str):
+        view = df.query(query_str,engine=engine)
+        tmp_df = view.copy(deep=True)
+    else:
+        view = df.query(query_str)
+        tmp_df = view.copy(deep=True)
+    if tmp_df.empty:
+        if no_fail:
+            return pd.DataFrame(dtype=object)
+        else:
+            logger.warning('select - no matching records for query %s' % query_str[0:200])
+            raise SelectError('select - failed!')
+    if exclude:
+        columns = df.columns.values.tolist()
+        columns.remove('d')
+        columns.remove('fstinl_params')
+        tmp_df = pd.concat([df, tmp_df]).drop_duplicates(subset=columns,keep=False)
+    tmp_df = sort_dataframe(tmp_df) 
+    return tmp_df
+
+
+def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
+    from .dataframe import remove_from_df,sort_dataframe
+    selection_df = select(df,query)
+    df = remove_from_df(df,selection_df)
+    zapped_df = zap(selection_df,mark=False,**kwargs)
+    res_df = pd.concat([df,zapped_df])
+    res_df = sort_dataframe(res_df)
+    return res_df
+
 ##################################################################################################
 ##################################################################################################
 ##################################################################################################
@@ -162,14 +200,14 @@ def validate_zap_keys(**kwargs):
         raise StandardFileError("zap - can't find modifiable key in available keys")
 
 def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
-    from .std_dec import get_level_and_kind
+    from .std_dec import decode_ip1
     from .constants import KIND_DICT
     logger.warning('zap - changed ip1, triggers updating level and kind')
     df.loc[:,'ip1'] = ip1_value
-    level, kind = get_level_and_kind(ip1_value)
+    level, kind, pkind = decode_ip1(ip1_value)
     df.loc[:,'level'] = level
     df.loc[:,'kind'] = kind
-    df.loc[:,'pkind'] = KIND_DICT[int(kind)]
+    df.loc[:,'pkind'] = pkind
     return df
 
 def zap_level(df:pd.DataFrame, level_value:float, kind_value:int) -> pd.DataFrame:

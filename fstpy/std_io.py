@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import rpnpy.librmn.all as rmn
-from .config import logger
+from .logger_config import logger
 import os.path
 import datetime
 import time
@@ -121,6 +121,8 @@ def get_records(keys,load_data,decode,path,file_modification_time,array_containe
                 
     return records   
 
+
+
 def strip_string_values(record):
     record['nomvar'] = record['nomvar'].strip()
     record['etiket'] = record['etiket'].strip()
@@ -134,6 +136,66 @@ def remove_extra_keys(record):
     del record['xtra2']
     del record['xtra3']
 
+def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
+    from .utils import validate_df_not_empty,create_1row_df_from_model
+    from .dataframe_utils import select,zap
+    from .exceptions import StandardFileReader
+    
+    """get_2d_lat_lon Gets the latitudes and longitudes as 2d arrays associated with the supplied grids
+
+    :return: a pandas Dataframe object containing the lat and lon meta data of the grids
+    :rtype: pd.DataFrame
+    :raises StandardFileError: no records to process
+    """
+    validate_df_not_empty(df,'get_2d_lat_lon',StandardFileError)
+    #remove record wich have X grid type
+    without_x_grid_df = select(df,'grtyp != "X"',no_fail=True)
+
+    latlon_df = get_lat_lon(df)
+
+    validate_df_not_empty(latlon_df,'get_2d_lat_lon - while trying to find [">>","^^"]',StandardFileError)
+    
+    no_meta_df = select(without_x_grid_df,'nomvar not in %s'%StandardFileReader.meta_data, no_fail=True)
+
+    latlons = []
+    path_groups = no_meta_df.groupby(no_meta_df.path)
+    for _, path_group in path_groups:
+        path = path_group.iloc[0]['path']
+        file_id = rmn.fstopenall(path, rmn.FST_RO)
+        grid_groups = path_group.groupby(path_group.grid)
+        for _, grid_group in grid_groups:
+            row = grid_group.iloc[0]
+            rec = rmn.fstlir(file_id, nomvar='%s'%row['nomvar'])
+            try:
+                g = rmn.readGrid(file_id, rec)
+                # lat=grid['lat']
+                # lon=grid['lon']
+            except Exception:
+                logger.warning('get_2d_lat_lon - no lat lon for this record')
+                continue
+            
+            grid = rmn.gdll(g)
+            tictic_df = select(latlon_df,'(nomvar=="^^") and (grid=="%s")'%row['grid'],no_fail=True)
+            tactac_df = select(latlon_df,'(nomvar==">>") and (grid=="%s")'%row['grid'],no_fail=True)
+            lat_df = create_1row_df_from_model(tictic_df)
+            lat_df = zap(lat_df, mark=False,nomvar='LA')
+            lat_df.at[0,'d'] = grid['lat']
+            lat_df.at[0,'ni'] = grid['lat'].shape[0]
+            lat_df.at[0,'nj'] = grid['lat'].shape[1]
+            lat_df.at[0,'shape'] = grid['lat'].shape
+            lon_df = create_1row_df_from_model(tactac_df)
+            lon_df = zap(lon_df, mark=False, nomvar='LO')
+            lon_df.at[0,'d'] = grid['lon']
+            lon_df.at[0,'ni'] = grid['lon'].shape[0]
+            lon_df.at[0,'nj'] = grid['lon'].shape[1]
+            lon_df.at[0,'shape'] = grid['lon'].shape
+            latlons.append(lat_df)
+            latlons.append(lon_df)
+
+        rmn.fstcloseall(file_id)
+    latlon = pd.concat(latlons)
+    latlon.reset_index(inplace=True,drop=True)
+    return latlon
 
 def get_lat_lon(df):
     return get_meta_data_fields(df,'get_lat_lon',StandardFileError,pressure=False, vertical_descriptors=False)

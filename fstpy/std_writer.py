@@ -6,7 +6,7 @@ import rpnpy.librmn.all as rmn
 from .utils import initializer, validate_df_not_empty
 from .dataframe import sort_dataframe
 from .std_io import get_meta_data_fields,open_fst,close_fst
-from .config import logger
+from .logger_config import logger
 
 
 class StandardFileWriter:
@@ -114,3 +114,7 @@ def keys_to_remove(keys, the_dict):
     for key in keys:
         if key in the_dict:
             del the_dict[key]    
+
+def set_typvar(df, i):
+    if ('typvar' in df.columns) and ('unit_converted' in df.columns) and (df.at[i,'unit_converted'] == True) and (len(df.at[i,'typvar']) == 1):
+        df.at[i,'typvar']  += 'U'            

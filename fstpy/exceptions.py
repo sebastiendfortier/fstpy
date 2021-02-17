@@ -7,3 +7,6 @@ class StandardFileReaderError(Exception):
 
 class StandardFileWriterError(Exception):
     pass
+
+class SelectError(Exception):
+    pass

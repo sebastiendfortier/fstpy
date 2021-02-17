@@ -104,16 +104,16 @@ def create_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int) -> str:
         grid = "".join([str(ig1),str(ig2)])
     return grid
 
-def get_level_and_kind(ip1:int):
-    #logger.debug('ip1',ip1)
-    level_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(ip1))
-    #logger.debug('level_kind',level_kind)
-    kind = int(level_kind[1])
-    level = level_kind[0]
-    level = float("%.6f"%-1) if kind == -1 else float("%.6f"%level)
-    return level, kind
-    #df.at[i,'kind'] = kind
-    #df.at[i,'level'] = float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
+# def get_level_and_kind(ip1:int):
+#     #logger.debug('ip1',ip1)
+#     level_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(ip1))
+#     #logger.debug('level_kind',level_kind)
+#     kind = int(level_kind[1])
+#     level = level_kind[0]
+#     level = float("%.6f"%-1) if kind == -1 else float("%.6f"%level)
+#     return level, kind
+#     #df.at[i,'kind'] = kind
+#     #df.at[i,'level'] = float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
 
 def decode_ip1(ip:int):
     v_dec_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(ip))
