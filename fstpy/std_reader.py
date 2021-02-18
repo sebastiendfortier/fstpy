@@ -10,7 +10,7 @@ import xarray as xr
 class StandardFileReader:
     """Class to handle fst files   
         Opens, reads the contents of an fst files or files into a pandas Dataframe and closes   
-        No data is loaded unless specified, only the meta data is read. Extra meta data is added to the dataframe if specified.
+        No data is loaded unless specified, only the metadata is read. Extra metadata is added to the dataframe if specified.
  
         :param filenames: path to file or list of paths to files   
         :type filenames: str|list[str]   
@@ -18,12 +18,12 @@ class StandardFileReader:
                 'unit':str, unit name
                 'unit_converted':bool
                 'description':str, field description
-                'pdateo':datetime, of the date of observation
-                'pdatev':datetime, of the date of validity
+                'date_of_observation':datetime, of the date of observation
+                'date_of_validity':datetime, of the date of validity
                 'level':float32, decoded ip1 level
-                'kind':int32, decoded ip1 kind
-                'pkind':str, string repr of kind int
-                'pdatyp':str, string repr of kind int
+                'ip1_kind':int32, decoded ip1 kind
+                'pkind':str, string repr of ip1_kind int
+                'data_type_str':str, string repr of data type
                 'label':str, label derived from etiket
                 'run':str, run derived from etiket
                 'implementation':str, implementation derived from etiket
@@ -31,7 +31,7 @@ class StandardFileReader:
                 'surface':bool, True if the level is a surface level
                 'follow_topography':bool, indicates if this type of level follows topography
                 'vctype':str, vertical level type
-                'fhour':time, forecast hour decoded from ip2
+                'forecast_hour':timedelta, forecast hour decoded from ip2
                 'ip2_dec':value of decoded ip2
                 'ip2_kind':kind of decoded ip2
                 'ip2_pkind':printable kind of decoded ip2
@@ -39,7 +39,7 @@ class StandardFileReader:
                 'ip3_kind':kind of decoded ip3
                 'ip3_pkind':printable kind of decoded ip3
         :type decode_meta_data: bool, optional    
-        :param load_data: if True, the data will be read, not just the meta data (fstluk vs fstprm)
+        :param load_data: if True, the data will be read, not just the metadata (fstluk vs fstprm)
         :type load_data: bool, optional
         :param subset: parameter to pass to fstinl to select specific records
         :type subset:dict
@@ -73,10 +73,14 @@ class StandardFileReader:
             # return df
         return df    
 
-    def to_xarray(self, timeseries=True):
-        from .xarray import get_variable_data_array,get_longitude_data_array,get_latitude_data_array,get_level_data_array,remove_keys,set_attrib
-        df = self.to_pandas()
+    def to_xarray(self, timeseries=False):
+        from .xarray import get_variable_data_array,get_longitude_data_array,get_date_of_validity_data_array,get_latitude_data_array,get_level_data_array,remove_keys,set_attrib
         from .std_io import get_lat_lon
+        self.array_container = 'dask.array'
+        self.decode_meta_data = True
+        df = self.to_pandas()
+        df = load_data(df)
+        
         data_list = []
         grid_groups = df.groupby(df.grid)
         for _,grid_df in grid_groups:
@@ -85,37 +89,87 @@ class StandardFileReader:
             #print(longitudes.shape)
             latitudes = get_latitude_data_array(lat_lon_df)
             #print(latitudes.shape)
-            pdateo_groups = grid_df.groupby(grid_df.pdateo)
-            for _,dateo_df in pdateo_groups:
-                fhour_groups = dateo_df.groupby(dateo_df.fhour)
-                for _,fhour_df in fhour_groups:
-                    nomvar_groups = fhour_df.groupby(fhour_df.nomvar)
-                    for _,nomvar_df in nomvar_groups:
-                        levels = get_level_data_array(nomvar_df)
-                        nomvar_df.sort_values(by=['level'],ascending=False,inplace=True)
-                        attribs = nomvar_df.iloc[-1].to_dict()
-                        attribs = remove_keys(nomvar_df,attribs,['ip1','ip2','pkind','datyp','dateo','datev','grid','fstinl_params','d','path','file_modification_time','ensemble_member','implementation','run','label'])
-                        attribs = set_attrib(nomvar_df,attribs,'etiket')
-                        attribs = set_attrib(nomvar_df,attribs,'level')
-                        attribs = set_attrib(nomvar_df,attribs,'kind')
-                        attribs = set_attrib(nomvar_df,attribs,'surface')
-                        nomvar = nomvar_df.iloc[-1]['nomvar']
-                        data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, levels, latitudes, longitudes))    
+            nomvar_groups = grid_df.groupby(grid_df.nomvar)
+            for _,nomvar_df in nomvar_groups:
+                if nomvar_df.iloc[0]['nomvar'] in ['!!','>>','^^','^>','HY']:
+                    continue
+                if nomvar_df.datev.unique() > 1 and timeseries:
+                    time_dim = get_date_of_validity_data_array(nomvar_df)
+                    nomvar_df.sort_values(by=['date_of_validity'],ascending=True,inplace=True)
+                else: #nomvar_df.ip1.unique() > 1:
+                    level_dim = get_level_data_array(nomvar_df)
+                    nomvar_df.sort_values(by=['level'],ascending=False,inplace=True)
 
-        d = {}                
+                attribs = nomvar_df.iloc[-1].to_dict()
+                attribs = set_attrib(nomvar_df,attribs,'etiket')
+                attribs = set_attrib(nomvar_df,attribs,'level')
+                attribs = set_attrib(nomvar_df,attribs,'ip1_kind')
+                attribs = set_attrib(nomvar_df,attribs,'surface')
+                attribs = set_attrib(nomvar_df,attribs,'date_of_observation')
+                attribs = set_attrib(nomvar_df,attribs,'path')
+                if not timeseries:
+                    attribs = set_attrib(nomvar_df,attribs,'date_of_validity')
+
+                #attribs = remove_keys(nomvar_df,attribs,['ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','fstinl_params','d','file_modification_time','ensemble_member','implementation','run','label'])
+                attribs = remove_keys(attribs,['nomvar','etiket','ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','fstinl_params','d','file_modification_time','ensemble_member','implementation','run','label'])
+                
+                nomvar = nomvar_df.iloc[-1]['nomvar']
+                if timeseries:
+                    data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, time_dim, latitudes, longitudes, timeseries=True))    
+                else:    
+                    #print(nomvar,level_dim,latitudes,longitudes)
+                    data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, level_dim, latitudes, longitudes, timeseries=False))    
+
+
+
+
+
+            # date_of_validity_groups = grid_df.groupby(grid_df.date_of_validity)
+            # for _,datev_df in date_of_validity_groups:
+            #     forecast_hour_groups = datev_df.groupby(datev_df.'forecast_hour')
+            #     for _,forecast_hour_df in forecast_hour_groups:
+            #         nomvar_groups = forecast_hour_df.groupby(forecast_hour_df.nomvar)
+            #         for _,nomvar_df in nomvar_groups:
+            #             levels = get_level_data_array(nomvar_df)
+            #             nomvar_df.sort_values(by=['level'],ascending=False,inplace=True)
+            #             attribs = nomvar_df.iloc[-1].to_dict()
+            #             attribs = remove_keys(nomvar_df,attribs,['ip1','ip2','pkind','datyp','dateo','datev','grid','fstinl_params','d','path','file_modification_time','ensemble_member','implementation','run','label'])
+            #             attribs = set_attrib(nomvar_df,attribs,'etiket')
+            #             attribs = set_attrib(nomvar_df,attribs,'level')
+            #             attribs = set_attrib(nomvar_df,attribs,'ip1_kind')
+            #             attribs = set_attrib(nomvar_df,attribs,'surface')
+            #             nomvar = nomvar_df.iloc[-1]['nomvar']
+            #             data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, levels, latitudes, longitudes))    
+
+        d = {}   
         for variable in data_list:
-            d.update({["level", "lon", "lat"]:variable})
+                d.update({variable.name:variable})
 
-        ds = xr.Dataset(
-            data_vars=d,
-            coords=dict(
-                level = levels,
-                lon = longitudes,
-                lat = latitudes,
-            ),
-            attrs=dict(description="Weather related data."),
-        )
+        ds = xr.Dataset(d)
+        # if timeseries:
+            
+        #     # ds = xr.Dataset(
+        #     #     data_vars=d_list,
+        #     #     coords=dict(
+        #     #         time = time_dim,
+        #     #         lon = longitudes,
+        #     #         lat = latitudes,
+        #     #     ),
+        #     #     attrs=dict(description="Weather related data - timeseries"),
+        #     # )    
+        # else:    
+        #     # ds = xr.Dataset(
+        #     #     data_vars=d,
+        #     #     # coords=dict(
+        #     #     #     level = level_dim,
+        #     #     #     lon = longitudes,
+        #     #     #     lat = latitudes,
+        #     #     # ),
+        #     #     attrs=dict(description="Weather related data - level series"),
+        #     # )
         return ds
+
+
 
 def stack_arrays(df):
     import numpy as np
@@ -136,9 +190,9 @@ def stack_arrays(df):
                 continue
             if 'level' not in  to_stack_df.columns:   
                 to_stack_df['level'] = None
-                to_stack_df['kind'] = None
+                to_stack_df['ip1_kind'] = None
                 for i in to_stack_df.index:
-                    to_stack_df.at[i,'level'], to_stack_df.at[i,'kind'], _ = decode_ip1(to_stack_df.at[i,'ip1'])
+                    to_stack_df.at[i,'level'], to_stack_df.at[i,'ip1_kind'], _ = decode_ip1(to_stack_df.at[i,'ip1'])
             to_stack_df.sort_values(by=['level'],ascending=False,inplace=True)    
             #print('stacking %s with %s levels'%(nomvar, len(to_stack_df.level)))
             var = create_1row_df_from_model(to_stack_df)
@@ -149,10 +203,10 @@ def stack_arrays(df):
             var['stacked'] = True
             var['ip1'] = None
             var['level'] = None
-            var['kind'] = None
+            var['ip1_kind'] = None
             var['key'] = None
             var.at[0,'level'] = to_stack_df['level'].to_numpy()
-            var.at[0,'kind'] = to_stack_df['kind'].to_numpy()
+            var.at[0,'ip1_kind'] = to_stack_df['ip1_kind'].to_numpy()
             var.at[0,'d'] = stacked_data
             var.at[0,'ip1'] = to_stack_df['ip1'].to_numpy()
             var.at[0,'key'] = to_stack_df['key'].to_numpy()
@@ -177,7 +231,7 @@ def load_data(df):
     res_list = []
     for _,path_df in path_groups:
         unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
-        #path_df.sort_values(by=['key'],inplace=True)
+        path_df.sort_values(by=['key'],inplace=True)
         for i in path_df.index:
             if isinstance(path_df.at[i,'d'],da.core.Array):
                 continue
@@ -229,7 +283,7 @@ def load_data(df):
 
 
 
-# def create_coordinate_type(meta:set, kind:int, vcode:int, coord_types:pd.DataFrame) ->str:
+# def create_coordinate_type(meta:set, ip1_kind:int, vcode:int, coord_types:pd.DataFrame) ->str:
 #     vctype = 'UNKNOWN'
 #     toctoc_exists = '!!' in meta
 #     p0_exists = 'P0' in meta
@@ -238,7 +292,7 @@ def load_data(df):
 #     e1_exists = 'E1' in meta
 #     sf_exists = '!!SF' in meta
 
-#     result = coord_types.query(f'(kind == {kind}) and (toctoc == {toctoc_exists}) and (P0 == {p0_exists}) and (E1 == {e1_exists}) and (PT == {pt_exists}) and (HY == {hy_exists}) and (SF == {sf_exists}) and (vcode == {vcode})')
+#     result = coord_types.query(f'(ip1_kind == {ip1_kind}) and (toctoc == {toctoc_exists}) and (P0 == {p0_exists}) and (E1 == {e1_exists}) and (PT == {pt_exists}) and (HY == {hy_exists}) and (SF == {sf_exists}) and (vcode == {vcode})')
 
 #     if len(result.index) > 1:
 #         logger.debug(result)
@@ -294,7 +348,7 @@ def load_data(df):
 #         return
 # #    ip1      (int)  : Ip1 of the vgrid record to find, use -1 for any (I)
 # #    ip2      (int)  : Ip2 of the vgrid record to find, use -1 for any (I)
-# #    kind     (int)  : Kind of vertical coor
+# #    ip1_kind     (int)  : Kind of vertical coor
 # #    version  (int)  : Version of vertical coor
 # #https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.1/rpnpy/vgd/const
 #     for rec in records:
@@ -311,7 +365,7 @@ def load_data(df):
 #         vtype = VGD_KIND_VER_INV[(vkind,vver)]
 #         (ldiagval, ldiagkind) = rmn.convertIp(rmn.CONVIP_DECODE, ip1diagt)
 #         (l2diagval, l2diagkind) = rmn.convertIp(rmn.CONVIP_DECODE, ip1diagm)
-#         logger.debug("CB14: Found vgrid type=%s (kind=%d, vers=%d) with %d levels and diag levels=%7.2f%s (ip1=%d) and %7.2f%s (ip1=%d)" % (vtype, vkind, vver, len(tlvl), ldiagval, rmn.kindToString(ldiagkind), ip1diagt, l2diagval, rmn.kindToString(l2diagkind), ip1diagm))
+#         logger.debug("CB14: Found vgrid type=%s (ip1_kind=%d, vers=%d) with %d levels and diag levels=%7.2f%s (ip1=%d) and %7.2f%s (ip1=%d)" % (vtype, vkind, vver, len(tlvl), ldiagval, rmn.kindToString(ldiagkind), ip1diagt, l2diagval, rmn.kindToString(l2diagkind), ip1diagm))
 
 
 

@@ -38,7 +38,7 @@ def raw_dict():
         'xtra1': 443004200,
         'xtra2': 0,
         'xtra3': 0,
-        'kind': 4,
+        'ip1_kind': 4,
         'dateo': 442998800,
         'datyp': 134,
         'key': 659457,
@@ -53,22 +53,22 @@ def file_mod_time():
 def full_data_frame(raw_dict):
 
     rec_dict_to_add = {
-        'pdateo': datetime.datetime(2020, 7, 14, 12, 0),
+        'date_of_observation': datetime.datetime(2020, 7, 14, 12, 0),
         'level': 1.5,
         'pkind': 'M',
-        'pdatyp': 'f',
+        'data_type_str': 'f',
         'run': 'R1',
         'implementation': 'N',
         'ensemble_member': None,
         'd': None,
-        'pdatev': datetime.datetime(2020, 7, 14, 18, 0),
+        'date_of_validity': datetime.datetime(2020, 7, 14, 18, 0),
         'path': '/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std',
         'file_modification_time': '446325:47:42',
         'surface': True,
         'follow_topography': True,
         'dirty': False,
         'vctype': '',
-        'fhour': 6.0,
+        'forecast_hour': 6.0,
         'label': '_V710_',
         'fstinl_params': None,
         'unit_converted': False
@@ -283,7 +283,7 @@ def raw_data_frame(raw_dict):
 # #     pass
 
 
-# # def test_zap_fhour(df:pd.DataFrame, fhour_value:int) -> pd.DataFrame:
+# # def test_zap_forecast_hour(df:pd.DataFrame, forecast_hour_value:int) -> pd.DataFrame:
 # #     pass
 
 

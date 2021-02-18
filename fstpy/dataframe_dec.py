@@ -30,30 +30,30 @@ def get_unit_and_description_columns(nomvar_col:pd.Series):
 
 def create_decoded_dateo_column(dateo_col:pd.Series):
     from .std_dec import convert_rmndate_to_datetime
-    pdateo = dateo_col.copy(deep=True)
+    date_of_observation = dateo_col.copy(deep=True)
     for i in dateo_col.index:
-        pdateo[i] = convert_rmndate_to_datetime(int(dateo_col[i]))
-    return pdateo
+        date_of_observation[i] = convert_rmndate_to_datetime(int(dateo_col[i]))
+    return date_of_observation
 
 def create_decoded_datev_column(datev_col:pd.Series):
     from .std_dec import convert_rmndate_to_datetime
-    pdatev = datev_col.copy(deep=True)
+    date_of_validity = datev_col.copy(deep=True)
     for i in datev_col.index:
-        pdatev[i] = convert_rmndate_to_datetime(int(datev_col[i]))
-    return pdatev
+        date_of_validity[i] = convert_rmndate_to_datetime(int(datev_col[i]))
+    return date_of_validity
     
 def create_decoded_deet_npas_column(deet_col:pd.Series,npas_col:pd.Series):
     import datetime
-    fhour = deet_col.copy(deep=True)
+    forecast_hour = deet_col.copy(deep=True)
     for i in deet_col.index:
-        fhour[i] = datetime.timedelta(seconds=(npas_col[i] * deet_col[i]))
-    return fhour
+        forecast_hour[i] = datetime.timedelta(seconds=(npas_col[i] * deet_col[i]))
+    return forecast_hour
 
 def create_decoded_ips_columns(nomvar_col:pd.Series,ip1_col:pd.Series,ip2_col:pd.Series,ip3_col:pd.Series):
     from .std_dec import decode_ips
     level = ip1_col.copy(deep=True)
-    kind = ip1_col.copy(deep=True)
-    pkind = nomvar_col.copy(deep=True)
+    ip1_kind = ip1_col.copy(deep=True)
+    ip1_pkind = nomvar_col.copy(deep=True)
     ip2_dec = ip1_col.copy(deep=True)
     ip2_kind = ip1_col.copy(deep=True)
     ip2_pkind = nomvar_col.copy(deep=True)
@@ -61,25 +61,25 @@ def create_decoded_ips_columns(nomvar_col:pd.Series,ip1_col:pd.Series,ip2_col:pd
     ip3_kind = ip1_col.copy(deep=True)
     ip3_pkind = nomvar_col.copy(deep=True)
     for i in nomvar_col.index:
-        level[i],kind[i],pkind[i],ip2_dec[i],ip2_kind[i],ip2_pkind[i],ip3_dec[i],ip3_kind[i],ip3_pkind[i] = decode_ips(nomvar_col[i],ip1_col[i],ip2_col[i],ip3_col[i])
-    return level,kind,pkind,ip2_dec,ip2_kind,ip2_pkind,ip3_dec,ip3_kind,ip3_pkind
+        level[i],ip1_kind[i],ip1_pkind[i],ip2_dec[i],ip2_kind[i],ip2_pkind[i],ip3_dec[i],ip3_kind[i],ip3_pkind[i] = decode_ips(nomvar_col[i],ip1_col[i],ip2_col[i],ip3_col[i])
+    return level,ip1_kind,ip1_pkind,ip2_dec,ip2_kind,ip2_pkind,ip3_dec,ip3_kind,ip3_pkind
 
 def create_decoded_datyp_column(datyp_col:pd.Series):
     from .constants import DATYP_DICT
-    pdatyp = datyp_col.copy(deep=True)
+    data_type_str = datyp_col.copy(deep=True)
     for i in datyp_col.index:
-        pdatyp[i] = DATYP_DICT[datyp_col[i]]
-    return pdatyp
+        data_type_str[i] = DATYP_DICT[datyp_col[i]]
+    return data_type_str
 
-def create_surface_column(kind_col:pd.Series,level_col:pd.Series):    
+def create_surface_column(ip1_kind_col:pd.Series,level_col:pd.Series):    
     from .std_dec import is_surface
-    surface = kind_col.copy(deep=True)
-    for i in kind_col.index:
-        surface[i] = is_surface(kind_col[i],level_col[i])
+    surface = ip1_kind_col.copy(deep=True)
+    for i in ip1_kind_col.index:
+        surface[i] = is_surface(ip1_kind_col[i],level_col[i])
 
-def create_surface_column(kind_col:pd.Series):    
+def create_follow_topography_column(ip1_kind_col:pd.Series):    
     from .std_dec import level_type_follows_topography
-    follow_topography = kind_col.copy(deep=True)
-    for i in kind_col.index:
-        follow_topography[i] = level_type_follows_topography(kind_col[i])
+    follow_topography = ip1_kind_col.copy(deep=True)
+    for i in ip1_kind_col.index:
+        follow_topography[i] = level_type_follows_topography(ip1_kind_col[i])
     return follow_topography

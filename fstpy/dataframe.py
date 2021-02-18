@@ -64,11 +64,11 @@ def remove_data_fields(df: pd.DataFrame) -> pd.DataFrame:
     return df    
 
 # def add_extra_cols(df):
-#     df = add_empty_columns(df, ['kind'], 0, 'int32')
+#     df = add_empty_columns(df, ['ip1_kind'], 0, 'int32')
 #     df = add_empty_columns(df, ['level'],np.nan,'float32')
 #     df = add_empty_columns(df, ['surface','follow_topography','dirty','unit_converted'],False,'bool')
-#     df = add_empty_columns(df, ['pdateo','pdatev','fhour'],None,'datetime64')
-#     df = add_empty_columns(df, ['vctype','pkind','pdatyp','grid','run','implementation','ensemble_member','label','unit'],'','O')
+#     df = add_empty_columns(df, ['date_of_observation','date_of_validity','forecast_hour'],None,'datetime64')
+#     df = add_empty_columns(df, ['vctype','ip1_pkind','data_type_str','grid','run','implementation','ensemble_member','label','unit'],'','O')
 #     df = fill_columns(df)
 #     return df   
 
@@ -91,21 +91,21 @@ def remove_data_fields(df: pd.DataFrame) -> pd.DataFrame:
 #         nomvar = df.at[i,'nomvar']
 #         #find unit name value for this nomvar
 #         df = std_io.get_unit_and_description(df, i, nomvar)
-#         #get level and kind
-#         df = set_level_and_kind(df, i) #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
+#         #get level and ip1_kind
+#         df = set_level_and_ip1_kind(df, i) #float("%.6f"%-1) if df.at[i,'ip1_kind'] == -1 else float("%.6f"%level)
 #         #create a real date of observation
-#         df.at[i,'pdateo'] = std_io.convert_rmndate_to_datetime(int(df.at[i,'dateo']))
+#         df.at[i,'date_of_observation'] = std_io.convert_rmndate_to_datetime(int(df.at[i,'dateo']))
 #         #create a printable date of validity
-#         df.at[i,'pdatev'] = std_io.convert_rmndate_to_datetime(int(df.at[i,'datev']))
-#         #create a printable kind for voir
-#         df.at[i,'pkind'] = convert_rmnkind_to_string(df.at[i,'kind'])
+#         df.at[i,'date_of_validity'] = std_io.convert_rmndate_to_datetime(int(df.at[i,'datev']))
+#         #create a printable ip1_kind for voir
+#         df.at[i,'ip1_pkind'] = convert_rmnip1_kind_to_string(df.at[i,'ip1_kind'])
 #         #calculate the forecast hour
-#         df.at[i,'fhour'] = df.at[i,'npas'] * df.at[i,'deet'] / 3600.
+#         df.at[i,'forecast_hour'] = df.at[i,'npas'] * df.at[i,'deet'] / 3600.
 #         #create a printable data type for voir
-#         df.at[i,'pdatyp'] = constants.DATYP_DICT[df.at[i,'datyp']]
+#         df.at[i,'data_type_str'] = constants.DATYP_DICT[df.at[i,'datyp']]
 #         #create a grid identifier for each record
 #         df.at[i,'grid'] = std_io.create_grid_identifier(df.at[i,'nomvar'],df.at[i,'ip1'],df.at[i,'ip2'],df.at[i,'ig1'],df.at[i,'ig2'])
-#         #logger.debug(df.at[i,'kind'],df.at[i,'level'])
+#         #logger.debug(df.at[i,'ip1_kind'],df.at[i,'level'])
 #         #set surface flag for surface levels
 #         std_io.set_surface(df, i, meter_levels)
 #         std_io.set_follow_topography(df, i)
@@ -115,13 +115,13 @@ def remove_data_fields(df: pd.DataFrame) -> pd.DataFrame:
 
 
 
-# def set_level_and_kind(df, i):
-#     level, kind = std_io.get_level_and_kind(df.at[i,'ip1'])
-#     # level_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(df.at[i,'ip1']))
-#     # kind = level_kind[1]
-#     # level = level_kind[0]
-#     df.at[i,'kind'] = int(kind)
-#     df.at[i,'level'] = level #float("%.6f"%-1) if df.at[i,'kind'] == -1 else float("%.6f"%level)
+# def set_level_and_ip1_kind(df, i):
+#     level, ip1_kind = std_io.get_level_and_ip1_kind(df.at[i,'ip1'])
+#     # level_ip1_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(df.at[i,'ip1']))
+#     # ip1_kind = level_ip1_kind[1]
+#     # level = level_ip1_kind[0]
+#     df.at[i,'ip1_kind'] = int(ip1_kind)
+#     df.at[i,'level'] = level #float("%.6f"%-1) if df.at[i,'ip1_kind'] == -1 else float("%.6f"%level)
 #     return df    
 
 # def strip_string_columns(df):
@@ -144,7 +144,7 @@ def convert_df_dtypes(df,decoded):
                 {'ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
                 'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32',
                 'dateo':'int32', 'datyp':'int32',
-                'level':'float32','kind':'int32','ip2_dec':'float32','ip2_kind':'int32','ip3_dec':'float32','ip3_kind':'int32'}
+                'level':'float32','ip1_kind':'int32','ip2_dec':'float32','ip2_kind':'int32','ip3_dec':'float32','ip3_kind':'int32'}
                 )
                 
     return df      
@@ -164,8 +164,8 @@ def reorder_columns(df) -> pd.DataFrame:
 def sort_dataframe(df) -> pd.DataFrame:
     if df.empty:
         return df
-    if ('grid' in df.columns) and ('fhour' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
-        df.sort_values(by=['grid','fhour','nomvar','level'],ascending=False,inplace=True)
+    if ('grid' in df.columns) and ('forecast_hour' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
+        df.sort_values(by=['grid','forecast_hour','nomvar','level'],ascending=False,inplace=True)
     else:     
         df.sort_values(by=['nomvar'],ascending=False,inplace=True)
     df.reset_index(drop=True,inplace=True)
@@ -176,21 +176,21 @@ def set_vertical_coordinate_type(df) -> pd.DataFrame:
     grid_groups = df.groupby(df.grid)
     for _, grid in grid_groups:
         toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(grid)
-        kind_groups = grid.groupby(grid.kind)
-        for _, kind_group in kind_groups:
-            #these kinds are not defined
-            without_meta = kind_group.query('(kind not in [-1,3,6])')
+        ip1_kind_groups = grid.groupby(grid.ip1_kind)
+        for _, ip1_kind_group in ip1_kind_groups:
+            #these ip1_kinds are not defined
+            without_meta = ip1_kind_group.query('(ip1_kind not in [-1,3,6])')
             if not without_meta.empty:
                 #logger.debug(without_meta.iloc[0]['nomvar'])
-                kind = without_meta.iloc[0]['kind']
-                kind_group['vctype'] = 'UNKNOWN'
-                #vctype_dict = {'kind':kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
-                vctyte_df = VCTYPES.query('(kind==%s) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%s)'%(kind,toctoc,p0,e1,pt,hy,sf,vcode))
+                ip1_kind = without_meta.iloc[0]['ip1_kind']
+                ip1_kind_group['vctype'] = 'UNKNOWN'
+                #vctype_dict = {'ip1_kind':ip1_kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
+                vctyte_df = VCTYPES.query('(ip1_kind==%s) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%s)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,vcode))
                 if not vctyte_df.empty:
                     if len(vctyte_df.index)>1:
                         logger.warning('set_vertical_coordinate_type - more than one match!!!')
-                    kind_group['vctype'] = vctyte_df.iloc[0]['vctype']
-                newdfs.append(kind_group)
+                    ip1_kind_group['vctype'] = vctyte_df.iloc[0]['vctype']
+                newdfs.append(ip1_kind_group)
 
         df = pd.concat(newdfs)
         return df    
@@ -238,7 +238,7 @@ def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove) -> pd.DataFrame
 def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
     from .exceptions import StandardFileError
     from .dataframe_utils import select
-    #logger.debug('1',df[['nomvar','surface','level','kind']])
+    #logger.debug('1',df[['nomvar','surface','level','ip1_kind']])
     if len(names)<=1:
         logger.error('get_intersecting_levels - not enough names to process')
         raise StandardFileError('not enough names to process')

@@ -81,9 +81,9 @@ selecting by date range
     >>> start_date = datetime(2020, 2, 1, 0, 0)
     >>> end_date = datetime(2020, 2, 4, 12, 0)
     >>> print(start_date,end_date)
-    >>> mask = df['pdateo'].between(start_date, end_date, inclusive=True)
+    >>> mask = df['date_of_observation'].between(start_date, end_date, inclusive=True)
     >>> sub_df = df[mask]
-    >>> print(sub_df.sort_values(by=['pdateo']))
+    >>> print(sub_df.sort_values(by=['date_of_observation']))
 
 
 Modify meta data
@@ -299,8 +299,8 @@ Getting groups of data
     >>> # grouping data by forecast hour, the usual case when you have multiple forecast hours per grid in a dataframe
     >>> forecast_hour_groups_list = fstpy.get_groups(tt_df,group_by_forecast_hour=True,group_by_level=False)
     >>> 
-    >>> for fhour_df in forecast_hour_groups_list :
-    >>>     print(fhour_df)
+    >>> for forecast_hour_df in forecast_hour_groups_list :
+    >>>     print(forecast_hour_df)
     >>> 
     >>> # grouping data by level, the usual case when you have multiple levels per grid in a dataframe
     >>> levels_groups_list = fstpy.get_groups(tt_df,group_by_forecast_hour=True,group_by_level=True)

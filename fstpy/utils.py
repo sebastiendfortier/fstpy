@@ -38,16 +38,16 @@ def delete_file(my_file):
         os.unlink(my_file)
         
 def get_grid_groups(groups:list) -> list:
-    return make_groups(groups, 'grid', ['fhour','nomvar','level'])
+    return make_groups(groups, 'grid', ['forecast_hour','nomvar','level'])
 
-def get_fhour_groups(groups:list) -> list:
-    return make_groups(groups, 'fhour', ['fhour','nomvar','level'])
+def get_forecast_hour_groups(groups:list) -> list:
+    return make_groups(groups, 'forecast_hour', ['forecast_hour','nomvar','level'])
 
 def get_nomvar_groups(groups:list) -> list:
-    return make_groups(groups, 'nomvar', ['fhour','nomvar','level'])
+    return make_groups(groups, 'nomvar', ['forecast_hour','nomvar','level'])
 
 def get_level_groups(groups:list) -> list:
-    return make_groups(groups, 'level', ['fhour','nomvar'])
+    return make_groups(groups, 'level', ['forecast_hour','nomvar'])
 
 def make_groups(groups:list, group_by_attribute, sort_by_attributes:list) -> list:
     groupdfs = []
@@ -63,15 +63,15 @@ def get_groups(df:pd.DataFrame, group_by_forecast_hour:bool=False,group_by_level
     if (group_by_forecast_hour == False) and (group_by_level == False):
         return grid_groups
 
-    fhour_groups= get_fhour_groups(grid_groups)
+    forecast_hour_groups= get_forecast_hour_groups(grid_groups)
     if (group_by_forecast_hour == True) and (group_by_level == False):
-        return fhour_groups
+        return forecast_hour_groups
             
     if (group_by_forecast_hour == False) and (group_by_level == True):
         return get_level_groups(grid_groups)
     
     if (group_by_forecast_hour == True) and (group_by_level == True):
-        return get_level_groups(fhour_groups)
+        return get_level_groups(forecast_hour_groups)
 
 
 def flatten_data_series(df) -> pd.DataFrame:

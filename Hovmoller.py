@@ -181,7 +181,7 @@ def get_vv_values(vv):
 
 
 def get_time_data_array(vv):
-    times = np.array(vv['pdateo'].to_list())
+    times = np.array(vv['date_of_observation'].to_list())
     delta_t = np.max(times)- np.min(times)
     time_arrtibs = {
             'long_name' :'Time',
@@ -207,7 +207,7 @@ def get_dataframe_sorted_by_date():
 
     vv = df.copy(deep=True)
 
-    vv = vv.sort_values(by=['pdateo'])
+    vv = vv.sort_values(by=['date_of_observation'])
     return vv
 
 if __name__ == "__main__":

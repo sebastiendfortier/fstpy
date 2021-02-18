@@ -299,7 +299,7 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
 
 
 
-# def convert_rmnkind_to_string(kind):
-#     return constants.KIND_DICT[int(kind)]
+# def convert_rmnkind_to_string(ip1_kind):
+#     return constants.KIND_DICT[int(ip1_kind)]
 
   

@@ -67,11 +67,11 @@ def zap(df:pd.DataFrame, mark:bool=True, validate_keys=True,**kwargs:dict ) -> p
     res_df.loc[:,'dirty'] = True
     #res_df['key'] = np.nan
     for k,v in kwargs.items():
-        if (k == 'level') and ('kind' in  kwargs.keys()):
-            res_df = zap_level(res_df,v,kwargs['kind'])
+        if (k == 'level') and ('ip1_kind' in  kwargs.keys()):
+            res_df = zap_level(res_df,v,kwargs['ip1_kind'])
             continue
-        elif (k == 'level') and ('kind' not in  kwargs.keys()):
-            logger.warning("zap - can't zap level without kind")
+        elif (k == 'level') and ('ip1_kind' not in  kwargs.keys()):
+            logger.warning("zap - can't zap level without ip1_kind")
             continue
         if k == 'ip1':
             res_df = zap_ip1(res_df,v)
@@ -79,12 +79,12 @@ def zap(df:pd.DataFrame, mark:bool=True, validate_keys=True,**kwargs:dict ) -> p
         if k == 'npas':
             res_df = zap_npas(res_df, v)
             continue
-        if k == 'fhour':
-            res_df = zap_fhour(res_df, v)
+        if k == 'forecast_hour':
+            res_df = zap_forecast_hour(res_df, v)
             continue
-        if k == 'kind':
+        if k == 'ip1_kind':
             pass
-        if k == 'pkind':
+        if k == 'ip1_pkind':
             pass
         res_df.loc[:,k] = v
     if mark:
@@ -101,16 +101,16 @@ def fststat(df:pd.DataFrame):
     validate_df_not_empty(df,'fststat',StandardFileError)
     df = load_data(df)
     df = compute_stats(df)
-    print(df[['nomvar','typvar','level','pkind','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
+    print(df[['nomvar','typvar','level','ip1_pkind','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
 
 def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_meta_data=False, loose_match=False, no_fail=False, engine=None) -> pd.DataFrame:
     from .dataframe import sort_dataframe
     # print a summay ry of query
     #logger.info('select %s' % query_str[0:100])
-    # warn if selecting by fhour
-    if 'fhour' in query_str:
-        logger.warning('select - selecting fhour might not return expected results - it is a claculated value (fhour = deet * npas / 3600.)')
-        logger.info('select - avalable forecast hours are %s' % list(df.fhour.unique()))
+    # warn if selecting by 'forecast_hour'
+    if 'forecast_hour' in query_str:
+        logger.warning('select - selecting forecast_hour might not return expected results - it is a claculated value (forecast_hour = deet * npas / 3600.)')
+        logger.info('select - avalable forecast hours are %s' % list(df.forecast_hour.unique()))
     if isinstance(engine,str):
         view = df.query(query_str,engine=engine)
         tmp_df = view.copy(deep=True)
@@ -193,7 +193,7 @@ def create_load_data_info(df:pd.DataFrame) -> pd.DataFrame:
     return df
 
 def validate_zap_keys(**kwargs):
-    available_keys = {'grid', 'fhour', 'nomvar', 'typvar', 'etiket', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'level', 'kind', 'pkind','unit'}
+    available_keys = {'grid', 'forecast_hour', 'nomvar', 'typvar', 'etiket', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'level', 'ip1_kind', 'ip1_pkind','unit'}
     keys_to_modify = set(kwargs.keys())
     acceptable_keys = keys_to_modify.intersection(available_keys)
     if len(acceptable_keys) != len(keys_to_modify):
@@ -203,55 +203,55 @@ def validate_zap_keys(**kwargs):
 def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
     from .std_dec import decode_ip1
     from .constants import KIND_DICT
-    logger.warning('zap - changed ip1, triggers updating level and kind')
+    logger.warning('zap - changed ip1, triggers updating level and ip1_kind')
     df.loc[:,'ip1'] = ip1_value
-    level, kind, pkind = decode_ip1(ip1_value)
+    level, ip1_kind, ip1_pkind = decode_ip1(ip1_value)
     df.loc[:,'level'] = level
-    df.loc[:,'kind'] = kind
-    df.loc[:,'pkind'] = pkind
+    df.loc[:,'ip1_kind'] = ip1_kind
+    df.loc[:,'ip1_pkind'] = ip1_pkind
     return df
 
-def zap_level(df:pd.DataFrame, level_value:float, kind_value:int) -> pd.DataFrame:
+def zap_level(df:pd.DataFrame, level_value:float, ip1_kind_value:int) -> pd.DataFrame:
     logger.warning('zap - changed level, triggers updating ip1')
     df['level'] = level_value
-    df['ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, level_value, kind_value)
+    df['ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, level_value, ip1_kind_value)
     return df
 
-def zap_kind(df:pd.DataFrame, kind_value:int) -> pd.DataFrame:
+def zap_ip1_kind(df:pd.DataFrame, ip1_kind_value:int) -> pd.DataFrame:
     from .constants import KIND_DICT
-    logger.warning('zap - changed kind, triggers updating ip1 and pkind')
-    df['kind'] = kind_value
-    df['pkind'] = KIND_DICT[int(kind_value)]
+    logger.warning('zap - changed ip1_kind, triggers updating ip1 and ip1_pkind')
+    df['ip1_kind'] = ip1_kind_value
+    df['ip1_pkind'] = KIND_DICT[int(ip1_kind_value)]
     for i in df.index:
-        df.at[i,'ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, df.at[i,'level'], kind_value)
+        df.at[i,'ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, df.at[i,'level'], ip1_kind_value)
     return df
 
-def zap_pkind(df:pd.DataFrame, pkind_value:str) -> pd.DataFrame:
+def zap_pip1_kind(df:pd.DataFrame, ip1_pkind_value:str) -> pd.DataFrame:
     from .constants import KIND_DICT
-    logger.warning('zap - changed pkind, triggers updating ip1 and kind')
-    df['pkind'] = pkind_value
-    #invert kind dict
+    logger.warning('zap - changed ip1_pkind, triggers updating ip1 and ip1_kind')
+    df['ip1_pkind'] = ip1_pkind_value
+    #invert ip1_kind dict
     PKIND_DICT = {v: k for k, v in KIND_DICT.items()}
-    df['kind'] = PKIND_DICT[pkind_value]
+    df['ip1_kind'] = PKIND_DICT[ip1_pkind_value]
     for i in df.index:
-        df.at[i,'ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, df.at[i,'level'], df.at[i,'kind'])
+        df.at[i,'ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, df.at[i,'level'], df.at[i,'ip1_kind'])
     return df
 
 def zap_npas(df:pd.DataFrame, npas_value:int) -> pd.DataFrame:
-    logger.warning('zap - changed npas, triggers updating fhour')
+    logger.warning('zap - changed npas, triggers updating forecast_hour')
     df['npas'] = npas_value
     for i in df.index:
-        df.at[i,'fhour'] =  df.at[i,'deet'] * df.at[i,'npas'] / 3600.
-        df.at[i,'ip2'] = np.floor(df.at[i,'fhour']).astype(int)
+        df.at[i,'forecast_hour'] =  df.at[i,'deet'] * df.at[i,'npas'] / 3600.
+        df.at[i,'ip2'] = np.floor(df.at[i,'forecast_hour']).astype(int)
     return df
 
 
-def zap_fhour(df:pd.DataFrame, fhour_value:int) -> pd.DataFrame:
-    logger.warning('zap - changed fhour, triggers updating npas')
-    df['fhour'] = fhour_value
-    df['ip2'] = np.floor(df['fhour']).astype(int)
+def zap_forecast_hour(df:pd.DataFrame, forecast_hour_value:int) -> pd.DataFrame:
+    logger.warning('zap - changed forecast_hour, triggers updating npas')
+    df['forecast_hour'] = forecast_hour_value
+    df['ip2'] = np.floor(df['forecast_hour']).astype(int)
     for i in df.index:
-        df.at[i,'npas'] = df.at[i,'fhour'] * 3600. / df.at[i,'deet']
+        df.at[i,'npas'] = df.at[i,'forecast_hour'] * 3600. / df.at[i,'deet']
         df.at[i,'npas'] = df.at[i,'npas'].astype(int)
     return df
 
@@ -274,7 +274,7 @@ def add_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
 
 def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
     diff['etiket'] = diff['etiket_x']
-    #diff['kind'] = diff['kind_x']
+    #diff['ip1_kind'] = diff['ip1_kind_x']
     #diff['ip2'] = diff['ip2_x']
     #diff['ip3'] = diff['ip3_x']
     diff.drop(columns=['abs_diff'], inplace=True)
@@ -338,11 +338,11 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     diff = del_fstcomp_columns(diff)
     if len(diff.index):
         logger.info(diff[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'biais', 'e_max', 'e_moy','diff_percent']].to_string(formatters={'level': '{:,.6f}'.format,'diff_percent': '{:,.1f}%'.format}))
-        #logger.debug(diff[['nomvar', 'etiket', 'pkind', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'bias', 'e_max', 'e_moy']].to_string())
+        #logger.debug(diff[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'bias', 'e_max', 'e_moy']].to_string())
     if len(missing.index):
         logger.info('missing df')
         logger.info(missing[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3']].to_string(header=False, formatters={'level': '{:,.6f}'.format}))
-        #logger.debug(missing[['nomvar', 'etiket', 'pkind', 'ip2', 'ip3']].to_string(header=False))
+        #logger.debug(missing[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3']].to_string(header=False))
     return success
 
 def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:

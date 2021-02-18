@@ -391,7 +391,7 @@ def test_regtest_6(plugin_test_dir):
 
 
 # def test_regtest_19():
-#     """Test #19 : test if HY is put in memory and written back when we have a grid with two kind of level, one of them being hybrid"""
+#     """Test #19 : test if HY is put in memory and written back when we have a grid with two kinds of level, one of them being hybrid"""
 #     # open and read source
 #     source0 = plugin_test_dir + "mb_plus_hybrid_fileSrc.std"
 #     src_df0 = fstr.StandardFileReader(source0).to_pandas()
