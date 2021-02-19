@@ -18,10 +18,10 @@ def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 
         logger.error('fstcomp - %s does not exist' % file2)
         raise StandardFileError('fstcomp - %s does not exist' % file2)    
     # open and read files
-    df1 = StandardFileReader(file1).to_pandas()
-    df1 = load_data(df1)
-    df2 = StandardFileReader(file2).to_pandas()
-    df2 = load_data(df2)
+    df1 = StandardFileReader(file1,load_data=True).to_pandas()
+    #print('df1',df1)
+    df2 = StandardFileReader(file2,load_data=True).to_pandas()
+    #print('df2',df2)
     return fstcomp_df(df1, df2, columns, print_unmatched=True if verbose else False)
 
 def voir(df:pd.DataFrame):

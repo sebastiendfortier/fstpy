@@ -94,4 +94,7 @@ def column_descriptions():
 
 #expose some functions and classes
 from .std_reader import StandardFileReader,load_data
+from .std_writer import StandardFileWriter
+from .dataframe_utils import fstcomp,voir,fststat,zap,select
+from .utils import delete_file
 from .std_io import get_grid_metadata_fields,get_lat_lon

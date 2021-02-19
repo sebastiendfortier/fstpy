@@ -77,7 +77,7 @@ def get_groups(df:pd.DataFrame, group_by_forecast_hour:bool=False,group_by_level
 def flatten_data_series(df) -> pd.DataFrame:
     import sys
     if len(df.nomvar.unique()) > 1:
-        sys.stderr.write('more than one variable, stacking the arrays would not yield a 3d array for one variable - no modifications made')
+        sys.stderr.write('more than one variable, stacking the arrays would not yield a 3d array for one variable - no modifications made\n')
         return df
     for i in df.index:
         df.at[i,'d'] = df.at[i,'d'].flatten()
@@ -86,7 +86,7 @@ def flatten_data_series(df) -> pd.DataFrame:
 def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:
     import sys
     if len(df.nomvar.unique()) > 1:
-        sys.stderr.write('more than one variable, returning a dataframe based on first row')
+        sys.stderr.write('more than one variable, returning a dataframe based on first row\n')
         return df
     res_d = df.iloc[0].to_dict()
     res_df = pd.DataFrame([res_d])

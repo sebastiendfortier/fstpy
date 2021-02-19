@@ -27,9 +27,7 @@ class StandardFileWriter:
        
     def to_fst(self):
         from .std_reader import load_data
-       
         self.meta_df = get_grid_metadata_fields(self.df,'to_fst',StandardFileWriterError)
-
         if not self.meta_df.empty:
             int_df = pd.merge(self.meta_df, self.df, how ='inner', on =['ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
                 'nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp']) 
@@ -37,12 +35,12 @@ class StandardFileWriter:
             if len(int_df.index) and (len(self.meta_df.index) != len(int_df.index)):
                 self.df.drop(columns = 'fstinl_params',inplace=True,errors='ignore')
                 self.meta_df.drop(columns='fstinl_params',inplace=True,errors='ignore')
-                print(self.df.columns,self.df.dtypes)
-                print(self.meta_df.columns,self.meta_df.dtypes)
+                # print(self.df.columns,self.df.dtypes)
+                # print(self.meta_df.columns,self.meta_df.dtypes)
                 self.df = pd.concat([self.df, self.meta_df]).drop_duplicates(keep=False)
-
         if not self.update_meta_only:
             self.df = load_data(self.df)
+            
 
         self.file_id, self.file_modification_time = open_fst(self.filename, rmn.FST_RW, 'StandardFileWriter', StandardFileWriterError)
         self.write()
@@ -54,7 +52,7 @@ class StandardFileWriter:
 
         self.df = sort_dataframe(self.df)
         for i in self.df.index:
-            set_typvar(self.df,i)
+            #set_typvar(self.df,i)
             record_path = self.df.at[i,'path']
             if identical_destination_and_record_path(record_path,self.filename):
                 if self.update_meta_only:
@@ -68,7 +66,7 @@ class StandardFileWriter:
 
 def write_dataframe_record_to_file(file_id,df,i):
     import numpy as np
-    df = change_etiket_if_a_plugin_name(df,i)
+    #df = change_etiket_if_a_plugin_name(df,i)
     df = reshape_data_to_original_shape(df,i)
     rmn.fstecr(file_id, np.asfortranarray(df.at[i,'d']), df.loc[i].to_dict())     
 
@@ -83,7 +81,9 @@ def identical_destination_and_record_path(record_path, filename):
     return record_path == filename
 
 def reshape_data_to_original_shape(df, i):
+    import sys
     if df.at[i,'d'].shape != df.at[i,'shape']:
+        sys.stderr.write('difference detected between array shape and record metadata shape\n')
         df.at[i,'d'] = df.at[i,'d'].reshape(df.at[i,'shape'])
     return df
 

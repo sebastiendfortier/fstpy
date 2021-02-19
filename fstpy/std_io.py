@@ -215,8 +215,8 @@ def get_grid_metadata_fields(df,caller,error_class,latitude_and_longitude=True, 
         meta_df = pd.DataFrame(records)
         #print(meta_df[['nomvar','grid']])
         if meta_df.empty:
-            sys.stderr.write('get_meta_data_fields - no metatada in file %s'%path)
-            return df
+            sys.stderr.write('get_meta_data_fields - no metatada in file %s\n'%path)
+            return pd.DataFrame(dtype=object)
         grid_groups = rec_df.groupby(rec_df.grid)
         #for each grid in the current file
         for _,grid_df in grid_groups:

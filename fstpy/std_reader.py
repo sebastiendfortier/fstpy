@@ -50,7 +50,7 @@ class StandardFileReader:
         #{'datev':-1, 'etiket':' ', 'ip1':-1, 'ip2':-1, 'ip3':-1, 'typvar':' ', 'nomvar':' '}
         """init instance"""
         if self.array_container not in ['numpy','dask.array']:
-            sys.stderr.write('wrong type of array container specified, defaulting to numpy')
+            sys.stderr.write('wrong type of array container specified, defaulting to numpy\n')
             self.array_container = 'numpy'
         pass
         
