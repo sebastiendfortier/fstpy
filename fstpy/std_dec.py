@@ -4,7 +4,7 @@ from .constants import STDVAR,DATYP_DICT
 import datetime
 import numpy as np
 
-def decode_meta_data(nomvar:str,etiket:str,dateo:int,datev:int,deet:int,npas:int,datyp:int,ip1:int,ip2:int,ip3:int):
+def decode_metadata(nomvar:str,etiket:str,dateo:int,datev:int,deet:int,npas:int,datyp:int,ip1:int,ip2:int,ip3:int):
     """decodes the values of etiket,dateo,datev,datyp,ip1,ip2,ip3
 
     :param nomvar: [description]

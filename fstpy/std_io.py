@@ -55,7 +55,7 @@ def get_all_record_keys(file_id, subset):
     return keys  
 
 def get_records(keys,load_data,decode,path,file_modification_time,array_container):
-    from .std_dec import create_grid_identifier,decode_meta_data
+    from .std_dec import create_grid_identifier,decode_metadata
     records = []    
     if load_data:
         for k in keys:
@@ -79,7 +79,7 @@ def get_records(keys,load_data,decode,path,file_modification_time,array_containe
             record['file_modification_time'] = file_modification_time
             if decode:
                 record['stacked'] = False
-                record.update(decode_meta_data(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+                record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
             records.append(record)
     else:    
         for k in keys:
@@ -114,7 +114,7 @@ def get_records(keys,load_data,decode,path,file_modification_time,array_containe
             record['file_modification_time'] = file_modification_time
             if decode:
                 record['stacked'] = False
-                record.update(decode_meta_data(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+                record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
             records.append(record)
                 
     return records   

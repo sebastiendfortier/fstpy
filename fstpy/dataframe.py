@@ -9,36 +9,36 @@ from .constants import VCTYPES
 from .logger_config import logger
 
 
-def create_dataframe(file,decode_meta_data,load_data,subset,array_container) -> pd.DataFrame:
+def create_dataframe(file,decode_metadata,load_data,subset,array_container) -> pd.DataFrame:
     path = os.path.abspath(file)
     file_id, file_modification_time = std_io.open_fst(path,rmn.FST_RO,'StandardFileReader',StandardFileReaderError)
-    df = read_and_fill_dataframe(file_id,path, file_modification_time, load_data,subset,decode_meta_data,array_container)
+    df = read_and_fill_dataframe(file_id,path, file_modification_time, load_data,subset,decode_metadata,array_container)
     std_io.close_fst(file_id,path,'StandardFileReader')
     return df            
 
-def read_and_fill_dataframe(file_id,path,file_modification_time, load_data,subset,decode_meta_data,array_container) ->pd.DataFrame:
+def read_and_fill_dataframe(file_id,path,file_modification_time, load_data,subset,decode_metadata,array_container) ->pd.DataFrame:
     """reads the meta data of an fst file and puts it into a pandas dataframe  
 
     :return: dataframe of records in file  
     :rtype: pd.DataFrame  
     """
     #get the basic rmnlib dataframe
-    df = get_all_records_from_file_and_format(file_id,path,decode_meta_data,file_modification_time, load_data,subset,array_container)
+    df = get_all_records_from_file_and_format(file_id,path,decode_metadata,file_modification_time, load_data,subset,array_container)
 
     df = reorder_columns(df)  
 
     df = sort_dataframe(df)
     return df
 
-def get_all_records_from_file_and_format(file_id,path,decode_meta_data,file_modification_time, load_data,subset,array_container):
+def get_all_records_from_file_and_format(file_id,path,decode_metadata,file_modification_time, load_data,subset,array_container):
     keys = std_io.get_all_record_keys(file_id, subset)
 
-    records = std_io.get_records(keys,load_data,decode_meta_data,path,file_modification_time,array_container)
+    records = std_io.get_records(keys,load_data,decode_metadata,path,file_modification_time,array_container)
 
     #create a dataframe correspondinf to the fst file
     df = pd.DataFrame(records)
 
-    df = convert_df_dtypes(df,decode_meta_data)
+    df = convert_df_dtypes(df,decode_metadata)
 
     return df    
 

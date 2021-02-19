@@ -132,7 +132,7 @@ def tmp_file():
 # #     assert False
 
 # # def test_default_no_extra(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,decode_meta_data=False)
+# #     std_file = StandardFileReader(input_file,decode_metadata=False)
 # #     df = std_file.to_pandas()
 
 # #     #should crash
@@ -141,7 +141,7 @@ def tmp_file():
 # #     assert False
 
 # # def test_default_no_extra_load_datad(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,load_datad=True,decode_meta_data=False)
+# #     std_file = StandardFileReader(input_file,load_datad=True,decode_metadata=False)
 # #     df = std_file.to_pandas()
 
 # #     std_file_writer = StandardFileWriter(tmp_file,df)
@@ -155,7 +155,7 @@ def tmp_file():
 # #     assert status
 
 # # def test_default_no_extra_load_datad(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,load_data=True,decode_meta_data=False,subset={'nomvar':'UU'})
+# #     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,subset={'nomvar':'UU'})
 # #     df = std_file.to_pandas()
 
 # #     std_file_writer = StandardFileWriter(tmp_file,df)
@@ -212,7 +212,7 @@ def tmp_file():
 # #     assert status
 
 # # def test_params_no_extra_writer_load_data(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,decode_meta_data=False)
+# #     std_file = StandardFileReader(input_file,decode_metadata=False)
 # #     df = std_file.to_pandas()
 
 # #     #should crash
@@ -221,7 +221,7 @@ def tmp_file():
 # #     assert False
 
 # # def test_params_no_extra_writer_load_data(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,decode_meta_data=False)
+# #     std_file = StandardFileReader(input_file,decode_metadata=False)
 # #     df = std_file.to_pandas()
 
 # #     std_file_writer = StandardFileWriter(tmp_file,df,load_data=True)
@@ -235,7 +235,7 @@ def tmp_file():
 # #     assert status
 
 # # def test_params_no_extra_writer_load_data(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,decode_meta_data=False,subset={'nomvar':'UU'})
+# #     std_file = StandardFileReader(input_file,decode_metadata=False,subset={'nomvar':'UU'})
 # #     df = std_file.to_pandas()
 
 # #     std_file_writer = StandardFileWriter(tmp_file,df,load_data=True)

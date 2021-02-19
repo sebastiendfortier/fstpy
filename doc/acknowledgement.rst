@@ -19,5 +19,5 @@ for
 for
 
     * Awsome fstd2nc project
-    * great insights on how to develop xarray structure from fstfile
+    * great insights on how to develop xarray structure from CMC standard files
     * great functions to work on fst files

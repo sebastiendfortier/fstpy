@@ -19,14 +19,14 @@ def test_open(input_file):
 
 
 def test_params_add_extra_columns_false(input_file):
-    std_file = StandardFileReader(input_file,decode_meta_data=False)
+    std_file = StandardFileReader(input_file,decode_metadata=False)
     df = std_file.to_pandas()
     assert len(df.index) == 1874
     assert len(df.columns) == 27
 
 
 def test_params_add_extra_columns_false_load_data(input_file):
-    std_file = StandardFileReader(input_file,load_data=True,decode_meta_data=False,subset={'nomvar':'UU'})
+    std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,subset={'nomvar':'UU'})
     df = std_file.to_pandas()
     assert len(df.index) == 85
     assert len(df.columns) == 27

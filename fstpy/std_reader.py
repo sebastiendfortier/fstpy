@@ -14,7 +14,7 @@ class StandardFileReader:
  
         :param filenames: path to file or list of paths to files   
         :type filenames: str|list[str]   
-        :param decode_meta_data: adds extra columns, defaults to True    
+        :param decode_metadata: adds extra columns, defaults to True    
                 'unit':str, unit name
                 'unit_converted':bool
                 'description':str, field description
@@ -38,7 +38,7 @@ class StandardFileReader:
                 'ip3_dec':value of decoded ip3
                 'ip3_kind':kind of decoded ip3
                 'ip3_pkind':printable kind of decoded ip3
-        :type decode_meta_data: bool, optional    
+        :type decode_metadata: bool, optional    
         :param load_data: if True, the data will be read, not just the metadata (fstluk vs fstprm)
         :type load_data: bool, optional
         :param subset: parameter to pass to fstinl to select specific records
@@ -46,7 +46,7 @@ class StandardFileReader:
     """
     meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
     @initializer
-    def __init__(self, filenames, decode_meta_data=False,load_data=False,subset=None,array_container='numpy',stack=False):
+    def __init__(self, filenames, decode_metadata=False,load_data=False,subset=None,array_container='numpy',stack=False):
         #{'datev':-1, 'etiket':' ', 'ip1':-1, 'ip2':-1, 'ip3':-1, 'typvar':' ', 'nomvar':' '}
         """init instance"""
         if self.array_container not in ['numpy','dask.array']:
@@ -64,111 +64,94 @@ class StandardFileReader:
         if isinstance(self.filenames, list):
             dfs = []
             for file in set(self.filenames):
-                df = create_dataframe(file,self.decode_meta_data,self.load_data,self.subset,self.array_container)
+                df = create_dataframe(file,self.decode_metadata,self.load_data,self.subset,self.array_container)
                 dfs.append(df)
             df = pd.concat(dfs)   
             # return df
         else:
-            df = create_dataframe(self.filenames,self.decode_meta_data,self.load_data,self.subset,self.array_container)
+            df = create_dataframe(self.filenames,self.decode_metadata,self.load_data,self.subset,self.array_container)
             # return df
         return df    
 
-    def to_xarray(self, timeseries=False):
-        from .xarray import get_variable_data_array,get_longitude_data_array,get_date_of_validity_data_array,get_latitude_data_array,get_level_data_array,remove_keys,set_attrib
+    def to_xarray(self, timeseries=False, attributes=False):
+        import dask
+        dask.config.set(**{'array.slicing.split_large_chunks': True})
+        from .xarray import get_variable_data_array,get_longitude_data_array,get_date_of_validity_data_array,get_latitude_data_array,get_level_data_array
         from .std_io import get_lat_lon
         self.array_container = 'dask.array'
-        self.decode_meta_data = True
+        self.decode_metadata = True
         df = self.to_pandas()
         df = load_data(df)
-        
+        counter = 0
         data_list = []
         grid_groups = df.groupby(df.grid)
+        
         for _,grid_df in grid_groups:
+            counter += 1
+            if len(grid_groups.size()) > 1:
+                lat_name = 'rlat%s'%counter
+                lon_name = 'rlon%s'%counter
+                datev_name = 'time%s'%counter
+                level_name = 'level%s'%counter
+            else:
+                lat_name = 'rlat'
+                lon_name = 'rlon'
+                datev_name = 'time'
+                level_name = 'level'    
             lat_lon_df = get_lat_lon(grid_df)
-            longitudes = get_longitude_data_array(lat_lon_df)
+            longitudes = get_longitude_data_array(lat_lon_df,lon_name)
             #print(longitudes.shape)
-            latitudes = get_latitude_data_array(lat_lon_df)
+            latitudes = get_latitude_data_array(lat_lon_df,lat_name)
             #print(latitudes.shape)
             nomvar_groups = grid_df.groupby(grid_df.nomvar)
             for _,nomvar_df in nomvar_groups:
+                nomvar_df.sort_values(by='level',inplace=True)
                 if nomvar_df.iloc[0]['nomvar'] in ['!!','>>','^^','^>','HY']:
                     continue
-                if nomvar_df.datev.unique() > 1 and timeseries:
-                    time_dim = get_date_of_validity_data_array(nomvar_df)
+                if len(nomvar_df.datev.unique()) > 1 and timeseries:
+                    time_dim = get_date_of_validity_data_array(nomvar_df,datev_name)
                     nomvar_df.sort_values(by=['date_of_validity'],ascending=True,inplace=True)
                 else: #nomvar_df.ip1.unique() > 1:
-                    level_dim = get_level_data_array(nomvar_df)
+                    level_dim = get_level_data_array(nomvar_df,level_name)
                     nomvar_df.sort_values(by=['level'],ascending=False,inplace=True)
-
-                attribs = nomvar_df.iloc[-1].to_dict()
-                attribs = set_attrib(nomvar_df,attribs,'etiket')
-                attribs = set_attrib(nomvar_df,attribs,'level')
-                attribs = set_attrib(nomvar_df,attribs,'ip1_kind')
-                attribs = set_attrib(nomvar_df,attribs,'surface')
-                attribs = set_attrib(nomvar_df,attribs,'date_of_observation')
-                attribs = set_attrib(nomvar_df,attribs,'path')
-                if not timeseries:
-                    attribs = set_attrib(nomvar_df,attribs,'date_of_validity')
-
-                #attribs = remove_keys(nomvar_df,attribs,['ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','fstinl_params','d','file_modification_time','ensemble_member','implementation','run','label'])
-                attribs = remove_keys(attribs,['nomvar','etiket','ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','fstinl_params','d','file_modification_time','ensemble_member','implementation','run','label'])
+                attribs = {}
+                if attributes:
+                    attribs = set_data_array_attributes(attribs,nomvar_df, timeseries)
                 
                 nomvar = nomvar_df.iloc[-1]['nomvar']
                 if timeseries:
-                    data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, time_dim, latitudes, longitudes, timeseries=True))    
+                    data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, time_dim, datev_name, latitudes, lat_name, longitudes, lon_name, timeseries=True))    
                 else:    
-                    #print(nomvar,level_dim,latitudes,longitudes)
-                    data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, level_dim, latitudes, longitudes, timeseries=False))    
-
-
-
-
-
-            # date_of_validity_groups = grid_df.groupby(grid_df.date_of_validity)
-            # for _,datev_df in date_of_validity_groups:
-            #     forecast_hour_groups = datev_df.groupby(datev_df.'forecast_hour')
-            #     for _,forecast_hour_df in forecast_hour_groups:
-            #         nomvar_groups = forecast_hour_df.groupby(forecast_hour_df.nomvar)
-            #         for _,nomvar_df in nomvar_groups:
-            #             levels = get_level_data_array(nomvar_df)
-            #             nomvar_df.sort_values(by=['level'],ascending=False,inplace=True)
-            #             attribs = nomvar_df.iloc[-1].to_dict()
-            #             attribs = remove_keys(nomvar_df,attribs,['ip1','ip2','pkind','datyp','dateo','datev','grid','fstinl_params','d','path','file_modification_time','ensemble_member','implementation','run','label'])
-            #             attribs = set_attrib(nomvar_df,attribs,'etiket')
-            #             attribs = set_attrib(nomvar_df,attribs,'level')
-            #             attribs = set_attrib(nomvar_df,attribs,'ip1_kind')
-            #             attribs = set_attrib(nomvar_df,attribs,'surface')
-            #             nomvar = nomvar_df.iloc[-1]['nomvar']
-            #             data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, levels, latitudes, longitudes))    
+                    data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, level_dim, level_name, latitudes, lat_name, longitudes, lon_name, timeseries=False))    
 
         d = {}   
         for variable in data_list:
                 d.update({variable.name:variable})
 
         ds = xr.Dataset(d)
-        # if timeseries:
-            
-        #     # ds = xr.Dataset(
-        #     #     data_vars=d_list,
-        #     #     coords=dict(
-        #     #         time = time_dim,
-        #     #         lon = longitudes,
-        #     #         lat = latitudes,
-        #     #     ),
-        #     #     attrs=dict(description="Weather related data - timeseries"),
-        #     # )    
-        # else:    
-        #     # ds = xr.Dataset(
-        #     #     data_vars=d,
-        #     #     # coords=dict(
-        #     #     #     level = level_dim,
-        #     #     #     lon = longitudes,
-        #     #     #     lat = latitudes,
-        #     #     # ),
-        #     #     attrs=dict(description="Weather related data - level series"),
-        #     # )
+
         return ds
 
+def set_data_array_attributes(attribs, nomvar_df, timeseries):
+    from .xarray import set_attrib,remove_keys
+    attribs = nomvar_df.iloc[-1].to_dict()
+    attribs = remove_keys(attribs,['key','nomvar','etiket','ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','fstinl_params','d','file_modification_time'])
+    for k,v in attribs.items():
+        attribs = set_attrib(nomvar_df,attribs,k)
+    # attribs = set_attrib(nomvar_df,attribs,'ip1_kind')
+    # attribs = set_attrib(nomvar_df,attribs,'surface')
+    # attribs = set_attrib(nomvar_df,attribs,'date_of_observation')
+    # attribs = set_attrib(nomvar_df,attribs,'path')
+    # attribs = set_attrib(nomvar_df,attribs,'ensemble_member')
+    # attribs = set_attrib(nomvar_df,attribs,'implementation')
+    # attribs = set_attrib(nomvar_df,attribs,'run')
+    # attribs = set_attrib(nomvar_df,attribs,'label')
+    #if not timeseries:
+    #    attribs = set_attrib(nomvar_df,attribs,'date_of_validity')
+
+    #attribs = remove_keys(nomvar_df,attribs,['ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','fstinl_params','d','file_modification_time','ensemble_member','implementation','run','label'])
+    
+    return attribs
 
 
 def stack_arrays(df):

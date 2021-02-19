@@ -121,7 +121,7 @@ def raw_data_frame(raw_dict):
 #     assert df.iloc[0]['path'] != 'dummy_file'
 #     assert df.iloc[0]['file_modification_time'] != '12345'
 
-# #load_data, decode_meta_data
+# #load_data, decode_metadata
 # def test_add_missing_columns(raw_data_frame, input_file, file_mod_time):
 #     assert 'path' not in raw_data_frame.columns
 #     assert 'file_modification_time' not in raw_data_frame.columns
