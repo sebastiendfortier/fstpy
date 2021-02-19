@@ -278,7 +278,7 @@ Basic statistics for each column of 3d matrix
     >>> # write the result
     >>> from os import getenv
     >>> USER = getenv("USER")
-    >>> fstpy.StandardFileWriter('/tmp/%s/column_stats.std'%USER, res_df)()
+    >>> fstpy.StandardFileWriter('/tmp/%s/column_stats.std'%USER, res_df).to_fst()
 
 
 Getting groups of data

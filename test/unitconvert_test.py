@@ -20,7 +20,7 @@ def test_regtest_1(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "windModulus_file2cmp.std"
     print('reading',source0)
-    src_df0 = fstr.StandardFileReader(source0,load_data=True).to_pandas()
+    src_df0 = fstr.StandardFileReader(source0,load_data=True,decode_metadata=True).to_pandas()
     print('converting')
     #compute UnitConvert
     df = fstuc.do_unit_conversion(src_df0,'kilometer_per_hour')
@@ -30,7 +30,7 @@ def test_regtest_1(plugin_test_dir):
     results_file = TMP_PATH + "test_1.std"
     fstut.delete_file(results_file)
     print('writing')
-    fstw.StandardFileWriter(results_file, df)()
+    fstw.StandardFileWriter(results_file, df).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "unitConvertUVInKmhExtended_file2cmp.std"
@@ -54,7 +54,7 @@ def test_regtest_1(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_2.std"
-#     StandardFileWriter(results_file, df, erase=True)()
+#     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "windModulus_file2cmp.std"
@@ -77,7 +77,7 @@ def test_regtest_1(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_3.std"
-#     StandardFileWriter(results_file, df, erase=True)()
+#     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "windModulusExtended_file2cmp.std"
@@ -100,7 +100,7 @@ def test_regtest_1(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_4.std"
-#     StandardFileWriter(results_file, df, erase=True)()
+#     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "unitConvertUVInKmh_file2cmp.std"
@@ -123,7 +123,7 @@ def test_regtest_1(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_5.std"
-#     StandardFileWriter(results_file, df, erase=True)()
+#     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "unitConvertUVInKmh3D_file2cmp.std"
@@ -146,7 +146,7 @@ def test_regtest_1(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_6.std"
-#     StandardFileWriter(results_file, df, erase=True)()
+#     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
@@ -169,7 +169,7 @@ def test_regtest_1(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_7.std"
-#     StandardFileWriter(results_file, df, erase=True)()
+#     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "input_big_fileSrc.std"
@@ -192,7 +192,7 @@ def test_regtest_1(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_8.std"
-#     StandardFileWriter(results_file, df, erase=True)()
+#     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "TTES_fileSrc.std"
@@ -215,7 +215,7 @@ def test_regtest_1(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_9.std"
-#     StandardFileWriter(results_file, df, erase=True)()
+#     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "TTES_fileSrc.std"
@@ -238,7 +238,7 @@ def test_regtest_1(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_10.std"
-#     StandardFileWriter(results_file, df, erase=True)()
+#     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "input_big_file2cmp.std"
@@ -261,7 +261,7 @@ def test_regtest_1(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_11.std"
-#     StandardFileWriter(results_file, df, erase=True)()
+#     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "ignoremissing_file2cmp.std"
@@ -284,7 +284,7 @@ def test_regtest_1(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_12.std"
-#     StandardFileWriter(results_file, df, erase=True)()
+#     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "nan"

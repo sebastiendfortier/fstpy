@@ -69,7 +69,7 @@ create a link in your science home directory to the sitestore to put conda envir
 > `% `voir(just_tt_and_uv)    
 > `% `dest_path = '/tmp/out.std'    
 > `% #`write the selected records to the output file    
-> `% `StandardFileWriter(dest_path,just_tt_and_uv)()    
+> `% `StandardFileWriter(dest_path,just_tt_and_uv).to_fst()    
 
 ## Testing
 From the $project_root/test directory of the project   

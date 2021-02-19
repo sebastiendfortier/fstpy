@@ -120,7 +120,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_7.std"
-#     StandardFileWriter(results_file, src_df0, add_meta_fields=False)()
+#     StandardFileWriter(results_file, src_df0, add_meta_fields=False).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "input_big_noMeta_file2cmp.std"
@@ -144,7 +144,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_8.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "reference_file_test_8.std"
@@ -167,7 +167,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_9.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "tt_stg_fileSrc.std"
@@ -196,7 +196,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_10.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "stdPlusstd_file2cmp.std"
@@ -219,7 +219,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_11.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "ip3.std"
@@ -242,7 +242,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_12.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "UUVV93423264_hyb_fileSrc.std"
@@ -265,7 +265,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_13.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "nan"
@@ -288,7 +288,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_14.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "NEW/typvar_pz_file2cmp.std"
@@ -311,7 +311,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_15.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "NEW/typvar_pu_file2cmp.std"
@@ -334,7 +334,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_16.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "NEW/typvar_pi_file2cmp.std"
@@ -357,7 +357,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_17.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "NEW/typvar_pf_file2cmp.std"
@@ -380,7 +380,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_18.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "NEW/typvar_pm_file2cmp.std"
@@ -403,7 +403,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_19.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "mb_plus_hybrid_file2cmp.std"
@@ -426,7 +426,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_20.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "read_write_hy2_file2cmp.std"
@@ -449,7 +449,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_21.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "read_write_hy3_file2cmp.std"
@@ -472,7 +472,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_22.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "read_write_pt_when_no_sigma_file2cmp.std"
@@ -495,7 +495,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_23.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "read_write_pt_when_no_sigma_file2cmp.std"
@@ -518,7 +518,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_25.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "2012121000_cancm3_m1_00_file2cmp.std"
@@ -541,7 +541,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_26.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "2015040800_030_piloteta"
@@ -570,7 +570,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_28.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "stdPlusstd_file2cmp.std"
@@ -593,7 +593,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_29.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "resulttest_29.std"
@@ -616,7 +616,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_30.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "resulttest_30.std"
@@ -639,7 +639,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_31.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "resulttest_31.std"
@@ -662,7 +662,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_32.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "resulttest_32.std"
@@ -685,7 +685,7 @@ def test_regtest_6(plugin_test_dir):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_33.std"
-#     StandardFileWriter(results_file, df)()
+#     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "resulttest_33.std"
