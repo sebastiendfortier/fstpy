@@ -3,7 +3,6 @@ import fstpy.std_io as std_io
 import rpnpy.librmn.all as rmn
 import pandas as pd
 import os
-import sys
 from .exceptions import StandardFileReaderError
 from .constants import VCTYPES
 from .logger_config import logger

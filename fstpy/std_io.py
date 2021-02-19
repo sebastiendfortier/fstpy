@@ -65,10 +65,7 @@ def get_records(keys,load_data,decode,path,file_modification_time,array_containe
             record = rmn.fstluk(k)
             if array_container == 'dask.array':
                 record['d'] = da.from_array(record['d'])
-            elif array_container == 'numpy':
-                record['d'] = record['d']    
-
-            del record['dltf']
+            del record['dltf']    
             record['fstinl_params'] = None
             #del record['key']
             strip_string_values(record)
@@ -115,10 +112,18 @@ def get_records(keys,load_data,decode,path,file_modification_time,array_containe
             if decode:
                 record['stacked'] = False
                 record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
-            records.append(record)
-                
-    return records   
 
+            records.append(record)
+
+        # if decode:    
+        #     records = parallelize_records(records,massage_and_decode_record)
+        #     # for i in range(len(records)):
+        #     #     records[i] = massage_and_decode_record(records[i])
+        # else:
+        #     records = parallelize_records(records,massage_record)        
+            # for i in range(len(records)):
+            #     records[i] = massage_record(records[i])
+    return records   
 
 
 def strip_string_values(record):
@@ -133,7 +138,6 @@ def remove_extra_keys(record):
     del record['xtra1']
     del record['xtra2']
     del record['xtra3']
-
 def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     from .utils import validate_df_not_empty,create_1row_df_from_model
     from .dataframe_utils import select,zap
