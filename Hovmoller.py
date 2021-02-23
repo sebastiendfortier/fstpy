@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from fstpy.standardfile import StandardFileReader,get_lat_lon,select
+import fstpy
 import xarray as xr 
 import numpy as np
 import cartopy.crs as ccrs
@@ -10,16 +10,10 @@ import matplotlib.pyplot as plt
 import metpy.calc as mpcalc
 
 
-
-
-
-
 def main():
     vv = get_dataframe_sorted_by_date()
 
-    rotate_vv_values_arrays(vv)
-
-    lat_lon_df = get_lat_lon(vv)
+    lat_lon_df = fstpy.get_lat_lon(vv)
 
     lat = get_latitude_data_array(lat_lon_df)
         
@@ -27,11 +21,9 @@ def main():
 
     time, times = get_time_data_array(vv)
         
-    level = get_level_data_array(vv)
+    vwnd = get_vwnd_data_array(vv, time, lat, lon)    
 
-    vwnd = get_vwnd_data_array(vv, time, level, lat, lon)    
-
-    data = get_vwnd_subset(times, vwnd, level)
+    data = get_vwnd_subset(times, vwnd)
 
     # Compute weights and take weighted average over latitude dimension
     weights = np.cos(np.deg2rad(data.lat.values))
@@ -46,7 +38,7 @@ def main():
     # Start figure
     create_plot(lons, vtimes, avg_data)
 
-    plt.show()
+    plt.savefig('toto.png')
 
 def create_plot(lons, vtimes, avg_data):
     # Start figure
@@ -102,19 +94,18 @@ def create_plot(lons, vtimes, avg_data):
             loc='right', fontsize=10)
 
 
-def get_vwnd_subset(times, vwnd, level):
+def get_vwnd_subset(times, vwnd):
     time_slice = slice(np.min(times), np.max(times))
-    lat_slice = slice(60, 40)
+    lat_slice = slice(40, 60)
     lon_slice = slice(0, 360)
 
     # Get data, selecting time, level, lat/lon slice
     data = vwnd.sel(time=time_slice,
-                        level=level,
                         lat=lat_slice,
                         lon=lon_slice)
     return data
 
-def get_vwnd_data_array(vv, time, level, lat, lon):
+def get_vwnd_data_array(vv, time, lat, lon):
     vv_values = get_vv_values(vv)
 
     vwnd_attribs = {
@@ -134,12 +125,11 @@ def get_vwnd_data_array(vv, time, level, lat, lon):
 
     vwnd = xr.DataArray(
         vv_values.astype('float32'),
-        dims=['time','level','lat','lon'],
+        dims=['time','lon','lat'],
         coords=dict(
             time = time,
-            level = level,
-            lat = lat,
             lon = lon,
+            lat = lat,
         ),
         name='vwnd',
         attrs=vwnd_attribs
@@ -147,9 +137,8 @@ def get_vwnd_data_array(vv, time, level, lat, lon):
     return vwnd
 
 def get_latitude_data_array(lat_lon_df):
-    lati = select(lat_lon_df,'nomvar=="^^"').iloc[0]['d']
+    lati = fstpy.select(lat_lon_df,'nomvar=="^^"').iloc[0]['d']
     lati = lati.flatten()
-    lati = np.flip(lati)
     lat_arrtibs = {
             'units' :'degrees_north',
             'actual_range' :[ np.max(lati),np.min(lati)],
@@ -168,7 +157,7 @@ def get_latitude_data_array(lat_lon_df):
     return lat
 
 def get_longitude_data_array(lat_lon_df):
-    loni = select(lat_lon_df,'nomvar==">>"').iloc[0]['d']
+    loni = fstpy.select(lat_lon_df,'nomvar==">>"').iloc[0]['d']
     lon_arrtibs = {
             'units' :'degrees_east',
             'actual_range' :[ np.min(loni),np.max(loni)],    
@@ -188,34 +177,11 @@ def get_longitude_data_array(lat_lon_df):
 
 def get_vv_values(vv):
     vv_values = np.stack(vv['d'].to_list())
-    vv_values = np.expand_dims(vv_values, axis=1)
     return vv_values
 
-def get_level_data_array(vv):
-    levels = vv['level'].to_numpy()
-    levels=np.array([250.],dtype='float32')
-    lvl_arrtibs = {
-            'units': 'millibar',
-            'actual_range' : [250.,250.],
-            'long_name' :'Level',
-            'positive' : 'down',
-            'axis' :'Z'
-            }
-
-    level = xr.DataArray(
-
-    levels,
-
-        dims=['level'],
-
-        coords=dict(level = levels),
-        name = 'level',
-        attrs=lvl_arrtibs
-        )
-    return level
 
 def get_time_data_array(vv):
-    times = np.array(vv['pdateo'].to_list())
+    times = np.array(vv['date_of_observation'].to_list())
     delta_t = np.max(times)- np.min(times)
     time_arrtibs = {
             'long_name' :'Time',
@@ -236,18 +202,12 @@ def get_time_data_array(vv):
 
 
 
-def rotate_vv_values_arrays(vv):
-    # rotate the data so that it fits with dimensions
-    # 'lat','lon' instead of 'lon' 'lat'
-    for i in vv.index:
-        vv.at[i,'d'] = np.rot90(vv.at[i,'d'])
-
 def get_dataframe_sorted_by_date():
-    df = StandardFileReader('/fs/homeu1/eccc/cmd/cmda/pbu000/hovmuller/p_levels/reg/VV_250hPa_RU_0.3d',materialize=True,subset={'nomvar':'VV'})()
+    df = fstpy.StandardFileReader('/fs/homeu1/eccc/cmd/cmda/pbu000/hovmuller/p_levels/reg/VV_250hPa_RU_0.3d',load_data=True,subset={'nomvar':'VV'})()
 
     vv = df.copy(deep=True)
 
-    vv = vv.sort_values(by=['pdateo'])
+    vv = vv.sort_values(by=['date_of_observation'])
     return vv
 
 if __name__ == "__main__":

@@ -1,0 +1,19 @@
+
+This works in fstpy_dev
+    source activate fstpy_dev
+
+----------------------------------------------
+For running the tests:
+
+run  
+    touch *.rst
+    make doctest 
+to test whether the included tests pass
+
+----------------------------------------------
+For making docs web page:
+
+run
+    make clean
+    make html 
+

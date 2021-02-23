@@ -2,7 +2,7 @@
 import pandas as pd
 from functools import wraps
 import inspect
-from .config import *
+from .logger_config import logger
 
 def initializer(func):
     """
@@ -38,16 +38,16 @@ def delete_file(my_file):
         os.unlink(my_file)
         
 def get_grid_groups(groups:list) -> list:
-    return make_groups(groups, 'grid', ['fhour','nomvar','level'])
+    return make_groups(groups, 'grid', ['forecast_hour','nomvar','level'])
 
-def get_fhour_groups(groups:list) -> list:
-    return make_groups(groups, 'fhour', ['fhour','nomvar','level'])
+def get_forecast_hour_groups(groups:list) -> list:
+    return make_groups(groups, 'forecast_hour', ['forecast_hour','nomvar','level'])
 
 def get_nomvar_groups(groups:list) -> list:
-    return make_groups(groups, 'nomvar', ['fhour','nomvar','level'])
+    return make_groups(groups, 'nomvar', ['forecast_hour','nomvar','level'])
 
 def get_level_groups(groups:list) -> list:
-    return make_groups(groups, 'level', ['fhour','nomvar'])
+    return make_groups(groups, 'level', ['forecast_hour','nomvar'])
 
 def make_groups(groups:list, group_by_attribute, sort_by_attributes:list) -> list:
     groupdfs = []
@@ -63,27 +63,35 @@ def get_groups(df:pd.DataFrame, group_by_forecast_hour:bool=False,group_by_level
     if (group_by_forecast_hour == False) and (group_by_level == False):
         return grid_groups
 
-    fhour_groups= get_fhour_groups(grid_groups)
+    forecast_hour_groups= get_forecast_hour_groups(grid_groups)
     if (group_by_forecast_hour == True) and (group_by_level == False):
-        return fhour_groups
+        return forecast_hour_groups
             
     if (group_by_forecast_hour == False) and (group_by_level == True):
         return get_level_groups(grid_groups)
     
     if (group_by_forecast_hour == True) and (group_by_level == True):
-        return get_level_groups(fhour_groups)
+        return get_level_groups(forecast_hour_groups)
 
 
 def flatten_data_series(df) -> pd.DataFrame:
+    import sys
+    if len(df.nomvar.unique()) > 1:
+        sys.stderr.write('more than one variable, stacking the arrays would not yield a 3d array for one variable - no modifications made\n')
+        return df
     for i in df.index:
         df.at[i,'d'] = df.at[i,'d'].flatten()
     return df    
 
 def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:
-    res_df = df.iloc[0].copy(deep=True).to_frame().T
-    res_df['key'] = None
-    res_df['materialize_info'] = None
-    res_df['path'] = None
+    import sys
+    if len(df.nomvar.unique()) > 1:
+        sys.stderr.write('more than one variable, returning a dataframe based on first row\n')
+        return df
+    res_d = df.iloc[0].to_dict()
+    res_df = pd.DataFrame([res_d])
+    #print(res_df)
+    res_df['fstinl_params'] = None
     res_df['file_modification_time'] = None
     return res_df
 

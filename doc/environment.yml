@@ -1,0 +1,13 @@
+name: docsenv
+
+channels:
+      - conda-forge
+
+dependencies:
+      - python=3.6
+      - rpnpy
+      - numpy
+      - pandas 
+      - xarray
+      - conda-forge::sphinx-autodoc-typehints 
+      - conda-forge::sphinx-gallery

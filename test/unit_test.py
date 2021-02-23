@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import pytest
-from fstpy.unit import *
-from fstpy.constants import STDVAR, UNITS, get_unit_by_name
+import fstpy.unit as fstuc
+import fstpy.constants as fstconst
+import fstpy.exceptions as fstexc
 import pandas as pd
 import numpy as np
 import math
@@ -22,7 +23,7 @@ def base_dataframe():
 
 
 def test_base_conversion(base_dataframe):
-    res_df = do_unit_conversion(base_dataframe,'kelvin')
+    res_df = fstuc.do_unit_conversion(base_dataframe,'kelvin')
     assert res_df['unit'].all() == 'kelvin'
     assert res_df['unit_converted'].all() == True
     assert math.isclose(res_df['d'][0],np.array([268.15]))
@@ -32,29 +33,29 @@ def test_base_conversion(base_dataframe):
 
 def test_no_data(base_dataframe):
     base_dataframe['d'] = None
-    with pytest.raises(UnitConversionError):
-        res_df = do_unit_conversion(base_dataframe,'kelvin')
+    with pytest.raises(fstexc.UnitConversionError):
+        res_df = fstuc.do_unit_conversion(base_dataframe,'kelvin')
 
 
 def test_wrong_unit_type(base_dataframe):
     with pytest.raises(TypeError):
-        res_df = do_unit_conversion(base_dataframe,'meter')    
+        res_df = fstuc.do_unit_conversion(base_dataframe,'meter')    
 
 @pytest.fixture
 def kelvin():
-    return get_unit_by_name('kelvin')
+    return fstconst.get_unit_by_name('kelvin')
 
 @pytest.fixture
 def celsius():    
-        return get_unit_by_name('celsius')
+        return fstconst.get_unit_by_name('celsius')
 
 @pytest.fixture
 def fahrenheit():    
-    return get_unit_by_name('fahrenheit')
+    return fstconst.get_unit_by_name('fahrenheit')
 
 @pytest.fixture
 def rankine():    
-    return get_unit_by_name('rankine')
+    return fstconst.get_unit_by_name('rankine')
 
 @pytest.fixture
 def array_to_convert():    
@@ -63,32 +64,32 @@ def array_to_convert():
     return a
 
 def convert_kelvin_to_celsius(array_to_convert,kelvin,celsius):
-    convert = get_converter(kelvin, celsius)
+    convert = fstuc.get_converter(kelvin, celsius)
     
 
 def convert_kelvin_to_fahrenheit(array_to_convert,kelvin,fahrenheit):    
-    convert = get_converter(kelvin, fahrenheit)
+    convert = fstuc.get_converter(kelvin, fahrenheit)
 
 def convert_kelvin_to_rankine(array_to_convert,kelvin,rankine):    
-    convert = get_converter(kelvin, rankine)
+    convert = fstuc.get_converter(kelvin, rankine)
 
 def convert_celsius_to_kelvin(celsius,kelvin):
-    convert = get_converter(celsius, kelvin)
+    convert = fstuc.get_converter(celsius, kelvin)
 
 def convert_celsius_to_fahrenheit(array_to_convert,celsius,fahrenheit):    
-    convert = get_converter(celsius, fahrenheit)
+    convert = fstuc.get_converter(celsius, fahrenheit)
 
 def convert_celsius_to_rankine(array_to_convert,celsius,rankine):    
-    convert = get_converter(celsius, rankine)
+    convert = fstuc.get_converter(celsius, rankine)
 
 def convert_rankine_to_kelvin(array_to_convert,rankine,kelvin):
-    convert = get_converter(rankine, kelvin)
+    convert = fstuc.get_converter(rankine, kelvin)
 
 def convert_rankine_to_fahrenheit(array_to_convert,rankine,fahrenheit):    
-    convert = get_converter(rankine, fahrenheit)
+    convert = fstuc.get_converter(rankine, fahrenheit)
 
 def convert_rankine_to_celsius(array_to_convert,rankine,celsius):    
-    convert = get_converter(rankine, celsius)
+    convert = fstuc.get_converter(rankine, celsius)
     converted_array = np.array([[-272.15,-271.15,-270.15,-269.15,-268.15],[-267.15,-266.15,-265.15,-264.15,-263.15]])
     converted_array = np.array([[-949.54,-947.74,-945.94,-944.14,-942.34],[-940.54,-938.74,-936.94,-935.14,-933.34]])
     converted_array = np.array([[-1709.172,-1705.932,-1702.692,-1699.452,-1696.212],[-1692.972,-1689.732,-1686.492,-1683.252,-1680.012]])
