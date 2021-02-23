@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=1.0.1
+VERSION=1.0.2
 PKGNAME=fstpy_${VERSION}_ubuntu-18.04-skylake-64
 
 echo '{' > control.json
