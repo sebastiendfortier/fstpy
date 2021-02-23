@@ -92,7 +92,7 @@ def zap(df:pd.DataFrame, mark:bool=True, validate_keys=True,**kwargs:dict ) -> p
     res_df = sort_dataframe(res_df) 
     return res_df
 
-def fststat(df:pd.DataFrame):
+def fststat(df:pd.DataFrame) -> pd.DataFrame:
     from .utils import validate_df_not_empty
     from .std_reader import load_data
     """ reads the data from the supplied records and calculates then displays the statistics for that record """
@@ -100,8 +100,12 @@ def fststat(df:pd.DataFrame):
     pd.options.display.float_format = '{:0.6E}'.format
     validate_df_not_empty(df,'fststat',StandardFileError)
     df = load_data(df)
-    df = compute_stats(df)
-    print(df[['nomvar','typvar','level','ip1_pkind','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
+    df = compute_stats_dask(df)
+    if 'level' in df.columns:
+        print(df[['nomvar','typvar','level','ip1_pkind','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
+    else:    
+        print(df[['nomvar','typvar','ip1','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string())
+    return df    
 
 def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_meta_data=False, loose_match=False, no_fail=False, engine=None) -> pd.DataFrame:
     from .dataframe import sort_dataframe
@@ -151,28 +155,70 @@ def add_empty_columns(df, columns, init, dtype_str):
     return df         
     #df = df.reindex(columns = df.columns.tolist() + ['min','max','mean','std','min_pos','max_pos'])   
 
-# min_delayed = [dask.delayed(np.min)(df.at[i, 'd']) for i in df.index]
-# max_delayed = [dask.delayed(np.max)(df.at[i, 'd']) for i in df.index]
-# mean_delayed = [dask.delayed(np.mean)(df.at[i, 'd']) for i in df.index]
-# std_delayed = [dask.delayed(np.std)(df.at[i, 'd']) for i in df.index]
+# min_delayed = [dask.delayed(np.nanmin)(df.at[i, 'd']) for i in df.index]
+# max_delayed = [dask.delayed(np.nanmax)(df.at[i, 'd']) for i in df.index]
+# mean_delayed = [dask.delayed(np.nanmean)(df.at[i, 'd']) for i in df.index]
+# std_delayed = [dask.delayed(np.nanstd)(df.at[i, 'd']) for i in df.index]
 # df['min'] = dask.compute(min_delayed)[0]
 # df['max'] = dask.compute(max_delayed)[0]
 # df['mean'] = dask.compute(mean_delayed)[0]
 # df['std'] = dask.compute(std_delayed)[0]
+def compute_stats_dask(df:pd.DataFrame) -> pd.DataFrame:
+    import dask
+    import dask.array as da
+    df['min'] = None
+    df['max'] = None
+    df['mean'] = None
+    df['std'] = None
+    df['min_pos'] = None
+    df['max_pos'] = None
+    #add_empty_columns(df, ['min','max','mean','std'],np.nan,'float32')
+    #add_empty_columns(df, ['min_pos','max_pos'],None,dtype_str='O')
+    for i in df.index:   
+        if isinstance(df.at[i, 'd'],np.ndarray):
+            df.at[i, 'd'] = da.from_array(df.at[i, 'd'])
+        min_delayed = dask.delayed(np.nanmin)(df.at[i, 'd'])
+        max_delayed = dask.delayed(np.nanmax)(df.at[i, 'd'])
+        mean_delayed = dask.delayed(np.nanmean)(df.at[i, 'd'])
+        std_delayed = dask.delayed(np.nanstd)(df.at[i, 'd'])
+        argmin_delayed = dask.delayed(np.nanargmin)(df.at[i, 'd'])
+        min_pos_delayed = dask.delayed(np.unravel_index)(argmin_delayed, (df.at[i,'ni'],df.at[i,'nj']))
+        argmax_delayed = dask.delayed(np.nanargmax)(df.at[i, 'd'])
+        max_pos_delayed = dask.delayed(np.unravel_index)(argmax_delayed, (df.at[i,'ni'],df.at[i,'nj']))
+        # max_pos_delayed = dask.delayed(np.unravel_index)(dask.delayed(np.nanargmax)(df.at[i, 'd']), (df.at[i,'ni'],df.at[i,'nj']))
+
+    df['min'] = dask.compute(min_delayed)[0]
+    df['max'] = dask.compute(max_delayed)[0]
+    df['mean'] = dask.compute(mean_delayed)[0]
+    df['std'] = dask.compute(std_delayed)[0]
+    argmin = dask.compute(argmin_delayed)[0]
+    df['min_pos'] = zip(dask.compute(min_pos_delayed)[0])
+    argmax = dask.compute(argmax_delayed)[0]
+    df['max_pos'] = zip(dask.compute(max_pos_delayed)[0])
+    # max_pos = dask.compute(max_pos_delayed)[0]
+
+
+    #df = fstpy.dataframe.sort_dataframe(df)    
+    return df
 
 def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
-    add_empty_columns(df, ['min','max','mean','std'],np.nan,'float32')
-    initializer = (np.nan,np.nan)
-    add_empty_columns(df, ['min_pos','max_pos'],None)
+    df['min'] = None
+    df['max'] = None
+    df['mean'] = None
+    df['std'] = None
+    df['min_pos'] = None
+    df['max_pos'] = None
+    #add_empty_columns(df, ['min','max','mean','std'],np.nan,'float32')
+    #add_empty_columns(df, ['min_pos','max_pos'],None,dtype_str='O')
     for i in df.index:
-        df.at[i,'mean'] = df.at[i,'d'].mean()
-        df.at[i,'std'] = df.at[i,'d'].std()
-        df.at[i,'min'] = df.at[i,'d'].min()
-        df.at[i,'max'] = df.at[i,'d'].max()
-        df.at[i,'min_pos'] = np.unravel_index(df.at[i,'d'].argmin(), (df.at[i,'ni'],df.at[i,'nj']))
-        df.at[i,'min_pos'] = (df.at[i,'min_pos'][0] + 1, df.at[i,'min_pos'][1]+1)
-        df.at[i,'max_pos'] = np.unravel_index(df.at[i,'d'].argmax(), (df.at[i,'ni'],df.at[i,'nj']))
-        df.at[i,'max_pos'] = (df.at[i,'max_pos'][0] + 1, df.at[i,'max_pos'][1]+1)
+        df.at[i,'mean'] = np.nanmean(df.at[i,'d'])
+        df.at[i,'std'] = np.nanstd(df.at[i,'d'])
+        df.at[i,'min'] = np.nanmin(df.at[i,'d'])
+        df.at[i,'max'] = np.nanmax(df.at[i,'d'])
+        min_pos = np.unravel_index(np.nanargmin(df.at[i,'d']), (df.at[i,'ni'],df.at[i,'nj']))
+        df.at[i,'min_pos'] = (min_pos[0] + 1, min_pos[1]+1)
+        max_pos = np.unravel_index(np.nanargmax(df.at[i,'d']), (df.at[i,'ni'],df.at[i,'nj']))
+        df.at[i,'max_pos'] = (max_pos[0] + 1, max_pos[1]+1)
     #df = fstpy.dataframe.sort_dataframe(df)    
     return df
 
@@ -202,7 +248,6 @@ def validate_zap_keys(**kwargs):
 
 def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
     from .std_dec import decode_ip1
-    from .constants import KIND_DICT
     logger.warning('zap - changed ip1, triggers updating level and ip1_kind')
     df.loc[:,'ip1'] = ip1_value
     level, ip1_kind, ip1_pkind = decode_ip1(ip1_value)
@@ -355,21 +400,21 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
         diff.at[i, 'abs_diff'] = np.abs(a-b)
 
         derr = np.where(a == 0, np.abs(1-a/b), np.abs(1-b/a))
-        derr_sum=np.sum(derr)
+        derr_sum=np.nansum(derr)
         if isnan(derr_sum):
             diff.at[i, 'e_rel_max'] = 0.
             diff.at[i, 'e_rel_moy'] = 0.
         else:    
             diff.at[i, 'e_rel_max'] = 0. if isnan(np.nanmax(derr)) else np.nanmax(derr)
             diff.at[i, 'e_rel_moy'] = 0. if isnan(np.nanmean(derr)) else np.nanmean(derr)
-        sum_a2 = np.sum(a**2)
-        sum_b2 = np.sum(b**2)
-        diff.at[i, 'var_a'] = np.mean(sum_a2)
-        diff.at[i, 'var_b'] = np.mean(sum_b2)
-        diff.at[i, 'moy_a'] = np.mean(a)
-        diff.at[i, 'moy_b'] = np.mean(b)
+        sum_a2 = np.nansum(a**2)
+        sum_b2 = np.nansum(b**2)
+        diff.at[i, 'var_a'] = np.nanmean(sum_a2)
+        diff.at[i, 'var_b'] = np.nanmean(sum_b2)
+        diff.at[i, 'moy_a'] = np.nanmean(a)
+        diff.at[i, 'moy_b'] = np.nanmean(b)
         
-        c_cor = np.sum(a*b)
+        c_cor = np.nansum(a*b)
         if sum_a2*sum_b2 != 0:
             c_cor = c_cor/np.sqrt(sum_a2*sum_b2)
         elif (sum_a2==0) and (sum_b2==0):
@@ -380,8 +425,8 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
             c_cor = np.sqrt(diff.at[i, 'var_a'])
         diff.at[i, 'c_cor'] = c_cor 
         diff.at[i, 'biais']=diff.at[i, 'moy_b']-diff.at[i, 'moy_a']
-        diff.at[i, 'e_max'] = np.max(diff.at[i, 'abs_diff'])
-        diff.at[i, 'e_moy'] = np.mean(diff.at[i, 'abs_diff'])
+        diff.at[i, 'e_max'] = np.nanmax(diff.at[i, 'abs_diff'])
+        diff.at[i, 'e_moy'] = np.nanmean(diff.at[i, 'abs_diff'])
         
         nbdiff = np.count_nonzero(a!=b)
         diff.at[i, 'diff_percent'] = nbdiff / a.size * 100.0

@@ -38,6 +38,7 @@ class StandardFileWriter:
                 # print(self.df.columns,self.df.dtypes)
                 # print(self.meta_df.columns,self.meta_df.dtypes)
                 self.df = pd.concat([self.df, self.meta_df]).drop_duplicates(keep=False)
+        self.df.reset_index(drop=True,inplace=True)        
         if not self.update_meta_only:
             self.df = load_data(self.df)
             
@@ -83,7 +84,7 @@ def identical_destination_and_record_path(record_path, filename):
 def reshape_data_to_original_shape(df, i):
     import sys
     if df.at[i,'d'].shape != df.at[i,'shape']:
-        sys.stderr.write('difference detected between array shape and record metadata shape\n')
+        #sys.stderr.write('difference detected between array shape and record metadata shape\n')
         df.at[i,'d'] = df.at[i,'d'].reshape(df.at[i,'shape'])
     return df
 

@@ -99,7 +99,7 @@ def get_records(keys,load_data,decode,path,file_modification_time,array_containe
                     return da.from_array(rmn.fstluk(key)['d'])
                 elif array_container == 'numpy':
                     return rmn.fstluk(key)['d']
-
+            
             record['d'] = (read_record,array_container,key)
 
             #del record['key'] #i don't know if we need
@@ -138,6 +138,7 @@ def remove_extra_keys(record):
     del record['xtra1']
     del record['xtra2']
     del record['xtra3']
+    
 def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     from .utils import validate_df_not_empty,create_1row_df_from_model
     from .dataframe_utils import select,zap
