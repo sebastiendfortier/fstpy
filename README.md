@@ -52,24 +52,24 @@ create a link in your science home directory to the sitestore to put conda envir
 > `% #`get fstpy ssm package
 > `% `. ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.1      
 > `% #`inside your script    
-> `% `from fstpy.std_reader import *    
+> `% `import fstpy    
  
 ### Usage example   
 > `% `data_path = prefix + '/data/'    
-> `% `from fstpy.std_reader import StandardFileReader, StandardFileWriter, voir, fststat, select   
+> `% `import fstpy
 > `% #`setup your file to read    
-> `% `records=StandardFileReader(data_path + 'ttuvre.std')()    
+> `% `records=fstpy.StandardFileReader(data_path + 'ttuvre.std').to_pandas()    
 > `% #`display selected records in a rpn voir format    
-> `% `voir(records)    
+> `% `fstpy.voir(records)    
 > `% #`get statistics on the selected records    
-> `% `fststat(records)    
+> `% `fstpy.fststat(records)    
 > `% #`get a subset of records containing only UU and VV momvar    
-> `% `just_tt_and_uv = select(records,'nomvar in ["TT","UV"]')    
+> `% `just_tt_and_uv = fstpy.select(records,'nomvar in ["TT","UV"]')    
 > `% #`display selected records in a rpn voir format   
-> `% `voir(just_tt_and_uv)    
+> `% `fstpy.voir(just_tt_and_uv)    
 > `% `dest_path = '/tmp/out.std'    
 > `% #`write the selected records to the output file    
-> `% `StandardFileWriter(dest_path,just_tt_and_uv).to_fst()    
+> `% `fstpy.StandardFileWriter(dest_path,just_tt_and_uv).to_fst()    
 
 ## Testing
 From the $project_root/test directory of the project   
@@ -122,6 +122,14 @@ use ssh link to clone the project [fstpy gitlab](https://gitlab.science.gc.ca/sb
 ### StandardFileReader 
 
 ![Main fstpy library](fstpy/std_reader.md)
+
+### StandardFileWriter 
+
+![Main fstpy library](fstpy/std_writer.md)
+
+### DataFrame utils 
+
+![Main fstpy library](fstpy/dataframe_utils.md)
 
 ### Dictionnaries
 
