@@ -350,5 +350,5 @@ Pickle
     >>> # 'd' column will be None
     >>> from os import getenv
     >>> USER = getenv("USER")
-    >>> df.to_pickle("/tmp/%s/pickle_data.pkl.gz"%USER)
+    >>> df.to_pickle("/tmp/%s/pickle_data.pkl.bz2"%USER)
 

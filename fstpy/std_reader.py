@@ -10,43 +10,45 @@ import xarray as xr
 class StandardFileReader:
     """Class to handle fst files   
         Opens, reads the contents of an fst files or files into a pandas Dataframe and closes   
-        No data is loaded unless specified, only the metadata is read. Extra metadata is added to the dataframe if specified.
- 
+        No data is loaded unless specified, only the metadata is read. Extra metadata is added to the dataframe if specified.  
+   
         :param filenames: path to file or list of paths to files   
         :type filenames: str|list[str]   
-        :param decode_metadata: adds extra columns, defaults to True    
-                'unit':str, unit name
-                'unit_converted':bool
-                'description':str, field description
-                'date_of_observation':datetime, of the date of observation
-                'date_of_validity':datetime, of the date of validity
-                'level':float32, decoded ip1 level
-                'ip1_kind':int32, decoded ip1 kind
-                'pkind':str, string repr of ip1_kind int
-                'data_type_str':str, string repr of data type
-                'label':str, label derived from etiket
-                'run':str, run derived from etiket
-                'implementation':str, implementation derived from etiket
-                'ensemble_member':str, ensemble member derived from etiket
-                'surface':bool, True if the level is a surface level
-                'follow_topography':bool, indicates if this type of level follows topography
-                'vctype':str, vertical level type
-                'forecast_hour':timedelta, forecast hour decoded from ip2
-                'ip2_dec':value of decoded ip2
-                'ip2_kind':kind of decoded ip2
-                'ip2_pkind':printable kind of decoded ip2
-                'ip3_dec':value of decoded ip3
-                'ip3_kind':kind of decoded ip3
-                'ip3_pkind':printable kind of decoded ip3
+        :param decode_metadata: adds extra columns, defaults to False    
+                'unit':str, unit name  
+                'unit_converted':bool  
+                'description':str, field description  
+                'date_of_observation':datetime, of the date of observation  
+                'date_of_validity':datetime, of the date of validity  
+                'level':float32, decoded ip1 level  
+                'ip1_kind':int32, decoded ip1 kind  
+                'pkind':str, string repr of ip1_kind int  
+                'data_type_str':str, string repr of data type  
+                'label':str, label derived from etiket  
+                'run':str, run derived from etiket  
+                'implementation':str, implementation derived from etiket  
+                'ensemble_member':str, ensemble member derived from etiket  
+                'surface':bool, True if the level is a surface level  
+                'follow_topography':bool, indicates if this type of level follows topography  
+                'vctype':str, vertical level type  
+                'forecast_hour':timedelta, forecast hour decoded from ip2  
+                'ip2_dec':value of decoded ip2  
+                'ip2_kind':kind of decoded ip2  
+                'ip2_pkind':printable kind of decoded ip2  
+                'ip3_dec':value of decoded ip3  
+                'ip3_kind':kind of decoded ip3  
+                'ip3_pkind':printable kind of decoded ip3  
         :type decode_metadata: bool, optional    
-        :param load_data: if True, the data will be read, not just the metadata (fstluk vs fstprm)
-        :type load_data: bool, optional
-        :param subset: parameter to pass to fstinl to select specific records
-        :type subset:dict
+        :param load_data: if True, the data will be read, not just the metadata (fstluk vs fstprm), default False  
+        :type load_data: bool, optional  
+        :param subset: parameter to pass to fstinl to select specific records (https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.0/rpnpy/librmn/fstd98#fstinl)  
+        :type subset:dict  
+        :param array_container: specifies the type of arrays that data is contained in, default 'numpy', can be set to 'dask.array' 
+        :type array_container:str  
     """
     meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
     @initializer
-    def __init__(self, filenames, decode_metadata=False,load_data=False,subset=None,array_container='numpy',stack=False):
+    def __init__(self, filenames, decode_metadata=False,load_data=False,subset=None,array_container='numpy'):
         #{'datev':-1, 'etiket':' ', 'ip1':-1, 'ip2':-1, 'ip3':-1, 'typvar':' ', 'nomvar':' '}
         """init instance"""
         if self.array_container not in ['numpy','dask.array']:
@@ -55,7 +57,7 @@ class StandardFileReader:
         pass
         
     def to_pandas(self) -> pd.DataFrame:
-        """creates the dataframe from the provided files  
+        """creates the dataframe from the provided file metadata  
 
         :return: df  
         :rtype: pd.Dataframe  
@@ -73,7 +75,16 @@ class StandardFileReader:
             # return df
         return df    
 
-    def to_xarray(self, timeseries=False, attributes=False):
+    def to_xarray(self, timeseries=False, attributes=False) -> xr.DataSet:
+        """creates a xarray from the provided data
+
+        :param timeseries: if True, organizes the xarray into a time series, defaults to False
+        :type timeseries: bool, optional
+        :param attributes: if True, will add attributes to the data arrays, defaults to False
+        :type attributes: bool, optional
+        :return: xarray containing contents of cmc standard files
+        :rtype: xarray.DataSet
+        """
         import dask
         dask.config.set(**{'array.slicing.split_large_chunks': True})
         from .xarray import get_variable_data_array,get_longitude_data_array,get_date_of_validity_data_array,get_latitude_data_array,get_level_data_array
@@ -132,7 +143,16 @@ class StandardFileReader:
 
         return ds
 
-def set_data_array_attributes(attribs, nomvar_df, timeseries):
+def set_data_array_attributes(attribs:dict, nomvar_df:pd.DataFrame) -> dict:
+    """[summary]
+
+    :param attribs: dictionnary of attribute to attach to data arrays
+    :type attribs: dict
+    :param nomvar_df: dataframe organized by nomvar
+    :type nomvar_df: pd.DataFrame
+    :return: filled dict of atributes
+    :rtype: dict
+    """
     from .xarray import set_attrib,remove_keys
     attribs = nomvar_df.iloc[-1].to_dict()
     attribs = remove_keys(attribs,['key','nomvar','etiket','ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','fstinl_params','d','file_modification_time'])
@@ -207,7 +227,14 @@ def stack_arrays(df):
 
 
  
-def load_data(df):
+def load_data(df:pd.DataFrame) -> pd.DataFrame:
+    """Gets the associated data for every record in a dataframe
+
+    :param df: dataframe to fill
+    :type df: pd.DataFrame
+    :return: filled dataframe
+    :rtype: pd.DataFrame
+    """
     import dask.array as da
     from .dataframe import sort_dataframe
     path_groups = df.groupby(df.path)
