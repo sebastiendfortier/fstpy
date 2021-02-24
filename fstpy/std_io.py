@@ -184,13 +184,13 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
             tictic_df = select(latlon_df,'(nomvar=="^^") and (grid=="%s")'%row['grid'],no_fail=True)
             tactac_df = select(latlon_df,'(nomvar==">>") and (grid=="%s")'%row['grid'],no_fail=True)
             lat_df = create_1row_df_from_model(tictic_df)
-            lat_df = zap(lat_df, mark=False,nomvar='LA')
+            lat_df = zap(lat_df,nomvar='LA')
             lat_df.at[0,'d'] = grid['lat']
             lat_df.at[0,'ni'] = grid['lat'].shape[0]
             lat_df.at[0,'nj'] = grid['lat'].shape[1]
             lat_df.at[0,'shape'] = grid['lat'].shape
             lon_df = create_1row_df_from_model(tactac_df)
-            lon_df = zap(lon_df, mark=False, nomvar='LO')
+            lon_df = zap(lon_df, nomvar='LO')
             lon_df.at[0,'d'] = grid['lon']
             lon_df.at[0,'ni'] = grid['lon'].shape[0]
             lon_df.at[0,'nj'] = grid['lon'].shape[1]

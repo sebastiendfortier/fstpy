@@ -25,7 +25,7 @@ def test_regtest_1(plugin_test_dir):
     #compute UnitConvert
     df = fstuc.do_unit_conversion(src_df0,'kilometer_per_hour')
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit kilometer_per_hour] >> [WriterStd --output {destination_path} --noUnitConversion]
-    df = fstdfut.zap(df,mark=False,ip1=41394464)
+    df = fstdfut.zap(df,ip1=41394464)
     #write the result
     results_file = TMP_PATH + "test_1.std"
     fstut.delete_file(results_file)

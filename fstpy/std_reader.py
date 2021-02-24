@@ -97,7 +97,7 @@ class StandardFileReader:
 
         df = add_decoded_columns(df,self.decode_metadata,self.array_container)    
 
-        df = clean_dataframe(df,self.decode_metadata,self.array_container)
+        df = clean_dataframe(df,self.decode_metadata)
 
         return df    
 
@@ -175,10 +175,11 @@ class StandardFileReader:
 def add_decoded_columns( df,decode_metadata,array_container='numpy'):
     df = post_process_dataframe(df,decode_metadata)
 
-    df = parallel_add_composite_columns(df,decode_metadata,array_container,n_cores=min(cpu_count(),len(df.index)))    
+    df = parallel_add_composite_columns(df,decode_metadata,array_container,n_cores=min(cpu_count(),len(df.index)))   
+    
     return df
 
-def clean_dataframe(df,decode_metadata,array_container='numpy'):
+def clean_dataframe(df,decode_metadata):
     df = convert_df_dtypes(df,decode_metadata)
 
     df = reorder_columns(df)  

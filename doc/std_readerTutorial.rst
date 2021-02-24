@@ -95,7 +95,7 @@ Modify meta data
     >>> # select TT
     >>> sel_tt_df = fstpy.select(df,'nomvar=="TT"')
     >>> # change nomvar from TT to TTI
-    >>> fstpy.zapped_df = fstpy.zap(sel_tt_df,mark=False,nomvar='TTI')
+    >>> fstpy.zapped_df = fstpy.zap(sel_tt_df,nomvar='TTI')
     
 
 Reformatting meta data for other types or structures
@@ -142,7 +142,7 @@ Wind Modulus
     >>> 
     >>> #let's create a record to hold the result and change the nomvar accordingly
     >>> uv_df = vv_df.copy(deep=True)
-    >>> uv_df = fstpy.zap(uv_df, mark=False,nomvar='UV')
+    >>> uv_df = fstpy.zap(uv_df,nomvar='UV')
     >>> 
     >>> # compute
     >>> uu = (uu_df.at[0,'d']) #at[0,'d'] gets the first row of data from the dataframe
@@ -164,7 +164,7 @@ Wind Chill
     >>> 
     >>> # create a record to hold wind chill reseult
     >>> re_df = uv_df.copy(deep=True)
-    >>> re_df = fstpy.zap(re_df, mark=False, nomvar='RE')
+    >>> re_df = fstpy.zap(re_df, nomvar='RE')
     >>> 
     >>> # compute            
     >>> tt = (tt_df.iloc[0,'d'])
@@ -255,7 +255,7 @@ Basic statistics for each column of 3d matrix
     >>> # creates a 1 row dataframe based on a model dataframe
     >>> def create_result_df(df:pd.DataFrame, nomvar:str, operation_name:str) ->  pd.DataFrame:
     >>>     res_df = fstpy.create_1row_df_from_model(df)
-    >>>     res_df = fstpy.zap(res_df, mark=False, nomvar=nomvar, etiket=operation_name)
+    >>>     res_df = fstpy.zap(res_df, nomvar=nomvar, etiket=operation_name)
     >>>     return res_df
     >>> 
     >>> 

@@ -5,7 +5,9 @@ from .exceptions import StandardFileError,StandardFileReaderError
 from .logger_config import logger
 from .std_dec import get_unit_and_description,parse_etiket,convert_rmndate_to_datetime, decode_ip, is_surface, level_type_follows_topography
 from .std_io import open_fst,close_fst,get_all_record_keys,get_records,read_record
+import dask.array as da
 import datetime
+import numpy as np
 import os
 import pandas as pd
 import rpnpy.librmn.all as rmn
@@ -49,6 +51,7 @@ def get_all_records_from_file_and_format(file_id,load_data,subset):
     return df    
 
 def add_composite_columns(df,decode,array_container):
+    
     for i in df.index:            
         # df.at[i,'fstinl_params'] = {
         #     'datev':df.at[i,'datev'],
@@ -59,8 +62,12 @@ def add_composite_columns(df,decode,array_container):
         #     'typvar':df.at[i,'typvar'],
         #     'nomvar':df.at[i,'nomvar']
         # }
-
-        df.at[i,'d'] = (read_record,array_container,int(df.at[i,'key']))
+        # print(type(df.at[i,'d'])) 
+        # print((not isinstance(df.at[i,'d'],np.ndarray)))
+        # print((not isinstance(df.at[i,'d'],da.core.Array)))
+        # print(not ((isinstance(df.at[i,'d'],np.ndarray)) or (isinstance(df.at[i,'d'],da.core.Array))))
+        if not ((isinstance(df.at[i,'d'],np.ndarray)) or (isinstance(df.at[i,'d'],da.core.Array))):
+            df.at[i,'d'] = (read_record,array_container,int(df.at[i,'key']))
 
         #del record['key'] #i don't know if we need
 
@@ -96,7 +103,8 @@ def post_process_dataframe(df,decode):
     df['nomvar'] = df['nomvar'].str.strip()
     df['etiket'] = df['etiket'].str.strip()
     df['typvar'] = df['typvar'].str.strip()
-    df['d']=None
+    if 'd' not in df.columns:
+        df['d']=None
     if decode:
         df = add_empty_columns(df, ['data_type_str','description','ensemble_member','implementation','ip1_pkind','ip2_pkind','ip3_pkind','label','run','vctype','unit'],'', 'O')
         df = add_empty_columns(df, ['follow_topography','stacked','surface','unit_converted','zapped'], False, 'bool')
