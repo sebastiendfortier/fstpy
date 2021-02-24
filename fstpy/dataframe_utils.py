@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import fstpy
-import pandas as pd
-from .logger_config import logger
 from .exceptions import StandardFileError, SelectError
+from .logger_config import logger
+from .std_dec import decode_ip
+import fstpy
 import numpy as np
+import pandas as pd
 import rpnpy.librmn.all as rmn
 
 def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False) -> bool:
@@ -252,10 +253,10 @@ def validate_zap_keys(**kwargs):
         raise StandardFileError("zap - can't find modifiable key in available keys")
 
 def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
-    from .std_dec import decode_ip1
+    
     logger.warning('zap - changed ip1, triggers updating level and ip1_kind')
     df.loc[:,'ip1'] = ip1_value
-    level, ip1_kind, ip1_pkind = decode_ip1(ip1_value)
+    level, ip1_kind, ip1_pkind = decode_ip(ip1_value)
     df.loc[:,'level'] = level
     df.loc[:,'ip1_kind'] = ip1_kind
     df.loc[:,'ip1_pkind'] = ip1_pkind
