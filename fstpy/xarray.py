@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from os import error
-import xarray as xr
 import numpy as np
+import xarray as xr
 
 
 

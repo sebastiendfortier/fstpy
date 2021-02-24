@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-import rpnpy.librmn.all as rmn
-from .logger_config import logger
-import os.path
-import datetime
-import time
-import pathlib
-import dask.array as da
+# import dask.array as da
+from .dataframe_utils import select,zap
 from .exceptions import StandardFileError
-import sys
+from .logger_config import logger
+from .std_dec import create_grid_identifier
+from .utils import validate_df_not_empty,create_1row_df_from_model
+import datetime
+import os.path
 import pandas as pd
+import pathlib
+import rpnpy.librmn.all as rmn
+import sys
+import time
 
 def open_fst(path:str, mode:str, caller_class:str, error_class:Exception):
     file_modification_time = get_file_modification_time(path,mode,caller_class,error_class)
@@ -54,29 +57,28 @@ def get_all_record_keys(file_id, subset):
         keys = rmn.fstinl(file_id)
     return keys  
 
-def get_records(keys,load_data,decode,path,file_modification_time,array_container):
-    from .std_dec import create_grid_identifier,decode_metadata
+def get_records(keys,load_data):
+    # from .std_dec import create_grid_identifier,decode_metadata
     records = []    
     if load_data:
         for k in keys:
             record = rmn.fstprm(k)
             if record['dltf'] == 1:
                 continue
+            del record['dltf']
             record = rmn.fstluk(k)
-            if array_container == 'dask.array':
-                record['d'] = da.from_array(record['d'])
-            del record['dltf']    
-            record['fstinl_params'] = None
-            #del record['key']
-            strip_string_values(record)
-            #create a grid identifier for each record
-            record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
-            remove_extra_keys(record)
-            record['path'] = path
-            record['file_modification_time'] = file_modification_time
-            if decode:
-                record['stacked'] = False
-                record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+            # if array_container == 'dask.array':
+            #     record['d'] = da.from_array(record['d'])
+            # record['fstinl_params'] = None
+            # #del record['key']
+            # strip_string_values(record)
+            # #create a grid identifier for each record
+            # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+            # remove_extra_keys(record)
+
+            # if decode:
+            #     record['stacked'] = False
+            #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
             records.append(record)
     else:    
         for k in keys:
@@ -84,34 +86,33 @@ def get_records(keys,load_data,decode,path,file_modification_time,array_containe
             if record['dltf'] == 1:
                 continue
             del record['dltf']
-            record['fstinl_params'] = {
-                'datev':record['datev'],
-                'etiket':record['etiket'],
-                'ip1':record['ip1'],
-                'ip2':record['ip2'],
-                'ip3':record['ip3'],
-                'typvar':record['typvar'],
-                'nomvar':record['nomvar']
-            }
-            key  = record['key']
-            def read_record(array_container,key):
-                if array_container == 'dask.array':
-                    return da.from_array(rmn.fstluk(key)['d'])
-                elif array_container == 'numpy':
-                    return rmn.fstluk(key)['d']
+            # record['fstinl_params'] = {
+            #     'datev':record['datev'],
+            #     'etiket':record['etiket'],
+            #     'ip1':record['ip1'],
+            #     'ip2':record['ip2'],
+            #     'ip3':record['ip3'],
+            #     'typvar':record['typvar'],
+            #     'nomvar':record['nomvar']
+            # }
+            # key  = record['key']
+            # def read_record(array_container,key):
+            #     if array_container == 'dask.array':
+            #         return da.from_array(rmn.fstluk(key)['d'])
+            #     elif array_container == 'numpy':
+            #         return rmn.fstluk(key)['d']
             
-            record['d'] = (read_record,array_container,key)
+            # record['d'] = (read_record,array_container,key)
 
-            #del record['key'] #i don't know if we need
-            strip_string_values(record)
-            #create a grid identifier for each record
-            record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
-            remove_extra_keys(record)
-            record['path'] = path
-            record['file_modification_time'] = file_modification_time
-            if decode:
-                record['stacked'] = False
-                record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+            # #del record['key'] #i don't know if we need
+            # strip_string_values(record)
+            # #create a grid identifier for each record
+            # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+            # remove_extra_keys(record)
+
+            # if decode:
+            #     record['stacked'] = False
+            #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
 
             records.append(record)
 
@@ -125,6 +126,11 @@ def get_records(keys,load_data,decode,path,file_modification_time,array_containe
             #     records[i] = massage_record(records[i])
     return records   
 
+def read_record(array_container,key):
+    if array_container == 'dask.array':
+        return da.from_array(rmn.fstluk(key)['d'])
+    elif array_container == 'numpy':
+        return rmn.fstluk(key)['d']
 
 def strip_string_values(record):
     record['nomvar'] = record['nomvar'].strip()
@@ -140,10 +146,7 @@ def remove_extra_keys(record):
     del record['xtra3']
     
 def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
-    from .utils import validate_df_not_empty,create_1row_df_from_model
-    from .dataframe_utils import select,zap
-    from .exceptions import StandardFileReader
-    
+  
     """get_2d_lat_lon Gets the latitudes and longitudes as 2d arrays associated with the supplied grids
 
     :return: a pandas Dataframe object containing the lat and lon meta data of the grids
@@ -201,17 +204,17 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     return latlon
 
 def get_lat_lon(df):
-    return get_grid_metadata_fields(df,'get_lat_lon',StandardFileError,pressure=False, vertical_descriptors=False)
+    return get_grid_metadata_fields(df,pressure=False, vertical_descriptors=False)
 
-def get_grid_metadata_fields(df,caller,error_class,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
-    from .std_io import compare_modification_times
+def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
+    
     path_groups = df.groupby(df.path)
     meta_dfs = []
     #for each files in the df
     for _, rec_df in path_groups:
         path = rec_df.iloc[0]['path']
-        file_modification_time = rec_df.iloc[0]['file_modification_time']
-        compare_modification_times(file_modification_time,path,rmn.FST_RO,caller,error_class)
+        # file_modification_time = rec_df.iloc[0]['file_modification_time']
+        # compare_modification_times(file_modification_time,path,rmn.FST_RO,caller,error_class)
         records = get_all_grid_metadata_fields_from_std_file(path)
         meta_df = pd.DataFrame(records)
         #print(meta_df[['nomvar','grid']])
@@ -244,8 +247,7 @@ def get_grid_metadata_fields(df,caller,error_class,latitude_and_longitude=True, 
         return pd.DataFrame(dtype=object)
 
 def get_all_grid_metadata_fields_from_std_file(path):
-    from .std_dec import create_grid_identifier
-     
+        
     unit = rmn.fstopenall(path)
     lat_keys = rmn.fstinl(unit,nomvar='^^')
     lon_keys = rmn.fstinl(unit,nomvar='>>')
@@ -260,7 +262,7 @@ def get_all_grid_metadata_fields_from_std_file(path):
     records=[]
     for key in keys:
         record = rmn.fstluk(key)
-        record['fstinl_params'] = None
+        #record['fstinl_params'] = None
         #del record['key']
         strip_string_values(record)
         #create a grid identifier for each record

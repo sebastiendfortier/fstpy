@@ -2,7 +2,6 @@
 import fstpy
 import pandas as pd
 from .logger_config import logger
-from .dataframe import remove_meta_data_fields
 from .exceptions import StandardFileError, SelectError
 import numpy as np
 import rpnpy.librmn.all as rmn
@@ -130,7 +129,7 @@ def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_meta_data=Fals
     if exclude:
         columns = df.columns.values.tolist()
         columns.remove('d')
-        columns.remove('fstinl_params')
+        #columns.remove('fstinl_params')
         tmp_df = pd.concat([df, tmp_df]).drop_duplicates(subset=columns,keep=False)
     tmp_df = sort_dataframe(tmp_df) 
     return tmp_df
@@ -148,6 +147,11 @@ def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
 ##################################################################################################
 ##################################################################################################
 ##################################################################################################
+def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
+    for meta in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]:
+        df = df[df.nomvar != meta]
+    return df
+
 def add_empty_columns(df, columns, init, dtype_str):
     for col in columns:
         df.insert(len(df.columns),col,init)
@@ -313,7 +317,7 @@ def add_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
     diff['bias'] = diff['d_x'].copy(deep=True)
     diff['e_max'] = diff['d_x'].copy(deep=True)
     diff['e_moy'] = diff['d_x'].copy(deep=True)
-    diff.drop(columns=['d_x', 'd_y'], inplace=True)
+    diff.drop(columns=['d_x', 'd_y'], inplace=True,errors='ignore')
     return diff
 
 
@@ -322,7 +326,7 @@ def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
     #diff['ip1_kind'] = diff['ip1_kind_x']
     #diff['ip2'] = diff['ip2_x']
     #diff['ip3'] = diff['ip3_x']
-    diff.drop(columns=['abs_diff'], inplace=True)
+    diff.drop(columns=['abs_diff'], inplace=True,errors='ignore')
     return diff
 
 def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False) -> bool:

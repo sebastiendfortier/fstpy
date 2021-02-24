@@ -100,4 +100,5 @@ from .utils import delete_file,get_groups,flatten_data_series,create_1row_df_fro
 from .std_io import get_grid_metadata_fields,get_lat_lon
 from .std_dec import convert_rmndate_to_datetime
 from .unit import do_unit_conversion
+from .constants import STDVAR,DATYP_DICT
 

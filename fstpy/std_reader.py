@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
-from fstpy.dataframe import sort_dataframe
+from .dataframe import sort_dataframe,convert_df_dtypes,reorder_columns,post_process_dataframe,add_composite_columns
+from .exceptions import StandardFileError, StandardFileReaderError
+from .std_io import compare_modification_times, get_file_modification_time, get_lat_lon
 from .utils import create_1row_df_from_model, initializer
-import rpnpy.librmn.all as rmn
-import pandas as pd
+from .xarray import set_attrib,remove_keys,get_variable_data_array,get_longitude_data_array,get_date_of_validity_data_array,get_latitude_data_array,get_level_data_array
+from multiprocessing import  Pool, cpu_count
+import dask
+import dask.array as da
+import itertools
 import numpy as np
+import os
+import pandas as pd
+import rpnpy.librmn.all as rmn
 import sys
 import xarray as xr
 
@@ -54,28 +62,50 @@ class StandardFileReader:
         if self.array_container not in ['numpy','dask.array']:
             sys.stderr.write('wrong type of array container specified, defaulting to numpy\n')
             self.array_container = 'numpy'
-        pass
-        
+        if isinstance(self.filenames,list):
+            self.filenames = [os.path.abspath(f) for f in filenames]
+        else:        
+            self.filenames = os.path.abspath(self.filenames)
+
+
+ 
+
     def to_pandas(self) -> pd.DataFrame:
         """creates the dataframe from the provided file metadata  
 
         :return: df  
         :rtype: pd.Dataframe  
         """
-        from .dataframe import create_dataframe
+        
         if isinstance(self.filenames, list):
-            dfs = []
-            for file in set(self.filenames):
-                df = create_dataframe(file,self.decode_metadata,self.load_data,self.subset,self.array_container)
-                dfs.append(df)
-            df = pd.concat(dfs)   
-            # return df
+            # convert to list of tuple (path,subset)
+            self.filenames = list(zip(self.filenames,itertools.repeat(self.subset)))
+            if self.load_data:
+                records = parallel_get_records(self.filenames, get_records_and_load, n_cores=min(cpu_count(),len(self.filenames)))
+            else:
+                records = parallel_get_records(self.filenames, get_records, n_cores=min(cpu_count(),len(self.filenames)))    
+           
+            df = pd.DataFrame(records)
         else:
-            df = create_dataframe(self.filenames,self.decode_metadata,self.load_data,self.subset,self.array_container)
-            # return df
+            
+            if self.load_data:
+                records = get_records_and_load(self.filenames,self.subset)
+            else:
+                records = get_records(self.filenames,self.subset)    
+           
+            df = pd.DataFrame(records)
+
+        df = add_decoded_columns(df,self.decode_metadata,self.array_container)    
+
+        df = clean_dataframe(df,self.decode_metadata,self.array_container)
+
         return df    
 
-    def to_xarray(self, timeseries=False, attributes=False) -> xr.DataSet:
+
+   
+
+
+    def to_xarray(self, timeseries=False, attributes=False) -> xr.Dataset:
         """creates a xarray from the provided data
 
         :param timeseries: if True, organizes the xarray into a time series, defaults to False
@@ -85,10 +115,9 @@ class StandardFileReader:
         :return: xarray containing contents of cmc standard files
         :rtype: xarray.DataSet
         """
-        import dask
+        
         dask.config.set(**{'array.slicing.split_large_chunks': True})
-        from .xarray import get_variable_data_array,get_longitude_data_array,get_date_of_validity_data_array,get_latitude_data_array,get_level_data_array
-        from .std_io import get_lat_lon
+        
         self.array_container = 'dask.array'
         self.decode_metadata = True
         df = self.to_pandas()
@@ -143,6 +172,70 @@ class StandardFileReader:
 
         return ds
 
+def add_decoded_columns( df,decode_metadata,array_container='numpy'):
+    df = post_process_dataframe(df,decode_metadata)
+
+    df = parallel_add_composite_columns(df,decode_metadata,array_container,n_cores=min(cpu_count(),len(df.index)))    
+    return df
+
+def clean_dataframe(df,decode_metadata,array_container='numpy'):
+    df = convert_df_dtypes(df,decode_metadata)
+
+    df = reorder_columns(df)  
+
+    df = sort_dataframe(df)
+    return df
+
+def parallel_get_records(files, get_records_func, n_cores=1):
+    # Step 1: Init multiprocessing.Pool()
+    pool = Pool(n_cores)
+    record_list = pool.starmap(get_records_func, [file for file in files])
+    pool.close()    
+    records = [item for sublist in record_list for item in sublist]
+    return records
+
+def parallel_add_composite_columns(df, decode_metadata, array_container, n_cores=1):
+    df_split = np.array_split(df, n_cores)
+    df_with_params = list(zip(df_split,itertools.repeat(decode_metadata),itertools.repeat(array_container)))
+    pool = Pool(n_cores)
+    df = pd.concat(pool.starmap(add_composite_columns, df_with_params))
+    pool.close()
+    pool.join()
+    return df
+
+def get_records_and_load(file,subset):
+    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
+    unit = rmn.fstopenall(file)
+    if subset is None:
+        keys = rmn.fstinl(unit)
+    else:    
+        keys = rmn.fstinl(unit,**subset)
+    records = []    
+    for k in keys:     
+        rec = rmn.fstluk(k)
+        rec['path'] = file
+        rec['file_modification_time'] = f_mod_time
+        records.append(rec)
+    
+    rmn.fstcloseall(unit)
+    return records
+
+def get_records(file,subset):
+    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
+    unit = rmn.fstopenall(file)
+    if subset is None:
+        keys = rmn.fstinl(unit)
+    else:
+        keys = rmn.fstinl(unit,**subset)    
+    records = []
+    for k in keys:     
+        rec = rmn.fstprm(k)
+        rec['path'] = file
+        rec['file_modification_time'] = f_mod_time
+        records.append(rec)
+    rmn.fstcloseall(unit)
+    return records   
+
 def set_data_array_attributes(attribs:dict, nomvar_df:pd.DataFrame) -> dict:
     """[summary]
 
@@ -153,9 +246,9 @@ def set_data_array_attributes(attribs:dict, nomvar_df:pd.DataFrame) -> dict:
     :return: filled dict of atributes
     :rtype: dict
     """
-    from .xarray import set_attrib,remove_keys
+
     attribs = nomvar_df.iloc[-1].to_dict()
-    attribs = remove_keys(attribs,['key','nomvar','etiket','ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','fstinl_params','d','file_modification_time'])
+    attribs = remove_keys(attribs,['key','nomvar','etiket','ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','d','file_modification_time'])
     for k,v in attribs.items():
         attribs = set_attrib(nomvar_df,attribs,k)
     # attribs = set_attrib(nomvar_df,attribs,'ip1_kind')
@@ -175,9 +268,7 @@ def set_data_array_attributes(attribs:dict, nomvar_df:pd.DataFrame) -> dict:
 
 
 def stack_arrays(df):
-    import numpy as np
-    import pandas as pd
-    from .std_dec import decode_ip1
+    
     df = load_data(df)
     df_list = []
     grid_groups = df.groupby(df.grid)
@@ -235,11 +326,10 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
     :return: filled dataframe
     :rtype: pd.DataFrame
     """
-    import dask.array as da
-    from .dataframe import sort_dataframe
     path_groups = df.groupby(df.path)
     res_list = []
     for _,path_df in path_groups:
+        compare_modification_times(path_df.iloc[0]['file_modification_time'], path_df.iloc[0]['path'],rmn.FST_RO, 'std_reader.py::load_data',StandardFileError)
         unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
         path_df.sort_values(by=['key'],inplace=True)
         for i in path_df.index:
@@ -249,7 +339,7 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
                 continue
             #call stored function with param, rmn.fstluk(key) 
             path_df.at[i,'d'] = path_df.at[i,'d'][0](path_df.at[i,'d'][1],path_df.at[i,'d'][2])
-            path_df.at[i,'fstinl_params'] = None
+            #path_df.at[i,'fstinl_params'] = None
             # path_df.at[i,'path'] = None
         res_list.append(path_df)
         rmn.fstcloseall(unit)
