@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import fstpy
-import pandas as pd
-from .logger_config import logger
-from .dataframe import remove_meta_data_fields
 from .exceptions import StandardFileError, SelectError
+from .logger_config import logger
+from .std_dec import decode_ip
+import fstpy
 import numpy as np
+import pandas as pd
 import rpnpy.librmn.all as rmn
 
 def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False) -> bool:
@@ -19,7 +19,7 @@ def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 
         raise StandardFileError('fstcomp - %s does not exist' % file2)    
     # open and read files
     df1 = StandardFileReader(file1,load_data=True).to_pandas()
-    #print('df1',df1)
+    print('df1',df1)
     df2 = StandardFileReader(file2,load_data=True).to_pandas()
     #print('df2',df2)
     return fstcomp_df(df1, df2, columns, print_unmatched=True if verbose else False)
@@ -35,7 +35,7 @@ def voir(df:pd.DataFrame):
 
 
 
-def zap(df:pd.DataFrame, mark:bool=True, validate_keys=True,**kwargs:dict ) -> pd.DataFrame:
+def zap(df:pd.DataFrame, validate_keys=True,**kwargs:dict ) -> pd.DataFrame:
     from .utils import validate_df_not_empty
     from .dataframe import sort_dataframe
     """ Modifies records from the input file or other supplied records according to specific criteria
@@ -63,8 +63,9 @@ def zap(df:pd.DataFrame, mark:bool=True, validate_keys=True,**kwargs:dict ) -> p
 
     logger.info('zap - ' + str(kwargs)[0:100] + '...')
 
-    res_df = create_load_data_info(df)
-    res_df.loc[:,'dirty'] = True
+    #res_df = create_load_data_info(df)
+    res_df = df
+    #res_df.loc[:,'dirty'] = True
     #res_df['key'] = np.nan
     for k,v in kwargs.items():
         if (k == 'level') and ('ip1_kind' in  kwargs.keys()):
@@ -87,8 +88,8 @@ def zap(df:pd.DataFrame, mark:bool=True, validate_keys=True,**kwargs:dict ) -> p
         if k == 'ip1_pkind':
             pass
         res_df.loc[:,k] = v
-    if mark:
-        res_df.loc[:,'typvar'] = res_df['typvar'].str.cat([ 'Z' for x in res_df.index])
+    # if mark:
+    #     res_df.loc[:,'typvar'] = res_df['typvar'].str.cat([ 'Z' for x in res_df.index])
     res_df = sort_dataframe(res_df) 
     return res_df
 
@@ -130,7 +131,7 @@ def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_meta_data=Fals
     if exclude:
         columns = df.columns.values.tolist()
         columns.remove('d')
-        columns.remove('fstinl_params')
+        #columns.remove('fstinl_params')
         tmp_df = pd.concat([df, tmp_df]).drop_duplicates(subset=columns,keep=False)
     tmp_df = sort_dataframe(tmp_df) 
     return tmp_df
@@ -140,7 +141,7 @@ def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
     from .dataframe import remove_from_df,sort_dataframe
     selection_df = select(df,query)
     df = remove_from_df(df,selection_df)
-    zapped_df = zap(selection_df,mark=False,**kwargs)
+    zapped_df = zap(selection_df,**kwargs)
     res_df = pd.concat([df,zapped_df])
     res_df = sort_dataframe(res_df)
     return res_df
@@ -148,6 +149,11 @@ def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
 ##################################################################################################
 ##################################################################################################
 ##################################################################################################
+def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
+    for meta in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]:
+        df = df[df.nomvar != meta]
+    return df
+
 def add_empty_columns(df, columns, init, dtype_str):
     for col in columns:
         df.insert(len(df.columns),col,init)
@@ -247,10 +253,10 @@ def validate_zap_keys(**kwargs):
         raise StandardFileError("zap - can't find modifiable key in available keys")
 
 def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
-    from .std_dec import decode_ip1
+    
     logger.warning('zap - changed ip1, triggers updating level and ip1_kind')
     df.loc[:,'ip1'] = ip1_value
-    level, ip1_kind, ip1_pkind = decode_ip1(ip1_value)
+    level, ip1_kind, ip1_pkind = decode_ip(ip1_value)
     df.loc[:,'level'] = level
     df.loc[:,'ip1_kind'] = ip1_kind
     df.loc[:,'ip1_pkind'] = ip1_pkind
@@ -313,7 +319,7 @@ def add_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
     diff['bias'] = diff['d_x'].copy(deep=True)
     diff['e_max'] = diff['d_x'].copy(deep=True)
     diff['e_moy'] = diff['d_x'].copy(deep=True)
-    diff.drop(columns=['d_x', 'd_y'], inplace=True)
+    diff.drop(columns=['d_x', 'd_y'], inplace=True,errors='ignore')
     return diff
 
 
@@ -322,7 +328,7 @@ def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
     #diff['ip1_kind'] = diff['ip1_kind_x']
     #diff['ip2'] = diff['ip2_x']
     #diff['ip3'] = diff['ip3_x']
-    diff.drop(columns=['abs_diff'], inplace=True)
+    diff.drop(columns=['abs_diff'], inplace=True,errors='ignore')
     return diff
 
 def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False) -> bool:

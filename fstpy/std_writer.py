@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
-from .exceptions import StandardFileWriterError
-import pandas as pd
-import os
-import rpnpy.librmn.all as rmn
-from .utils import initializer, validate_df_not_empty
+from .constants import get_etikey_by_name,get_column_value_from_row
 from .dataframe import sort_dataframe
-from .std_io import get_grid_metadata_fields,open_fst,close_fst
+from .exceptions import StandardFileWriterError
 from .logger_config import logger
+from .std_io import get_grid_metadata_fields,open_fst,close_fst
+from .std_reader import load_data
+from .utils import initializer, validate_df_not_empty
+import numpy as np
+import os
+import pandas as pd
+import rpnpy.librmn.all as rmn
 
 
 class StandardFileWriter:
@@ -26,8 +29,7 @@ class StandardFileWriter:
         self.filename = os.path.abspath(self.filename)
        
     def to_fst(self):
-        from .std_reader import load_data
-        self.meta_df = get_grid_metadata_fields(self.df,'to_fst',StandardFileWriterError)
+        self.meta_df = get_grid_metadata_fields(self.df)
         if not self.meta_df.empty:
             int_df = pd.merge(self.meta_df, self.df, how ='inner', on =['ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
                 'nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp']) 
@@ -66,7 +68,7 @@ class StandardFileWriter:
                 write_dataframe_record_to_file(self.file_id,self.df,i)     
 
 def write_dataframe_record_to_file(file_id,df,i):
-    import numpy as np
+
     #df = change_etiket_if_a_plugin_name(df,i)
     df = reshape_data_to_original_shape(df,i)
     rmn.fstecr(file_id, np.asfortranarray(df.at[i,'d']), df.loc[i].to_dict())     
@@ -82,7 +84,7 @@ def identical_destination_and_record_path(record_path, filename):
     return record_path == filename
 
 def reshape_data_to_original_shape(df, i):
-    import sys
+    
     if df.at[i,'d'].shape != df.at[i,'shape']:
         #sys.stderr.write('difference detected between array shape and record metadata shape\n')
         df.at[i,'d'] = df.at[i,'d'].reshape(df.at[i,'shape'])
@@ -97,7 +99,7 @@ def remove_df_columns(df,keys_to_keep = {'key','dateo', 'deet', 'npas', 'ni', 'n
     d_keys = set(d.keys())
     keys_to_remove = list(d_keys-keys_to_keep)
     #keys_to_keep = {'dateo', 'datev', 'deet', 'npas', 'ni', 'nj', 'nk', 'nbits', 'datyp', 'ip1', 'ip2', 'ip3', 'typvar', 'nomvar', 'etiket', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'}
-    df = df.drop(columns=keys_to_remove)
+    df = df.drop(columns=keys_to_remove,errors='ignore')
     return df
 
 def get_std_etiket(plugin_name:str):
@@ -108,7 +110,6 @@ def get_std_etiket(plugin_name:str):
     :return: etiket corresponding to plugin name in etiket db
     :rtype: str
     """
-    from .constants import get_etikey_by_name,get_column_value_from_row
     etiket = get_etikey_by_name(plugin_name)
     if len(etiket.index) == 0:
         return plugin_name

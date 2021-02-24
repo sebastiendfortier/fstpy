@@ -91,7 +91,7 @@ def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:
     res_d = df.iloc[0].to_dict()
     res_df = pd.DataFrame([res_d])
     #print(res_df)
-    res_df['fstinl_params'] = None
+    #res_df['fstinl_params'] = None
     res_df['file_modification_time'] = None
     return res_df
 

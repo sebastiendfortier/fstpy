@@ -115,12 +115,12 @@ def create_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int) -> str:
 #     #df.at[i,'ip1_kind'] = ip1_kind
 #     #df.at[i,'level'] = float("%.6f"%-1) if df.at[i,'ip1_kind'] == -1 else float("%.6f"%level)
 
-def decode_ip1(ip:int):
+def decode_ip(ip:int):
     v_dec_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(ip))
-    level = float("%.6f"%-1) if v_dec_kind[1] == -1 else float("%.6f"%v_dec_kind[0])
-    ip1_kind = int(v_dec_kind[1])
-    pkind = get_pkind(ip1_kind)
-    return level, ip1_kind, pkind
+    value = float("%.6f"%-1) if v_dec_kind[1] == -1 else float("%.6f"%v_dec_kind[0])
+    kind = int(v_dec_kind[1])
+    pkind = get_pkind(kind)
+    return value, kind, pkind
 
 def create_decoded_value(v1,v2):
     if v1 == v2:
