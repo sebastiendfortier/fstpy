@@ -1,14 +1,21 @@
 # -*- coding: utf-8 -*-
+from .constants import KIND_DICT
+from .dataframe import remove_from_df,sort_dataframe
 from .exceptions import StandardFileError, SelectError
 from .logger_config import logger
 from .std_dec import decode_ip
+from .std_reader import load_data,StandardFileReader
+from .utils import validate_df_not_empty
+from math import isnan
+import dask
+import dask.array as da
 import fstpy
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
+import sys
 
 def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False) -> bool:
-    from .std_reader import load_data,StandardFileReader
     logger.info('fstcomp -A %s -B %s'%(file1,file2))
     import os
     if not os.path.exists(file1):
@@ -25,8 +32,6 @@ def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 
     return fstcomp_df(df1, df2, columns, print_unmatched=True if verbose else False)
 
 def voir(df:pd.DataFrame):
-    from .utils import validate_df_not_empty
-    import sys
     """Displays the metadata of the supplied records in the rpn voir format"""
     validate_df_not_empty(df,'voir',StandardFileError)
     #logger.debug('    NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s) FORECASTHOUR      IP1        LEVEL        IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
@@ -36,8 +41,7 @@ def voir(df:pd.DataFrame):
 
 
 def zap(df:pd.DataFrame, validate_keys=True,**kwargs:dict ) -> pd.DataFrame:
-    from .utils import validate_df_not_empty
-    from .dataframe import sort_dataframe
+
     """ Modifies records from the input file or other supplied records according to specific criteria
         kwargs: can contain these key, value pairs to select specific records from the input file or input records
                 nomvar=str
@@ -94,8 +98,7 @@ def zap(df:pd.DataFrame, validate_keys=True,**kwargs:dict ) -> pd.DataFrame:
     return res_df
 
 def fststat(df:pd.DataFrame) -> pd.DataFrame:
-    from .utils import validate_df_not_empty
-    from .std_reader import load_data
+
     """ reads the data from the supplied records and calculates then displays the statistics for that record """
     logger.info('fststat')
     pd.options.display.float_format = '{:0.6E}'.format
@@ -109,7 +112,7 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     return df    
 
 def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_meta_data=False, loose_match=False, no_fail=False, engine=None) -> pd.DataFrame:
-    from .dataframe import sort_dataframe
+    
     # print a summay ry of query
     #logger.info('select %s' % query_str[0:100])
     # warn if selecting by 'forecast_hour'
@@ -138,7 +141,7 @@ def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_meta_data=Fals
 
 
 def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
-    from .dataframe import remove_from_df,sort_dataframe
+    
     selection_df = select(df,query)
     df = remove_from_df(df,selection_df)
     zapped_df = zap(selection_df,**kwargs)
@@ -170,8 +173,7 @@ def add_empty_columns(df, columns, init, dtype_str):
 # df['mean'] = dask.compute(mean_delayed)[0]
 # df['std'] = dask.compute(std_delayed)[0]
 def compute_stats_dask(df:pd.DataFrame) -> pd.DataFrame:
-    import dask
-    import dask.array as da
+
     df['min'] = None
     df['max'] = None
     df['mean'] = None
@@ -269,7 +271,6 @@ def zap_level(df:pd.DataFrame, level_value:float, ip1_kind_value:int) -> pd.Data
     return df
 
 def zap_ip1_kind(df:pd.DataFrame, ip1_kind_value:int) -> pd.DataFrame:
-    from .constants import KIND_DICT
     logger.warning('zap - changed ip1_kind, triggers updating ip1 and ip1_pkind')
     df['ip1_kind'] = ip1_kind_value
     df['ip1_pkind'] = KIND_DICT[int(ip1_kind_value)]
@@ -278,7 +279,6 @@ def zap_ip1_kind(df:pd.DataFrame, ip1_kind_value:int) -> pd.DataFrame:
     return df
 
 def zap_pip1_kind(df:pd.DataFrame, ip1_pkind_value:str) -> pd.DataFrame:
-    from .constants import KIND_DICT
     logger.warning('zap - changed ip1_pkind, triggers updating ip1 and ip1_kind')
     df['ip1_pkind'] = ip1_pkind_value
     #invert ip1_kind dict
@@ -348,11 +348,13 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     if exclude_meta:
         df1 = remove_meta_data_fields(df1)
         df2 = remove_meta_data_fields(df2)
-    # logger.debug('A',df1['d'][:100].to_string())
-    # logger.debug('A',df1[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())
-    # logger.debug('----------')
-    # logger.debug('B',df2['d'][:100].to_string())
-    # logger.debug('B',df2[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())    
+    voir(df1)
+    voir(df2)    
+    #logger.debug('A',df1['d'][:100].to_string())
+    #logger.debug('A',df1.loc[i])#[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']])
+    #logger.debug('----------')
+    #logger.debug('B',df2['d'][:100].to_string())
+    #logger.debug('B',df2.loc[i])#[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']])    
     # check if they are exactly the same
     if df1.equals(df2):
         # logger.debug('files are indetical - excluding meta data fields')
@@ -397,7 +399,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     return success
 
 def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
-    from math import isnan
+    
     success = True
 
     for i in common.index:

@@ -30,15 +30,18 @@ class StandardFileWriter:
     def to_fst(self):
         self.meta_df = get_grid_metadata_fields(self.df)
         if not self.meta_df.empty:
-            int_df = pd.merge(self.meta_df, self.df, how ='inner', on =['ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
-                'nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp']) 
+            # int_df = pd.merge(self.meta_df, self.df, how ='inner', on =['ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
+            #     'nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp']) 
 
-            if len(int_df.index) and (len(self.meta_df.index) != len(int_df.index)):
-                self.df.drop(columns = 'fstinl_params',inplace=True,errors='ignore')
-                self.meta_df.drop(columns='fstinl_params',inplace=True,errors='ignore')
-                # print(self.df.columns,self.df.dtypes)
-                # print(self.meta_df.columns,self.meta_df.dtypes)
-                self.df = pd.concat([self.df, self.meta_df]).drop_duplicates(keep=False)
+            # if len(int_df.index) and (len(self.meta_df.index) != len(int_df.index)):
+            #     self.df = self.df[['file_modification_time','path','d','grtyp','key','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp']]
+            #     self.meta_df = self.meta_df[['file_modification_time','path','d','grtyp','key','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp']]
+            #     #self.df.drop(columns = 'fstinl_params',inplace=True,errors='ignore')
+            #     #self.meta_df.drop(columns='fstinl_params',inplace=True,errors='ignore')
+            #     # print(self.df.columns,self.df.dtypes)
+            #     # print(self.meta_df.columns,self.meta_df.dtypes)
+                self.df = pd.concat([self.df, self.meta_df])
+                self.df.drop_duplicates(subset=['file_modification_time','path','grtyp','key','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
         self.df.reset_index(drop=True,inplace=True)        
         if not self.update_meta_only:
             self.df = load_data(self.df)

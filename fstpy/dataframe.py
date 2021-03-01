@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from .constants import DATYP_DICT,VCTYPES
-from .dataframe_utils import select,add_empty_columns
+# from .dataframe_utils import add_empty_columns
 from .exceptions import StandardFileError
 from .logger_config import logger
 from .std_dec import get_unit_and_description,parse_etiket,convert_rmndate_to_datetime, decode_ip, is_surface, level_type_follows_topography
@@ -109,6 +109,23 @@ def add_composite_columns(df,decode,array_container):
             df.at[i,'surface'] = is_surface(df.at[i,'ip1_kind'],df.at[i,'level'])
             df.at[i,'follow_topography'] = level_type_follows_topography(df.at[i,'ip1_kind'])
     return df
+
+def add_unit_column(df):
+    if 'unit' not in df.columns:
+        df['unit'] = None
+    if 'unit_converted' not in df.columns:    
+        df['unit_converted'] = None
+    if 'description' not  in df.columns:
+        df['description'] = None    
+    for i in df.index:
+        df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
+    return df    
+    
+def add_empty_columns(df, columns, init, dtype_str):
+    for col in columns:
+        df.insert(len(df.columns),col,init)
+        df = df.astype({col:dtype_str})
+    return df         
 
 def post_process_dataframe(df,decode):
     if 'dltf' in df.columns:
