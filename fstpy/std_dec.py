@@ -1,57 +1,57 @@
 # -*- coding: utf-8 -*-
-import rpnpy.librmn.all as rmn
 from .constants import STDVAR,DATYP_DICT
-import datetime
 import numpy as np
+import rpnpy.librmn.all as rmn
+from rpnpy.rpndate import RPNDate
 
-def decode_metadata(nomvar:str,etiket:str,dateo:int,datev:int,deet:int,npas:int,datyp:int,ip1:int,ip2:int,ip3:int):
-    """decodes the values of etiket,dateo,datev,datyp,ip1,ip2,ip3
+# def decode_metadata(nomvar:str,etiket:str,dateo:int,datev:int,deet:int,npas:int,datyp:int,ip1:int,ip2:int,ip3:int):
+#     """decodes the values of etiket,dateo,datev,datyp,ip1,ip2,ip3
 
-    :param nomvar: [description]
-    :type nomvar: str
-    :param etiket: [description]
-    :type etiket: str
-    :param dateo: [description]
-    :type dateo: int
-    :param datev: [description]
-    :type datev: int
-    :param deet: [description]
-    :type deet: int
-    :param npas: [description]
-    :type npas: int
-    :param datyp: [description]
-    :type datyp: int
-    :param ip1: [description]
-    :type ip1: int
-    :param ip2: [description]
-    :type ip2: int
-    :param ip3: [description]
-    :type ip3: int
-    :param level: [description]
-    :type level: int
-    :param ip1_kind: [description]
-    :type ip1_kind: int
-    :return: [description]
-    :rtype: [type]
-    """
-    dec_record = {}
-    dec_record['label'],dec_record['run'],dec_record['implementation'],dec_record['ensemble_member'] = parse_etiket(etiket)
-    dec_record['unit'],dec_record['description']=get_unit_and_description(nomvar)
-    #create a real date of observation
-    dec_record['date_of_observation'] = convert_rmndate_to_datetime(int(dateo))
-    #create a printable date of validity
-    dec_record['date_of_validity'] = convert_rmndate_to_datetime(int(datev))    
-    dec_record['forecast_hour'] = datetime.timedelta(seconds=(npas * deet))         
-    dec_record['level'],dec_record['ip1_kind'],dec_record['pkind'],dec_record['ip2_dec'],dec_record['ip2_kind'],dec_record['ip2_pkind'],dec_record['ip3_dec'],dec_record['ip3_kind'],dec_record['ip3_pkind'] = decode_ips(nomvar,ip1,ip2,ip3)
-    dec_record['data_type_str'] = DATYP_DICT[datyp]
+#     :param nomvar: [description]
+#     :type nomvar: str
+#     :param etiket: [description]
+#     :type etiket: str
+#     :param dateo: [description]
+#     :type dateo: int
+#     :param datev: [description]
+#     :type datev: int
+#     :param deet: [description]
+#     :type deet: int
+#     :param npas: [description]
+#     :type npas: int
+#     :param datyp: [description]
+#     :type datyp: int
+#     :param ip1: [description]
+#     :type ip1: int
+#     :param ip2: [description]
+#     :type ip2: int
+#     :param ip3: [description]
+#     :type ip3: int
+#     :param level: [description]
+#     :type level: int
+#     :param ip1_kind: [description]
+#     :type ip1_kind: int
+#     :return: [description]
+#     :rtype: [type]
+#     """
+#     dec_record = {}
+#     dec_record['label'],dec_record['run'],dec_record['implementation'],dec_record['ensemble_member'] = parse_etiket(etiket)
+#     dec_record['unit'],dec_record['description']=get_unit_and_description(nomvar)
+#     #create a real date of observation
+#     dec_record['date_of_observation'] = convert_rmndate_to_datetime(int(dateo))
+#     #create a printable date of validity
+#     dec_record['date_of_validity'] = convert_rmndate_to_datetime(int(datev))    
+#     dec_record['forecast_hour'] = datetime.timedelta(seconds=(npas * deet))         
+#     dec_record['level'],dec_record['ip1_kind'],dec_record['pkind'],dec_record['ip2_dec'],dec_record['ip2_kind'],dec_record['ip2_pkind'],dec_record['ip3_dec'],dec_record['ip3_kind'],dec_record['ip3_pkind'] = decode_ips(nomvar,ip1,ip2,ip3)
+#     dec_record['data_type_str'] = DATYP_DICT[datyp]
     
-    #set surface flag for surface levels
-    dec_record['surface'] = is_surface(dec_record['ip1_kind'],dec_record['level'])
-    dec_record['follow_topography'] = level_type_follows_topography(dec_record['ip1_kind'])
-    dec_record['unit_converted'] = False
-    dec_record['zapped'] = False
-    dec_record['vctype'] = ''
-    return dec_record
+#     #set surface flag for surface levels
+#     dec_record['surface'] = is_surface(dec_record['ip1_kind'],dec_record['level'])
+#     dec_record['follow_topography'] = level_type_follows_topography(dec_record['ip1_kind'])
+#     dec_record['unit_converted'] = False
+#     dec_record['zapped'] = False
+#     dec_record['vctype'] = ''
+#     return dec_record
 
 def get_unit_and_description(nomvar):
     unit = STDVAR.loc[STDVAR['nomvar'] == f'{nomvar}']['unit'].values
@@ -69,7 +69,7 @@ def get_unit_and_description(nomvar):
 # written by Micheal Neish creator of fstd2nc
 def convert_rmndate_to_datetime(date:int):
     #def stamp2datetime (date):
-    from rpnpy.rpndate import RPNDate
+
     dummy_stamps = (0, 10101011)
     if date not in dummy_stamps:
         return RPNDate(int(date)).toDateTime().replace(tzinfo=None)
@@ -131,27 +131,27 @@ def create_decoded_value(v1,v2):
 def get_pkind(ip1_kind):
     return '' if ip1_kind in [-1,3,15,17] else rmn.kindToString(ip1_kind).strip()
 
-def decode_ips(nomvar:str,ip1:int,ip2:int,ip3:int):
-    if not (nomvar in [">>","^^","^>","!!"]):
-        pk1, pk2, pk3 = rmn.convertIPtoPK(ip1, ip2, ip3)
-        #print(pk1)
-        level = pk1.v1
-        ip1_kind = pk1.kind
-        pkind = get_pkind(ip1_kind)
-        ip2_dec = create_decoded_value(pk2.v1, pk2.v2)
-        ip2_kind = pk2.kind
-        ip2_pkind = get_pkind(ip2_kind)
-        ip3_dec = create_decoded_value(pk3.v1, pk3.v2)
-        ip3_kind = pk3.kind
-        ip3_pkind = get_pkind(ip3_kind)
-    else:
-        (level,ip1_kind) = rmn.convertIp(rmn.CONVIP_DECODE,int(ip1))
-        (ip2_dec,ip2_kind) = rmn.convertIp(rmn.CONVIP_DECODE,int(ip2))
-        (ip3_dec,ip3_kind) = rmn.convertIp(rmn.CONVIP_DECODE,int(ip3))
-        pkind = get_pkind(ip1_kind)
-        ip2_pkind = get_pkind(ip2_kind)
-        ip3_pkind = get_pkind(ip3_kind)
-    return level,ip1_kind,pkind,ip2_dec,ip2_kind,ip2_pkind,ip3_dec,ip3_kind,ip3_pkind    
+# def decode_ips(nomvar:str,ip1:int,ip2:int,ip3:int):
+#     if not (nomvar in [">>","^^","^>","!!"]):
+#         pk1, pk2, pk3 = rmn.convertIPtoPK(ip1, ip2, ip3)
+#         #print(pk1)
+#         level = pk1.v1
+#         ip1_kind = pk1.kind
+#         pkind = get_pkind(ip1_kind)
+#         ip2_dec = create_decoded_value(pk2.v1, pk2.v2)
+#         ip2_kind = pk2.kind
+#         ip2_pkind = get_pkind(ip2_kind)
+#         ip3_dec = create_decoded_value(pk3.v1, pk3.v2)
+#         ip3_kind = pk3.kind
+#         ip3_pkind = get_pkind(ip3_kind)
+#     else:
+#         (level,ip1_kind) = rmn.convertIp(rmn.CONVIP_DECODE,int(ip1))
+#         (ip2_dec,ip2_kind) = rmn.convertIp(rmn.CONVIP_DECODE,int(ip2))
+#         (ip3_dec,ip3_kind) = rmn.convertIp(rmn.CONVIP_DECODE,int(ip3))
+#         pkind = get_pkind(ip1_kind)
+#         ip2_pkind = get_pkind(ip2_kind)
+#         ip3_pkind = get_pkind(ip3_kind)
+#     return level,ip1_kind,pkind,ip2_dec,ip2_kind,ip2_pkind,ip3_dec,ip3_kind,ip3_pkind    
 
 def parse_etiket(raw_etiket:str):
     """parses the etiket of a standard file to get etiket, run, implementation and ensemble member if available

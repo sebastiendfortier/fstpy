@@ -100,74 +100,74 @@ def get_all_record_keys(file_id, subset):
         keys = rmn.fstinl(file_id)
     return keys  
 
-def get_records(keys,load_data):
-    # from .std_dec import create_grid_identifier,decode_metadata
-    records = []    
-    if load_data:
-        for k in keys:
-            record = rmn.fstprm(k)
-            if record['dltf'] == 1:
-                continue
-            del record['dltf']
-            record = rmn.fstluk(k)
-            # if array_container == 'dask.array':
-            #     record['d'] = da.from_array(record['d'])
-            # record['fstinl_params'] = None
-            # #del record['key']
-            # strip_string_values(record)
-            # #create a grid identifier for each record
-            # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
-            # remove_extra_keys(record)
+# def get_records(keys,load_data):
+#     # from .std_dec import create_grid_identifier,decode_metadata
+#     records = []    
+#     if load_data:
+#         for k in keys:
+#             record = rmn.fstprm(k)
+#             if record['dltf'] == 1:
+#                 continue
+#             del record['dltf']
+#             record = rmn.fstluk(k)
+#             # if array_container == 'dask.array':
+#             #     record['d'] = da.from_array(record['d'])
+#             # record['fstinl_params'] = None
+#             # #del record['key']
+#             # strip_string_values(record)
+#             # #create a grid identifier for each record
+#             # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+#             # remove_extra_keys(record)
 
-            # if decode:
-            #     record['stacked'] = False
-            #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
-            records.append(record)
-    else:    
-        for k in keys:
-            record = rmn.fstprm(k)
-            if record['dltf'] == 1:
-                continue
-            del record['dltf']
-            # record['fstinl_params'] = {
-            #     'datev':record['datev'],
-            #     'etiket':record['etiket'],
-            #     'ip1':record['ip1'],
-            #     'ip2':record['ip2'],
-            #     'ip3':record['ip3'],
-            #     'typvar':record['typvar'],
-            #     'nomvar':record['nomvar']
-            # }
-            # key  = record['key']
-            # def read_record(array_container,key):
-            #     if array_container == 'dask.array':
-            #         return da.from_array(rmn.fstluk(key)['d'])
-            #     elif array_container == 'numpy':
-            #         return rmn.fstluk(key)['d']
+#             # if decode:
+#             #     record['stacked'] = False
+#             #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+#             records.append(record)
+#     else:    
+#         for k in keys:
+#             record = rmn.fstprm(k)
+#             if record['dltf'] == 1:
+#                 continue
+#             del record['dltf']
+#             # record['fstinl_params'] = {
+#             #     'datev':record['datev'],
+#             #     'etiket':record['etiket'],
+#             #     'ip1':record['ip1'],
+#             #     'ip2':record['ip2'],
+#             #     'ip3':record['ip3'],
+#             #     'typvar':record['typvar'],
+#             #     'nomvar':record['nomvar']
+#             # }
+#             # key  = record['key']
+#             # def read_record(array_container,key):
+#             #     if array_container == 'dask.array':
+#             #         return da.from_array(rmn.fstluk(key)['d'])
+#             #     elif array_container == 'numpy':
+#             #         return rmn.fstluk(key)['d']
             
-            # record['d'] = (read_record,array_container,key)
+#             # record['d'] = (read_record,array_container,key)
 
-            # #del record['key'] #i don't know if we need
-            # strip_string_values(record)
-            # #create a grid identifier for each record
-            # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
-            # remove_extra_keys(record)
+#             # #del record['key'] #i don't know if we need
+#             # strip_string_values(record)
+#             # #create a grid identifier for each record
+#             # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+#             # remove_extra_keys(record)
 
-            # if decode:
-            #     record['stacked'] = False
-            #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+#             # if decode:
+#             #     record['stacked'] = False
+#             #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
 
-            records.append(record)
+#             records.append(record)
 
-        # if decode:    
-        #     records = parallelize_records(records,massage_and_decode_record)
-        #     # for i in range(len(records)):
-        #     #     records[i] = massage_and_decode_record(records[i])
-        # else:
-        #     records = parallelize_records(records,massage_record)        
-            # for i in range(len(records)):
-            #     records[i] = massage_record(records[i])
-    return records   
+#         # if decode:    
+#         #     records = parallelize_records(records,massage_and_decode_record)
+#         #     # for i in range(len(records)):
+#         #     #     records[i] = massage_and_decode_record(records[i])
+#         # else:
+#         #     records = parallelize_records(records,massage_record)        
+#             # for i in range(len(records)):
+#             #     records[i] = massage_record(records[i])
+#     return records   
 
 def read_record(array_container,key):
     if array_container == 'dask.array':
