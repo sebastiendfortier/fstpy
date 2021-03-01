@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
-from .std_reader import sort_dataframe
+from .dataframe import sort_dataframe
 
 
 class no_conversion:

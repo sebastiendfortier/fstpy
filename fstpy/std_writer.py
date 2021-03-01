@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from .constants import get_etikey_by_name,get_column_value_from_row
 from .dataframe import sort_dataframe
 from .exceptions import StandardFileWriterError
 from .logger_config import logger
@@ -46,11 +45,11 @@ class StandardFileWriter:
             
 
         self.file_id, self.file_modification_time = open_fst(self.filename, rmn.FST_RW, 'StandardFileWriter', StandardFileWriterError)
-        self.write()
+        self._write()
         close_fst(self.file_id,self.filename,'StandardFileWriter')
 
 
-    def write(self):
+    def _write(self):
         logger.info('StandardFileWriter - writing to file %s', self.filename)  
 
         self.df = sort_dataframe(self.df)
@@ -90,36 +89,36 @@ def reshape_data_to_original_shape(df, i):
         df.at[i,'d'] = df.at[i,'d'].reshape(df.at[i,'shape'])
     return df
 
-def change_etiket_if_a_plugin_name(df, i):
-    df.at[i,'etiket'] = get_std_etiket(df.at[i,'etiket'])
-    return df
+# def change_etiket_if_a_plugin_name(df, i):
+#     df.at[i,'etiket'] = get_std_etiket(df.at[i,'etiket'])
+#     return df
 
-def remove_df_columns(df,keys_to_keep = {'key','dateo', 'deet', 'npas', 'ni', 'nj', 'nk', 'datyp', 'nbits', 'ip1', 'ip2', 'ip3', 'typvar', 'nomvar', 'etiket', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'}):
-    d = df.iloc[0].to_dict()
-    d_keys = set(d.keys())
-    keys_to_remove = list(d_keys-keys_to_keep)
-    #keys_to_keep = {'dateo', 'datev', 'deet', 'npas', 'ni', 'nj', 'nk', 'nbits', 'datyp', 'ip1', 'ip2', 'ip3', 'typvar', 'nomvar', 'etiket', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'}
-    df = df.drop(columns=keys_to_remove,errors='ignore')
-    return df
+# def remove_df_columns(df,keys_to_keep = {'key','dateo', 'deet', 'npas', 'ni', 'nj', 'nk', 'datyp', 'nbits', 'ip1', 'ip2', 'ip3', 'typvar', 'nomvar', 'etiket', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'}):
+#     d = df.iloc[0].to_dict()
+#     d_keys = set(d.keys())
+#     keys_to_remove = list(d_keys-keys_to_keep)
+#     #keys_to_keep = {'dateo', 'datev', 'deet', 'npas', 'ni', 'nj', 'nk', 'nbits', 'datyp', 'ip1', 'ip2', 'ip3', 'typvar', 'nomvar', 'etiket', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'}
+#     df = df.drop(columns=keys_to_remove,errors='ignore')
+#     return df
 
-def get_std_etiket(plugin_name:str):
-    """get_std_etiket get the etiket corresponding to the plugin name
+# def get_std_etiket(plugin_name:str):
+#     """get_std_etiket get the etiket corresponding to the plugin name
 
-    :param plugin_name: plugin name
-    :type plugin_name: str
-    :return: etiket corresponding to plugin name in etiket db
-    :rtype: str
-    """
-    etiket = get_etikey_by_name(plugin_name)
-    if len(etiket.index) == 0:
-        return plugin_name
-    return get_column_value_from_row(etiket, 'etiket')    
+#     :param plugin_name: plugin name
+#     :type plugin_name: str
+#     :return: etiket corresponding to plugin name in etiket db
+#     :rtype: str
+#     """
+#     etiket = get_etikey_by_name(plugin_name)
+#     if len(etiket.index) == 0:
+#         return plugin_name
+#     return get_column_value_from_row(etiket, 'etiket')    
 
-def keys_to_remove(keys, the_dict):
-    for key in keys:
-        if key in the_dict:
-            del the_dict[key]    
+# def keys_to_remove(keys, the_dict):
+#     for key in keys:
+#         if key in the_dict:
+#             del the_dict[key]    
 
-def set_typvar(df, i):
-    if ('typvar' in df.columns) and ('unit_converted' in df.columns) and (df.at[i,'unit_converted'] == True) and (len(df.at[i,'typvar']) == 1):
-        df.at[i,'typvar']  += 'U'            
+# def set_typvar(df, i):
+#     if ('typvar' in df.columns) and ('unit_converted' in df.columns) and (df.at[i,'unit_converted'] == True) and (len(df.at[i,'typvar']) == 1):
+#         df.at[i,'typvar']  += 'U'            

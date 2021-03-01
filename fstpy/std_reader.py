@@ -241,7 +241,7 @@ class StandardFileReader:
 
 
  
-def load_data(df:pd.DataFrame) -> pd.DataFrames:
+def load_data(df:pd.DataFrame) -> pd.DataFrame:
     """Gets the associated data for every record in a dataframe
 
     :param df: dataframe to fill

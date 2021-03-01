@@ -93,6 +93,7 @@ def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:
     #print(res_df)
     #res_df['fstinl_params'] = None
     res_df['file_modification_time'] = None
+    res_df['key'] = None
     return res_df
 
 def validate_nomvar(nomvar, caller_class, error_class):
