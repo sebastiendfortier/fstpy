@@ -12,6 +12,22 @@ import os
 import pandas as pd
 import rpnpy.librmn.all as rmn
 
+def add_decoded_columns( df,decode_metadata,array_container='numpy'):
+    df = post_process_dataframe(df,decode_metadata)
+
+    df = add_composite_columns(df,decode_metadata,array_container)
+    #df = parallel_add_composite_columns(df,decode_metadata,array_container,n_cores=min(cpu_count(),len(df.index)))   
+    
+    return df
+
+def clean_dataframe(df,decode_metadata):
+    df = convert_df_dtypes(df,decode_metadata)
+
+    df = reorder_columns(df)  
+
+    df = sort_dataframe(df)
+    return df
+
 def create_dataframe(file,decode_metadata,load_data,subset) -> pd.DataFrame:
     path = os.path.abspath(file)
     file_id, file_modification_time = open_fst(path,rmn.FST_RO,'StandardFileReader',StandardFileReaderError)

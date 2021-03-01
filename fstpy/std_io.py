@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 # import dask.array as da
 from .dataframe_utils import select,zap
-from .exceptions import StandardFileError
+from .exceptions import StandardFileError,StandardFileReaderError
 from .logger_config import logger
 from .std_dec import create_grid_identifier
 from .utils import validate_df_not_empty,create_1row_df_from_model
+import dask as da
 import datetime
+import multiprocessing as mp
 import os.path
 import pandas as pd
 import pathlib
@@ -22,6 +24,47 @@ def open_fst(path:str, mode:str, caller_class:str, error_class:Exception):
 def close_fst(file_id:int, file:str,caller_class:str):
     logger.info(caller_class + ' - closing file %s', file)
     rmn.fstcloseall(file_id)
+
+def parallel_get_records_from_file(files, get_records_func, n_cores=1):
+    # Step 1: Init multiprocessing.Pool()
+    pool = mp.Pool(n_cores)
+    record_list = pool.starmap(get_records_func, [file for file in files])
+    pool.close()    
+    records = [item for sublist in record_list for item in sublist]
+    return records
+
+def get_records_from_file(file,subset):
+    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
+    unit = rmn.fstopenall(file)
+    if subset is None:
+        keys = rmn.fstinl(unit)
+    else:
+        keys = rmn.fstinl(unit,**subset)    
+    records = []
+    for k in keys:     
+        rec = rmn.fstprm(k)
+        rec['path'] = file
+        rec['file_modification_time'] = f_mod_time
+        records.append(rec)
+    rmn.fstcloseall(unit)
+    return records   
+
+def get_records_from_file_and_load(file,subset):
+    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_from_file_and_load',StandardFileReaderError)
+    unit = rmn.fstopenall(file)
+    if subset is None:
+        keys = rmn.fstinl(unit)
+    else:    
+        keys = rmn.fstinl(unit,**subset)
+    records = []    
+    for k in keys:     
+        rec = rmn.fstluk(k)
+        rec['path'] = file
+        rec['file_modification_time'] = f_mod_time
+        records.append(rec)
+    
+    rmn.fstcloseall(unit)
+    return records
 
 # written by Micheal Neish creator of fstd2nc
 # Lightweight test for FST files.
@@ -161,7 +204,7 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
 
     validate_df_not_empty(latlon_df,'get_2d_lat_lon - while trying to find [">>","^^"]',StandardFileError)
     
-    no_meta_df = select(without_x_grid_df,'nomvar not in %s'%StandardFileReader.meta_data, no_fail=True)
+    no_meta_df = select(without_x_grid_df,'nomvar not in %s'%["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"], no_fail=True)
 
     latlons = []
     path_groups = no_meta_df.groupby(no_meta_df.path)

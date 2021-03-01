@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from .dataframe import sort_dataframe,convert_df_dtypes,reorder_columns,post_process_dataframe,add_composite_columns
-from .exceptions import StandardFileError, StandardFileReaderError
-from .std_io import compare_modification_times, get_file_modification_time, get_lat_lon
-from .utils import create_1row_df_from_model, initializer
-from .xarray import set_attrib,remove_keys,get_variable_data_array,get_longitude_data_array,get_date_of_validity_data_array,get_latitude_data_array,get_level_data_array
-from multiprocessing import  Pool, cpu_count
-import dask
-import dask.array as da
+from .dataframe import sort_dataframe,add_decoded_columns,clean_dataframe
+from .exceptions import StandardFileError
+from .std_io import compare_modification_times, get_lat_lon, get_records_from_file,get_records_from_file_and_load,parallel_get_records_from_file
+from .utils import initializer
+from .xarray import set_data_array_attributes,get_variable_data_array,get_longitude_data_array,get_date_of_validity_data_array,get_latitude_data_array,get_level_data_array
+from dask.array.core import Array as dask_array_type
+from dask.config import set as dask_config_set
 import itertools
+import multiprocessing as mp
 import numpy as np
 import os
 import pandas as pd
@@ -81,17 +81,17 @@ class StandardFileReader:
             # convert to list of tuple (path,subset)
             self.filenames = list(zip(self.filenames,itertools.repeat(self.subset)))
             if self.load_data:
-                records = parallel_get_records(self.filenames, get_records_and_load, n_cores=min(cpu_count(),len(self.filenames)))
+                records = parallel_get_records_from_file(self.filenames, get_records_from_file_and_load, n_cores=min(mp.cpu_count(),len(self.filenames)))
             else:
-                records = parallel_get_records(self.filenames, get_records, n_cores=min(cpu_count(),len(self.filenames)))    
+                records = parallel_get_records_from_file(self.filenames, get_records_from_file, n_cores=min(mp.cpu_count(),len(self.filenames)))    
            
             df = pd.DataFrame(records)
         else:
             
             if self.load_data:
-                records = get_records_and_load(self.filenames,self.subset)
+                records = get_records_from_file_and_load(self.filenames,self.subset)
             else:
-                records = get_records(self.filenames,self.subset)    
+                records = get_records_from_file(self.filenames,self.subset)    
            
             df = pd.DataFrame(records)
 
@@ -105,7 +105,7 @@ class StandardFileReader:
    
 
 
-    def to_xarray(self, timeseries=False, attributes=False) -> xr.Dataset:
+    def to_xarray(self, timeseries=False, attributes=False):
         """creates a xarray from the provided data
 
         :param timeseries: if True, organizes the xarray into a time series, defaults to False
@@ -116,7 +116,7 @@ class StandardFileReader:
         :rtype: xarray.DataSet
         """
         
-        dask.config.set(**{'array.slicing.split_large_chunks': True})
+        dask_config_set(**{'array.slicing.split_large_chunks': True})
         
         self.array_container = 'dask.array'
         self.decode_metadata = True
@@ -172,154 +172,76 @@ class StandardFileReader:
 
         return ds
 
-def add_decoded_columns( df,decode_metadata,array_container='numpy'):
-    df = post_process_dataframe(df,decode_metadata)
 
-    df = parallel_add_composite_columns(df,decode_metadata,array_container,n_cores=min(cpu_count(),len(df.index)))   
+
+
+# def parallel_add_composite_columns(df, decode_metadata, array_container, n_cores=1):
+#     df_split = np.array_split(df, n_cores)
+#     df_with_params = list(zip(df_split,itertools.repeat(decode_metadata),itertools.repeat(array_container)))
+#     pool = Pool(n_cores)
+#     df = pd.concat(pool.starmap(add_composite_columns, df_with_params))
+#     pool.close()
+#     pool.join()
+#     return df
+
+
+
+
+
+
+
+# def stack_arrays(df):
     
-    return df
+#     df = load_data(df)
+#     df_list = []
+#     grid_groups = df.groupby(df.grid)
+#     for _, grid_df in grid_groups:
+#         for nomvar in grid_df.nomvar.unique():
+#             if nomvar in ['>>','^^','!!','!!SF','HY','P0','PT']:
+#                 to_stack_df = grid_df.query('nomvar=="%s"'%nomvar)
+#                 df_list.append(to_stack_df)
+#                 continue
+#             to_stack_df = grid_df.query('nomvar=="%s"'%nomvar)
+#             if len(to_stack_df.d) == 1:
+#                 df_list.append(to_stack_df)
+#                 continue
+#             if 'level' not in  to_stack_df.columns:   
+#                 to_stack_df['level'] = None
+#                 to_stack_df['ip1_kind'] = None
+#                 for i in to_stack_df.index:
+#                     to_stack_df.at[i,'level'], to_stack_df.at[i,'ip1_kind'], _ = decode_ip(to_stack_df.at[i,'ip1'])
+#             to_stack_df.sort_values(by=['level'],ascending=False,inplace=True)    
+#             #print('stacking %s with %s levels'%(nomvar, len(to_stack_df.level)))
+#             var = create_1row_df_from_model(to_stack_df)
+#             #print(var.index)
+#             data_list = to_stack_df['d'].to_list()
+#             stacked_data = np.stack(data_list)
+#             #print(type(stacked_data),type(var.at[0,'d']))
+#             var['stacked'] = True
+#             var['ip1'] = None
+#             var['level'] = None
+#             var['ip1_kind'] = None
+#             var['key'] = None
+#             var.at[0,'level'] = to_stack_df['level'].to_numpy()
+#             var.at[0,'ip1_kind'] = to_stack_df['ip1_kind'].to_numpy()
+#             var.at[0,'d'] = stacked_data
+#             var.at[0,'ip1'] = to_stack_df['ip1'].to_numpy()
+#             var.at[0,'key'] = to_stack_df['key'].to_numpy()
+#             var.at[0,'shape'] = (len(var.at[0,'ip1']),var.at[0,'ni'],var.at[0,'nj'])
+#             var.at[0,'nk'] = len(var.at[0,'ip1'])
+#             df_list.append(var)
 
-def clean_dataframe(df,decode_metadata):
-    df = convert_df_dtypes(df,decode_metadata)
-
-    df = reorder_columns(df)  
-
-    df = sort_dataframe(df)
-    return df
-
-def parallel_get_records(files, get_records_func, n_cores=1):
-    # Step 1: Init multiprocessing.Pool()
-    pool = Pool(n_cores)
-    record_list = pool.starmap(get_records_func, [file for file in files])
-    pool.close()    
-    records = [item for sublist in record_list for item in sublist]
-    return records
-
-def parallel_add_composite_columns(df, decode_metadata, array_container, n_cores=1):
-    df_split = np.array_split(df, n_cores)
-    df_with_params = list(zip(df_split,itertools.repeat(decode_metadata),itertools.repeat(array_container)))
-    pool = Pool(n_cores)
-    df = pd.concat(pool.starmap(add_composite_columns, df_with_params))
-    pool.close()
-    pool.join()
-    return df
-
-def get_records_and_load(file,subset):
-    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
-    unit = rmn.fstopenall(file)
-    if subset is None:
-        keys = rmn.fstinl(unit)
-    else:    
-        keys = rmn.fstinl(unit,**subset)
-    records = []    
-    for k in keys:     
-        rec = rmn.fstluk(k)
-        rec['path'] = file
-        rec['file_modification_time'] = f_mod_time
-        records.append(rec)
-    
-    rmn.fstcloseall(unit)
-    return records
-
-def get_records(file,subset):
-    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
-    unit = rmn.fstopenall(file)
-    if subset is None:
-        keys = rmn.fstinl(unit)
-    else:
-        keys = rmn.fstinl(unit,**subset)    
-    records = []
-    for k in keys:     
-        rec = rmn.fstprm(k)
-        rec['path'] = file
-        rec['file_modification_time'] = f_mod_time
-        records.append(rec)
-    rmn.fstcloseall(unit)
-    return records   
-
-def set_data_array_attributes(attribs:dict, nomvar_df:pd.DataFrame) -> dict:
-    """[summary]
-
-    :param attribs: dictionnary of attribute to attach to data arrays
-    :type attribs: dict
-    :param nomvar_df: dataframe organized by nomvar
-    :type nomvar_df: pd.DataFrame
-    :return: filled dict of atributes
-    :rtype: dict
-    """
-
-    attribs = nomvar_df.iloc[-1].to_dict()
-    attribs = remove_keys(attribs,['key','nomvar','etiket','ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','d','file_modification_time'])
-    for k,v in attribs.items():
-        attribs = set_attrib(nomvar_df,attribs,k)
-    # attribs = set_attrib(nomvar_df,attribs,'ip1_kind')
-    # attribs = set_attrib(nomvar_df,attribs,'surface')
-    # attribs = set_attrib(nomvar_df,attribs,'date_of_observation')
-    # attribs = set_attrib(nomvar_df,attribs,'path')
-    # attribs = set_attrib(nomvar_df,attribs,'ensemble_member')
-    # attribs = set_attrib(nomvar_df,attribs,'implementation')
-    # attribs = set_attrib(nomvar_df,attribs,'run')
-    # attribs = set_attrib(nomvar_df,attribs,'label')
-    #if not timeseries:
-    #    attribs = set_attrib(nomvar_df,attribs,'date_of_validity')
-
-    #attribs = remove_keys(nomvar_df,attribs,['ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','fstinl_params','d','file_modification_time','ensemble_member','implementation','run','label'])
-    
-    return attribs
-
-
-def stack_arrays(df):
-    
-    df = load_data(df)
-    df_list = []
-    grid_groups = df.groupby(df.grid)
-    for _, grid_df in grid_groups:
-        for nomvar in grid_df.nomvar.unique():
-            if nomvar in ['>>','^^','!!','!!SF','HY','P0','PT']:
-                to_stack_df = grid_df.query('nomvar=="%s"'%nomvar)
-                df_list.append(to_stack_df)
-                continue
-            to_stack_df = grid_df.query('nomvar=="%s"'%nomvar)
-            if len(to_stack_df.d) == 1:
-                df_list.append(to_stack_df)
-                continue
-            if 'level' not in  to_stack_df.columns:   
-                to_stack_df['level'] = None
-                to_stack_df['ip1_kind'] = None
-                for i in to_stack_df.index:
-                    to_stack_df.at[i,'level'], to_stack_df.at[i,'ip1_kind'], _ = decode_ip1(to_stack_df.at[i,'ip1'])
-            to_stack_df.sort_values(by=['level'],ascending=False,inplace=True)    
-            #print('stacking %s with %s levels'%(nomvar, len(to_stack_df.level)))
-            var = create_1row_df_from_model(to_stack_df)
-            #print(var.index)
-            data_list = to_stack_df['d'].to_list()
-            stacked_data = np.stack(data_list)
-            #print(type(stacked_data),type(var.at[0,'d']))
-            var['stacked'] = True
-            var['ip1'] = None
-            var['level'] = None
-            var['ip1_kind'] = None
-            var['key'] = None
-            var.at[0,'level'] = to_stack_df['level'].to_numpy()
-            var.at[0,'ip1_kind'] = to_stack_df['ip1_kind'].to_numpy()
-            var.at[0,'d'] = stacked_data
-            var.at[0,'ip1'] = to_stack_df['ip1'].to_numpy()
-            var.at[0,'key'] = to_stack_df['key'].to_numpy()
-            var.at[0,'shape'] = (len(var.at[0,'ip1']),var.at[0,'ni'],var.at[0,'nj'])
-            var.at[0,'nk'] = len(var.at[0,'ip1'])
-            df_list.append(var)
-
-    if len(df_list) > 1:
-        new_df = pd.concat(df_list)
-    else:   
-        new_df = df_list[0]
-    new_df = sort_dataframe(new_df)    
-    new_df.reset_index(inplace=True,drop=True)    
-    return new_df
+#     if len(df_list) > 1:
+#         new_df = pd.concat(df_list)
+#     else:   
+#         new_df = df_list[0]
+#     new_df = sort_dataframe(new_df)    
+#     new_df.reset_index(inplace=True,drop=True)    
+#     return new_df
 
 
  
-def load_data(df:pd.DataFrame) -> pd.DataFrame:
+def load_data(df:pd.DataFrame) -> pd.DataFrames:
     """Gets the associated data for every record in a dataframe
 
     :param df: dataframe to fill
@@ -334,7 +256,7 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
         unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
         path_df.sort_values(by=['key'],inplace=True)
         for i in path_df.index:
-            if isinstance(path_df.at[i,'d'],da.core.Array):
+            if isinstance(path_df.at[i,'d'],dask_array_type):
                 continue
             if isinstance(path_df.at[i,'d'],np.ndarray):
                 continue
