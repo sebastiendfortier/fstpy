@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from .constants import get_column_value_from_row
-from .constants import get_unit_by_name
+from fstpy import get_column_value_from_row,get_unit_by_name
 from .dataframe import add_unit_column
 from .exceptions import UnitConversionError
 from .std_reader import load_data
@@ -154,7 +153,6 @@ class factor_conversion:
 
 
 def get_temperature_converter(unit_from, unit_to):
-   from .constants import get_column_value_from_row
    from_expression = get_column_value_from_row(unit_from,'expression')
    to_expression = get_column_value_from_row(unit_to,'expression')
    from_factor = float(get_column_value_from_row(unit_from,'factor'))

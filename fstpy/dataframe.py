@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .constants import DATYP_DICT,VCTYPES
+from fstpy import DATYP_DICT,VCTYPES
 # from .dataframe_utils import add_empty_columns
 from .exceptions import StandardFileError
 from .logger_config import logger
@@ -249,13 +249,12 @@ def convert_df_dtypes(df,decoded):
               
     return df      
 
-def reorder_columns(df) -> pd.DataFrame:
+def reorder_columns(df,ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
+            'datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']) -> pd.DataFrame:
     if df.empty:
         return df
     all_columns = set(df.columns.to_list())    
-    
-    ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
-            'datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
+   
     all_columns = all_columns.difference(set(ordered))
     ordered.extend(list(all_columns)) 
     df = df[ordered]    
@@ -341,7 +340,7 @@ def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
     if len(names)<=1:
         logger.error('get_intersecting_levels - not enough names to process')
         raise StandardFileError('not enough names to process')
-    firstdf = select(df, 'nomvar == "%s"' % names[0])
+    firstdf = df.query( 'nomvar == "%s"' % names[0])
     if df.empty:
         logger.error('get_intersecting_levels - no records to intersect')
         raise StandardFileError('get_intersecting_levels - no records to intersect')
@@ -349,12 +348,12 @@ def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
     query_strings = []
     for name in names:
         current_query = 'nomvar == "%s"' % name
-        currdf = select(df,'%s' % current_query)
+        currdf = df.query('%s' % current_query)
         levels = set(currdf.level.unique())
         common_levels = common_levels.intersection(levels)
         query_strings.append(current_query)
     query_strings = " or ".join(tuple(query_strings))
-    query_res = select(df,'(%s) and (level in %s)' % (query_strings, list(common_levels)))
+    query_res = df.query('(%s) and (level in %s)' % (query_strings, list(common_levels)))
     if query_res.empty:
         logger.error('get_intersecting_levels - no intersecting levels found')
         return

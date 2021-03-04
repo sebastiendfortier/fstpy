@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>The Standard file reader &mdash; fstpy 1.0.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The Standard file writer" href="std_writer.html" />
+    <link rel="prev" title="fstpy" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> fstpy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The Standard file reader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="std_writer.html">The Standard file writer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="std_dec.html">Standard file attribute decoding functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="std_enc.html">Standard file Dataframe attribute encoding functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataframe_utils.html">Standard file Dataframe utility functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">General utilities</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">fstpy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>The Standard file reader</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/std_reader.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-fstpy.std_reader">
+<span id="the-standard-file-reader"></span><h1>The Standard file reader<a class="headerlink" href="#module-fstpy.std_reader" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="fstpy.std_reader.StandardFileReader">
+<em class="property">class </em><code class="sig-prename descclassname">fstpy.std_reader.</code><code class="sig-name descname">StandardFileReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filenames</span></em>, <em class="sig-param"><span class="n">decode_metadata</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">load_data</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">subset</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">array_container</span><span class="o">=</span><span class="default_value">'numpy'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fstpy.std_reader.StandardFileReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to handle fst files
+Opens, reads the contents of an fst files or files into a pandas Dataframe and closes
+No data is loaded unless specified, only the metadata is read. Extra metadata is added to the dataframe if specified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filenames</strong> (<em>str|list</em><em>[</em><em>str</em><em>]</em>) – path to file or list of paths to files</p></li>
+<li><p><strong>decode_metadata</strong> (<em>bool</em><em>, </em><em>optional</em>) – adds extra columns, defaults to False
+‘unit’:str, unit name <a href="#id1"><span class="problematic" id="id2">|br|</span></a>
+‘unit_converted’:bool <a href="#id3"><span class="problematic" id="id4">|br|</span></a>
+‘description’:str, field description <a href="#id5"><span class="problematic" id="id6">|br|</span></a>
+‘date_of_observation’:datetime, of the date of observation <a href="#id7"><span class="problematic" id="id8">|br|</span></a>
+‘date_of_validity’:datetime, of the date of validity <a href="#id9"><span class="problematic" id="id10">|br|</span></a>
+‘level’:float32, decoded ip1 level <a href="#id11"><span class="problematic" id="id12">|br|</span></a>
+‘ip1_kind’:int32, decoded ip1 kind <a href="#id13"><span class="problematic" id="id14">|br|</span></a>
+‘ip1_pkind’:str, string repr of ip1_kind int <a href="#id15"><span class="problematic" id="id16">|br|</span></a>
+‘data_type_str’:str, string repr of data type <a href="#id17"><span class="problematic" id="id18">|br|</span></a>
+‘label’:str, label derived from etiket <a href="#id19"><span class="problematic" id="id20">|br|</span></a>
+‘run’:str, run derived from etiket <a href="#id21"><span class="problematic" id="id22">|br|</span></a>
+‘implementation’:str, implementation derived from etiket <a href="#id23"><span class="problematic" id="id24">|br|</span></a>
+‘ensemble_member’:str, ensemble member derived from etiket <a href="#id25"><span class="problematic" id="id26">|br|</span></a>
+‘surface’:bool, True if the level is a surface level <a href="#id27"><span class="problematic" id="id28">|br|</span></a>
+‘follow_topography’:bool, indicates if this type of level follows topography <a href="#id29"><span class="problematic" id="id30">|br|</span></a>
+‘vctype’:str, vertical level type <a href="#id31"><span class="problematic" id="id32">|br|</span></a>
+‘forecast_hour’:timedelta, forecast hour decoded from ip2 <a href="#id33"><span class="problematic" id="id34">|br|</span></a>
+‘ip2_dec’:value of decoded ip2  <a href="#id35"><span class="problematic" id="id36">|br|</span></a>
+‘ip2_kind’:kind of decoded ip2  <a href="#id37"><span class="problematic" id="id38">|br|</span></a>
+‘ip2_pkind’:printable kind of decoded ip2 <a href="#id39"><span class="problematic" id="id40">|br|</span></a>
+‘ip3_dec’:value of decoded ip3 <a href="#id41"><span class="problematic" id="id42">|br|</span></a>
+‘ip3_kind’:kind of decoded ip3 <a href="#id43"><span class="problematic" id="id44">|br|</span></a>
+‘ip3_pkind’:printable kind of decoded ip3 <a href="#id45"><span class="problematic" id="id46">|br|</span></a></p></li>
+<li><p><strong>load_data</strong> (<em>bool</em><em>, </em><em>optional</em>) – if True, the data will be read, not just the metadata (fstluk vs fstprm), default False</p></li>
+<li><p><strong>subset</strong> (<em>dict</em><em>, </em><em>optional</em>) – parameter to pass to fstinl to select specific records (<a class="reference external" href="https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.0/rpnpy/librmn/fstd98#fstinl">https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.0/rpnpy/librmn/fstd98#fstinl</a>)</p></li>
+<li><p><strong>array_container</strong> (<em>str</em>) – specifies the type of arrays that data is contained in, default ‘numpy’, can be set to ‘dask.array’</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="fstpy.std_reader.StandardFileReader.to_pandas">
+<code class="sig-name descname">to_pandas</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fstpy.std_reader.StandardFileReader.to_pandas" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates the dataframe from the provided file metadata</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>df</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>pd.Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fstpy.std_reader.StandardFileReader.to_xarray">
+<code class="sig-name descname">to_xarray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timeseries</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">attributes</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fstpy.std_reader.StandardFileReader.to_xarray" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates a xarray from the provided data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timeseries</strong> (<em>bool</em><em>, </em><em>optional</em>) – if True, organizes the xarray into a time series, defaults to False</p></li>
+<li><p><strong>attributes</strong> (<em>bool</em><em>, </em><em>optional</em>) – if True, will add attributes to the data arrays, defaults to False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>xarray containing contents of cmc standard files</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>xarray.DataSet</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="fstpy.std_reader.load_data">
+<code class="sig-prename descclassname">fstpy.std_reader.</code><code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fstpy.std_reader.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the associated data for every record in a dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pd.DataFrame</em>) – dataframe to fill</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>filled dataframe</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="std_writer.html" class="btn btn-neutral float-right" title="The Standard file writer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="fstpy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Sébastien Fortier.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

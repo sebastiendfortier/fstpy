@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from .constants import STDVAR,DATYP_DICT
+from fstpy import STDVAR
+from rpnpy.rpndate import RPNDate
 import numpy as np
 import rpnpy.librmn.all as rmn
-from rpnpy.rpndate import RPNDate
 
 # def decode_metadata(nomvar:str,etiket:str,dateo:int,datev:int,deet:int,npas:int,datyp:int,ip1:int,ip2:int,ip3:int):
 #     """decodes the values of etiket,dateo,datev,datyp,ip1,ip2,ip3

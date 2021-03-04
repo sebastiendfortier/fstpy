@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from fstpy import DATYP_DICT
+
 def create_encoded_etiket(label,run,implementation,ensemble_member):
     etiket  = label + run + implementation + ensemble_member
     return etiket
@@ -25,6 +27,5 @@ def create_encoded_ips(level,ip1_kind,ip3_dec,ip3_kind,ip3_pkind):
     return ip1,ip2,ip3
 
 def create_encoded_datyp(data_type_str):
-    from .constants import DATYP_DICT
     new_dict = {v:k for k,v in DATYP_DICT.items()}    
     return new_dict[data_type_str]

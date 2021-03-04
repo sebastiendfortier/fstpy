@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# import dask.array as da
-# from .dataframe_utils import select,zap
 from .exceptions import StandardFileError,StandardFileReaderError
 from .logger_config import logger
 from .std_dec import create_grid_identifier
@@ -198,13 +196,13 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     """
     validate_df_not_empty(df,'get_2d_lat_lon',StandardFileError)
     #remove record wich have X grid type
-    without_x_grid_df = select(df,'grtyp != "X"',no_fail=True)
+    without_x_grid_df = df.query('grtyp != "X"')
 
     latlon_df = get_lat_lon(df)
 
     validate_df_not_empty(latlon_df,'get_2d_lat_lon - while trying to find [">>","^^"]',StandardFileError)
     
-    no_meta_df = select(without_x_grid_df,'nomvar not in %s'%["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"], no_fail=True)
+    no_meta_df = without_x_grid_df.query('nomvar not in %s'%["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"])
 
     latlons = []
     path_groups = no_meta_df.groupby(no_meta_df.path)
@@ -224,16 +222,16 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
                 continue
             
             grid = rmn.gdll(g)
-            tictic_df = select(latlon_df,'(nomvar=="^^") and (grid=="%s")'%row['grid'],no_fail=True)
-            tactac_df = select(latlon_df,'(nomvar==">>") and (grid=="%s")'%row['grid'],no_fail=True)
+            tictic_df = latlon_df.query('(nomvar=="^^") and (grid=="%s")'%row['grid'],no_fail=True)
+            tactac_df = latlon_df.query('(nomvar==">>") and (grid=="%s")'%row['grid'],no_fail=True)
             lat_df = create_1row_df_from_model(tictic_df)
-            lat_df = zap(lat_df,nomvar='LA')
+            lat_df['nomvar'] = 'LA'
             lat_df.at[0,'d'] = grid['lat']
             lat_df.at[0,'ni'] = grid['lat'].shape[0]
             lat_df.at[0,'nj'] = grid['lat'].shape[1]
             lat_df.at[0,'shape'] = grid['lat'].shape
             lon_df = create_1row_df_from_model(tactac_df)
-            lon_df = zap(lon_df, nomvar='LO')
+            lon_df['nomvar'] = 'LO'
             lon_df.at[0,'d'] = grid['lon']
             lon_df.at[0,'ni'] = grid['lon'].shape[0]
             lon_df.at[0,'nj'] = grid['lon'].shape[1]

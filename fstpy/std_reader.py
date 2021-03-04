@@ -23,36 +23,36 @@ class StandardFileReader:
         :param filenames: path to file or list of paths to files   
         :type filenames: str|list[str]   
         :param decode_metadata: adds extra columns, defaults to False    
-                'unit':str, unit name  
-                'unit_converted':bool  
-                'description':str, field description  
-                'date_of_observation':datetime, of the date of observation  
-                'date_of_validity':datetime, of the date of validity  
-                'level':float32, decoded ip1 level  
-                'ip1_kind':int32, decoded ip1 kind  
-                'pkind':str, string repr of ip1_kind int  
-                'data_type_str':str, string repr of data type  
-                'label':str, label derived from etiket  
-                'run':str, run derived from etiket  
-                'implementation':str, implementation derived from etiket  
-                'ensemble_member':str, ensemble member derived from etiket  
-                'surface':bool, True if the level is a surface level  
-                'follow_topography':bool, indicates if this type of level follows topography  
-                'vctype':str, vertical level type  
-                'forecast_hour':timedelta, forecast hour decoded from ip2  
-                'ip2_dec':value of decoded ip2  
-                'ip2_kind':kind of decoded ip2  
-                'ip2_pkind':printable kind of decoded ip2  
-                'ip3_dec':value of decoded ip3  
-                'ip3_kind':kind of decoded ip3  
-                'ip3_pkind':printable kind of decoded ip3  
+                'unit':str, unit name |br|   
+                'unit_converted':bool |br|   
+                'description':str, field description |br|   
+                'date_of_observation':datetime, of the date of observation |br|   
+                'date_of_validity':datetime, of the date of validity |br|                         
+                'level':float32, decoded ip1 level |br|    
+                'ip1_kind':int32, decoded ip1 kind |br|   
+                'ip1_pkind':str, string repr of ip1_kind int |br|   
+                'data_type_str':str, string repr of data type |br|   
+                'label':str, label derived from etiket |br|   
+                'run':str, run derived from etiket |br|   
+                'implementation':str, implementation derived from etiket |br|   
+                'ensemble_member':str, ensemble member derived from etiket |br|    
+                'surface':bool, True if the level is a surface level |br|   
+                'follow_topography':bool, indicates if this type of level follows topography |br|   
+                'vctype':str, vertical level type |br|   
+                'forecast_hour':timedelta, forecast hour decoded from ip2 |br|   
+                'ip2_dec':value of decoded ip2  |br|  
+                'ip2_kind':kind of decoded ip2  |br|  
+                'ip2_pkind':printable kind of decoded ip2 |br|    
+                'ip3_dec':value of decoded ip3 |br|  
+                'ip3_kind':kind of decoded ip3 |br|    
+                'ip3_pkind':printable kind of decoded ip3 |br|  
         :type decode_metadata: bool, optional    
-        :param load_data: if True, the data will be read, not just the metadata (fstluk vs fstprm), default False  
-        :type load_data: bool, optional  
-        :param subset: parameter to pass to fstinl to select specific records (https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.0/rpnpy/librmn/fstd98#fstinl)  
-        :type subset:dict  
-        :param array_container: specifies the type of arrays that data is contained in, default 'numpy', can be set to 'dask.array' 
-        :type array_container:str  
+        :param load_data: if True, the data will be read, not just the metadata (fstluk vs fstprm), default False    
+        :type load_data: bool, optional    
+        :param subset: parameter to pass to fstinl to select specific records (https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.0/rpnpy/librmn/fstd98#fstinl)    
+        :type subset: dict, optional    
+        :param array_container: specifies the type of arrays that data is contained in, default 'numpy', can be set to 'dask.array'   
+        :type array_container: str    
     """
     meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
     @initializer

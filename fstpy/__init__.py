@@ -1,6 +1,6 @@
 import sys
-
-__version__ = '1.0.1'
+import pandas as pd
+# __version__ = '1.0.1'
 
 error = 0
 if sys.version_info[:2] < (3, 6):
@@ -44,54 +44,80 @@ rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
 #   [pressure in metres]
 
 #'/fs/site3/eccc/ops/cmod/prod/hubs/suites/ops/rdps_20191231/r1/gridpt/prog/hyb/2021021012_*'
-def get_file_list(pattern):
-    import glob
-    files = glob.glob(pattern)
-    return files
 
-def ip1_from_level_and_kind(level:float,kind:str):
-    d = {
-        'm':0,
-        'sg':1,
-        'mb':2,
-        'M':4,
-        'hy':5,
-        'th':6,
-        'H':10,
-        'mp':21
-    }
-    pk =  rmn.listToFLOATIP((level, level, d[kind.strip()]))
-    (ip1, _, _) = rmn.convertPKtoIP(pk,pk,pk)
-    return ip1
-
-def column_descriptions():
-    import sys
-    sys.stdout.write('nomvar: variable name')
-    sys.stdout.write('typvar: type of field ([F]orecast, [A]nalysis, [C]limatology)')
-    sys.stdout.write('etiket: concatenation of label, run, implementation and ensemble_member')
-    sys.stdout.write('ni: first dimension of the data field - relates to shape')
-    sys.stdout.write('nj: second dimension of the data field - relates to shape')
-    sys.stdout.write('nk: third dimension of the data field - relates to shape')
-    sys.stdout.write('dateo: date of observation time stamp')
-    sys.stdout.write('ip1: encoded vertical level')
-    sys.stdout.write('ip2: encoded forecast hour, but can be used in other ways by encoding an ip value')
-    sys.stdout.write('ip3: user defined identifier')
-    sys.stdout.write('deet: length of a time step in seconds - usually invariable - relates to model ouput times')
-    sys.stdout.write('npas: time step number')
-    sys.stdout.write('datyp: data type of the elements (int,float,str,etc)')
-    sys.stdout.write('nbits: number of bits kept for the elements of the field (16,32,etc)')
-    sys.stdout.write('ig1: first grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    sys.stdout.write('ig2: second grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    sys.stdout.write('ig3: third grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    sys.stdout.write('ig4: fourth grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    sys.stdout.write('grtyp: type of geographical projection identifier (Z, X, Y, etc)')
-    sys.stdout.write('datev: date of validity (dateo + deet * npas) Will be set to -1 if dateo invalid')
-    sys.stdout.write('d: data associated to record, empty until data is loaded - either a numpy array or a daks array for one level of data')
-    sys.stdout.write('key: key/handle of the record - used by rpnpy to locate records in a file')
-    sys.stdout.write('shape: (ni, nj, nk) dimensions of the data field - an attribute of the numpy/dask array (array.shape)')
-    
     
 
+
+DATYP_DICT = {
+                    0:'X',
+                    1:'R',
+                    2:'I',
+                    4:'S',
+                    5:'E',
+                    6:'F',
+                    7:'A',
+                    8:'Z',
+                    130:'i',
+                    133:'e',
+                    134:'f'
+                }
+
+KIND_DICT = {
+                    -1:'_',
+                    0: 'm',   #[metres] (height with respect to sea level)
+                    1: 'sg',  #[sigma] (0.0->1.0)
+                    2: 'mb',  #[mbars] (pressure in millibars)
+                    3: '   ', #[others] (arbitrary code)
+                    4: 'M',   #[metres] (height with respect to ground level)
+                    5: 'hy',  #[hybrid] (0.0->1.0)
+                    6: 'th',  #[theta]
+                    10: 'H',  #[hours]
+                    15: '  ', #[reserved, integer]
+                    17: ' ',  #[index X of conversion matrix]
+                    21: 'mp'  #[pressure in metres]
+                }
+
+_const_prefix='/'.join(__file__.split('/')[0:-1])
+_csv_path = _const_prefix + '/csv/'
+_vctypes = pd.read_csv(_csv_path + 'verticalcoordinatetypes.csv')
+_stdvar = pd.read_csv(_csv_path + 'stdvar.csv')
+_units = pd.read_csv(_csv_path + 'units.csv')
+_etikets = pd.read_csv(_csv_path + 'etiket.csv')
+_leveltypes = pd.read_csv(_csv_path + 'leveltype.csv')
+_thermoconstants = pd.read_csv(_csv_path + 'thermo_constants.csv')
+VCTYPES = _vctypes
+STDVAR = _stdvar
+UNITS = _units
+ETIKETS = _etikets
+LEVELTYPES = _leveltypes
+THERMO_CONSTANTS = _thermoconstants
+
+def get_constant_row_by_name(df:pd.DataFrame, df_name:str, index:str, name:str) -> pd.Series:
+    row = df.loc[df[index] == name]
+    if len(row.index):
+        return row
+    #else:
+    #    logger.warning('get_constant_row_by_name - %s - no %s found by that name'%(name,df_name))
+        #logger.error('get_constant_row_by_name - available %s are:'%df_name)
+        #logger.error(pprint.pformat(sorted(df[index].to_list())))
+    return pd.Series(dtype=object)
+
+def get_unit_by_name(name:str) -> pd.Series:
+    unit = get_constant_row_by_name(UNITS, 'unit', 'name', name)
+    if len(unit.index):
+        return unit
+    else:
+        return get_constant_row_by_name(UNITS, 'unit', 'name', 'scalar')
+
+def get_etikey_by_name(name:str) -> pd.Series:
+    return get_constant_row_by_name(ETIKETS, 'etiket', 'plugin_name', name)
+
+def get_constant_by_name(name:str) -> pd.Series:
+    return get_constant_row_by_name(THERMO_CONSTANTS, 'value', 'name', name)
+
+def get_column_value_from_row(row, column):
+    return row[column].values[0]
+    
 # #expose some functions and classes
 # from .std_reader import StandardFileReader,load_data
 # from .std_writer import StandardFileWriter
