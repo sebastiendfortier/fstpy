@@ -1,7 +1,37 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import xarray as xr
+import pandas as pd
 
+def set_data_array_attributes(attribs:dict, nomvar_df:pd.DataFrame) -> dict:
+    """[summary]
+
+    :param attribs: dictionnary of attribute to attach to data arrays
+    :type attribs: dict
+    :param nomvar_df: dataframe organized by nomvar
+    :type nomvar_df: pd.DataFrame
+    :return: filled dict of atributes
+    :rtype: dict
+    """
+
+    attribs = nomvar_df.iloc[-1].to_dict()
+    attribs = remove_keys(attribs,['key','nomvar','etiket','ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','d','file_modification_time'])
+    for k,v in attribs.items():
+        attribs = set_attrib(nomvar_df,attribs,k)
+    # attribs = set_attrib(nomvar_df,attribs,'ip1_kind')
+    # attribs = set_attrib(nomvar_df,attribs,'surface')
+    # attribs = set_attrib(nomvar_df,attribs,'date_of_observation')
+    # attribs = set_attrib(nomvar_df,attribs,'path')
+    # attribs = set_attrib(nomvar_df,attribs,'ensemble_member')
+    # attribs = set_attrib(nomvar_df,attribs,'implementation')
+    # attribs = set_attrib(nomvar_df,attribs,'run')
+    # attribs = set_attrib(nomvar_df,attribs,'label')
+    #if not timeseries:
+    #    attribs = set_attrib(nomvar_df,attribs,'date_of_validity')
+
+    #attribs = remove_keys(nomvar_df,attribs,['ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','fstinl_params','d','file_modification_time','ensemble_member','implementation','run','label'])
+    
+    return attribs
 
 
 def remove_keys(a_dict,keys):

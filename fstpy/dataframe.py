@@ -1,35 +1,25 @@
 # -*- coding: utf-8 -*-
-from .constants import DATYP_DICT,VCTYPES
-from .dataframe_utils import select,add_empty_columns
-from .exceptions import StandardFileError,StandardFileReaderError
+from fstpy import DATYP_DICT,VCTYPES
+# from .dataframe_utils import add_empty_columns
+from .exceptions import StandardFileError
 from .logger_config import logger
 from .std_dec import get_unit_and_description,parse_etiket,convert_rmndate_to_datetime, decode_ip, is_surface, level_type_follows_topography
-from .std_io import open_fst,close_fst,get_all_record_keys,get_records,read_record
+from .std_io import read_record
 import dask.array as da
 import datetime
 import numpy as np
-import os
 import pandas as pd
-import rpnpy.librmn.all as rmn
 
-def create_dataframe(file,decode_metadata,load_data,subset) -> pd.DataFrame:
-    path = os.path.abspath(file)
-    file_id, file_modification_time = open_fst(path,rmn.FST_RO,'StandardFileReader',StandardFileReaderError)
-    df = read_and_fill_dataframe(file_id,path, load_data,subset,decode_metadata)
-    close_fst(file_id,path,'StandardFileReader')
-    df['file_modification_time'] = file_modification_time
-    df['path'] = path
-    return df            
 
-def read_and_fill_dataframe(file_id,load_data,subset,decode_metadata) ->pd.DataFrame:
-    """reads the meta data of an fst file and puts it into a pandas dataframe  
+def add_decoded_columns( df,decode_metadata,array_container='numpy'):
+    df = post_process_dataframe(df,decode_metadata)
 
-    :return: dataframe of records in file  
-    :rtype: pd.DataFrame  
-    """
-    #get the basic rmnlib dataframe
-    df = get_all_records_from_file_and_format(file_id,load_data,subset)
+    df = add_composite_columns(df,decode_metadata,array_container)
+    #df = parallel_add_composite_columns(df,decode_metadata,array_container,n_cores=min(cpu_count(),len(df.index)))   
+    
+    return df
 
+def clean_dataframe(df,decode_metadata):
     df = convert_df_dtypes(df,decode_metadata)
 
     df = reorder_columns(df)  
@@ -37,18 +27,43 @@ def read_and_fill_dataframe(file_id,load_data,subset,decode_metadata) ->pd.DataF
     df = sort_dataframe(df)
     return df
 
-def get_all_records_from_file_and_format(file_id,load_data,subset):
+# def create_dataframe(file,decode_metadata,load_data,subset) -> pd.DataFrame:
+#     path = os.path.abspath(file)
+#     file_id, file_modification_time = open_fst(path,rmn.FST_RO,'StandardFileReader',StandardFileReaderError)
+#     df = read_and_fill_dataframe(file_id,path, load_data,subset,decode_metadata)
+#     close_fst(file_id,path,'StandardFileReader')
+#     df['file_modification_time'] = file_modification_time
+#     df['path'] = path
+#     return df            
+
+# def read_and_fill_dataframe(file_id,load_data,subset,decode_metadata) ->pd.DataFrame:
+#     """reads the meta data of an fst file and puts it into a pandas dataframe  
+
+#     :return: dataframe of records in file  
+#     :rtype: pd.DataFrame  
+#     """
+#     #get the basic rmnlib dataframe
+#     df = get_all_records_from_file_and_format(file_id,load_data,subset)
+
+#     df = convert_df_dtypes(df,decode_metadata)
+
+#     df = reorder_columns(df)  
+
+#     df = sort_dataframe(df)
+#     return df
+
+# def get_all_records_from_file_and_format(file_id,load_data,subset):
     
-    keys = get_all_record_keys(file_id, subset)
+#     keys = get_all_record_keys(file_id, subset)
 
-    records = get_records(keys,load_data)
+#     records = get_records(keys,load_data)
 
-    #create a dataframe correspondinf to the fst file
-    df = pd.DataFrame(records)
+#     #create a dataframe correspondinf to the fst file
+#     df = pd.DataFrame(records)
 
     
 
-    return df    
+    # return df    
 
 def add_composite_columns(df,decode,array_container):
     
@@ -95,6 +110,23 @@ def add_composite_columns(df,decode,array_container):
             df.at[i,'follow_topography'] = level_type_follows_topography(df.at[i,'ip1_kind'])
     return df
 
+def add_unit_column(df):
+    if 'unit' not in df.columns:
+        df['unit'] = None
+    if 'unit_converted' not in df.columns:    
+        df['unit_converted'] = None
+    if 'description' not  in df.columns:
+        df['description'] = None    
+    for i in df.index:
+        df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
+    return df    
+    
+def add_empty_columns(df, columns, init, dtype_str):
+    for col in columns:
+        df.insert(len(df.columns),col,init)
+        df = df.astype({col:dtype_str})
+    return df         
+
 def post_process_dataframe(df,decode):
     if 'dltf' in df.columns:
         df = df[df.dltf == 0]
@@ -127,9 +159,9 @@ def post_process_dataframe(df,decode):
 
 
 
-def remove_data_fields(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]')
-    return df    
+# def remove_data_fields(df: pd.DataFrame) -> pd.DataFrame:
+#     df = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]')
+#     return df    
 
 # def add_extra_cols(df):
 #     df = add_empty_columns(df, ['ip1_kind'], 0, 'int32')
@@ -217,13 +249,12 @@ def convert_df_dtypes(df,decoded):
               
     return df      
 
-def reorder_columns(df) -> pd.DataFrame:
+def reorder_columns(df,ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
+            'datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']) -> pd.DataFrame:
     if df.empty:
         return df
     all_columns = set(df.columns.to_list())    
-    
-    ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
-            'datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
+   
     all_columns = all_columns.difference(set(ordered))
     ordered.extend(list(all_columns)) 
     df = df[ordered]    
@@ -283,16 +314,16 @@ def meta_exists(grid, nomvar) -> bool:
     return not df.empty
 
 
-def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
-    from .std_reader import load_data
-    df = load_data(df)
-    for i in df.index:
-        df.at[i,'d'] = df.at[i,'d'][:dim1,:dim2].copy(deep=True)
-        df.at[i,'shape']  = df.at[i,'d'].shape
-        df.at[i,'ni'] = df.at[i,'shape'][0]
-        df.at[i,'nj'] = df.at[i,'shape'][1]
-    df = sort_dataframe(df)    
-    return df
+# def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
+#     from .std_reader import load_data
+#     df = load_data(df)
+#     for i in df.index:
+#         df.at[i,'d'] = df.at[i,'d'][:dim1,:dim2].copy(deep=True)
+#         df.at[i,'shape']  = df.at[i,'d'].shape
+#         df.at[i,'ni'] = df.at[i,'shape'][0]
+#         df.at[i,'nj'] = df.at[i,'shape'][1]
+#     df = sort_dataframe(df)    
+#     return df
 
 def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove) -> pd.DataFrame:
     columns = df_to_remove.columns.values.tolist()
@@ -309,7 +340,7 @@ def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
     if len(names)<=1:
         logger.error('get_intersecting_levels - not enough names to process')
         raise StandardFileError('not enough names to process')
-    firstdf = select(df, 'nomvar == "%s"' % names[0])
+    firstdf = df.query( 'nomvar == "%s"' % names[0])
     if df.empty:
         logger.error('get_intersecting_levels - no records to intersect')
         raise StandardFileError('get_intersecting_levels - no records to intersect')
@@ -317,12 +348,12 @@ def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
     query_strings = []
     for name in names:
         current_query = 'nomvar == "%s"' % name
-        currdf = select(df,'%s' % current_query)
+        currdf = df.query('%s' % current_query)
         levels = set(currdf.level.unique())
         common_levels = common_levels.intersection(levels)
         query_strings.append(current_query)
     query_strings = " or ".join(tuple(query_strings))
-    query_res = select(df,'(%s) and (level in %s)' % (query_strings, list(common_levels)))
+    query_res = df.query('(%s) and (level in %s)' % (query_strings, list(common_levels)))
     if query_res.empty:
         logger.error('get_intersecting_levels - no intersecting levels found')
         return

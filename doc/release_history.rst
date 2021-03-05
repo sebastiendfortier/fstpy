@@ -1,0 +1,5 @@
+Release History
+===============
+
+0.0.0 CHANGE: Initial structure of the project 1.0.2 CHANGE: Functional
+implementation

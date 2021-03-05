@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# import dask.array as da
-from .dataframe_utils import select,zap
-from .exceptions import StandardFileError
+from .exceptions import StandardFileError,StandardFileReaderError
 from .logger_config import logger
 from .std_dec import create_grid_identifier
 from .utils import validate_df_not_empty,create_1row_df_from_model
+import dask as da
 import datetime
+import multiprocessing as mp
 import os.path
 import pandas as pd
 import pathlib
@@ -22,6 +22,47 @@ def open_fst(path:str, mode:str, caller_class:str, error_class:Exception):
 def close_fst(file_id:int, file:str,caller_class:str):
     logger.info(caller_class + ' - closing file %s', file)
     rmn.fstcloseall(file_id)
+
+def parallel_get_records_from_file(files, get_records_func, n_cores=1):
+    # Step 1: Init multiprocessing.Pool()
+    pool = mp.Pool(n_cores)
+    record_list = pool.starmap(get_records_func, [file for file in files])
+    pool.close()    
+    records = [item for sublist in record_list for item in sublist]
+    return records
+
+def get_records_from_file(file,subset):
+    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
+    unit = rmn.fstopenall(file)
+    if subset is None:
+        keys = rmn.fstinl(unit)
+    else:
+        keys = rmn.fstinl(unit,**subset)    
+    records = []
+    for k in keys:     
+        rec = rmn.fstprm(k)
+        rec['path'] = file
+        rec['file_modification_time'] = f_mod_time
+        records.append(rec)
+    rmn.fstcloseall(unit)
+    return records   
+
+def get_records_from_file_and_load(file,subset):
+    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_from_file_and_load',StandardFileReaderError)
+    unit = rmn.fstopenall(file)
+    if subset is None:
+        keys = rmn.fstinl(unit)
+    else:    
+        keys = rmn.fstinl(unit,**subset)
+    records = []    
+    for k in keys:     
+        rec = rmn.fstluk(k)
+        rec['path'] = file
+        rec['file_modification_time'] = f_mod_time
+        records.append(rec)
+    
+    rmn.fstcloseall(unit)
+    return records
 
 # written by Micheal Neish creator of fstd2nc
 # Lightweight test for FST files.
@@ -57,74 +98,74 @@ def get_all_record_keys(file_id, subset):
         keys = rmn.fstinl(file_id)
     return keys  
 
-def get_records(keys,load_data):
-    # from .std_dec import create_grid_identifier,decode_metadata
-    records = []    
-    if load_data:
-        for k in keys:
-            record = rmn.fstprm(k)
-            if record['dltf'] == 1:
-                continue
-            del record['dltf']
-            record = rmn.fstluk(k)
-            # if array_container == 'dask.array':
-            #     record['d'] = da.from_array(record['d'])
-            # record['fstinl_params'] = None
-            # #del record['key']
-            # strip_string_values(record)
-            # #create a grid identifier for each record
-            # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
-            # remove_extra_keys(record)
+# def get_records(keys,load_data):
+#     # from .std_dec import create_grid_identifier,decode_metadata
+#     records = []    
+#     if load_data:
+#         for k in keys:
+#             record = rmn.fstprm(k)
+#             if record['dltf'] == 1:
+#                 continue
+#             del record['dltf']
+#             record = rmn.fstluk(k)
+#             # if array_container == 'dask.array':
+#             #     record['d'] = da.from_array(record['d'])
+#             # record['fstinl_params'] = None
+#             # #del record['key']
+#             # strip_string_values(record)
+#             # #create a grid identifier for each record
+#             # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+#             # remove_extra_keys(record)
 
-            # if decode:
-            #     record['stacked'] = False
-            #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
-            records.append(record)
-    else:    
-        for k in keys:
-            record = rmn.fstprm(k)
-            if record['dltf'] == 1:
-                continue
-            del record['dltf']
-            # record['fstinl_params'] = {
-            #     'datev':record['datev'],
-            #     'etiket':record['etiket'],
-            #     'ip1':record['ip1'],
-            #     'ip2':record['ip2'],
-            #     'ip3':record['ip3'],
-            #     'typvar':record['typvar'],
-            #     'nomvar':record['nomvar']
-            # }
-            # key  = record['key']
-            # def read_record(array_container,key):
-            #     if array_container == 'dask.array':
-            #         return da.from_array(rmn.fstluk(key)['d'])
-            #     elif array_container == 'numpy':
-            #         return rmn.fstluk(key)['d']
+#             # if decode:
+#             #     record['stacked'] = False
+#             #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+#             records.append(record)
+#     else:    
+#         for k in keys:
+#             record = rmn.fstprm(k)
+#             if record['dltf'] == 1:
+#                 continue
+#             del record['dltf']
+#             # record['fstinl_params'] = {
+#             #     'datev':record['datev'],
+#             #     'etiket':record['etiket'],
+#             #     'ip1':record['ip1'],
+#             #     'ip2':record['ip2'],
+#             #     'ip3':record['ip3'],
+#             #     'typvar':record['typvar'],
+#             #     'nomvar':record['nomvar']
+#             # }
+#             # key  = record['key']
+#             # def read_record(array_container,key):
+#             #     if array_container == 'dask.array':
+#             #         return da.from_array(rmn.fstluk(key)['d'])
+#             #     elif array_container == 'numpy':
+#             #         return rmn.fstluk(key)['d']
             
-            # record['d'] = (read_record,array_container,key)
+#             # record['d'] = (read_record,array_container,key)
 
-            # #del record['key'] #i don't know if we need
-            # strip_string_values(record)
-            # #create a grid identifier for each record
-            # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
-            # remove_extra_keys(record)
+#             # #del record['key'] #i don't know if we need
+#             # strip_string_values(record)
+#             # #create a grid identifier for each record
+#             # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+#             # remove_extra_keys(record)
 
-            # if decode:
-            #     record['stacked'] = False
-            #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+#             # if decode:
+#             #     record['stacked'] = False
+#             #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
 
-            records.append(record)
+#             records.append(record)
 
-        # if decode:    
-        #     records = parallelize_records(records,massage_and_decode_record)
-        #     # for i in range(len(records)):
-        #     #     records[i] = massage_and_decode_record(records[i])
-        # else:
-        #     records = parallelize_records(records,massage_record)        
-            # for i in range(len(records)):
-            #     records[i] = massage_record(records[i])
-    return records   
+#         # if decode:    
+#         #     records = parallelize_records(records,massage_and_decode_record)
+#         #     # for i in range(len(records)):
+#         #     #     records[i] = massage_and_decode_record(records[i])
+#         # else:
+#         #     records = parallelize_records(records,massage_record)        
+#             # for i in range(len(records)):
+#             #     records[i] = massage_record(records[i])
+#     return records   
 
 def read_record(array_container,key):
     if array_container == 'dask.array':
@@ -155,13 +196,13 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     """
     validate_df_not_empty(df,'get_2d_lat_lon',StandardFileError)
     #remove record wich have X grid type
-    without_x_grid_df = select(df,'grtyp != "X"',no_fail=True)
+    without_x_grid_df = df.query('grtyp != "X"')
 
     latlon_df = get_lat_lon(df)
 
     validate_df_not_empty(latlon_df,'get_2d_lat_lon - while trying to find [">>","^^"]',StandardFileError)
     
-    no_meta_df = select(without_x_grid_df,'nomvar not in %s'%StandardFileReader.meta_data, no_fail=True)
+    no_meta_df = without_x_grid_df.query('nomvar not in %s'%["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"])
 
     latlons = []
     path_groups = no_meta_df.groupby(no_meta_df.path)
@@ -181,16 +222,16 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
                 continue
             
             grid = rmn.gdll(g)
-            tictic_df = select(latlon_df,'(nomvar=="^^") and (grid=="%s")'%row['grid'],no_fail=True)
-            tactac_df = select(latlon_df,'(nomvar==">>") and (grid=="%s")'%row['grid'],no_fail=True)
+            tictic_df = latlon_df.query('(nomvar=="^^") and (grid=="%s")'%row['grid'],no_fail=True)
+            tactac_df = latlon_df.query('(nomvar==">>") and (grid=="%s")'%row['grid'],no_fail=True)
             lat_df = create_1row_df_from_model(tictic_df)
-            lat_df = zap(lat_df,nomvar='LA')
+            lat_df['nomvar'] = 'LA'
             lat_df.at[0,'d'] = grid['lat']
             lat_df.at[0,'ni'] = grid['lat'].shape[0]
             lat_df.at[0,'nj'] = grid['lat'].shape[1]
             lat_df.at[0,'shape'] = grid['lat'].shape
             lon_df = create_1row_df_from_model(tactac_df)
-            lon_df = zap(lon_df, nomvar='LO')
+            lon_df['nomvar'] = 'LO'
             lon_df.at[0,'d'] = grid['lon']
             lon_df.at[0,'ni'] = grid['lon'].shape[0]
             lon_df.at[0,'nj'] = grid['lon'].shape[1]

@@ -1,84 +1,84 @@
-.. fstpy documentation master file, created by
-   sphinx-quickstart on Wed Feb 17 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-    Indices and tables
-    ==================
-    
-    * :ref:`genindex`
-    * :ref:`modindex`
-    * :ref:`search`
-    
-    .. currentmodule:: fstpy.std_reader
-    .. autofunction:: __init__
-    .. autofunction:: plot_data
+.. # define a hard line break for HTML
+.. |br| raw:: html
+   <br />
 
-fstpy
-================
+      Indices and tables
+      ==================
 
-The package **fstpy** provides these modules:
+      * :ref:`genindex`
+      * :ref:`modindex`
+      * :ref:`search`
 
+      .. #currentmodule:: fstpy
+      .. #autofuntion:: __init__  
+
+.. include:: intro.rst
+
+
+Documentation
+-------------
+
+**Start here**
+
+* :doc:`requirements`
+* :doc:`install`
+* :doc:`usage`
+* :doc:`contributing`
 
 .. toctree::
-   :caption: std_reader 
    :maxdepth: 1
+   :hidden:
+   :caption: Start here
 
-   std_readerTutorial
-   std_readerDoc
-   std_readerResources
-
-For easy construction of pandas Dataframe from CMC standard files:
-
-
-.. toctree::
-   :caption: dataframe_utils
-   :maxdepth: 1
-
-   dataframe_utils
-
-Helpers for handling CMC standardfile pandas DataFrames.
-
-.. toctree::
-   :caption: std_writer
-   :maxdepth: 2
-
-   std_writerDoc
-
-To write the pandas Dataframes to CMC standard files. 
-
-
-
-.. toctree::
-   :caption: Gallery
-
-   auto_examples/index
-
-
-.. toctree::
-   :caption: Install
-
+   requirements
    install
+   usage
+   contributing
 
+**Modules**
+
+* :doc:`std_reader`
+* :doc:`std_writer`
+* :doc:`std_dec`
+* :doc:`std_enc`
+* :doc:`dataframe_utils`
+* :doc:`utils`
 
 .. toctree::
-   :caption: Contribute
+   :maxdepth: 1
+   :hidden:
+   :caption: Modules
 
-   contribute
+   std_reader
+   std_writer
+   std_dec
+   std_enc
+   dataframe_utils
+   utils
+
+**Tutorial**
+
+* :doc:`tutorial`
 
 .. toctree::
-   :caption: Acknowledgement
+   :maxdepth: 1
+   :hidden:
+   :caption: Tutorial
 
-   acknowledgement
-
-
-
-
+   tutorial
 
 
+**Misc**
 
+* :doc:`conda_howto`
+* :doc:`acknowledgements`
 
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Misc
 
+   conda_howto
+   acknowledgements
 
-
-
-
+     

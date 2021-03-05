@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+from fstpy import get_column_value_from_row,get_unit_by_name
+from .dataframe import add_unit_column
+from .exceptions import UnitConversionError
+from .std_reader import load_data
+from fstpy.std_dec import get_unit_and_description
+import numpy as np
 import pandas as pd
-from .std_reader import sort_dataframe
-
 
 class no_conversion:
    def __init__(self, bias = 0.0,   factor = 1.0):
@@ -147,8 +151,8 @@ class factor_conversion:
    def __call__(self,v):
       return v * self.from_factor / self.to_factor
 
+
 def get_temperature_converter(unit_from, unit_to):
-   from .constants import get_column_value_from_row
    from_expression = get_column_value_from_row(unit_from,'expression')
    to_expression = get_column_value_from_row(unit_to,'expression')
    from_factor = float(get_column_value_from_row(unit_from,'factor'))
@@ -159,7 +163,7 @@ def get_temperature_converter(unit_from, unit_to):
    to_name = get_column_value_from_row(unit_to,'name')
 
    if from_expression != to_expression:
-      raise TypeError
+      raise UnitConversionError('different unit family')
    if (from_name == "kelvin") and (to_name == "kelvin"):
       converter = kelvin_to_kelvin(to_bias, to_factor)
       return converter 
@@ -211,13 +215,12 @@ def get_temperature_converter(unit_from, unit_to):
    return no_conversion()
 
 def get_converter(unit_from, unit_to):
-   from .constants import get_column_value_from_row
    from_expression = get_column_value_from_row(unit_from,'expression')
    to_expression = get_column_value_from_row(unit_to,'expression')
    from_factor = float(get_column_value_from_row(unit_from,'factor'))
    to_factor = float(get_column_value_from_row(unit_to,'factor'))
    if from_expression != to_expression:
-      raise TypeError
+      raise UnitConversionError('different unit family')
    if from_expression == 'K':
       converter = get_temperature_converter(unit_from, unit_to)
       return converter
@@ -226,29 +229,27 @@ def get_converter(unit_from, unit_to):
       converter = no_conversion()
       return converter
    converter = factor_conversion(from_factor,to_factor)
-   return converter
+   return np.vectorize(converter)
 
-def do_unit_conversion(df:pd.DataFrame, to_unit_name:str):
-   from .constants import get_unit_by_name
-   from .exceptions import UnitConversionError
+def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False):
+   df = load_data(df)
+   if 'unit' not in df.columns:
+      df = add_unit_column(df)
    unit_to = get_unit_by_name(to_unit_name)
-   unit_groups = df.groupby(df.unit)
-   converted_dfs = [] 
-   for _, unit_group in unit_groups:
-      current_unit = unit_group.iloc[0]['unit']
+   #unit_groups = df.groupby(df.unit)
+   #converted_dfs = [] 
+   for i in df.index:
+      current_unit = df.at[i,'unit']
       if current_unit == to_unit_name:
-         converted_dfs.append(unit_group)
          continue
       else:
-         if (df['d'].isna() != False).all():
-            raise UnitConversionError('DataFrame must be load_datad to do a unit conversion!')
+         if standard_unit:
+            to_unit_name,_ = get_unit_and_description(df.at[i,'nomvar'])
+            unit_to = get_unit_by_name(to_unit_name)
          unit_from = get_unit_by_name(current_unit)
          converter = get_converter(unit_from, unit_to)
-         unit_group['d'] = unit_group['d'].apply(converter)
-         unit_group['unit'] = to_unit_name
-         unit_group['unit_converted'] = True
-         converted_dfs.append(unit_group)
-
-   converted_df = pd.concat(converted_dfs)
-   converted_df = sort_dataframe(converted_df)
-   return converted_df
+         df.at[i,'d'] = converter(df.at[i,'d'])
+         df.at[i,'unit'] = to_unit_name
+         df.at[i,'unit_converted'] = True
+        
+   return df
