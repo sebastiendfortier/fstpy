@@ -2,23 +2,25 @@
 #+OPTIONS: toc:1
 
 * Conda basics
-    [[https://kiwidamien.github.io/save-the-environment-with-conda-and-how-to-let-others-run-your-programs.html]][[conda reference]]
-    ** get cmc conda
+
+[[https://kiwidamien.github.io/save-the-environment-with-conda-and-how-to-let-others-run-your-programs.html][conda reference]]
+
+** get cmc conda
         #+BEGIN_SRC bash
             . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
         #+END_SRC
 
-    ** creat an environment
+** create an environment
         #+BEGIN_SRC bash    
             conda create --name fstpy_dev_env python=3.6
         #+END_SRC
 
-    ** activate an environment
+** activate an environment
         #+BEGIN_SRC bash
             . activate fstpy_dev_env
         #+END_SRC
 
-    ** install stuff in the env
+** install stuff in the env
         #+BEGIN_SRC bash
             conda install -c conda-forge sphinx-autodoc-typehints
             conda install -c conda-forge sphinx-gallery
@@ -29,23 +31,27 @@
             conda install sphinx
         #+END_SRC
 
-    ** export env to file
+** export env to file
         #+BEGIN_SRC bash
             conda env export > environment.yaml
         #+END_SRC
-    ** deactivate the env
+    
+** deactivate the env
         #+BEGIN_SRC bash
             conda deactivate
         #+END_SRC
-    ** deleting the env
+    
+** deleting the env
         #+BEGIN_SRC bash
             conda env remove --name fstpy_dev_env
         #+END_SRC
-    ** list all envs
+
+** list all envs
         #+BEGIN_SRC bash
             conda info --envs
         #+END_SRC
-    ** recreate the env from yml specs
+
+** recreate the env from yml specs
         #+BEGIN_SRC bash
             conda env create --file environment.yaml
         #+END_SRC

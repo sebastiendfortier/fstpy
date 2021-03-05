@@ -9,19 +9,45 @@
       * :ref:`modindex`
       * :ref:`search`
 
-      .. currentmodule:: fstpy
-      .. autofuntion:: __init__  
+      .. #currentmodule:: fstpy
+      .. #autofuntion:: __init__  
 
-.. include:: inclusion.txt
+.. include:: intro.rst
 
-fstpy
-================
 
-The package **fstpy** provides these modules:
+Documentation
+-------------
 
+**Start here**
+
+* :doc:`requirements`
+* :doc:`install`
+* :doc:`usage`
+* :doc:`contributing`
 
 .. toctree::
-   :maxdepth: 6
+   :maxdepth: 1
+   :hidden:
+   :caption: Start here
+
+   requirements
+   install
+   usage
+   contributing
+
+**Modules**
+
+* :doc:`std_reader`
+* :doc:`std_writer`
+* :doc:`std_dec`
+* :doc:`std_enc`
+* :doc:`dataframe_utils`
+* :doc:`utils`
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Modules
 
    std_reader
    std_writer
@@ -30,4 +56,29 @@ The package **fstpy** provides these modules:
    dataframe_utils
    utils
 
+**Tutorial**
 
+* :doc:`tutorial`
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Tutorial
+
+   tutorial
+
+
+**Misc**
+
+* :doc:`conda_howto`
+* :doc:`acknowledgements`
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Misc
+
+   conda_howto
+   acknowledgements
+
+     

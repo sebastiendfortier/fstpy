@@ -1,22 +1,11 @@
 #+TITLE_: ACKNOWLEDGEMENTS
-* Contributors
+#+OPTIONS: toc:1
+
+* Acknowledgements
 
 Great thanks to: 
+- [[mailto:Phillipe.Carphin2@canada.ca][Phillipe Carphin]] for inspiring the use of pandas.
 
-To [[Phillipe.Carphin2@canada.ca]][[Phillipe Carphin]]
-  for
+- [[mailto:Dominik.Jacques@canada.ca][Dominik Jacques]] for the awsome domUtils project, a great structure of what should be a python project.
 
-    Inspiring the use of pandas
-
-To [[Dominik.Jacques@canada.ca]][[Dominik Jacques]]
-for
-
-    Awsome domUtils project
-    a great structure of what should be a python project
-
-To [[Micheal.Neish@canada.ca]][[Micheal Neish]]
-for
-
-    Awsome fstd2nc project
-    great insights on how to develop xarray structure from CMC standard files
-    great functions to work on fst files
+- [[mailto:Micheal.Neish@canada.ca][Micheal Neish]] for  the awsome fstd2nc project, great insights on how to develop xarray structure from CMC standard files and great functions to work on fst files.  

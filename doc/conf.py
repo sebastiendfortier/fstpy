@@ -75,7 +75,11 @@ html_theme_path = ["_themes", ]
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-
+html_logo = "fstpy_logo.png"
+html_theme_options = {
+    'logo_only': True,
+    'display_version': False,
+}
 
 
 # No longer using LFD on github tu to paywall restrictions

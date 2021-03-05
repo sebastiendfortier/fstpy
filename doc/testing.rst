@@ -1,0 +1,11 @@
+Testing
+=======
+
+.. code:: bash
+
+    # From the $project_root/test directory of the project
+    . activate fstpy_dev    
+    # get rmn python library      
+    . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2     
+    python -m pytest  
+

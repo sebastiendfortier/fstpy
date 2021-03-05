@@ -1,0 +1,369 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Requirements &mdash; fstpy 1.0.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery-rendered-html.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html">
+          
+
+          
+            
+            <img src="_static/fstpy_logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Start here</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="requirements.html">Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using fstpy in scripts or Jupyter Lab/Notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="std_reader.html">The Standard file reader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="std_writer.html">The Standard file writer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="std_dec.html">Standard file attribute decoding functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="std_enc.html">Standard file Dataframe attribute encoding functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataframe_utils.html">Standard file Dataframe utility functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">General utilities</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Misc</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="conda_howto.html">Conda basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">fstpy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Requirements</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/README.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <p>A pythonic library to work with RPN standard files transformed into
+<a class="reference external" href="https://pandas.pydata.org/">https://pandas.pydata.org/</a><em>pandas</em> Dataframes or
+<a class="reference external" href="http://xarray.pydata.org/en/stable">http://xarray.pydata.org/en/stable</a>/#<em>xarray</em></p>
+<div class="section" id="requirements">
+<h1>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="if-you-don-t-already-have-python-3-6-and-numpy-pandas-dask-xarray-install-usage-requirements-in-a-personal-conda-environment">
+<h2>If you don’t already have python 3.6 and numpy pandas dask xarray, install usage requirements in a personal conda environment<a class="headerlink" href="#if-you-don-t-already-have-python-3-6-and-numpy-pandas-dask-xarray-install-usage-requirements-in-a-personal-conda-environment" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># This applies for CMC science users</span>
+<span class="c1"># create a link in your science home directory to the sitestore to put conda environments, defaults in your home directory (not good)</span>
+mkdir <span class="nv">$sitestore_ppp4</span>/conda/.conda
+ln -s <span class="nv">$sitestore_ppp4</span>/conda/.conda /home/<span class="nv">$science</span>-user/.conda
+<span class="c1"># get conda if you don&#39;t already have it</span>
+. ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
+<span class="c1"># create a conda environment for fstpy&#39;s requirements</span>
+conda create -n fstpy_req <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
+<span class="c1"># whenever you need to use this environment on science run the following (if you have&#39;nt loaded the conda ssm, you&#39;ll need to do it everytime)</span>
+<span class="c1"># unless you put it in your profile</span>
+. activate fstpy_req
+<span class="c1"># installing required packages in fstpy_req environment</span>
+conda install -n fstpy_req numpy pandas dask xarray
+<span class="c1"># get rmn python library</span>
+. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
+<span class="c1"># you are now ready to use fstpy</span>
+<span class="c1"># when you don&#39;t wnat to use the environment anymore run the following</span>
+<span class="c1"># conda deactivate</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="using-fstpy-in-scripts-or-jupyter-lab-notebook">
+<h1>Using fstpy in scripts or Jupyter Lab/Notebook<a class="headerlink" href="#using-fstpy-in-scripts-or-jupyter-lab-notebook" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="set-your-environment">
+<h2>set your environment<a class="headerlink" href="#set-your-environment" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># activate your conda environment</span>
+. activate fstpy_req
+<span class="c1"># get rmn python library</span>
+. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
+<span class="c1"># get fstpy ssm package</span>
+. ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.2
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-fstpy">
+<h2>use fstpy<a class="headerlink" href="#use-fstpy" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># inside your script</span>
+<span class="kn">import</span> <span class="nn">fstpy.all</span> <span class="k">as</span> <span class="nn">fstpy</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">fstpy</span><span class="o">.</span><span class="n">StandardFileReader</span><span class="p">(</span><span class="s1">&#39;path to my fst file&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="usage-example">
+<h2>Usage example<a class="headerlink" href="#usage-example" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data_path</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s1">&#39;/data/&#39;</span>
+<span class="kn">import</span> <span class="nn">fstpy.all</span> <span class="k">as</span> <span class="nn">fstpy</span>
+<span class="c1"># setup your file to read</span>
+<span class="n">records</span><span class="o">=</span><span class="n">fstpy</span><span class="o">.</span><span class="n">StandardFileReader</span><span class="p">(</span><span class="n">data_path</span> <span class="o">+</span> <span class="s1">&#39;ttuvre.std&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+<span class="c1"># display selected records in a rpn voir format</span>
+<span class="n">fstpy</span><span class="o">.</span><span class="n">voir</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+<span class="c1"># get statistics on the selected records</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">fstpy</span><span class="o">.</span><span class="n">fststat</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+<span class="c1"># get a subset of records containing only UU and VV momvar</span>
+<span class="n">just_tt_and_uv</span> <span class="o">=</span> <span class="n">fstpy</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">records</span><span class="p">,</span><span class="s1">&#39;nomvar in [&quot;TT&quot;,&quot;UV&quot;]&#39;</span><span class="p">)</span>
+<span class="c1"># display selected records in a rpn voir format</span>
+<span class="n">fstpy</span><span class="o">.</span><span class="n">voir</span><span class="p">(</span><span class="n">just_tt_and_uv</span><span class="p">)</span>
+<span class="n">dest_path</span> <span class="o">=</span> <span class="s1">&#39;/tmp/out.std&#39;</span>
+<span class="c1"># write the selected records to the output file</span>
+<span class="n">fstpy</span><span class="o">.</span><span class="n">StandardFileWriter</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span><span class="n">just_tt_and_uv</span><span class="p">)</span><span class="o">.</span><span class="n">to_fst</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="creating-the-developpement-environment">
+<h2>Creating the developpement environment<a class="headerlink" href="#creating-the-developpement-environment" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># get conda if you don&#39;t already have it</span>
+. ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
+<span class="c1"># create a conda environment for fstpy&#39;s requirements</span>
+conda create -n fstpy_dev <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6
+<span class="c1"># whenever you need to use this environment on science run the following (if you have&#39;nt loaded the conda ssm, you&#39;ll need to do it everytime)</span>
+<span class="c1"># unless you put it in your profile</span>
+. activate fstpy_dev
+<span class="c1"># installing required packages in fstpy_req environment</span>
+conda install sphinx
+conda install -c conda-forge sphinx-autodoc-typehints
+conda install -c conda-forge sphinx-gallery
+conda install -c conda-forge sphinx_rtd_theme
+conda install numpy pandas dask xarray pytest
+</pre></div>
+</div>
+</div>
+<div class="section" id="getting-the-source-code">
+<h2>Getting the source code<a class="headerlink" href="#getting-the-source-code" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone git@gitlab.science.gc.ca:sbf000/fstpy.git
+<span class="c1"># create a new branch</span>
+git checkout -b my_change
+<span class="c1"># modify the code</span>
+<span class="c1"># commit your changes</span>
+<span class="c1"># fetch changes</span>
+git fetch
+<span class="c1"># merge recent master</span>
+git merge origin master
+<span class="c1"># push your changes</span>
+git push origin my_change
+</pre></div>
+</div>
+<p>Then create a merge request on science’s gitlab
+<a class="reference external" href="https://gitlab.science.gc.ca/sbf000/fstpy/merge_requests">https://gitlab.science.gc.ca/sbf000/fstpy/merge_requests</a></p>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># From the $project_root/test directory of the project</span>
+. activate fstpy_dev
+<span class="c1"># get rmn python library</span>
+. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
+python -m pytest
+</pre></div>
+</div>
+</div>
+<div class="section" id="building-documentation">
+<h2>Building documentation<a class="headerlink" href="#building-documentation" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># This will build documentation in docs/build and there you will find index.html</span>
+make clean
+make html
+sphinx-build <span class="nb">source</span> build
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="release-history">
+<h1>Release History<a class="headerlink" href="#release-history" title="Permalink to this headline">¶</a></h1>
+<p>0.0.0 CHANGE: Initial structure of the project 1.0.2 CHANGE: Functional
+implementation</p>
+</div>
+<div class="section" id="meta">
+<h1>Meta<a class="headerlink" href="#meta" title="Permalink to this headline">¶</a></h1>
+<p>Sebastien Fortier <a class="reference external" href="mailto:sebastien&#46;fortier&#37;&#52;&#48;canada&#46;ca">sebastien<span>&#46;</span>fortier<span>&#64;</span>canada<span>&#46;</span>ca</a></p>
+</div>
+<div class="section" id="project-gitlab">
+<h1>Project gitlab<a class="headerlink" href="#project-gitlab" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://gitlab.science.gc.ca/sbf000/fstpy/">https://gitlab.science.gc.ca/sbf000/fstpy/</a></p>
+<p>Distributed under the GNU General Public License v3.0 license. See
+<strong>LICENSE</strong> for more information.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Sébastien Fortier.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
