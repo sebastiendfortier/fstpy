@@ -3,7 +3,7 @@
 
 * Requirements
 If you don't already have python 3.6, numpy, pandas, dask and xarray, install usage requirements in a personal conda environment
-    #+BEGIN_SRC bash
+    #+BEGIN_SRC sh
       # This applies for CMC science users
       # create a link in your science home directory to the sitestore to 
       # put conda environments, defaults in your home directory (not good)  

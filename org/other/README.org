@@ -5,7 +5,7 @@ A pythonic library to work with RPN standard files transformed into [[https://pa
 
 ** Requirements
 *** If you don't already have python 3.6 and numpy pandas dask xarray, install usage requirements in a personal conda environment
-    #+BEGIN_SRC bash
+    #+BEGIN_SRC sh
       # This applies for CMC science users
       # create a link in your science home directory to the sitestore to put conda environments, defaults in your home directory (not good)  
       mkdir $sitestore_ppp4/conda/.conda  
@@ -28,7 +28,7 @@ A pythonic library to work with RPN standard files transformed into [[https://pa
 
 ** Using fstpy in scripts or Jupyter Lab/Notebook  
 *** set your environment  
-  #+BEGIN_SRC bash
+  #+BEGIN_SRC sh
     # activate your conda environment     
     . activate fstpy_req     
     # get rmn python library      
@@ -64,7 +64,7 @@ A pythonic library to work with RPN standard files transformed into [[https://pa
 
 ** Contributing
 *** Creating the developpement environment
-  #+BEGIN_SRC bash
+  #+BEGIN_SRC sh
       # get conda if you don't already have it  
       . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
       # create a conda environment for fstpy's requirements   
@@ -80,7 +80,7 @@ A pythonic library to work with RPN standard files transformed into [[https://pa
       conda install numpy pandas dask xarray pytest
   #+END_SRC  
 *** Getting the source code
-  #+BEGIN_SRC bash
+  #+BEGIN_SRC sh
     git clone git@gitlab.science.gc.ca:sbf000/fstpy.git
     # create a new branch
     git checkout -b my_change
@@ -96,7 +96,7 @@ A pythonic library to work with RPN standard files transformed into [[https://pa
   Then create a merge request on science's gitlab [[https://gitlab.science.gc.ca/sbf000/fstpy/merge_requests]]
 
 *** Testing
-  #+BEGIN_SRC bash
+  #+BEGIN_SRC sh
     # From the $project_root/test directory of the project
     . activate fstpy_dev    
     # get rmn python library      
@@ -105,7 +105,7 @@ A pythonic library to work with RPN standard files transformed into [[https://pa
   #+END_SRC  
 
 *** Building documentation
-  #+BEGIN_SRC bash
+  #+BEGIN_SRC sh
     # This will build documentation in docs/build and there you will find index.html 
     make clean    
     make html   

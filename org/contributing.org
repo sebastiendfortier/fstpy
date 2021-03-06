@@ -3,7 +3,7 @@
 
 * Contributing
 ** Creating the developpement environment
-  #+BEGIN_SRC bash
+  #+BEGIN_SRC sh
       # get conda if you don't already have it  
       . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
       # create a conda environment for fstpy's requirements   
@@ -19,7 +19,7 @@
       conda install numpy pandas dask xarray pytest
   #+END_SRC  
 ** Getting the source code
-  #+BEGIN_SRC bash
+  #+BEGIN_SRC sh
     git clone git@gitlab.science.gc.ca:sbf000/fstpy.git
     # create a new branch
     git checkout -b my_change
@@ -35,7 +35,7 @@
   Then create a merge request on science's gitlab [[https://gitlab.science.gc.ca/sbf000/fstpy/merge_requests]]
 
 ** Testing
-  #+BEGIN_SRC bash
+  #+BEGIN_SRC sh
     # From the $project_root/test directory of the project
     . activate fstpy_dev    
     # get rmn python library      
@@ -44,7 +44,7 @@
   #+END_SRC  
 
 ** Building documentation
-  #+BEGIN_SRC bash
+  #+BEGIN_SRC sh
     # This will build documentation in docs/build and there you will find index.html 
     make clean    
     make html   
