@@ -75,10 +75,20 @@ html_theme_path = ["_themes", ]
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_logo = "fstpy_logo.png"
+html_logo = "fstpy_logo.jpg"
 html_theme_options = {
     'logo_only': True,
     'display_version': False,
+    'vcs_pageview_mode': 'blob' 
+}
+
+html_context = {     
+    "display_gitlab": True, # Integrate Gitlab     
+    "gitlab_host": "gitlab.science.gc.ca",     
+    "gitlab_user": "CMDS", # Username     
+    "gitlab_repo": "fstpy", # Repo name     
+    "gitlab_version": "master", # Version     
+    "conf_py_path": "/doc/", # Path in the checkout to the docs root 
 }
 
 
