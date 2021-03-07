@@ -3,7 +3,7 @@
 
 ** Using fstpy in scripts or Jupyter Lab/Notebook  
 *** set your environment  
-  #+BEGIN_SRC bash
+  #+BEGIN_SRC sh
     # activate your conda environment     
     . activate fstpy_req     
     # get rmn python library      

@@ -1,7 +1,3 @@
-.. raw:: org
-
-   #+TITLE_: ACKNOWLEDGEMENTS
-
 Acknowledgements
 ================
 

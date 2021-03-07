@@ -2,7 +2,7 @@
 #+OPTIONS: toc:1
 
 * Testing
-  #+BEGIN_SRC bash
+  #+BEGIN_SRC sh
     # From the $project_root/test directory of the project
     . activate fstpy_dev    
     # get rmn python library      

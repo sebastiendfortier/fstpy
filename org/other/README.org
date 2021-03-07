@@ -1,0 +1,10 @@
+#+TITLE_: FSTPY
+#+OPTIONS: toc:1
+
+#+INCLUDE: "../intro.org"
+#+INCLUDE: "../requirements.org"
+#+INCLUDE: "../install.org"
+#+INCLUDE: "../usage.org"
+#+INCLUDE: "../contributing.org"
+#+INCLUDE: "../conda_howto.org"
+#+INCLUDE: "../acknowledgements.org"
