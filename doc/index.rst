@@ -72,6 +72,7 @@ Documentation
 
 * :doc:`conda_howto`
 * :doc:`acknowledgements`
+* :doc:`LICENSE`
 
 .. toctree::
    :maxdepth: 1
@@ -80,5 +81,6 @@ Documentation
 
    conda_howto
    acknowledgements
+   LICENSE
 
      

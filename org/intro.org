@@ -8,7 +8,7 @@ Fstpy is a high level interface to rpn's rpnpy python library that produces pand
 from CMC standard files. In order to promote decoupling, modularization and collaboration, fstpy only reads
 and writes. All other operations and algorithms can be independent.
 
-** Fstppy philosophy
+** Fstpy philosophy
 The idea of ​​using a dataframe is to have a pythonic way of working with standard files without having to know 
 the mechanics of rmnlib. Since many people come here with numpy, pandas and xarray knowledge, the learning 
 curve is much less steep.

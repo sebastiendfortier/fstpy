@@ -10,7 +10,7 @@ to promote decoupling, modularization and collaboration, fstpy only
 reads and writes. All other operations and algorithms can be
 independent.
 
-Fstppy philosophy
+Fstpy philosophy
 -----------------
 
 The idea of ​​using a dataframe is to have a pythonic way of working
