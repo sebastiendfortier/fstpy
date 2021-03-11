@@ -1,21 +1,39 @@
 # -*- coding: utf-8 -*-
-from .dataframe import remove_from_df, reorder_columns,sort_dataframe
-from .exceptions import StandardFileError, SelectError
-from .logger_config import logger
-from .std_dec import convert_rmndate_to_datetime, decode_ip
-from .std_reader import load_data,StandardFileReader
-from .utils import validate_df_not_empty
-from fstpy import DATYP_DICT, KIND_DICT
+import sys
 from math import isnan
+
 import dask
 import dask.array as da
-import fstpy
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
-import sys
+
+import fstpy
+from fstpy import DATYP_DICT, KIND_DICT
+
+from .dataframe import remove_from_df, reorder_columns, sort_dataframe
+from .exceptions import SelectError, StandardFileError
+from .logger_config import logger
+from .std_dec import convert_rmndate_to_datetime, decode_ip
+from .std_reader import StandardFileReader, load_data
+from .utils import validate_df_not_empty
+
 
 def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False) -> bool:
+    """Utility used to compare the contents of two RPN standard files (record by record).
+
+    :param file1: path to file 1
+    :type file1: str
+    :param file2: path to file 2
+    :type file2: str
+    :param columns: columns to be considered, defaults to ['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
+    :type columns: list, optional
+    :param verbose: if activated prints more information, defaults to False
+    :type verbose: bool, optional
+    :raises StandardFileError: type of error that will be raised
+    :return: True if files are sufficiently similar else False
+    :rtype: bool
+    """
     logger.info('fstcomp -A %s -B %s'%(file1,file2))
     import os
     if not os.path.exists(file1):
@@ -60,26 +78,16 @@ def voir(df:pd.DataFrame,style=False):
 
 
 def zap(df:pd.DataFrame, validate_keys=True,**kwargs:dict ) -> pd.DataFrame:
+    """Modifies column values of a dataframe according to specific criteria
 
-    """ Modifies records from the input file or other supplied records according to specific criteria
-        kwargs: can contain these key, value pairs to select specific records from the input file or input records
-                nomvar=str
-                typvar=str
-                etiket=str
-                dateo=int
-                datev=int
-                ip1=int
-                ip2=int
-                ip3=int
-                deet=int
-                npas=int
-                datyp=int
-                nbits=int
-                grtyp=str
-                ig1=int
-                ig2=int
-                ig3=int
-                ig4=int """
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :param validate_keys: checks if the supplied keys are valid, defaults to True
+    :type validate_keys: bool, optional
+    :return: modified dataframe
+    :rtype: pd.DataFrame
+    """
+    
     validate_df_not_empty(df,'zap',StandardFileError)            
     if validate_zap_keys:
         validate_zap_keys(**kwargs)
@@ -117,8 +125,14 @@ def zap(df:pd.DataFrame, validate_keys=True,**kwargs:dict ) -> pd.DataFrame:
     return res_df
 
 def fststat(df:pd.DataFrame) -> pd.DataFrame:
+    """Produces summary statistics for a dataframe
 
-    """ reads the data from the supplied records and calculates then displays the statistics for that record """
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :return: output dataframe with added 'mean','std','min_pos','min','max_pos','max' columns
+    :rtype: pd.DataFrame
+    """
+    
     logger.info('fststat')
     pd.options.display.float_format = '{:0.6E}'.format
     validate_df_not_empty(df,'fststat',StandardFileError)
@@ -140,8 +154,23 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     del df[' ']
     return df    
 
-def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_meta_data=False, loose_match=False, no_fail=False, engine=None) -> pd.DataFrame:
-    
+def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_fail=False, engine=None) -> pd.DataFrame:
+    """Wrapper for pandas dataframe query function. Adds some checks to work with standard file dataframes
+
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :param query_str: a query string as described in the pandas documentation
+    :type query_str: str
+    :param exclude: reverses a simple query, defaults to False
+    :type exclude: bool, optional
+    :param no_fail: if True, will raise an exception on failure instead of returning an empty dataframe, defaults to False
+    :type no_fail: bool, optional
+    :param engine: query engine name, see pandas documentation, defaults to None
+    :type engine: [type], optional
+    :raises SelectError: type of exception raised on failure if no_fail is active
+    :return: result of query as a dataframe
+    :rtype: pd.DataFrame
+    """
     # print a summay ry of query
     #logger.info('select %s' % query_str[0:100])
     # warn if selecting by 'forecast_hour'
@@ -170,7 +199,15 @@ def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_meta_data=Fals
 
 
 def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
-    
+    """Selects a subset of records from a dataframe and applies zap to those records instead of the whole dataframe
+
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :param query: query string, see pandas documentation
+    :type query: str
+    :return: the modified dataframe
+    :rtype: pd.DataFrame
+    """
     selection_df = select(df,query)
     df = remove_from_df(df,selection_df)
     zapped_df = zap(selection_df,**kwargs)

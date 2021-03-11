@@ -1,21 +1,29 @@
 # -*- coding: utf-8 -*-
-from fstpy import DATYP_DICT,VCTYPES
+import concurrent.futures
+import datetime
+import itertools
+import multiprocessing as mp
+
+import dask.array as da
+import numpy as np
+import pandas as pd
+
+from fstpy import DATYP_DICT, VCTYPES
+
 # from .dataframe_utils import add_empty_columns
 from .exceptions import StandardFileError
 from .logger_config import logger
-from .std_dec import get_unit_and_description,parse_etiket,convert_rmndate_to_datetime, decode_ip, is_surface, level_type_follows_topography
+from .std_dec import (convert_rmndate_to_datetime, decode_ip,
+                      get_unit_and_description, is_surface,
+                      level_type_follows_topography, parse_etiket)
 from .std_io import read_record
-import dask.array as da
-import datetime
-import numpy as np
-import pandas as pd
 
 
 def add_decoded_columns( df,decode_metadata,array_container='numpy'):
     df = post_process_dataframe(df,decode_metadata)
 
-    df = add_composite_columns(df,decode_metadata,array_container)
-    #df = parallel_add_composite_columns(df,decode_metadata,array_container,n_cores=min(cpu_count(),len(df.index)))   
+    #df = add_composite_columns(df,decode_metadata,array_container)
+    df = parallel_add_composite_columns_tr(df,decode_metadata,array_container,n_cores=min(mp.cpu_count(),len(df.index)))   
     
     return df
 
@@ -24,6 +32,226 @@ def clean_dataframe(df,decode_metadata):
 
     df = reorder_columns(df)  
 
+    df = sort_dataframe(df)
+    return df
+
+
+def add_composite_columns(df,decode,array_container):
+    
+    for i in df.index:            
+        if not ((isinstance(df.at[i,'d'],np.ndarray)) or (isinstance(df.at[i,'d'],da.core.Array))):
+            df.at[i,'d'] = (read_record,array_container,int(df.at[i,'key']))
+
+        #create a grid identifier for each record
+        if df.at[i,'nomvar'] in [">>", "^^", "!!", "!!SF", "HY"]:
+            df.at[i,'grid'] = "".join([str(df.at[i,'ip1']),str(df.at[i,'ip2'])])
+        else:
+            df.at[i,'grid'] = "".join([str(df.at[i,'ig1']),str(df.at[i,'ig2'])])
+
+        if decode:
+            df['unit_converted'] = False
+            df['zapped'] = False
+            df['filtered'] = False
+            df['interpolated'] = False
+            df['unit_converted'] = False
+            df['bounded'] = False
+            df['ensemble_extra_info'] = False
+            df['multiple_modifications'] = False
+            df['vctype'] = ''
+            df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = parse_etiket(df.at[i,'etiket'])
+            df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
+            df.at[i,'date_of_observation'] = convert_rmndate_to_datetime(int(df.at[i,'dateo']))
+            df.at[i,'date_of_validity'] = convert_rmndate_to_datetime(int(df.at[i,'datev']))    
+            df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))         
+            df.at[i,'level'],df.at[i,'ip1_kind'],df.at[i,'ip1_pkind'] = decode_ip(int(df.at[i,'ip1']))
+            df.at[i,'ip2_dec'],df.at[i,'ip2_kind'],df.at[i,'ip2_pkind'] = decode_ip(int(df.at[i,'ip2']))
+            df.at[i,'ip3_dec'],df.at[i,'ip3_kind'],df.at[i,'ip3_pkind'] = decode_ip(int(df.at[i,'ip3']))
+            df.at[i,'data_type_str'] = DATYP_DICT[df.at[i,'datyp']]
+            df.at[i,'surface'] = is_surface(df.at[i,'ip1_kind'],df.at[i,'level'])
+            df.at[i,'follow_topography'] = level_type_follows_topography(df.at[i,'ip1_kind'])
+    return df
+
+def add_unit_column(df):
+    if 'unit' not in df.columns:
+        df['unit'] = None
+    if 'unit_converted' not in df.columns:    
+        df['unit_converted'] = None
+    if 'description' not  in df.columns:
+        df['description'] = None    
+    for i in df.index:
+        df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
+    return df    
+    
+def add_empty_columns(df, columns, init, dtype_str):
+    for col in columns:
+        df.insert(len(df.columns),col,init)
+        df = df.astype({col:dtype_str})
+    return df         
+
+def post_process_dataframe(df,decode):
+    if 'dltf' in df.columns:
+        df = df[df.dltf == 0]
+    df.drop(columns=['swa', 'ubc','lng','xtra1','xtra2','xtra3','dltf'], inplace=True,errors='ignore')
+    
+    df['nomvar'] = df['nomvar'].str.strip()
+    df['etiket'] = df['etiket'].str.strip()
+    df['typvar'] = df['typvar'].str.strip()
+    df['grtyp'] = df['grtyp'].str.strip()
+    if 'd' not in df.columns:
+        df['d']=None
+    if decode:
+        df = add_empty_columns(df, ['data_type_str','description','ensemble_member','implementation','ip1_pkind','ip2_pkind','ip3_pkind','label','run','vctype','unit'],'', 'O')
+        df = add_empty_columns(df, ['follow_topography','surface','zapped','filtered','interpolated','unit_converted','bounded','ensemble_extra_info','multiple_modifications'], False, 'bool')
+        df = add_empty_columns(df, ['ip1_kind','ip2_kind','ip3_kind'], 0, 'int32')
+        df = add_empty_columns(df, ['level','ip2_dec','ip3_dec'], 0., 'float32')
+        for col in ['date_of_observation','date_of_validity','forecast_hour']:
+            df[col] = None
+        
+    return df
+
+def convert_df_dtypes(df,decoded):
+    if not df.empty:
+        if not decoded:    
+            df = df.astype(
+                {'key':'int32','ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
+                'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32',
+                'dateo':'int32', 'datyp':'int32'}
+                )
+        else:
+            df = df.astype(
+                {'key':'int32','ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
+                'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32',
+                'dateo':'int32', 'datyp':'int32',
+                'level':'float32','ip1_kind':'int32','ip2_dec':'float32','ip2_kind':'int32','ip3_dec':'float32','ip3_kind':'int32'}
+                )
+              
+    return df      
+
+def reorder_columns(df,ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
+            'datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']) -> pd.DataFrame:
+    if df.empty:
+        return df
+    all_columns = set(df.columns.to_list())    
+   
+    all_columns = all_columns.difference(set(ordered))
+    ordered.extend(list(all_columns)) 
+    df = df[ordered]    
+    return df    
+
+def sort_dataframe(df) -> pd.DataFrame:
+    if df.empty:
+        return df
+    if ('grid' in df.columns) and ('forecast_hour' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
+        df.sort_values(by=['grid','forecast_hour','nomvar','level'],ascending=False,inplace=True)
+    else:     
+        df.sort_values(by=['nomvar'],ascending=False,inplace=True)
+    df.reset_index(drop=True,inplace=True)
+    return df    
+
+def set_vertical_coordinate_type(df) -> pd.DataFrame:
+    newdfs=[]
+    grid_groups = df.groupby(df.grid)
+    for _, grid in grid_groups:
+        toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(grid)
+        ip1_kind_groups = grid.groupby(grid.ip1_kind)
+        for _, ip1_kind_group in ip1_kind_groups:
+            #these ip1_kinds are not defined
+            without_meta = ip1_kind_group.query('(ip1_kind not in [-1,3,6])')
+            if not without_meta.empty:
+                #logger.debug(without_meta.iloc[0]['nomvar'])
+                ip1_kind = without_meta.iloc[0]['ip1_kind']
+                ip1_kind_group['vctype'] = 'UNKNOWN'
+                #vctype_dict = {'ip1_kind':ip1_kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
+                vctyte_df = VCTYPES.query('(ip1_kind==%s) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%s)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,vcode))
+                if not vctyte_df.empty:
+                    if len(vctyte_df.index)>1:
+                        logger.warning('set_vertical_coordinate_type - more than one match!!!')
+                    ip1_kind_group['vctype'] = vctyte_df.iloc[0]['vctype']
+                newdfs.append(ip1_kind_group)
+
+        df = pd.concat(newdfs)
+        return df    
+
+def get_meta_fields_exists(grid):
+    toctoc = grid.query('nomvar=="!!"')
+    if not toctoc.empty:
+        vcode = toctoc.iloc[0]['ig1']
+        toctoc = True
+    else:
+        vcode = -1
+        toctoc = False
+    p0 = meta_exists(grid,"P0")
+    e1 = meta_exists(grid,"E1")
+    pt = meta_exists(grid,"PT")
+    hy = meta_exists(grid,"HY")
+    sf = meta_exists(grid,"!!SF")
+    return toctoc, p0, e1, pt, hy, sf, vcode
+
+def meta_exists(grid, nomvar) -> bool:
+    df = grid.query('nomvar=="%s"'%nomvar)
+    return not df.empty
+
+def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove) -> pd.DataFrame:
+    columns = df_to_remove.columns.values.tolist()
+    columns.remove('d')
+    #columns.remove('fstinl_params')
+    tmp_df = pd.concat([df_to_remove_from, df_to_remove]).drop_duplicates(subset=columns,keep=False)
+    tmp_df = sort_dataframe(tmp_df)
+    tmp_df.reset_index(inplace=True,drop=True) 
+    return tmp_df
+
+def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
+
+    #logger.debug('1',df[['nomvar','surface','level','ip1_kind']])
+    if len(names)<=1:
+        logger.error('get_intersecting_levels - not enough names to process')
+        raise StandardFileError('not enough names to process')
+    firstdf = df.query( 'nomvar == "%s"' % names[0])
+    if df.empty:
+        logger.error('get_intersecting_levels - no records to intersect')
+        raise StandardFileError('get_intersecting_levels - no records to intersect')
+    common_levels = set(firstdf.level.unique())
+    query_strings = []
+    for name in names:
+        current_query = 'nomvar == "%s"' % name
+        currdf = df.query('%s' % current_query)
+        levels = set(currdf.level.unique())
+        common_levels = common_levels.intersection(levels)
+        query_strings.append(current_query)
+    query_strings = " or ".join(tuple(query_strings))
+    query_res = df.query('(%s) and (level in %s)' % (query_strings, list(common_levels)))
+    if query_res.empty:
+        logger.error('get_intersecting_levels - no intersecting levels found')
+        return
+    return query_res    
+
+
+def parallel_add_composite_columns(df, decode_metadata, array_container, n_cores):
+    df_split = np.array_split(df, n_cores)
+    df_with_params = list(zip(df_split,itertools.repeat(decode_metadata),itertools.repeat(array_container)))
+    pool = Pool(n_cores)
+    df = pd.concat(pool.starmap(add_composite_columns, df_with_params))
+    pool.close()
+    pool.join()
+    return df
+
+def parallel_add_composite_columns_tr(df, decode_metadata, array_container, n_cores):
+    dataframes = []
+    df_split = np.array_split(df, n_cores)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=n_cores) as executor:
+        # Start the load operations and mark each future with its URL
+        #df,decode,array_container
+        future_to_df = {executor.submit(add_composite_columns, dfp, decode_metadata, array_container): dfp for dfp in df_split}
+        for future in concurrent.futures.as_completed(future_to_df):
+            dfp = future_to_df[future]
+            try:
+                data = future.result()
+            except Exception as exc:
+                print('%r generated an exception: %s' % (dfp, exc))
+            else:
+                dataframes.append(data)
+                #print('%r %s d is %d ' % (d, data, len(data)))
+    df = pd.concat(dataframes)
     df = sort_dataframe(df)
     return df
 
@@ -64,88 +292,16 @@ def clean_dataframe(df,decode_metadata):
     
 
     # return df    
-
-def add_composite_columns(df,decode,array_container):
-    
-    for i in df.index:            
-        # df.at[i,'fstinl_params'] = {
-        #     'datev':df.at[i,'datev'],
-        #     'etiket':df.at[i,'etiket'],
-        #     'ip1':df.at[i,'ip1'],
-        #     'ip2':df.at[i,'ip2'],
-        #     'ip3':df.at[i,'ip3'],
-        #     'typvar':df.at[i,'typvar'],
-        #     'nomvar':df.at[i,'nomvar']
-        # }
-        # print(type(df.at[i,'d'])) 
-        # print((not isinstance(df.at[i,'d'],np.ndarray)))
-        # print((not isinstance(df.at[i,'d'],da.core.Array)))
-        # print(not ((isinstance(df.at[i,'d'],np.ndarray)) or (isinstance(df.at[i,'d'],da.core.Array))))
-        if not ((isinstance(df.at[i,'d'],np.ndarray)) or (isinstance(df.at[i,'d'],da.core.Array))):
-            df.at[i,'d'] = (read_record,array_container,int(df.at[i,'key']))
-
-        #del record['key'] #i don't know if we need
-
-        #create a grid identifier for each record
-        if df.at[i,'nomvar'] in [">>", "^^", "!!", "!!SF", "HY"]:
-            df.at[i,'grid'] = "".join([str(df.at[i,'ip1']),str(df.at[i,'ip2'])])
-        else:
-            df.at[i,'grid'] = "".join([str(df.at[i,'ig1']),str(df.at[i,'ig2'])])
-
-        if decode:
-            df['unit_converted'] = False
-            df['zapped'] = False
-            df['vctype'] = ''
-            df['stacked'] = False
-            df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = parse_etiket(df.at[i,'etiket'])
-            df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
-            df.at[i,'date_of_observation'] = convert_rmndate_to_datetime(int(df.at[i,'dateo']))
-            df.at[i,'date_of_validity'] = convert_rmndate_to_datetime(int(df.at[i,'datev']))    
-            df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))         
-            df.at[i,'level'],df.at[i,'ip1_kind'],df.at[i,'ip1_pkind'] = decode_ip(int(df.at[i,'ip1']))
-            df.at[i,'ip2_dec'],df.at[i,'ip2_kind'],df.at[i,'ip2_pkind'] = decode_ip(int(df.at[i,'ip2']))
-            df.at[i,'ip3_dec'],df.at[i,'ip3_kind'],df.at[i,'ip3_pkind'] = decode_ip(int(df.at[i,'ip3']))
-            df.at[i,'data_type_str'] = DATYP_DICT[df.at[i,'datyp']]
-            df.at[i,'surface'] = is_surface(df.at[i,'ip1_kind'],df.at[i,'level'])
-            df.at[i,'follow_topography'] = level_type_follows_topography(df.at[i,'ip1_kind'])
-    return df
-
-def add_unit_column(df):
-    if 'unit' not in df.columns:
-        df['unit'] = None
-    if 'unit_converted' not in df.columns:    
-        df['unit_converted'] = None
-    if 'description' not  in df.columns:
-        df['description'] = None    
-    for i in df.index:
-        df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
-    return df    
-    
-def add_empty_columns(df, columns, init, dtype_str):
-    for col in columns:
-        df.insert(len(df.columns),col,init)
-        df = df.astype({col:dtype_str})
-    return df         
-
-def post_process_dataframe(df,decode):
-    if 'dltf' in df.columns:
-        df = df[df.dltf == 0]
-    df.drop(columns=['swa', 'ubc','lng','xtra1','xtra2','xtra3','dltf'], inplace=True,errors='ignore')
-    
-    df['nomvar'] = df['nomvar'].str.strip()
-    df['etiket'] = df['etiket'].str.strip()
-    df['typvar'] = df['typvar'].str.strip()
-    if 'd' not in df.columns:
-        df['d']=None
-    if decode:
-        df = add_empty_columns(df, ['data_type_str','description','ensemble_member','implementation','ip1_pkind','ip2_pkind','ip3_pkind','label','run','vctype','unit'],'', 'O')
-        df = add_empty_columns(df, ['follow_topography','stacked','surface','unit_converted','zapped'], False, 'bool')
-        df = add_empty_columns(df, ['ip1_kind','ip2_kind','ip3_kind'], 0, 'int32')
-        df = add_empty_columns(df, ['level','ip2_dec','ip3_dec'], 0., 'float32')
-        for col in ['date_of_observation','date_of_validity','forecast_hour']:
-            df[col] = None
-        
-    return df
+# def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
+#     from .std_reader import load_data
+#     df = load_data(df)
+#     for i in df.index:
+#         df.at[i,'d'] = df.at[i,'d'][:dim1,:dim2].copy(deep=True)
+#         df.at[i,'shape']  = df.at[i,'d'].shape
+#         df.at[i,'ni'] = df.at[i,'shape'][0]
+#         df.at[i,'nj'] = df.at[i,'shape'][1]
+#     df = sort_dataframe(df)    
+#     return df
 
 
 
@@ -230,131 +386,3 @@ def post_process_dataframe(df,decode):
 #         df['nomvar'] = df['nomvar'].str.strip()
 #         df['typvar'] = df['typvar'].str.strip()
 #     return df    
-
-def convert_df_dtypes(df,decoded):
-    if not df.empty:
-        if not decoded:    
-            df = df.astype(
-                {'key':'int32','ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
-                'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32',
-                'dateo':'int32', 'datyp':'int32'}
-                )
-        else:
-            df = df.astype(
-                {'key':'int32','ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
-                'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32',
-                'dateo':'int32', 'datyp':'int32',
-                'level':'float32','ip1_kind':'int32','ip2_dec':'float32','ip2_kind':'int32','ip3_dec':'float32','ip3_kind':'int32'}
-                )
-              
-    return df      
-
-def reorder_columns(df,ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
-            'datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']) -> pd.DataFrame:
-    if df.empty:
-        return df
-    all_columns = set(df.columns.to_list())    
-   
-    all_columns = all_columns.difference(set(ordered))
-    ordered.extend(list(all_columns)) 
-    df = df[ordered]    
-    return df    
-
-def sort_dataframe(df) -> pd.DataFrame:
-    if df.empty:
-        return df
-    if ('grid' in df.columns) and ('forecast_hour' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
-        df.sort_values(by=['grid','forecast_hour','nomvar','level'],ascending=False,inplace=True)
-    else:     
-        df.sort_values(by=['nomvar'],ascending=False,inplace=True)
-    df.reset_index(drop=True,inplace=True)
-    return df    
-
-def set_vertical_coordinate_type(df) -> pd.DataFrame:
-    newdfs=[]
-    grid_groups = df.groupby(df.grid)
-    for _, grid in grid_groups:
-        toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(grid)
-        ip1_kind_groups = grid.groupby(grid.ip1_kind)
-        for _, ip1_kind_group in ip1_kind_groups:
-            #these ip1_kinds are not defined
-            without_meta = ip1_kind_group.query('(ip1_kind not in [-1,3,6])')
-            if not without_meta.empty:
-                #logger.debug(without_meta.iloc[0]['nomvar'])
-                ip1_kind = without_meta.iloc[0]['ip1_kind']
-                ip1_kind_group['vctype'] = 'UNKNOWN'
-                #vctype_dict = {'ip1_kind':ip1_kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
-                vctyte_df = VCTYPES.query('(ip1_kind==%s) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%s)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,vcode))
-                if not vctyte_df.empty:
-                    if len(vctyte_df.index)>1:
-                        logger.warning('set_vertical_coordinate_type - more than one match!!!')
-                    ip1_kind_group['vctype'] = vctyte_df.iloc[0]['vctype']
-                newdfs.append(ip1_kind_group)
-
-        df = pd.concat(newdfs)
-        return df    
-
-def get_meta_fields_exists(grid):
-    toctoc = grid.query('nomvar=="!!"')
-    if not toctoc.empty:
-        vcode = toctoc.iloc[0]['ig1']
-        toctoc = True
-    else:
-        vcode = -1
-        toctoc = False
-    p0 = meta_exists(grid,"P0")
-    e1 = meta_exists(grid,"E1")
-    pt = meta_exists(grid,"PT")
-    hy = meta_exists(grid,"HY")
-    sf = meta_exists(grid,"!!SF")
-    return toctoc, p0, e1, pt, hy, sf, vcode
-
-def meta_exists(grid, nomvar) -> bool:
-    df = grid.query('nomvar=="%s"'%nomvar)
-    return not df.empty
-
-
-# def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
-#     from .std_reader import load_data
-#     df = load_data(df)
-#     for i in df.index:
-#         df.at[i,'d'] = df.at[i,'d'][:dim1,:dim2].copy(deep=True)
-#         df.at[i,'shape']  = df.at[i,'d'].shape
-#         df.at[i,'ni'] = df.at[i,'shape'][0]
-#         df.at[i,'nj'] = df.at[i,'shape'][1]
-#     df = sort_dataframe(df)    
-#     return df
-
-def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove) -> pd.DataFrame:
-    columns = df_to_remove.columns.values.tolist()
-    columns.remove('d')
-    #columns.remove('fstinl_params')
-    tmp_df = pd.concat([df_to_remove_from, df_to_remove]).drop_duplicates(subset=columns,keep=False)
-    tmp_df = sort_dataframe(tmp_df)
-    tmp_df.reset_index(inplace=True,drop=True) 
-    return tmp_df
-
-def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
-
-    #logger.debug('1',df[['nomvar','surface','level','ip1_kind']])
-    if len(names)<=1:
-        logger.error('get_intersecting_levels - not enough names to process')
-        raise StandardFileError('not enough names to process')
-    firstdf = df.query( 'nomvar == "%s"' % names[0])
-    if df.empty:
-        logger.error('get_intersecting_levels - no records to intersect')
-        raise StandardFileError('get_intersecting_levels - no records to intersect')
-    common_levels = set(firstdf.level.unique())
-    query_strings = []
-    for name in names:
-        current_query = 'nomvar == "%s"' % name
-        currdf = df.query('%s' % current_query)
-        levels = set(currdf.level.unique())
-        common_levels = common_levels.intersection(levels)
-        query_strings.append(current_query)
-    query_strings = " or ".join(tuple(query_strings))
-    query_res = df.query('(%s) and (level in %s)' % (query_strings, list(common_levels)))
-    if query_res.empty:
-        logger.error('get_intersecting_levels - no intersecting levels found')
-        return
-    return query_res    

@@ -1,8 +1,8 @@
 #+TITLE_: PANDAS
 #+OPTIONS: toc:1
 * Qu'est ce que Pandas [[https://pandas.pydata.org]]
-** Un tableau de donn�es python
-*** fichier de donn�es simple
+** Un tableau de données python
+*** fichier de données simple
    #+BEGIN_SRC sh :results output :exports both
    echo 'test_data_1.csv'
    echo '----------------------------------------------'
@@ -22,39 +22,13 @@
    gram_per_gram,g/g,kg/kg,0.0,1.0,0,0,0,0,0,0,0
    gram_per_kilogram,g/kg,kg/kg,0.0,0.001,0,0,0,0,0,0,0
    kilogram_per_gram,kg/g,kg/kg,0.0,1000.0,0,0,0,0,0,0,0
-   microgram_per_gram,ug/g,kg/kg,0.0,1.0e-06,0,0,0,0,0,0,0
-   microgram_per_kilogram,ug/kg,kg/kg,0.0,1.0e-09,0,0,0,0,0,0,0
-   gram,g,kg,0.0,0.001,1,0,0,0,0,0,0
-   gram_per_second,g/s,kg/s,0.0,0.001,1,0,-1,0,0,0,0
-   pound,lb,kg,0.0,0.45359237,1,0,0,0,0,0,0
-   metricTon,t,kg,0.0,1000.0,1,0,0,0,0,0,0
-   meter,m,m,0.0,1.0,0,1,0,0,0,0,0
-   centimeter,cm,m,0.0,0.01,0,1,0,0,0,0,0
-   millimeter,mm,m,0.0,0.001,0,1,0,0,0,0,0
-   foot,ft,m,0.0,0.3048,0,1,0,0,0,0,0
-   hundredsOfFeet,ft,m,0.0,30.48,0,1,0,0,0,0,0
-   inch,in,m,0.0,0.0254,0,1,0,0,0,0,0
-   decimeter,dm,m,0.0,0.1,0,1,0,0,0,0,0
-   decameter,dam,m,0.0,10.0,0,1,0,0,0,0,0
-   kilometer,km,m,0.0,1000.0,0,1,0,0,0,0,0
-   nauticalMile,nmi,m,0.0,1852.0,0,1,0,0,0,0,0
    test_data_2.csv
    ----------------------------------------------
    name,symbol,expression,bias,factor,mass,length,time,electricCurrent,temperature,amountOfSubstance,luminousIntensity
    inverseMeter,1/m,m^(-1),0.0,1.0,0,-1,0,0,0,0,0
    second,s,s,0.0,1.0,0,0,1,0,0,0,0
-   second_per_meter,s/m,m^(-1)�s,0.0,1.0,0,-1,1,0,0,0,0
-   squareSecond_per_meter,s2/m,m^(-1)�s^(2),0.0,1.0,0,-1,2,0,0,0,0
-   minute,min,s,0.0,60.0,0,0,1,0,0,0,0
-   hour,h,s,0.0,3600.0,0,0,1,0,0,0,0
-   day,d,s,0.0,86400.0,0,0,1,0,0,0,0
-   inverseSecond,1/s,s^(-1),0.0,1.0,0,0,-1,0,0,0,0
-   inverseSquareSecond,1/s2,s^(-2),0.0,1.0,0,0,-2,0,0,0,0
    ampere,A,A,0.0,1.0,0,0,0,1,0,0,0
    kelvin,K,K,0.0,1.0,0,0,0,0,1,0,0
-   celsius,�C,K,273.15,1.0,0,0,0,0,1,0,0
-   fahrenheit,�F,K,459.67,0.5555555555556,0,0,0,0,1,0,0
-   rankine,�R,K,0.0,0.5555555555556,0,0,0,0,1,0,0
    mole,mol,mol,0.0,1.0,0,0,0,0,0,1,0
    #+end_example
 *** importer un fichier csv en pandas
@@ -73,22 +47,7 @@
    3        gram_per_kilogram   g/kg      kg/kg   0.0  1.000000e-03     0   
    4        kilogram_per_gram   kg/g      kg/kg   0.0  1.000000e+03     0   
    5       microgram_per_gram   ug/g      kg/kg   0.0  1.000000e-06     0   
-   6   microgram_per_kilogram  ug/kg      kg/kg   0.0  1.000000e-09     0   
-   7                     gram      g         kg   0.0  1.000000e-03     1   
-   8          gram_per_second    g/s       kg/s   0.0  1.000000e-03     1   
-   9                    pound     lb         kg   0.0  4.535924e-01     1   
-   10               metricTon      t         kg   0.0  1.000000e+03     1   
-   11                   meter      m          m   0.0  1.000000e+00     0   
-   12              centimeter     cm          m   0.0  1.000000e-02     0   
-   13              millimeter     mm          m   0.0  1.000000e-03     0   
-   14                    foot     ft          m   0.0  3.048000e-01     0   
-   15          hundredsOfFeet     ft          m   0.0  3.048000e+01     0   
-   16                    inch     in          m   0.0  2.540000e-02     0   
-   17               decimeter     dm          m   0.0  1.000000e-01     0   
-   18               decameter    dam          m   0.0  1.000000e+01     0   
-   19               kilometer     km          m   0.0  1.000000e+03     0   
-   20            nauticalMile    nmi          m   0.0  1.852000e+03     0   
-
+   
        length  time  electricCurrent  temperature  amountOfSubstance  \
    0        0     0                0            0                  0   
    1        0     0                0            0                  0   
@@ -96,22 +55,7 @@
    3        0     0                0            0                  0   
    4        0     0                0            0                  0   
    5        0     0                0            0                  0   
-   6        0     0                0            0                  0   
-   7        0     0                0            0                  0   
-   8        0    -1                0            0                  0   
-   9        0     0                0            0                  0   
-   10       0     0                0            0                  0   
-   11       1     0                0            0                  0   
-   12       1     0                0            0                  0   
-   13       1     0                0            0                  0   
-   14       1     0                0            0                  0   
-   15       1     0                0            0                  0   
-   16       1     0                0            0                  0   
-   17       1     0                0            0                  0   
-   18       1     0                0            0                  0   
-   19       1     0                0            0                  0   
-   20       1     0                0            0                  0   
-
+   
        luminousIntensity  
    0                   0  
    1                   0  
@@ -119,24 +63,9 @@
    3                   0  
    4                   0  
    5                   0  
-   6                   0  
-   7                   0  
-   8                   0  
-   9                   0  
-   10                  0  
-   11                  0  
-   12                  0  
-   13                  0  
-   14                  0  
-   15                  0  
-   16                  0  
-   17                  0  
-   18                  0  
-   19                  0  
-   20                  0  
    #+end_example
 
-** Base de donn�es
+** Base de données
    #+BEGIN_SRC python :results output :exports both
    import pandas as pd
    df1 = pd.read_csv('test_data_1.csv')
@@ -161,31 +90,7 @@
    9                    pound     lb            kg    0.00  4.535924e-01     1   
    10               metricTon      t            kg    0.00  1.000000e+03     1   
    11                   meter      m             m    0.00  1.000000e+00     0   
-   12              centimeter     cm             m    0.00  1.000000e-02     0   
-   13              millimeter     mm             m    0.00  1.000000e-03     0   
-   14                    foot     ft             m    0.00  3.048000e-01     0   
-   15          hundredsOfFeet     ft             m    0.00  3.048000e+01     0   
-   16                    inch     in             m    0.00  2.540000e-02     0   
-   17               decimeter     dm             m    0.00  1.000000e-01     0   
-   18               decameter    dam             m    0.00  1.000000e+01     0   
-   19               kilometer     km             m    0.00  1.000000e+03     0   
-   20            nauticalMile    nmi             m    0.00  1.852000e+03     0   
-   0             inverseMeter    1/m        m^(-1)    0.00  1.000000e+00     0   
-   1                   second      s             s    0.00  1.000000e+00     0   
-   2         second_per_meter    s/m      m^(-1)�s    0.00  1.000000e+00     0   
-   3   squareSecond_per_meter   s2/m  m^(-1)�s^(2)    0.00  1.000000e+00     0   
-   4                   minute    min             s    0.00  6.000000e+01     0   
-   5                     hour      h             s    0.00  3.600000e+03     0   
-   6                      day      d             s    0.00  8.640000e+04     0   
-   7            inverseSecond    1/s        s^(-1)    0.00  1.000000e+00     0   
-   8      inverseSquareSecond   1/s2        s^(-2)    0.00  1.000000e+00     0   
-   9                   ampere      A             A    0.00  1.000000e+00     0   
-   10                  kelvin      K             K    0.00  1.000000e+00     0   
-   11                 celsius     �C             K  273.15  1.000000e+00     0   
-   12              fahrenheit     �F             K  459.67  5.555556e-01     0   
-   13                 rankine     �R             K    0.00  5.555556e-01     0   
-   14                    mole    mol           mol    0.00  1.000000e+00     0   
-
+   
        length  time  electricCurrent  temperature  amountOfSubstance  \
    0        0     0                0            0                  0   
    1        0     0                0            0                  0   
@@ -199,31 +104,7 @@
    9        0     0                0            0                  0   
    10       0     0                0            0                  0   
    11       1     0                0            0                  0   
-   12       1     0                0            0                  0   
-   13       1     0                0            0                  0   
-   14       1     0                0            0                  0   
-   15       1     0                0            0                  0   
-   16       1     0                0            0                  0   
-   17       1     0                0            0                  0   
-   18       1     0                0            0                  0   
-   19       1     0                0            0                  0   
-   20       1     0                0            0                  0   
-   0       -1     0                0            0                  0   
-   1        0     1                0            0                  0   
-   2       -1     1                0            0                  0   
-   3       -1     2                0            0                  0   
-   4        0     1                0            0                  0   
-   5        0     1                0            0                  0   
-   6        0     1                0            0                  0   
-   7        0    -1                0            0                  0   
-   8        0    -2                0            0                  0   
-   9        0     0                1            0                  0   
-   10       0     0                0            1                  0   
-   11       0     0                0            1                  0   
-   12       0     0                0            1                  0   
-   13       0     0                0            1                  0   
-   14       0     0                0            0                  1   
-
+   
        luminousIntensity  
    0                   0  
    1                   0  
@@ -237,30 +118,6 @@
    9                   0  
    10                  0  
    11                  0  
-   12                  0  
-   13                  0  
-   14                  0  
-   15                  0  
-   16                  0  
-   17                  0  
-   18                  0  
-   19                  0  
-   20                  0  
-   0                   0  
-   1                   0  
-   2                   0  
-   3                   0  
-   4                   0  
-   5                   0  
-   6                   0  
-   7                   0  
-   8                   0  
-   9                   0  
-   10                  0  
-   11                  0  
-   12                  0  
-   13                  0  
-   14                  0  
    #+end_example
 
 ** Numpy
@@ -312,21 +169,6 @@
    3        gram_per_kilogram   g/kg      kg/kg   0.0  1.000000e-03     0   
    4        kilogram_per_gram   kg/g      kg/kg   0.0  1.000000e+03     0   
    5       microgram_per_gram   ug/g      kg/kg   0.0  1.000000e-06     0   
-   6   microgram_per_kilogram  ug/kg      kg/kg   0.0  1.000000e-09     0   
-   7                     gram      g         kg   0.0  1.000000e-03     1   
-   8          gram_per_second    g/s       kg/s   0.0  1.000000e-03     1   
-   9                    pound     lb         kg   0.0  4.535924e-01     1   
-   10               metricTon      t         kg   0.0  1.000000e+03     1   
-   11                   meter      m          m   0.0  1.000000e+00     0   
-   12              centimeter     cm          m   0.0  1.000000e-02     0   
-   13              millimeter     mm          m   0.0  1.000000e-03     0   
-   14                    foot     ft          m   0.0  3.048000e-01     0   
-   15          hundredsOfFeet     ft          m   0.0  3.048000e+01     0   
-   16                    inch     in          m   0.0  2.540000e-02     0   
-   17               decimeter     dm          m   0.0  1.000000e-01     0   
-   18               decameter    dam          m   0.0  1.000000e+01     0   
-   19               kilometer     km          m   0.0  1.000000e+03     0   
-   20            nauticalMile    nmi          m   0.0  1.852000e+03     0   
 
        length  time  electricCurrent  temperature  amountOfSubstance  \
    0        0     0                0            0                  0   
@@ -335,21 +177,6 @@
    3        0     0                0            0                  0   
    4        0     0                0            0                  0   
    5        0     0                0            0                  0   
-   6        0     0                0            0                  0   
-   7        0     0                0            0                  0   
-   8        0    -1                0            0                  0   
-   9        0     0                0            0                  0   
-   10       0     0                0            0                  0   
-   11       1     0                0            0                  0   
-   12       1     0                0            0                  0   
-   13       1     0                0            0                  0   
-   14       1     0                0            0                  0   
-   15       1     0                0            0                  0   
-   16       1     0                0            0                  0   
-   17       1     0                0            0                  0   
-   18       1     0                0            0                  0   
-   19       1     0                0            0                  0   
-   20       1     0                0            0                  0   
 
        luminousIntensity  
    0                   0  
@@ -358,21 +185,7 @@
    3                   0  
    4                   0  
    5                   0  
-   6                   0  
-   7                   0  
-   8                   0  
-   9                   0  
-   10                  0  
-   11                  0  
-   12                  0  
-   13                  0  
-   14                  0  
-   15                  0  
-   16                  0  
-   17                  0  
-   18                  0  
-   19                  0  
-   20                  0  
+
 			name symbol expression  bias        factor  mass  length  \
    0                kilogram     kg         kg   0.0  1.000000e+00     1       0   
    1   kilogram_per_kilogram  kg/kg      kg/kg   0.0  1.000000e+00     0       0   
@@ -380,9 +193,7 @@
    3       gram_per_kilogram   g/kg      kg/kg   0.0  1.000000e-03     0       0   
    4       kilogram_per_gram   kg/g      kg/kg   0.0  1.000000e+03     0       0   
    5      microgram_per_gram   ug/g      kg/kg   0.0  1.000000e-06     0       0   
-   6  microgram_per_kilogram  ug/kg      kg/kg   0.0  1.000000e-09     0       0   
-   7                    gram      g         kg   0.0  1.000000e-03     1       0   
-   8         gram_per_second    g/s       kg/s   0.0  1.000000e-03     1       0   
+
 
       time  electricCurrent  temperature  amountOfSubstance  luminousIntensity  
    0     0                0            0                  0                  0  
@@ -391,9 +202,6 @@
    3     0                0            0                  0                  0  
    4     0                0            0                  0                  0  
    5     0                0            0                  0                  0  
-   6     0                0            0                  0                  0  
-   7     0                0            0                  0                  0  
-   8    -1                0            0                  0                  0  
    #+end_example
 *** creation   
    #+BEGIN_SRC python :results output :exports both
@@ -469,13 +277,13 @@
   print(df)
   #+END_SRC
 ** Rapide et performant
-** Connue par la communaut� scientifique
+** Connue par la communauté scientifique
 ** Beaucoup d'utilisateurs
-** Analyse de donn�es
-** Un point central d'�change de donn�es
+** Analyse de données
+** Un point central d'échange de données
 
 
-Pr�par� par Sebastien Fortier 2021-02
+Préparé par Sébastien Fortier 2021-02
 
 
   

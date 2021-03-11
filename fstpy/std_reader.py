@@ -1,19 +1,27 @@
 # -*- coding: utf-8 -*-
-from .dataframe import sort_dataframe,add_decoded_columns,clean_dataframe
-from .exceptions import StandardFileError
-from .std_io import compare_modification_times, get_lat_lon, get_records_from_file,get_records_from_file_and_load,parallel_get_records_from_file
-from .utils import initializer
-from .xarray import set_data_array_attributes,get_variable_data_array,get_longitude_data_array,get_date_of_validity_data_array,get_latitude_data_array,get_level_data_array
-from dask.array.core import Array as dask_array_type
-from dask.config import set as dask_config_set
 import itertools
 import multiprocessing as mp
-import numpy as np
 import os
+import sys
+
+import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
-import sys
+from dask.array.core import Array as dask_array_type
+from dask.config import set as dask_config_set
+
 import xarray as xr
+
+from .dataframe import add_decoded_columns, clean_dataframe, sort_dataframe
+from .exceptions import StandardFileError
+from .std_io import (compare_modification_times, get_lat_lon,
+                     get_records_from_file, get_records_from_file_and_load,
+                     parallel_get_records_from_file)
+from .utils import initializer
+from .xarray import (get_date_of_validity_data_array, get_latitude_data_array,
+                     get_level_data_array, get_longitude_data_array,
+                     get_variable_data_array, set_data_array_attributes)
+
 
 class StandardFileReader:
     """Class to handle fst files   
@@ -39,7 +47,7 @@ class StandardFileReader:
                 'surface':bool, True if the level is a surface level |br|   
                 'follow_topography':bool, indicates if this type of level follows topography |br|   
                 'vctype':str, vertical level type |br|   
-                'forecast_hour':timedelta, forecast hour decoded from ip2 |br|   
+                'forecast_hour':timedelta, forecast hour obtained from deet * npas / 3600 |br|   
                 'ip2_dec':value of decoded ip2  |br|  
                 'ip2_kind':kind of decoded ip2  |br|  
                 'ip2_pkind':printable kind of decoded ip2 |br|    
@@ -172,20 +180,39 @@ class StandardFileReader:
 
         return ds
 
+ 
+def load_data(df:pd.DataFrame) -> pd.DataFrame:
+    """Gets the associated data for every record in a dataframe
 
-
-
-# def parallel_add_composite_columns(df, decode_metadata, array_container, n_cores=1):
-#     df_split = np.array_split(df, n_cores)
-#     df_with_params = list(zip(df_split,itertools.repeat(decode_metadata),itertools.repeat(array_container)))
-#     pool = Pool(n_cores)
-#     df = pd.concat(pool.starmap(add_composite_columns, df_with_params))
-#     pool.close()
-#     pool.join()
-#     return df
-
-
-
+    :param df: dataframe to fill
+    :type df: pd.DataFrame
+    :return: filled dataframe
+    :rtype: pd.DataFrame
+    """
+    path_groups = df.groupby(df.path)
+    res_list = []
+    for _,path_df in path_groups:
+        compare_modification_times(path_df.iloc[0]['file_modification_time'], path_df.iloc[0]['path'],rmn.FST_RO, 'std_reader.py::load_data',StandardFileError)
+        unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
+        path_df.sort_values(by=['key'],inplace=True)
+        for i in path_df.index:
+            if isinstance(path_df.at[i,'d'],dask_array_type):
+                continue
+            if isinstance(path_df.at[i,'d'],np.ndarray):
+                continue
+            #call stored function with param, rmn.fstluk(key) 
+            path_df.at[i,'d'] = path_df.at[i,'d'][0](path_df.at[i,'d'][1],path_df.at[i,'d'][2])
+            #path_df.at[i,'fstinl_params'] = None
+            # path_df.at[i,'path'] = None
+        res_list.append(path_df)
+        rmn.fstcloseall(unit)
+    if len(res_list) >= 1:
+        res_df = pd.concat(res_list)    
+    else:
+        res_df = df
+    res_df = sort_dataframe(res_df)
+    res_df.reset_index(drop=True,inplace=True)
+    return res_df    
 
 
 
@@ -240,72 +267,6 @@ class StandardFileReader:
 #     return new_df
 
 
- 
-def load_data(df:pd.DataFrame) -> pd.DataFrame:
-    """Gets the associated data for every record in a dataframe
-
-    :param df: dataframe to fill
-    :type df: pd.DataFrame
-    :return: filled dataframe
-    :rtype: pd.DataFrame
-    """
-    path_groups = df.groupby(df.path)
-    res_list = []
-    for _,path_df in path_groups:
-        compare_modification_times(path_df.iloc[0]['file_modification_time'], path_df.iloc[0]['path'],rmn.FST_RO, 'std_reader.py::load_data',StandardFileError)
-        unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
-        path_df.sort_values(by=['key'],inplace=True)
-        for i in path_df.index:
-            if isinstance(path_df.at[i,'d'],dask_array_type):
-                continue
-            if isinstance(path_df.at[i,'d'],np.ndarray):
-                continue
-            #call stored function with param, rmn.fstluk(key) 
-            path_df.at[i,'d'] = path_df.at[i,'d'][0](path_df.at[i,'d'][1],path_df.at[i,'d'][2])
-            #path_df.at[i,'fstinl_params'] = None
-            # path_df.at[i,'path'] = None
-        res_list.append(path_df)
-        rmn.fstcloseall(unit)
-    if len(res_list) >= 1:
-        res_df = pd.concat(res_list)    
-    else:
-        res_df = df
-    res_df = sort_dataframe(res_df)
-    res_df.reset_index(drop=True,inplace=True)
-    return res_df    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # def create_coordinate_type(meta:set, ip1_kind:int, vcode:int, coord_types:pd.DataFrame) ->str:
 #     vctype = 'UNKNOWN'
 #     toctoc_exists = '!!' in meta
@@ -325,30 +286,7 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #e_rel_max   E-REL-MOY   VAR-A        C-COR        MOY-A        BIAIS       E-MAX       E-MOY
-
-
-
-
-
-
-
 
 # def add_metadata_fields(df:pd.DataFrame, latitude_and_longitude=True, pressure=True, vertical_descriptors=True) -> pd.DataFrame:
 #     if 'path' not in df:
@@ -360,8 +298,6 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
 #     res = pd.concat([df,meta_df])
 
 #     return res
-        
-
 
 # def get_vertical_grid_descriptor(self, records:list):
 #     """ Gets the vertical grid descriptor associated with the supplied records"""

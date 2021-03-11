@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-import xarray as xr
 import pandas as pd
+
+import xarray as xr
+
 
 def set_data_array_attributes(attribs:dict, nomvar_df:pd.DataFrame) -> dict:
     """[summary]

@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
-from .exceptions import StandardFileError,StandardFileReaderError
-from .logger_config import logger
-from .std_dec import create_grid_identifier
-from .utils import validate_df_not_empty,create_1row_df_from_model
-import dask as da
+import concurrent.futures
 import datetime
 import multiprocessing as mp
 import os.path
-import pandas as pd
 import pathlib
-import rpnpy.librmn.all as rmn
 import sys
 import time
+
+import dask as da
+import pandas as pd
+import rpnpy.librmn.all as rmn
+
+from .exceptions import StandardFileError, StandardFileReaderError
+from .logger_config import logger
+from .std_dec import create_grid_identifier
+from .utils import create_1row_df_from_model, validate_df_not_empty
+
 
 def open_fst(path:str, mode:str, caller_class:str, error_class:Exception):
     file_modification_time = get_file_modification_time(path,mode,caller_class,error_class)
@@ -23,7 +27,7 @@ def close_fst(file_id:int, file:str,caller_class:str):
     logger.info(caller_class + ' - closing file %s', file)
     rmn.fstcloseall(file_id)
 
-def parallel_get_records_from_file(files, get_records_func, n_cores=1):
+def parallel_get_records_from_file(files, get_records_func, n_cores):
     # Step 1: Init multiprocessing.Pool()
     pool = mp.Pool(n_cores)
     record_list = pool.starmap(get_records_func, [file for file in files])
@@ -98,74 +102,7 @@ def get_all_record_keys(file_id, subset):
         keys = rmn.fstinl(file_id)
     return keys  
 
-# def get_records(keys,load_data):
-#     # from .std_dec import create_grid_identifier,decode_metadata
-#     records = []    
-#     if load_data:
-#         for k in keys:
-#             record = rmn.fstprm(k)
-#             if record['dltf'] == 1:
-#                 continue
-#             del record['dltf']
-#             record = rmn.fstluk(k)
-#             # if array_container == 'dask.array':
-#             #     record['d'] = da.from_array(record['d'])
-#             # record['fstinl_params'] = None
-#             # #del record['key']
-#             # strip_string_values(record)
-#             # #create a grid identifier for each record
-#             # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
-#             # remove_extra_keys(record)
 
-#             # if decode:
-#             #     record['stacked'] = False
-#             #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
-#             records.append(record)
-#     else:    
-#         for k in keys:
-#             record = rmn.fstprm(k)
-#             if record['dltf'] == 1:
-#                 continue
-#             del record['dltf']
-#             # record['fstinl_params'] = {
-#             #     'datev':record['datev'],
-#             #     'etiket':record['etiket'],
-#             #     'ip1':record['ip1'],
-#             #     'ip2':record['ip2'],
-#             #     'ip3':record['ip3'],
-#             #     'typvar':record['typvar'],
-#             #     'nomvar':record['nomvar']
-#             # }
-#             # key  = record['key']
-#             # def read_record(array_container,key):
-#             #     if array_container == 'dask.array':
-#             #         return da.from_array(rmn.fstluk(key)['d'])
-#             #     elif array_container == 'numpy':
-#             #         return rmn.fstluk(key)['d']
-            
-#             # record['d'] = (read_record,array_container,key)
-
-#             # #del record['key'] #i don't know if we need
-#             # strip_string_values(record)
-#             # #create a grid identifier for each record
-#             # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
-#             # remove_extra_keys(record)
-
-#             # if decode:
-#             #     record['stacked'] = False
-#             #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
-
-#             records.append(record)
-
-#         # if decode:    
-#         #     records = parallelize_records(records,massage_and_decode_record)
-#         #     # for i in range(len(records)):
-#         #     #     records[i] = massage_and_decode_record(records[i])
-#         # else:
-#         #     records = parallelize_records(records,massage_record)        
-#             # for i in range(len(records)):
-#             #     records[i] = massage_record(records[i])
-#     return records   
 
 def read_record(array_container,key):
     if array_container == 'dask.array':
@@ -320,11 +257,81 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
     file_modification_time = get_file_modification_time(path,mode,caller, error_class)
     if df_file_modification_time != file_modification_time:
         raise error_class(caller + ' - original file has been modified since the start of the operation, keys might be invalid - exiting!')
+
+
+    
 #df_file_modification_time = df.iloc[0]['file_modification_time']
 
 
 
+# def get_records(keys,load_data):
+#     # from .std_dec import create_grid_identifier,decode_metadata
+#     records = []    
+#     if load_data:
+#         for k in keys:
+#             record = rmn.fstprm(k)
+#             if record['dltf'] == 1:
+#                 continue
+#             del record['dltf']
+#             record = rmn.fstluk(k)
+#             # if array_container == 'dask.array':
+#             #     record['d'] = da.from_array(record['d'])
+#             # record['fstinl_params'] = None
+#             # #del record['key']
+#             # strip_string_values(record)
+#             # #create a grid identifier for each record
+#             # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+#             # remove_extra_keys(record)
 
+#             # if decode:
+#             #     record['stacked'] = False
+#             #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+#             records.append(record)
+#     else:    
+#         for k in keys:
+#             record = rmn.fstprm(k)
+#             if record['dltf'] == 1:
+#                 continue
+#             del record['dltf']
+#             # record['fstinl_params'] = {
+#             #     'datev':record['datev'],
+#             #     'etiket':record['etiket'],
+#             #     'ip1':record['ip1'],
+#             #     'ip2':record['ip2'],
+#             #     'ip3':record['ip3'],
+#             #     'typvar':record['typvar'],
+#             #     'nomvar':record['nomvar']
+#             # }
+#             # key  = record['key']
+#             # def read_record(array_container,key):
+#             #     if array_container == 'dask.array':
+#             #         return da.from_array(rmn.fstluk(key)['d'])
+#             #     elif array_container == 'numpy':
+#             #         return rmn.fstluk(key)['d']
+            
+#             # record['d'] = (read_record,array_container,key)
+
+#             # #del record['key'] #i don't know if we need
+#             # strip_string_values(record)
+#             # #create a grid identifier for each record
+#             # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+#             # remove_extra_keys(record)
+
+#             # if decode:
+#             #     record['stacked'] = False
+#             #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
+
+#             records.append(record)
+
+#         # if decode:    
+#         #     records = parallelize_records(records,massage_and_decode_record)
+#         #     # for i in range(len(records)):
+#         #     #     records[i] = massage_and_decode_record(records[i])
+#         # else:
+#         #     records = parallelize_records(records,massage_record)        
+#             # for i in range(len(records)):
+#             #     records[i] = massage_record(records[i])
+#     return records   
 
 
     # if dateo == 0:

@@ -1,51 +1,47 @@
 # -*- coding: utf-8 -*-
-from .dataframe import sort_dataframe
-from .exceptions import StandardFileWriterError
-from .logger_config import logger
-from .std_io import get_grid_metadata_fields,open_fst,close_fst
-from .std_reader import load_data
-from .utils import initializer, validate_df_not_empty
-import numpy as np
 import os
+
+import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
 
+from .dataframe import sort_dataframe
+from .exceptions import StandardFileWriterError
+from .logger_config import logger
+from .std_io import close_fst, get_grid_metadata_fields, open_fst
+from .std_reader import load_data
+from .utils import initializer, validate_df_not_empty
+
 
 class StandardFileWriter:
-    
-    """fst file writer  
 
-    :param filename: file to write to  
-    :type filename: str  
-    :param df: dataframe to write  
-    :type df: pd.DataFrame  
-    """
     @initializer
     def __init__(self, filename:str, df:pd.DataFrame, update_meta_only=False):
+        """Writes a standard file Dataframe to file. if no metada fields like ^^ and >> are found, 
+        an attempt will be made to load them from the original file so that they can be added to the output if not already present
 
-        #logger.info('StandardFileWriter %s' % filename)
+        :param filename: path of file to write to
+        :type filename: str
+        :param df: dataframe to write
+        :type df: pd.DataFrame
+        :param update_meta_only: if True and dataframe inputfile is the same as the output file, 
+        only the metadata will be updated. The actual data will not be loaded or modified, defaults to False
+        :type update_meta_only: bool, optional
+        """
         validate_df_not_empty(self.df,'StandardFileWriter',StandardFileWriterError)
         self.filename = os.path.abspath(self.filename)
        
     def to_fst(self):
+        """get the metadata fields if not already present and adds them to the dataframe. 
+        If not in update only mode, loads the actual data. opens the file writes the dataframe and closes.
+        """
         self.meta_df = get_grid_metadata_fields(self.df)
         if not self.meta_df.empty:
-            # int_df = pd.merge(self.meta_df, self.df, how ='inner', on =['ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
-            #     'nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp']) 
-
-            # if len(int_df.index) and (len(self.meta_df.index) != len(int_df.index)):
-            #     self.df = self.df[['file_modification_time','path','d','grtyp','key','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp']]
-            #     self.meta_df = self.meta_df[['file_modification_time','path','d','grtyp','key','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp']]
-            #     #self.df.drop(columns = 'fstinl_params',inplace=True,errors='ignore')
-            #     #self.meta_df.drop(columns='fstinl_params',inplace=True,errors='ignore')
-            #     # print(self.df.columns,self.df.dtypes)
-            #     # print(self.meta_df.columns,self.meta_df.dtypes)
-                self.df = pd.concat([self.df, self.meta_df])
-                self.df.drop_duplicates(subset=['file_modification_time','path','grtyp','key','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
+            self.df = pd.concat([self.df, self.meta_df])
+            self.df.drop_duplicates(subset=['file_modification_time','path','grtyp','key','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
         self.df.reset_index(drop=True,inplace=True)        
         if not self.update_meta_only:
             self.df = load_data(self.df)
-            
 
         self.file_id, self.file_modification_time = open_fst(self.filename, rmn.FST_RW, 'StandardFileWriter', StandardFileWriterError)
         self._write()
@@ -86,7 +82,6 @@ def identical_destination_and_record_path(record_path, filename):
     return record_path == filename
 
 def reshape_data_to_original_shape(df, i):
-    
     if df.at[i,'d'].shape != df.at[i,'shape']:
         #sys.stderr.write('difference detected between array shape and record metadata shape\n')
         df.at[i,'d'] = df.at[i,'d'].reshape(df.at[i,'shape'])
