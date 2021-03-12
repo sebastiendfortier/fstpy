@@ -410,6 +410,8 @@ def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
 def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False) -> bool:
     df1.sort_values(by=columns,inplace=True)
     df2.sort_values(by=columns,inplace=True)
+    print(df1.columns)
+    print(df2['datyp'])
     success = False
     pd.options.display.float_format = '{:0.6E}'.format
     # check if both df have records
@@ -426,9 +428,9 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
         df2 = remove_meta_data_fields(df2)
     # voir(df1)
     # voir(df2)    
-    for i in df1.index:
-        if df1.at[i,'d'].all() != df2.at[i,'d'].all():
-            print(df1.at[i,'d'][:10],df2.at[i,'d'][:10])
+    # for i in df1.index:
+    #     if df1.at[i,'d'].all() != df2.at[i,'d'].all():
+    #         print(df1.at[i,'d'][:10],df2.at[i,'d'][:10])
     #logger.debug('A',df1['d'][:100].to_string())
     #logger.debug('A',df1.loc[i])#[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']])
     #logger.debug('----------')
@@ -465,7 +467,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
         logger.error('B',df2[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].to_string())
         raise StandardFileError('fstcomp - no common df to compare')
     diff = common.copy()
-    voir(diff)
+    #voir(diff)
     diff = add_fstcomp_columns(diff)
     
     success = compute_fstcomp_stats(common, diff)

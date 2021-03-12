@@ -19,16 +19,29 @@ from .std_dec import (convert_rmndate_to_datetime, decode_ip,
 from .std_io import read_record
 
 
-def add_decoded_columns( df,decode_metadata,array_container='numpy'):
-    df = post_process_dataframe(df,decode_metadata)
+def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:str='numpy', attributes_to_decode:list=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']) -> pd.DataFrame:
+    """Adds basic and decoded columns to the dataframe. 
 
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :param decode_metadata: if true, decodes attributes specified in attributes_to_decode list 
+    :type decode_metadata: bool
+    :param array_container: array container, defaults to 'numpy'
+    :type array_container: str, optional
+    :param attributes_to_decode: attributes to decode, defaults to ['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']
+    :type attributes_to_decode: list, optional
+    :return: dataframe with decoded columns
+    :rtype: pd.DataFrame
+    """
+    df = post_process_dataframe(df,decode_metadata,attributes_to_decode)
+    
     #df = add_composite_columns(df,decode_metadata,array_container)
-    df = parallel_add_composite_columns_tr(df,decode_metadata,array_container,n_cores=min(mp.cpu_count(),len(df.index)))   
+    df = parallel_add_composite_columns_tr(df,decode_metadata,array_container,attributes_to_decode,n_cores=min(mp.cpu_count(),len(df.index)))   
     
     return df
 
-def clean_dataframe(df,decode_metadata):
-    df = convert_df_dtypes(df,decode_metadata)
+def clean_dataframe(df,decode_metadata,attributes_to_decode=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']):
+    df = convert_df_dtypes(df,decode_metadata,attributes_to_decode)
 
     df = reorder_columns(df)  
 
@@ -36,7 +49,7 @@ def clean_dataframe(df,decode_metadata):
     return df
 
 
-def add_composite_columns(df,decode,array_container):
+def add_composite_columns(df,decode,array_container, attributes_to_decode=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']):
     
     for i in df.index:            
         if not ((isinstance(df.at[i,'d'],np.ndarray)) or (isinstance(df.at[i,'d'],da.core.Array))):
@@ -49,26 +62,40 @@ def add_composite_columns(df,decode,array_container):
             df.at[i,'grid'] = "".join([str(df.at[i,'ig1']),str(df.at[i,'ig2'])])
 
         if decode:
-            df['unit_converted'] = False
-            df['zapped'] = False
-            df['filtered'] = False
-            df['interpolated'] = False
-            df['unit_converted'] = False
-            df['bounded'] = False
-            df['ensemble_extra_info'] = False
-            df['multiple_modifications'] = False
-            df['vctype'] = ''
-            df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = parse_etiket(df.at[i,'etiket'])
-            df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
-            df.at[i,'date_of_observation'] = convert_rmndate_to_datetime(int(df.at[i,'dateo']))
-            df.at[i,'date_of_validity'] = convert_rmndate_to_datetime(int(df.at[i,'datev']))    
-            df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))         
-            df.at[i,'level'],df.at[i,'ip1_kind'],df.at[i,'ip1_pkind'] = decode_ip(int(df.at[i,'ip1']))
-            df.at[i,'ip2_dec'],df.at[i,'ip2_kind'],df.at[i,'ip2_pkind'] = decode_ip(int(df.at[i,'ip2']))
-            df.at[i,'ip3_dec'],df.at[i,'ip3_kind'],df.at[i,'ip3_pkind'] = decode_ip(int(df.at[i,'ip3']))
-            df.at[i,'data_type_str'] = DATYP_DICT[df.at[i,'datyp']]
-            df.at[i,'surface'] = is_surface(df.at[i,'ip1_kind'],df.at[i,'level'])
-            df.at[i,'follow_topography'] = level_type_follows_topography(df.at[i,'ip1_kind'])
+            if 'flags' in attributes_to_decode:
+                df['unit_converted'] = False
+                df['zapped'] = False
+                df['filtered'] = False
+                df['interpolated'] = False
+                df['bounded'] = False
+                df['ensemble_extra_info'] = False
+                df['multiple_modifications'] = False
+            if 'vctype' in attributes_to_decode:    
+                df['vctype'] = ''
+            if 'etiket' in attributes_to_decode:    
+                df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = parse_etiket(df.at[i,'etiket'])
+            if 'unit' in attributes_to_decode:
+                df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
+            if 'dateo' in attributes_to_decode:    
+                df.at[i,'date_of_observation'] = convert_rmndate_to_datetime(int(df.at[i,'dateo']))
+            if 'datev' in attributes_to_decode:
+                df.at[i,'date_of_validity'] = convert_rmndate_to_datetime(int(df.at[i,'datev']))    
+            if 'forecast_hour' in attributes_to_decode:    
+                df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))         
+            if 'ip1' in attributes_to_decode:
+                df.at[i,'level'],df.at[i,'ip1_kind'],df.at[i,'ip1_pkind'] = decode_ip(int(df.at[i,'ip1']))
+            if 'ip2' in attributes_to_decode:
+                df.at[i,'ip2_dec'],df.at[i,'ip2_kind'],df.at[i,'ip2_pkind'] = decode_ip(int(df.at[i,'ip2']))
+            if 'ip3' in attributes_to_decode:
+                df.at[i,'ip3_dec'],df.at[i,'ip3_kind'],df.at[i,'ip3_pkind'] = decode_ip(int(df.at[i,'ip3']))
+            if 'datyp' in attributes_to_decode:
+                df.at[i,'data_type_str'] = DATYP_DICT[df.at[i,'datyp']]
+            if 'level_info' in attributes_to_decode:    
+                df.at[i,'surface'] = is_surface(df.at[i,'ip1_kind'],df.at[i,'level'])
+                df.at[i,'follow_topography'] = level_type_follows_topography(df.at[i,'ip1_kind'])
+    if decode and ('ip1' in attributes_to_decode) and ('vctype' in attributes_to_decode):
+        df = set_vertical_coordinate_type(df)    
+    #print(df)    
     return df
 
 def add_unit_column(df):
@@ -84,32 +111,65 @@ def add_unit_column(df):
     
 def add_empty_columns(df, columns, init, dtype_str):
     for col in columns:
-        df.insert(len(df.columns),col,init)
-        df = df.astype({col:dtype_str})
+        if col not in df.columns:
+            df.insert(len(df.columns),col,init)
+            df = df.astype({col:dtype_str})
     return df         
 
-def post_process_dataframe(df,decode):
+def post_process_dataframe(df,decode,attributes_to_decode=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']):
     if 'dltf' in df.columns:
         df = df[df.dltf == 0]
     df.drop(columns=['swa', 'ubc','lng','xtra1','xtra2','xtra3','dltf'], inplace=True,errors='ignore')
     
-    df['nomvar'] = df['nomvar'].str.strip()
-    df['etiket'] = df['etiket'].str.strip()
-    df['typvar'] = df['typvar'].str.strip()
-    df['grtyp'] = df['grtyp'].str.strip()
+    if 'nomvar' in df.columns:
+        df['nomvar'] = df['nomvar'].str.strip()
+    
+    if 'etiket' in df.columns:    
+        df['etiket'] = df['etiket'].str.strip()
+    
+    if 'typvar' in df.columns:
+        df['typvar'] = df['typvar'].str.strip()
+
+    if 'grtyp' in df.columns:
+        df['grtyp'] = df['grtyp'].str.strip()
+        
     if 'd' not in df.columns:
         df['d']=None
+    #attributes_to_decode=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']    
     if decode:
-        df = add_empty_columns(df, ['data_type_str','description','ensemble_member','implementation','ip1_pkind','ip2_pkind','ip3_pkind','label','run','vctype','unit'],'', 'O')
-        df = add_empty_columns(df, ['follow_topography','surface','zapped','filtered','interpolated','unit_converted','bounded','ensemble_extra_info','multiple_modifications'], False, 'bool')
-        df = add_empty_columns(df, ['ip1_kind','ip2_kind','ip3_kind'], 0, 'int32')
-        df = add_empty_columns(df, ['level','ip2_dec','ip3_dec'], 0., 'float32')
-        for col in ['date_of_observation','date_of_validity','forecast_hour']:
-            df[col] = None
+        
+        if 'flags' in attributes_to_decode:
+            df = add_empty_columns(df, ['follow_topography','surface','zapped','filtered','interpolated','unit_converted','bounded','ensemble_extra_info','multiple_modifications'], False, 'bool')
+        if 'datyp' in attributes_to_decode:
+            df = add_empty_columns(df, ['data_type_str'],'', 'O')
+        if 'unit' in attributes_to_decode:
+            df = add_empty_columns(df, ['description','unit'],'', 'O')
+        if 'etiket' in attributes_to_decode:
+            df = add_empty_columns(df, ['ensemble_member','implementation','label','run'],'', 'O')
+        if 'vctype' in attributes_to_decode:
+            df = add_empty_columns(df, ['vctype'],'', 'O')
+        if 'ip1' in attributes_to_decode:
+            df = add_empty_columns(df, ['level'], 0., 'float32')
+            df = add_empty_columns(df, ['ip1_kind'], 0, 'int32')
+            df = add_empty_columns(df, ['ip1_pkind'],'', 'O')
+        if 'ip2' in attributes_to_decode:
+            df = add_empty_columns(df, ['ip2_dec'], 0., 'float32')
+            df = add_empty_columns(df, ['ip2_kind'], 0, 'int32')
+            df = add_empty_columns(df, ['ip2_pkind'],'', 'O')
+        if 'ip3' in attributes_to_decode:
+            df = add_empty_columns(df, ['ip3_dec'], 0., 'float32')
+            df = add_empty_columns(df, ['ip3_kind'], 0, 'int32')
+            df = add_empty_columns(df, ['ip3_pkind'],'', 'O')
+        if ('dateo' in attributes_to_decode) and ('date_of_observation' not in df.columns):    
+            df['date_of_observation'] = None
+        if ('datev' in attributes_to_decode) and ('date_of_validity' not in df.columns): 
+            df['date_of_validity'] = None       
+        if ('forecast_hour' in attributes_to_decode) and ('forecast_hour' not in df.columns): 
+            df['forecast_hour'] = None       
         
     return df
 
-def convert_df_dtypes(df,decoded):
+def convert_df_dtypes(df,decoded,attributes_to_decode=['ip1','ip2','ip3']):
     if not df.empty:
         if not decoded:    
             df = df.astype(
@@ -118,12 +178,17 @@ def convert_df_dtypes(df,decoded):
                 'dateo':'int32', 'datyp':'int32'}
                 )
         else:
+
             df = df.astype(
                 {'key':'int32','ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
                 'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32',
-                'dateo':'int32', 'datyp':'int32',
-                'level':'float32','ip1_kind':'int32','ip2_dec':'float32','ip2_kind':'int32','ip3_dec':'float32','ip3_kind':'int32'}
-                )
+                'dateo':'int32', 'datyp':'int32'})
+            if ('ip1' in attributes_to_decode) and ('level' in df.columns) and ('ip1_kind' in df.columns):
+                df = df.astype({'level':'float32','ip1_kind':'int32'})
+            if ('ip2' in attributes_to_decode) and ('ip2_dec' in df.columns) and ('ip2_kind' in df.columns):    
+                df = df.astype({'ip2_dec':'float32','ip2_kind':'int32'})
+            if ('ip3' in attributes_to_decode) and ('ip3_dec' in df.columns) and ('ip3_kind' in df.columns):    
+                df = df.astype({'ip3_dec':'float32','ip3_kind':'int32'})
               
     return df      
 
@@ -191,7 +256,17 @@ def meta_exists(grid, nomvar) -> bool:
     df = grid.query('nomvar=="%s"'%nomvar)
     return not df.empty
 
-def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove) -> pd.DataFrame:
+def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove:pd.DataFrame) -> pd.DataFrame:
+    """Removes a dataframe from another. 
+    As an example, if you selected a variable from a dataframe and want to remove it from the original dataframe.
+
+    :param df_to_remove_from: original dataframe we want to modify
+    :type df_to_remove_from: pd.DataFrame
+    :param df_to_remove: the dataframe containing records we want to remove
+    :type df_to_remove: pd.DataFrame
+    :return: the dataframe resulting in the removal of the other dataframes rows
+    :rtype: pd.DataFrame
+    """
     columns = df_to_remove.columns.values.tolist()
     columns.remove('d')
     #columns.remove('fstinl_params')
@@ -200,19 +275,30 @@ def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove) -> pd.DataFrame
     tmp_df.reset_index(inplace=True,drop=True) 
     return tmp_df
 
-def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
+def get_intersecting_levels(df:pd.DataFrame, nomvars:list) -> pd.DataFrame:
+    """Gets the records of all intersecting levels for nomvars in list.
+    if TT,UU and VV are in the list, the output dataframe will contain all 3 
+    varaibles at all the intersectiong levels between the 3 variables 
 
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :param nomvars: list of nomvars to select
+    :type nomvars: list
+    :raises StandardFileError: if a problem occurs this exception will be raised
+    :return: dataframe subset
+    :rtype: pd.DataFrame
+    """
     #logger.debug('1',df[['nomvar','surface','level','ip1_kind']])
-    if len(names)<=1:
-        logger.error('get_intersecting_levels - not enough names to process')
-        raise StandardFileError('not enough names to process')
-    firstdf = df.query( 'nomvar == "%s"' % names[0])
+    if len(nomvars)<=1:
+        logger.error('get_intersecting_levels - not enough nomvars to process')
+        raise StandardFileError('not enough nomvars to process')
+    firstdf = df.query( 'nomvar == "%s"' % nomvars[0])
     if df.empty:
         logger.error('get_intersecting_levels - no records to intersect')
         raise StandardFileError('get_intersecting_levels - no records to intersect')
     common_levels = set(firstdf.level.unique())
     query_strings = []
-    for name in names:
+    for name in nomvars:
         current_query = 'nomvar == "%s"' % name
         currdf = df.query('%s' % current_query)
         levels = set(currdf.level.unique())
@@ -225,23 +311,13 @@ def get_intersecting_levels(df:pd.DataFrame, names:list) -> pd.DataFrame:
         return
     return query_res    
 
-
-def parallel_add_composite_columns(df, decode_metadata, array_container, n_cores):
-    df_split = np.array_split(df, n_cores)
-    df_with_params = list(zip(df_split,itertools.repeat(decode_metadata),itertools.repeat(array_container)))
-    pool = Pool(n_cores)
-    df = pd.concat(pool.starmap(add_composite_columns, df_with_params))
-    pool.close()
-    pool.join()
-    return df
-
-def parallel_add_composite_columns_tr(df, decode_metadata, array_container, n_cores):
+def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attributes_to_decode,n_cores):
     dataframes = []
     df_split = np.array_split(df, n_cores)
     with concurrent.futures.ThreadPoolExecutor(max_workers=n_cores) as executor:
         # Start the load operations and mark each future with its URL
         #df,decode,array_container
-        future_to_df = {executor.submit(add_composite_columns, dfp, decode_metadata, array_container): dfp for dfp in df_split}
+        future_to_df = {executor.submit(add_composite_columns, dfp, decode_metadata, array_container, attributes_to_decode): dfp for dfp in df_split}
         for future in concurrent.futures.as_completed(future_to_df):
             dfp = future_to_df[future]
             try:
@@ -254,6 +330,15 @@ def parallel_add_composite_columns_tr(df, decode_metadata, array_container, n_co
     df = pd.concat(dataframes)
     df = sort_dataframe(df)
     return df
+
+# def parallel_add_composite_columns(df, decode_metadata, array_container, n_cores):
+#     df_split = np.array_split(df, n_cores)
+#     df_with_params = list(zip(df_split,itertools.repeat(decode_metadata),itertools.repeat(array_container)))
+#     pool = mp.Pool(n_cores)
+#     df = pd.concat(pool.starmap(add_composite_columns, df_with_params))
+#     pool.close()
+#     pool.join()
+#     return df
 
 # def create_dataframe(file,decode_metadata,load_data,subset) -> pd.DataFrame:
 #     path = os.path.abspath(file)

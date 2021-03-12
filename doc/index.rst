@@ -41,6 +41,7 @@ Documentation
 * :doc:`std_writer`
 * :doc:`std_dec`
 * :doc:`std_enc`
+* :doc:`dataframe`
 * :doc:`dataframe_utils`
 * :doc:`utils`
 
@@ -53,6 +54,7 @@ Documentation
    std_writer
    std_dec
    std_enc
+   dataframe
    dataframe_utils
    utils
 

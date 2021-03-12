@@ -14,20 +14,20 @@ from .utils import initializer, validate_df_not_empty
 
 
 class StandardFileWriter:
+    """Writes a standard file Dataframe to file. if no metada fields like ^^ and >> are found, 
+    an attempt will be made to load them from the original file so that they can be added to the output if not already present
 
+    :param filename: path of file to write to
+    :type filename: str
+    :param df: dataframe to write
+    :type df: pd.DataFrame
+    :param update_meta_only: if True and dataframe inputfile is the same as the output file, 
+    only the metadata will be updated. The actual data will not be loaded or modified, defaults to False
+    :type update_meta_only: bool, optional
+    """
     @initializer
     def __init__(self, filename:str, df:pd.DataFrame, update_meta_only=False):
-        """Writes a standard file Dataframe to file. if no metada fields like ^^ and >> are found, 
-        an attempt will be made to load them from the original file so that they can be added to the output if not already present
 
-        :param filename: path of file to write to
-        :type filename: str
-        :param df: dataframe to write
-        :type df: pd.DataFrame
-        :param update_meta_only: if True and dataframe inputfile is the same as the output file, 
-        only the metadata will be updated. The actual data will not be loaded or modified, defaults to False
-        :type update_meta_only: bool, optional
-        """
         validate_df_not_empty(self.df,'StandardFileWriter',StandardFileWriterError)
         self.filename = os.path.abspath(self.filename)
        
