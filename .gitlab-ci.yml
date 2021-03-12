@@ -40,7 +40,7 @@ make_doc:
     - cd doc
     - make clean
     - make html
-  artefacts:
+  artifacts:
     paths:
       - doc/_build/html
 
