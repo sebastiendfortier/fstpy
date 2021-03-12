@@ -4,7 +4,7 @@ stages:
   - run_regtests
   - make_doc
   - ssm_package
-  - install
+  - install_doc
 
 
 # default:
