@@ -1,13 +1,5 @@
-variables:
-  build_dir: /home/sgci800/cache/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}/fstpy-build-release
-  install_dir: /home/sgci800/cache/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}/fstpy-install-site
-  JOB_CPUS: "20"
-  JOB_CHUNKS: "1"
-  JOB_MEMORY: "10G"
-  JOB_TMPFS: "8G"
 
 stages:
-  - configure
   - run_unittest
   - run_regtests
   - make_doc
@@ -24,57 +16,44 @@ before_script:
   - . /fs/ssm/main/env/ordenv-boot-20201118.sh
   - export EC_ATOMIC_PROFILE_VERSION=1.12.0
   - . /fs/ssm/eccc/mrd/ordenv/profile/check_profile_1.0.0
-  -
   - . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
-  - 
   - . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
-  -
   - . activate fstpy_dev_env
-  - 
-  - echo "JOB_CHUNKS=$JOB_CHUNKS"
-  - echo "JOB_MEMORY=$JOB_MEMORY"
-  - echo "JOB_TMPFS=$JOB_TMPFS"
 
-configure:
-  stage: configure
-  script:
-    - echo ${install_dir}
-    - echo ${build_dir}
-    - if [ -d ${build_dir} ] ; then echo "Build directory ${build_dir} already exists"; exit 1; fi
-    - mkdir -p ${build_dir}
-    - cd ${build_dir}
 
 run_unittest:
   stage: run_unittest
   script:
-    - cd ${build_dir}/test    
+    - cd test    
     - python -m pytest -m unit_tests 
     
 
 run_regtests:
   stage: run_regtests
   script:
-    - cd ${build_dir}/test
+    - cd test
     - python -m pytest -m regressions
 
 make_doc:
   stage: make_doc
   script:
-    - cd ${build_dir}/doc
+    - cd doc
     - make clean
     - make html
+  artefacts:
+    paths:
+      - doc/_build/html
 
 ssm_package:
   stage: ssm_package
   script:
-    - cd ${build_dir}/misc/ssm
+    - cd misc/ssm
     - make_ssm_package.sh
 
 install_doc:
   stage: install_doc
   script:
-    - mkdir -p ${install_dir}
-    - cd ${build_dir}/doc/_build/html
+    - cd doc/_build/html
     - rm -rf ~sbf000/public_html/fstpy/latest/*
     - cp -r * ~sbf000/public_html/fstpy/latest/.
 
