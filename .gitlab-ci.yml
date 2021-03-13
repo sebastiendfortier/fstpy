@@ -31,7 +31,7 @@ before_script:
 
 
 run_unittest: 
-  stage: run_unittest
+  stage: run_unittest 
   script:
     - source activate fstpy_jupyter_env
     - cd test    
@@ -41,7 +41,7 @@ run_unittest:
 run_regtests:
   stage: run_regtests
   script:
-    - set -e
+    - source activate fstpy_jupyter_env
     - cd test
     - /home/sbf000/.conda/envs/fstpy_jupyter_env/bin/python -m pytest -m regressions
 
