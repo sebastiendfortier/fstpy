@@ -27,13 +27,13 @@ before_script:
   - . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
   - .  "/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/etc/profile.d/conda.sh"
   - export PATH="/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/bin:$PATH"
-  - source activate fstpy_dev_env
   - set -e
 
 
 run_unittest:
   stage: run_unittest
   script:
+    - . activate fstpy_dev_env
     - cd test    
     - python -m pytest -m unit_tests 
     
