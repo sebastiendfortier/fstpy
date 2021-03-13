@@ -16,34 +16,30 @@ stages:
 # default:
 # when 'default' becomes supported, uncomment the above line, delete this line, and indent the before_script part.
 before_script:
-  - set +e
   - export ORDENV_SITE_PROFILE=20200724
   - export ORDENV_COMM_PROFILE=eccc/20200724
   - export ORDENV_GROUP_PROFILE=eccc/cmc/1.9.3
   - . /fs/ssm/main/env/ordenv-boot-20201118.sh
   - export EC_ATOMIC_PROFILE_VERSION=1.12.0
-  - . /fs/ssm/eccc/mrd/ordenv/profile/check_profile_1.0.0
   - . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
   - . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
   - .  "/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/etc/profile.d/conda.sh"
   - export PATH="/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/bin:$PATH"
-  - set -e  
+  - conda activate fstpy_jupyter_env
 
 
 run_unittest: 
   stage: run_unittest 
   script:
-    - source activate fstpy_jupyter_env
     - cd test    
-    - /home/sbf000/.conda/envs/fstpy_jupyter_env/bin/python -m pytest -m unit_tests 
+    - python -m pytest -m unit_tests 
     
 
 run_regtests:
   stage: run_regtests
   script:
-    - source activate fstpy_jupyter_env
     - cd test
-    - /home/sbf000/.conda/envs/fstpy_jupyter_env/bin/python -m pytest -m regressions
+    - python -m pytest -m regressions
 
 make_doc:
   stage: make_doc
