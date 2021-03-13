@@ -31,7 +31,7 @@ before_script:
   
 
 
-run_unittest:
+run_unittest: 
   stage: run_unittest
   script:
     - source activate fstpy_jupyter_env
