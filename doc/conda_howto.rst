@@ -20,14 +20,14 @@ create an environment
 
 .. code:: bash
 
-   conda create --name fstpy_dev_env python=3.6
+   conda create --name fstpy_dev python=3.6
 
 activate an environment
 -----------------------
 
 .. code:: bash
 
-   . activate fstpy_dev_env
+   . activate fstpy_dev
 
 install stuff in the env
 ------------------------
@@ -61,7 +61,7 @@ deleting the env
 
 .. code:: bash
 
-   conda env remove --name fstpy_dev_env
+   conda env remove --name fstpy_dev
 
 list all envs
 -------------

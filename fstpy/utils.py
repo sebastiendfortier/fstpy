@@ -38,7 +38,7 @@ def initializer(func):
     return wrapper
 
 def delete_file(my_file:str):
-    """delete a file bay path
+    """delete a file by path
 
     :param my_file: path to file to delete
     :type my_file: str

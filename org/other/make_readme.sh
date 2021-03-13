@@ -1,3 +1,3 @@
 #!/bin/bash
 
-/home/sbf000/.conda/envs/fstpy_dev_env/bin/pandoc -f org -t gfm README.org -o README.md
+/home/sbf000/.conda/envs/fstpy_dev/bin/pandoc -f org -t gfm README.org -o README.md

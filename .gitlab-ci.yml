@@ -3,6 +3,8 @@ variables:
   ORD_SOUMET_CPUS: "20"
   ORD_SOUMET_CM: "20G"
   ORD_SOUMET_TMPFS: "10G"
+  CONDA_ENV: "fstpy_dev"
+  FSTPY_DOC_DIR: "/home/sbf000/public_html/fstpy/latest/"
     
 
 stages:
@@ -25,22 +27,22 @@ before_script:
   - . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
   - .  "/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/etc/profile.d/conda.sh"
   - export PATH="/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/bin:$PATH"
-  - alias python='/home/sbf000/.conda/envs/fstpy_jupyter_env/bin/python'
-  - export CONDA_PREFIX=/home/sbf000/.conda/envs/fstpy_jupyter_env
-  - export PROJ_LIB=/home/sbf000/.conda/envs/fstpy_jupyter_env/share/proj
-  - export PATH=/home/sbf000/.conda/envs/fstpy_jupyter_env/bin:$PATH
+  - export CONDA_PREFIX=/home/sbf000/.conda/envs/${CONDA_ENV}
+  - export PROJ_LIB=/home/sbf000/.conda/envs/${CONDA_ENV}/share/proj
+  - export PATH=/home/sbf000/.conda/envs/${CONDA_ENV}/bin:$PATH
+
 run_unittest: 
   stage: run_unittest 
   script:
     - cd test    
-    - python -m pytest -m unit_tests 
+    - python -m pytest -n ${ORD_SOUMET_CPUS} -m unit_tests 
     
 
 run_regtests:
   stage: run_regtests
   script:
     - cd test
-    - python -m pytest -m regressions
+    - python -m pytest -n ${ORD_SOUMET_CPUS} -m regressions
 
 make_doc:
   stage: make_doc
@@ -62,8 +64,8 @@ install_doc:
   stage: install_doc
   script:
     - cd doc/_build/html
-    - rm -rf ~sbf000/public_html/fstpy/latest/*
-    - cp -r * ~sbf000/public_html/fstpy/latest/.
+    - rm -rf ${FSTPY_DOC_DIR}*
+    - cp -r * ${FSTPY_DOC_DIR}.
 
 
 

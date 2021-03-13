@@ -12,12 +12,12 @@
 
 ** create an environment
         #+BEGIN_SRC sh    
-            conda create --name fstpy_dev_env python=3.6
+            conda create --name fstpy_dev python=3.6
         #+END_SRC
 
 ** activate an environment
         #+BEGIN_SRC sh
-            . activate fstpy_dev_env
+            . activate fstpy_dev
         #+END_SRC
 
 ** install stuff in the env
@@ -26,14 +26,14 @@
             conda install -c conda-forge sphinx-gallery
             conda install -c conda-forge sphinx_rtd_theme
             conda install ipykernel
-            conda install jupyter-lab
+            conda install jupyterlab
             conda install numpy pandas dask xarray pytest
             conda install sphinx
         #+END_SRC
 
 ** export env to file
         #+BEGIN_SRC sh
-            conda env export > environment.yaml
+            conda env export > fstpy_dev.yaml
         #+END_SRC
     
 ** deactivate the env
@@ -43,7 +43,7 @@
     
 ** deleting the env
         #+BEGIN_SRC sh
-            conda env remove --name fstpy_dev_env
+            conda env remove --name fstpy_dev
         #+END_SRC
 
 ** list all envs
@@ -53,5 +53,5 @@
 
 ** recreate the env from yml specs
         #+BEGIN_SRC sh
-            conda env create --file environment.yaml
+            conda env create --file fstpy_dev.yaml
         #+END_SRC
