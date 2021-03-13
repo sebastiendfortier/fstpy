@@ -35,22 +35,19 @@ after_script:
 run_unittest:
   stage: run_unittest
   script:
-    - source activate fstpy_dev_env
     - cd test    
-    - python -m pytest -m unit_tests 
+    - /home/sbf000/.conda/envs/fstpy_dev_env/bin/python -m pytest -m unit_tests 
     
 
 run_regtests:
   stage: run_regtests
   script:
-    - source activate fstpy_dev_env
     - cd test
-    - python -m pytest -m regressions
+    - /home/sbf000/.conda/envs/fstpy_dev_env/bin/python -m pytest -m regressions
 
 make_doc:
   stage: make_doc
   script:
-    - source activate fstpy_dev_env
     - cd doc
     - make clean
     - make html
