@@ -1,3 +1,7 @@
+.. raw:: org
+
+   #+TITLE_: RELEASE
+
 Release History
 ===============
 

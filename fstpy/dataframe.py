@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 import concurrent.futures
 import datetime
-import itertools
 import multiprocessing as mp
 
 import dask.array as da
 import numpy as np
 import pandas as pd
-
-from fstpy import DATYP_DICT, VCTYPES
 
 # from .dataframe_utils import add_empty_columns
 from .exceptions import StandardFileError
@@ -50,7 +47,7 @@ def clean_dataframe(df,decode_metadata,attributes_to_decode=['flags','etiket','v
 
 
 def add_composite_columns(df,decode,array_container, attributes_to_decode=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']):
-    
+    from fstpy import DATYP_DICT    
     for i in df.index:            
         if not ((isinstance(df.at[i,'d'],np.ndarray)) or (isinstance(df.at[i,'d'],da.core.Array))):
             df.at[i,'d'] = (read_record,array_container,int(df.at[i,'key']))
@@ -214,6 +211,7 @@ def sort_dataframe(df) -> pd.DataFrame:
     return df    
 
 def set_vertical_coordinate_type(df) -> pd.DataFrame:
+    from fstpy import VCTYPES
     newdfs=[]
     grid_groups = df.groupby(df.grid)
     for _, grid in grid_groups:
