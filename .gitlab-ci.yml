@@ -26,8 +26,9 @@ before_script:
   - .  "/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/etc/profile.d/conda.sh"
   - export PATH="/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/bin:$PATH"
   - alias python='/home/sbf000/.conda/envs/fstpy_jupyter_env/bin/python'
-
-
+  - export CONDA_PREFIX=/home/sbf000/.conda/envs/fstpy_jupyter_env
+  - export PROJ_LIB=/home/sbf000/.conda/envs/fstpy_jupyter_env/share/proj
+  - export PATH=/home/sbf000/.conda/envs/fstpy_jupyter_env/bin:$PATH
 run_unittest: 
   stage: run_unittest 
   script:
