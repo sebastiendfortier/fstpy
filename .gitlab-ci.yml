@@ -28,20 +28,22 @@ before_script:
   - . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
   - .  "/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/etc/profile.d/conda.sh"
   - export PATH="/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/bin:$PATH"
+  
 
 
 run_unittest:
   stage: run_unittest
   script:
+    - source activate fstpy_jupyter_env
     - cd test    
-    - /home/sbf000/.conda/envs/fstpy_dev_env/bin/python -m pytest -m unit_tests 
+    - /home/sbf000/.conda/envs/fstpy_jupyter_env/bin/python -m pytest -m unit_tests 
     
 
 run_regtests:
   stage: run_regtests
   script:
     - cd test
-    - /home/sbf000/.conda/envs/fstpy_dev_env/bin/python -m pytest -m regressions
+    - /home/sbf000/.conda/envs/fstpy_jupyter_env/bin/python -m pytest -m regressions
 
 make_doc:
   stage: make_doc
