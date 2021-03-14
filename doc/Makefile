@@ -16,10 +16,10 @@ help:
 insert_version:
 	@$(ORG_DIR)/convert_and_send_to_doc.sh 	
 
-rst:
+rst: insert_version
 	@$(ORG_DIR)/convert_and_send_to_doc.sh 
 
-readme:
+readme: insert_version
 	@$(ORG_DIR)/other/make_readme.sh
 
 doc: clean rst readme html
