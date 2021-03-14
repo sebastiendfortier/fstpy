@@ -13,6 +13,9 @@ ORG_DIR       = ../org
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
+insert_version:
+	@$(ORG_DIR)/convert_and_send_to_doc.sh 	
+
 rst:
 	@$(ORG_DIR)/convert_and_send_to_doc.sh 
 
