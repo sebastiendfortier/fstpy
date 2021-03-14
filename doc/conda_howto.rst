@@ -38,7 +38,7 @@ install stuff in the env
    conda install -c conda-forge sphinx-gallery
    conda install -c conda-forge sphinx_rtd_theme
    conda install ipykernel
-   conda install jupyter-lab
+   conda install jupyterlab
    conda install numpy pandas dask xarray pytest
    conda install sphinx
 
@@ -47,7 +47,7 @@ export env to file
 
 .. code:: bash
 
-   conda env export > environment.yaml
+   conda env export > fstpy_dev.yaml
 
 deactivate the env
 ------------------
@@ -75,4 +75,4 @@ recreate the env from yml specs
 
 .. code:: bash
 
-   conda env create --file environment.yaml
+   conda env create --file fstpy_dev.yaml

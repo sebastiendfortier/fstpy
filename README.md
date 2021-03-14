@@ -11,7 +11,7 @@ reads and writes. All other operations and algorithms can be
 independent.
 
 Fstpy philosophy
------------------
+----------------
 
 The idea of ​​using a dataframe is to have a pythonic way of working
 with standard files without having to know the mechanics of rmnlib.
@@ -138,7 +138,7 @@ Getting the source code
 -----------------------
 
 ``` bash
-git clone git@gitlab.science.gc.ca:sbf000/fstpy.git
+git clone git@gitlab.science.gc.ca:cmds/fstpy.git
 # create a new branch
 git checkout -b my_change
 # modify the code
@@ -152,7 +152,7 @@ git push origin my_change
 ```
 
 Then create a merge request on science's gitlab
-<https://gitlab.science.gc.ca/sbf000/fstpy/merge_requests>
+<https://gitlab.science.gc.ca/cmds/fstpy/merge_requests>
 
 Testing
 -------
@@ -210,7 +210,7 @@ conda install -c conda-forge sphinx-autodoc-typehints
 conda install -c conda-forge sphinx-gallery
 conda install -c conda-forge sphinx_rtd_theme
 conda install ipykernel
-conda install jupyter-lab
+conda install jupyterlab
 conda install numpy pandas dask xarray pytest
 conda install sphinx
 ```
@@ -219,7 +219,7 @@ export env to file
 ------------------
 
 ``` bash
-conda env export > environment.yaml
+conda env export > fstpy_dev.yaml
 ```
 
 deactivate the env
@@ -247,7 +247,7 @@ recreate the env from yml specs
 -------------------------------
 
 ``` bash
-conda env create --file environment.yaml
+conda env create --file fstpy_dev.yaml
 ```
 
 Acknowledgements

@@ -7,10 +7,19 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = _build
+ORG_DIR       = ../org
 
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+rst:
+	@$(ORG_DIR)/convert_and_send_to_doc.sh 
+
+readme:
+	@$(ORG_DIR)/other/make_readme.sh
+
+doc: clean rst readme html
 
 .PHONY: help Makefile
 

@@ -29,7 +29,7 @@ Getting the source code
 
 .. code:: bash
 
-   git clone git@gitlab.science.gc.ca:sbf000/fstpy.git
+   git clone git@gitlab.science.gc.ca:cmds/fstpy.git
    # create a new branch
    git checkout -b my_change
    # modify the code
@@ -42,7 +42,7 @@ Getting the source code
    git push origin my_change
 
 Then create a merge request on science's gitlab
-https://gitlab.science.gc.ca/sbf000/fstpy/merge_requests
+https://gitlab.science.gc.ca/cmds/fstpy/merge_requests
 
 Testing
 -------

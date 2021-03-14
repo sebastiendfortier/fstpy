@@ -1,7 +1,7 @@
 Project gitlab
 ==============
 
-https://gitlab.science.gc.ca/sbf000/fstpy/
+https://gitlab.science.gc.ca/cmds/fstpy/
 
 Distributed under the GNU General Public License v3.0 license. See
 **LICENSE** for more information.

@@ -11,8 +11,8 @@ stages:
   - run_unittest
   - run_regtests
   - make_doc
-  - ssm_package
   - install_doc
+  - ssm_package
 
 
 # default:
@@ -48,11 +48,18 @@ make_doc:
   stage: make_doc
   script:
     - cd doc
-    - make clean
-    - make html
+    - make doc
   artifacts:
     paths:
       - doc/_build/html
+
+      
+install_doc:
+  stage: install_doc
+  script:
+    - cd doc/_build/html
+    - rm -rf ${FSTPY_DOC_DIR}*
+    - cp -r * ${FSTPY_DOC_DIR}.
 
 ssm_package:
   stage: ssm_package
@@ -60,12 +67,6 @@ ssm_package:
     - cd misc/ssm
     - ./make_package.sh
 
-install_doc:
-  stage: install_doc
-  script:
-    - cd doc/_build/html
-    - rm -rf ${FSTPY_DOC_DIR}*
-    - cp -r * ${FSTPY_DOC_DIR}.
 
 
 
