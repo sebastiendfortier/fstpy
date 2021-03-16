@@ -25,11 +25,10 @@ before_script:
   - export EC_ATOMIC_PROFILE_VERSION=1.12.0
   - . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
   - .  "/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/etc/profile.d/conda.sh"
-  # - export PATH="/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/bin:$PATH"
-  # - export CONDA_PREFIX=/home/sbf000/.conda/envs/${CONDA_ENV}
-  # - export PROJ_LIB=/home/sbf000/.conda/envs/${CONDA_ENV}/share/proj
-  # - export PATH=/home/sbf000/.conda/envs/${CONDA_ENV}/bin:$PATH
-  - . activate ${CONDA_ENV}
+  - export PATH="/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/bin:$PATH"
+  - export CONDA_PREFIX=/home/sbf000/.conda/envs/${CONDA_ENV}
+  - export PROJ_LIB=/home/sbf000/.conda/envs/${CONDA_ENV}/share/proj
+  - export PATH=/home/sbf000/.conda/envs/${CONDA_ENV}/bin:$PATH
 
 run_unittest: 
   stage: run_unittest 
