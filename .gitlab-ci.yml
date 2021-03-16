@@ -51,7 +51,7 @@ make_doc:
     - make doc
   artifacts:
     paths:
-      - doc/_build/html
+      - doc/_build/html 
 
       
 install_doc:
