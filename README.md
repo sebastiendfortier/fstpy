@@ -11,7 +11,7 @@ reads and writes. All other operations and algorithms can be
 independent.
 
 Fstpy philosophy
------------------
+----------------
 
 The idea of ​​using a dataframe is to have a pythonic way of working
 with standard files without having to know the mechanics of rmnlib.
@@ -68,7 +68,7 @@ Installation
 
 Use the ssm package
 
-    . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.2 
+    . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.3
 
 Using fstpy in scripts or Jupyter Lab/Notebook
 ----------------------------------------------
@@ -81,7 +81,7 @@ Using fstpy in scripts or Jupyter Lab/Notebook
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
-. ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.2      
+. ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.3      
 ```
 
 ### use fstpy
@@ -132,13 +132,15 @@ conda install -c conda-forge sphinx-autodoc-typehints
 conda install -c conda-forge sphinx-gallery
 conda install -c conda-forge sphinx_rtd_theme
 conda install numpy pandas dask xarray pytest
+# for a full jupyter developpement environment (fstpy_dev.yaml is located in project root)
+conda env create -f fstpy_dev.yaml
 ```
 
 Getting the source code
 -----------------------
 
 ``` bash
-git clone git@gitlab.science.gc.ca:sbf000/fstpy.git
+git clone git@gitlab.science.gc.ca:cmds/fstpy.git
 # create a new branch
 git checkout -b my_change
 # modify the code
@@ -152,7 +154,7 @@ git push origin my_change
 ```
 
 Then create a merge request on science's gitlab
-<https://gitlab.science.gc.ca/sbf000/fstpy/merge_requests>
+<https://gitlab.science.gc.ca/cmds/fstpy/merge_requests>
 
 Testing
 -------
@@ -171,8 +173,7 @@ Building documentation
 ``` bash
 # This will build documentation in docs/build and there you will find index.html 
 make clean    
-make html   
-sphinx-build source build 
+make doc
 ```
 
 Conda basics
@@ -192,14 +193,14 @@ create an environment
 ---------------------
 
 ``` bash
-conda create --name fstpy_dev_env python=3.6
+conda create --name fstpy_dev python=3.6
 ```
 
 activate an environment
 -----------------------
 
 ``` bash
-. activate fstpy_dev_env
+. activate fstpy_dev
 ```
 
 install stuff in the env
@@ -210,7 +211,7 @@ conda install -c conda-forge sphinx-autodoc-typehints
 conda install -c conda-forge sphinx-gallery
 conda install -c conda-forge sphinx_rtd_theme
 conda install ipykernel
-conda install jupyter-lab
+conda install jupyterlab
 conda install numpy pandas dask xarray pytest
 conda install sphinx
 ```
@@ -219,7 +220,7 @@ export env to file
 ------------------
 
 ``` bash
-conda env export > environment.yaml
+conda env export > fstpy_dev.yaml
 ```
 
 deactivate the env
@@ -233,7 +234,7 @@ deleting the env
 ----------------
 
 ``` bash
-conda env remove --name fstpy_dev_env
+conda env remove --name fstpy_dev
 ```
 
 list all envs
@@ -247,7 +248,7 @@ recreate the env from yml specs
 -------------------------------
 
 ``` bash
-conda env create --file environment.yaml
+conda env create --file fstpy_dev.yaml
 ```
 
 Acknowledgements

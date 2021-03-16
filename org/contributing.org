@@ -17,10 +17,12 @@
       conda install -c conda-forge sphinx-gallery
       conda install -c conda-forge sphinx_rtd_theme
       conda install numpy pandas dask xarray pytest
+      # for a full jupyter developpement environment (fstpy_dev.yaml is located in project root)
+      conda env create -f fstpy_dev.yaml
   #+END_SRC  
 ** Getting the source code
   #+BEGIN_SRC sh
-    git clone git@gitlab.science.gc.ca:sbf000/fstpy.git
+    git clone git@gitlab.science.gc.ca:cmds/fstpy.git
     # create a new branch
     git checkout -b my_change
     # modify the code
@@ -32,7 +34,7 @@
     # push your changes
     git push origin my_change
   #+END_SRC  
-  Then create a merge request on science's gitlab [[https://gitlab.science.gc.ca/sbf000/fstpy/merge_requests]]
+  Then create a merge request on science's gitlab [[https://gitlab.science.gc.ca/cmds/fstpy/merge_requests]]
 
 ** Testing
   #+BEGIN_SRC sh
@@ -47,6 +49,5 @@
   #+BEGIN_SRC sh
     # This will build documentation in docs/build and there you will find index.html 
     make clean    
-    make html   
-    sphinx-build source build 
+    make doc
   #+END_SRC     

@@ -35,11 +35,14 @@ class StandardFileWriter:
         """get the metadata fields if not already present and adds them to the dataframe. 
         If not in update only mode, loads the actual data. opens the file writes the dataframe and closes.
         """
+        
         self.meta_df = get_grid_metadata_fields(self.df)
+
         if not self.meta_df.empty:
             self.df = pd.concat([self.df, self.meta_df])
-            self.df.drop_duplicates(subset=['file_modification_time','path','grtyp','key','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
+            self.df.drop_duplicates(subset=['grtyp','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True,keep='first')
         self.df.reset_index(drop=True,inplace=True)        
+
         if not self.update_meta_only:
             self.df = load_data(self.df)
 

@@ -1,18 +1,18 @@
+
 variables:
-  build_dir: /home/sgci800/cache/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}/fstpy-build-release
-  install_dir: /home/sgci800/cache/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}/fstpy-install-site
-  JOB_CPUS: "20"
-  JOB_CHUNKS: "1"
-  JOB_MEMORY: "10G"
-  JOB_TMPFS: "8G"
+  ORD_SOUMET_CPUS: "20"
+  ORD_SOUMET_CM: "20G"
+  ORD_SOUMET_TMPFS: "10G"
+  CONDA_ENV: fstpy_dev
+  FSTPY_DOC_DIR: /home/sbf000/public_html/fstpy/latest/
+    
 
 stages:
-  - configure
   - run_unittest
   - run_regtests
   - make_doc
+  - install_doc
   - ssm_package
-  - install
 
 
 # default:
@@ -23,60 +23,50 @@ before_script:
   - export ORDENV_GROUP_PROFILE=eccc/cmc/1.9.3
   - . /fs/ssm/main/env/ordenv-boot-20201118.sh
   - export EC_ATOMIC_PROFILE_VERSION=1.12.0
-  - . /fs/ssm/eccc/mrd/ordenv/profile/check_profile_1.0.0
-  -
   - . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
-  - 
   - . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
-  -
-  - . activate fstpy_dev_env
-  - 
-  - echo "JOB_CHUNKS=$JOB_CHUNKS"
-  - echo "JOB_MEMORY=$JOB_MEMORY"
-  - echo "JOB_TMPFS=$JOB_TMPFS"
+  - .  "/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/etc/profile.d/conda.sh"
+  - export PATH="/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/bin:$PATH"
+  - export CONDA_PREFIX=/home/sbf000/.conda/envs/${CONDA_ENV}
+  - export PROJ_LIB=/home/sbf000/.conda/envs/${CONDA_ENV}/share/proj
+  - export PATH=/home/sbf000/.conda/envs/${CONDA_ENV}/bin:$PATH
 
-configure:
-  stage: configure
+run_unittest: 
+  stage: run_unittest 
   script:
-    - echo ${install_dir}
-    - echo ${build_dir}
-    - if [ -d ${build_dir} ] ; then echo "Build directory ${build_dir} already exists"; exit 1; fi
-    - mkdir -p ${build_dir}
-    - cd ${build_dir}
-
-run_unittest:
-  stage: run_unittest
-  script:
-    - cd ${build_dir}/test    
-    - python -m pytest -m unit_tests 
+    - cd test    
+    - python -m pytest -n ${ORD_SOUMET_CPUS} -m unit_tests 
     
 
 run_regtests:
   stage: run_regtests
   script:
-    - cd ${build_dir}/test
-    - python -m pytest -m regressions
+    - cd test
+    - python -m pytest -n ${ORD_SOUMET_CPUS} -m regressions
 
 make_doc:
   stage: make_doc
   script:
-    - cd ${build_dir}/doc
-    - make clean
-    - make html
+    - cd doc
+    - make doc
+  artifacts:
+    paths:
+      - doc/_build/html 
+
+      
+install_doc:
+  stage: install_doc
+  script:
+    - cd doc/_build/html
+    - rm -rf ${FSTPY_DOC_DIR}*
+    - cp -r * ${FSTPY_DOC_DIR}.
 
 ssm_package:
   stage: ssm_package
   script:
-    - cd ${build_dir}/misc/ssm
-    - make_ssm_package.sh
+    - cd misc/ssm
+    - ./make_package.sh
 
-install_doc:
-  stage: install_doc
-  script:
-    - mkdir -p ${install_dir}
-    - cd ${build_dir}/doc/_build/html
-    - rm -rf ~sbf000/public_html/fstpy/latest/*
-    - cp -r * ~sbf000/public_html/fstpy/latest/.
 
 
 

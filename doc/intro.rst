@@ -1,3 +1,7 @@
+.. raw:: org
+
+   #+TITLE_: INTRODUCTION
+
 Introduction
 ============
 
@@ -11,7 +15,7 @@ reads and writes. All other operations and algorithms can be
 independent.
 
 Fstpy philosophy
------------------
+----------------
 
 The idea of ​​using a dataframe is to have a pythonic way of working
 with standard files without having to know the mechanics of rmnlib.

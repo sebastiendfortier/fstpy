@@ -1,5 +1,10 @@
 #!/bin/bash
-VERSION=1.0.2
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+ROOT_DIR=${DIR:0:${#DIR}-8}
+cd ${DIR}
+VERSION=$(head -n 1 ${ROOT_DIR}VERSION)
+#echo ${VERSION}
 PKGNAME=fstpy_${VERSION}_ubuntu-18.04-skylake-64
 
 echo '{' > control.json

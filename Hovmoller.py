@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import fstpy
+import fstpy.all as fstpy
 import xarray as xr 
 import numpy as np
 import cartopy.crs as ccrs
