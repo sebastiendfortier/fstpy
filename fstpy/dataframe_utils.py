@@ -19,7 +19,7 @@ from .std_reader import StandardFileReader, load_data
 from .utils import validate_df_not_empty
 
 
-def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False) -> bool:
+def fstcomp(file1:str, file2:str, columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False) -> bool:
     """Utility used to compare the contents of two RPN standard files (record by record).
 
     :param file1: path to file 1
@@ -34,13 +34,13 @@ def fstcomp(file1:str, file2:str, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 
     :return: True if files are sufficiently similar else False
     :rtype: bool
     """
-    logger.info('fstcomp -A %s -B %s'%(file1,file2))
+    sys.stdout.write('fstcomp -A %s -B %s\n'%(file1,file2))
     import os
     if not os.path.exists(file1):
-        logger.error('fstcomp - %s does not exist' % file1)
+        sys.stderr.write('fstcomp - %s does not exist\n' % file1)
         raise StandardFileError('fstcomp - %s does not exist' % file1)
     if not os.path.exists(file2):
-        logger.error('fstcomp - %s does not exist' % file2)
+        sys.stderr.write('fstcomp - %s does not exist\n' % file2)
         raise StandardFileError('fstcomp - %s does not exist' % file2)    
     # open and read files
     df1 = StandardFileReader(file1,load_data=True).to_pandas()
@@ -72,7 +72,7 @@ def voir(df:pd.DataFrame,style=False):
         res_df = res_df.drop(columns=['datev','grid','run','implementation','ensemble_member','shape','key','d','path','file_modification_time','ip1_kind','ip2_dec','ip2_kind','ip2_pkind','ip3_dec','ip3_kind','ip3_pkind','date_of_observation','date_of_validity','forecast_hour','d'],errors='ignore')
 
     #logger.debug('    NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s) FORECASTHOUR      IP1        LEVEL        IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
-    sys.stdout.writelines(res_df.reset_index(drop=True).to_string(header=True))
+    sys.stdout.write('%s\n'%res_df.reset_index(drop=True).to_string(header=True))
 
 
 
@@ -92,7 +92,7 @@ def zap(df:pd.DataFrame, validate_keys=True,**kwargs:dict ) -> pd.DataFrame:
     if validate_zap_keys:
         validate_zap_keys(**kwargs)
 
-    logger.info('zap - ' + str(kwargs)[0:100] + '...')
+    sys.stdout.write('zap - %s...\n'% str(kwargs)[0:100])
 
     #res_df = create_load_data_info(df)
     res_df = df
@@ -103,7 +103,7 @@ def zap(df:pd.DataFrame, validate_keys=True,**kwargs:dict ) -> pd.DataFrame:
             res_df = zap_level(res_df,v,kwargs['ip1_kind'])
             continue
         elif (k == 'level') and ('ip1_kind' not in  kwargs.keys()):
-            logger.warning("zap - can't zap level without ip1_kind")
+            sys.stdout.write("zap - can't zap level without ip1_kind\n")
             continue
         if k == 'ip1':
             res_df = zap_ip1(res_df,v)
@@ -133,7 +133,7 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     :rtype: pd.DataFrame
     """
     
-    logger.info('fststat')
+    sys.stdout.write('fststat\n')
     pd.options.display.float_format = '{:0.6E}'.format
     validate_df_not_empty(df,'fststat',StandardFileError)
     df = load_data(df)
@@ -172,11 +172,11 @@ def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_fail=False, en
     :rtype: pd.DataFrame
     """
     # print a summay ry of query
-    #logger.info('select %s' % query_str[0:100])
+    #sys.stdout.write('select %s' % query_str[0:100])
     # warn if selecting by 'forecast_hour'
     if 'forecast_hour' in query_str:
-        logger.warning('select - selecting forecast_hour might not return expected results - it is a claculated value (forecast_hour = deet * npas / 3600.)')
-        logger.info('select - avalable forecast hours are %s' % list(df.forecast_hour.unique()))
+        sys.stdout.write('select - selecting forecast_hour might not return expected results - it is a claculated value (forecast_hour = deet * npas / 3600.)\n')
+        sys.stdout.write('select - avalable forecast hours are %s\n' % list(df.forecast_hour.unique()))
     if isinstance(engine,str):
         view = df.query(query_str,engine=engine)
         tmp_df = view.copy(deep=True)
@@ -187,7 +187,7 @@ def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_fail=False, en
         if no_fail:
             return pd.DataFrame(dtype=object)
         else:
-            logger.warning('select - no matching records for query %s' % query_str[0:200])
+            sys.stdout.write('select - no matching records for query %s\n' % query_str[0:200])
             raise SelectError('select - failed!')
     if exclude:
         columns = df.columns.values.tolist()
@@ -220,7 +220,7 @@ def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
 ##################################################################################################
 def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
     for meta in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]:
-        df = df[df.nomvar != meta]
+        df = df[df['nomvar'] != meta]
     return df
 
 
@@ -327,12 +327,12 @@ def validate_zap_keys(**kwargs):
     keys_to_modify = set(kwargs.keys())
     acceptable_keys = keys_to_modify.intersection(available_keys)
     if len(acceptable_keys) != len(keys_to_modify):
-        logger.warning("zap - can't find modifiable key in available keys. asked for %s in %s"%(keys_to_modify,available_keys))
+        sys.stdout.write("zap - can't find modifiable key in available keys. asked for %s in %s"%(keys_to_modify,available_keys))
         raise StandardFileError("zap - can't find modifiable key in available keys")
 
 def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
     
-    logger.warning('zap - changed ip1, triggers updating level and ip1_kind')
+    sys.stdout.write('zap - changed ip1, triggers updating level and ip1_kind\n')
     df.loc[:,'ip1'] = ip1_value
     level, ip1_kind, ip1_pkind = decode_ip(ip1_value)
     df.loc[:,'level'] = level
@@ -341,13 +341,13 @@ def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
     return df
 
 def zap_level(df:pd.DataFrame, level_value:float, ip1_kind_value:int) -> pd.DataFrame:
-    logger.warning('zap - changed level, triggers updating ip1')
+    sys.stdout.write('zap - changed level, triggers updating ip1\n')
     df['level'] = level_value
     df['ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, level_value, ip1_kind_value)
     return df
 
 def zap_ip1_kind(df:pd.DataFrame, ip1_kind_value:int) -> pd.DataFrame:
-    logger.warning('zap - changed ip1_kind, triggers updating ip1 and ip1_pkind')
+    sys.stdout.write('zap - changed ip1_kind, triggers updating ip1 and ip1_pkind\n')
     df['ip1_kind'] = ip1_kind_value
     df['ip1_pkind'] = KIND_DICT[int(ip1_kind_value)]
     for i in df.index:
@@ -355,7 +355,7 @@ def zap_ip1_kind(df:pd.DataFrame, ip1_kind_value:int) -> pd.DataFrame:
     return df
 
 def zap_pip1_kind(df:pd.DataFrame, ip1_pkind_value:str) -> pd.DataFrame:
-    logger.warning('zap - changed ip1_pkind, triggers updating ip1 and ip1_kind')
+    sys.stdout.write('zap - changed ip1_pkind, triggers updating ip1 and ip1_kind\n')
     df['ip1_pkind'] = ip1_pkind_value
     #invert ip1_kind dict
     PKIND_DICT = {v: k for k, v in KIND_DICT.items()}
@@ -365,7 +365,7 @@ def zap_pip1_kind(df:pd.DataFrame, ip1_pkind_value:str) -> pd.DataFrame:
     return df
 
 def zap_npas(df:pd.DataFrame, npas_value:int) -> pd.DataFrame:
-    logger.warning('zap - changed npas, triggers updating forecast_hour')
+    sys.stdout.write('zap - changed npas, triggers updating forecast_hour\n')
     df['npas'] = npas_value
     for i in df.index:
         df.at[i,'forecast_hour'] =  df.at[i,'deet'] * df.at[i,'npas'] / 3600.
@@ -374,7 +374,7 @@ def zap_npas(df:pd.DataFrame, npas_value:int) -> pd.DataFrame:
 
 
 def zap_forecast_hour(df:pd.DataFrame, forecast_hour_value:int) -> pd.DataFrame:
-    logger.warning('zap - changed forecast_hour, triggers updating npas')
+    sys.stdout.write('zap - changed forecast_hour, triggers updating npas\n')
     df['forecast_hour'] = forecast_hour_value
     df['ip2'] = np.floor(df['forecast_hour']).astype(int)
     for i in df.index:
@@ -400,32 +400,41 @@ def add_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
 
 
 def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
-    diff['etiket'] = diff['etiket_x']
+    #diff['etiket'] = diff['etiket_x']
     #diff['ip1_kind'] = diff['ip1_kind_x']
     #diff['ip2'] = diff['ip2_x']
     #diff['ip3'] = diff['ip3_x']
     diff.drop(columns=['abs_diff'], inplace=True,errors='ignore')
     return diff
 
-def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False) -> bool:
-    df1.sort_values(by=columns,inplace=True)
-    df2.sort_values(by=columns,inplace=True)
-    print(df1.columns)
-    print(df2['datyp'])
+def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar','etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False) -> bool:
+    columns_to_keep = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2',
+       'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3',
+       'ig4', 'datev', 'd']
+    df1 = df1[columns_to_keep]   
+    df2 = df2[columns_to_keep]   
+    #print(df1.columns)
+    #print(df2.columns)
+    df1 = df1.sort_values(by=columns)
+    df2 = df2.sort_values(by=columns)
+
     success = False
     pd.options.display.float_format = '{:0.6E}'.format
     # check if both df have records
     if df1.empty or df2.empty:
-        logger.error('you must supply files witch contain records')
+        sys.stderr.write('you must supply files witch contain records\n')
         if df1.empty:
-            logger.error('file 1 is empty')
+            sys.stderr.write('file 1 is empty\n')
         if df2.empty:
-            logger.error('file 2 is empty')
-        raise fstpy.StandardFileError('fstcomp - one of the files is empty')
+            sys.stderr.write('file 2 is empty\n')
+        raise fstpy.StandardFileError('fstcomp - one of the files is empty\n')
     # remove meta data {!!,>>,^^,P0,PT,HY,!!SF} from records to compare
+
     if exclude_meta:
         df1 = remove_meta_data_fields(df1)
         df2 = remove_meta_data_fields(df2)
+    # print(df1.to_string())
+    # print(df2.to_string())    
     # voir(df1)
     # voir(df2)    
     # for i in df1.index:
@@ -444,7 +453,9 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
         # logger.debug('B',df2[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())
         return True
     #create common fields
+
     common = pd.merge(df1, df2, how='inner', on=columns)
+    print(common)
     #Rows in df1 Which Are Not Available in df2
     common_with_1 = common.merge(df1, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
     #Rows in df2 Which Are Not Available in df1
@@ -454,17 +465,17 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     if len(common.index) != 0:
         if len(common_with_1.index) != 0:
             if print_unmatched:
-                logger.info('df in file 1 that were not found in file 2 - excluded from comparison')
-                logger.info(common_with_1.to_string())
+                sys.stdout.write('df in file 1 that were not found in file 2 - excluded from comparison\n')
+                sys.stdout.write('%s\n'%common_with_1.to_string())
         if len(common_with_2.index) != 0:
             if print_unmatched:
-                logger.info('df in file 2 that were not found in file 1 - excluded from comparison')
-                logger.info(common_with_2.to_string())
+                sys.stdout.write('df in file 2 that were not found in file 1 - excluded from comparison\n')
+                sys.stdout.write('%s\n'%common_with_2.to_string())
     else:
-        logger.error('fstcomp - no common df to compare')
-        logger.error('A',df1[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].to_string())
-        logger.error('----------')
-        logger.error('B',df2[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].to_string())
+        sys.stderr.write('fstcomp - no common df to compare\n')
+        sys.stderr.write('A %s\n'%df1[['nomvar', 'typvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].reset_index(drop=True).to_string())
+        sys.stderr.write('----------\n')
+        sys.stderr.write('B %s\n'%df2[['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].reset_index(drop=True).to_string())
         raise StandardFileError('fstcomp - no common df to compare')
     diff = common.copy()
     #voir(diff)
@@ -473,11 +484,11 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     success = compute_fstcomp_stats(common, diff)
     diff = del_fstcomp_columns(diff)
     if len(diff.index):
-        logger.info(diff[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'biais', 'e_max', 'e_moy','diff_percent']].to_string(formatters={'level': '{:,.6f}'.format,'diff_percent': '{:,.1f}%'.format}))
+        sys.stdout.write('%s\n'%diff[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'biais', 'e_max', 'e_moy','diff_percent']].to_string(formatters={'level': '{:,.6f}'.format,'diff_percent': '{:,.1f}%'.format}))
         #logger.debug(diff[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'bias', 'e_max', 'e_moy']].to_string())
     if len(missing.index):
-        logger.info('missing df')
-        logger.info(missing[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3']].to_string(header=False, formatters={'level': '{:,.6f}'.format}))
+        sys.stdout.write('missing df\n')
+        sys.stdout.write('%s\n'%missing[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3']].to_string(header=False, formatters={'level': '{:,.6f}'.format}))
         #logger.debug(missing[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3']].to_string(header=False))
     return success
 

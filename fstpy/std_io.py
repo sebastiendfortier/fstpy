@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import concurrent.futures
 import datetime
 import multiprocessing as mp
 import os.path
@@ -116,12 +115,8 @@ def strip_string_values(record):
     record['typvar'] = record['typvar'].strip()
 
 def remove_extra_keys(record):
-    del record['swa']
-    del record['ubc']
-    del record['lng']
-    del record['xtra1']
-    del record['xtra2']
-    del record['xtra3']
+    for k in ['swa','dltf','ubc','lng','xtra1','xtra2','xtra3']:
+        record.pop(k,None)
     
 def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
   
@@ -220,6 +215,7 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
               
     if len(meta_dfs):
         result = pd.concat(meta_dfs)
+        result = result.reset_index(drop=True)
         return result
     else:
         return pd.DataFrame(dtype=object)
@@ -240,6 +236,8 @@ def get_all_grid_metadata_fields_from_std_file(path):
     records=[]
     for key in keys:
         record = rmn.fstluk(key)
+        if record['dltf'] == 1:
+            continue
         #record['fstinl_params'] = None
         #del record['key']
         strip_string_values(record)
