@@ -68,7 +68,7 @@ Installation
 
 Use the ssm package
 
-    . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.2 
+    . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.3
 
 Using fstpy in scripts or Jupyter Lab/Notebook
 ----------------------------------------------
@@ -81,7 +81,7 @@ Using fstpy in scripts or Jupyter Lab/Notebook
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
-. ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.2      
+. ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.3      
 ```
 
 ### use fstpy
@@ -132,6 +132,8 @@ conda install -c conda-forge sphinx-autodoc-typehints
 conda install -c conda-forge sphinx-gallery
 conda install -c conda-forge sphinx_rtd_theme
 conda install numpy pandas dask xarray pytest
+# for a full jupyter developpement environment (fstpy_dev.yaml is located in project root)
+conda env create -f fstpy_dev.yaml
 ```
 
 Getting the source code
@@ -171,8 +173,7 @@ Building documentation
 ``` bash
 # This will build documentation in docs/build and there you will find index.html 
 make clean    
-make html   
-sphinx-build source build 
+make doc
 ```
 
 Conda basics

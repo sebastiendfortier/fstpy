@@ -13,16 +13,21 @@ ORG_DIR       = ../org
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-insert_version:
-	@$(ORG_DIR)/convert_and_send_to_doc.sh 	
 
-rst: insert_version
+insert_version:
+	@$(ORG_DIR)/insert_version.sh 	
+
+rst:
 	@$(ORG_DIR)/convert_and_send_to_doc.sh 
 
-readme: insert_version
+readme: 
 	@$(ORG_DIR)/other/make_readme.sh
 
-doc: clean rst readme html
+replace:
+	@$(ORG_DIR)/replace_modified_files.sh
+
+doc: 
+	make clean&&make insert_version&&make rst&&make readme&&make replace&&make html
 
 .PHONY: help Makefile
 

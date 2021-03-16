@@ -23,6 +23,8 @@ Creating the developpement environment
    conda install -c conda-forge sphinx-gallery
    conda install -c conda-forge sphinx_rtd_theme
    conda install numpy pandas dask xarray pytest
+   # for a full jupyter developpement environment (fstpy_dev.yaml is located in project root)
+   conda env create -f fstpy_dev.yaml
 
 Getting the source code
 -----------------------
@@ -62,5 +64,4 @@ Building documentation
 
    # This will build documentation in docs/build and there you will find index.html 
    make clean    
-   make html   
-   sphinx-build source build 
+   make doc
