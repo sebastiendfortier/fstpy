@@ -217,7 +217,20 @@ def get_temperature_converter(unit_from, unit_to):
       return converter 
    return no_conversion()
 
-def get_converter(unit_from, unit_to):
+def get_converter(unit_from:str, unit_to:str):
+   """Based on unit names contained in fstpy.all.UNITS database, 
+   attemps to provide the appropritae unit conversion function 
+   based on unit name and family. The returned function takes a value
+   and returns a value value_to = f(value_from). 
+
+   :param unit_from: unit name to convert from
+   :type unit_from: str
+   :param unit_to: unit name to convert to
+   :type unit_to: str
+   :raises UnitConversionError: Exception
+   :return: returns the unit conversion function
+   :rtype: function
+   """
    from_expression = get_column_value_from_row(unit_from,'expression')
    to_expression = get_column_value_from_row(unit_to,'expression')
    from_factor = float(get_column_value_from_row(unit_from,'factor'))
@@ -234,7 +247,23 @@ def get_converter(unit_from, unit_to):
    converter = factor_conversion(from_factor,to_factor)
    return np.vectorize(converter)
 
-def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False):
+def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False) -> pd.DataFrame:
+   """Converts the data portion 'd' of all the records of a dataframe to the specified unit
+   provided in the to_unit_name parameter. If the standard_unit flag is True, the to_unit_name 
+   will be ignored and the unit will be based on the standard file variable dictionnary unit
+   value instead. This ensures that if a unit conversion was done, the varaible will return
+   to the proper standard file unit value. ex. : TT should be in celsius. o.dict can be consulted
+   to get the appropriate unit values.
+
+   :param df: dataframe containing records to be converted
+   :type df: pd.DataFrame
+   :param to_unit_name: unit name to convert to, defaults to 'scalar'
+   :type to_unit_name: str, optional
+   :param standard_unit: flag to indicate the use of dictionnary units, defaults to False
+   :type standard_unit: bool, optional
+   :return: a dataframe containing the converted data
+   :rtype: pd.DataFrame
+   """
    df = load_data(df)
    if 'unit' not in df.columns:
       df = add_unit_column(df)
