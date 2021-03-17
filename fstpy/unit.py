@@ -219,7 +219,7 @@ def get_temperature_converter(unit_from, unit_to):
 
 def get_converter(unit_from:str, unit_to:str):
    """Based on unit names contained in fstpy.UNITS database (dataframe), 
-   attemps to provide the appropritae unit conversion function 
+   attemps to provide the appropriate unit conversion function 
    based on unit name and family. The returned function takes a value
    and returns a value value_to = f(value_from). 
 
