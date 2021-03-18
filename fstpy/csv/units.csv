@@ -95,6 +95,7 @@ pound_per_squareInch,PSI,N·m^(-2),0.0,6894.757,1,-1,-2,0,0,0,0
 pound_per_squareFoot,p/ft2,N·m^(-2),0.0,47.880257,1,-1,-2,0,0,0,0
 inchesOfMercury,inHg,N·m^(-2),0.0,3386.3882,1,-1,-2,0,0,0,0
 kilogram_per_squareMeter,kg/m2,N·m^(-2),0.0,9.80665,1,-1,-2,0,0,0,0
+kilogram_per_cubicMeter,kg/m3,N·m^(-3),0.0,9.80665,1,-1,-3,0,0,0,0
 kilogram_per_squareMeter_per_second,kg/m2/s,N·m^(-2)·s^(-1),0.0,9.80665,1,-1,-2,-1,0,0,0
 kilogram_per_squareCentimeter,kg/cm2,N·m^(-2),0.0,98066.5,1,-1,-2,0,0,0,0
 joule,J,N·m,0.0,1.0,1,2,-2,0,0,0,0
