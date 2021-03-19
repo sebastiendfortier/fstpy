@@ -295,13 +295,13 @@ def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
     #add_empty_columns(df, ['min','max','mean','std'],np.nan,'float32')
     #add_empty_columns(df, ['min_pos','max_pos'],None,dtype_str='O')
     for i in df.index:
-        df.at[i,'mean'] = np.nanmean(df.at[i,'d'])
-        df.at[i,'std'] = np.nanstd(df.at[i,'d'])
-        df.at[i,'min'] = np.nanmin(df.at[i,'d'])
-        df.at[i,'max'] = np.nanmax(df.at[i,'d'])
-        min_pos = np.unravel_index(np.nanargmin(df.at[i,'d']), (df.at[i,'ni'],df.at[i,'nj']))
+        df.at[i,'mean'] = np.mean(df.at[i,'d'])
+        df.at[i,'std'] = np.std(df.at[i,'d'])
+        df.at[i,'min'] = np.min(df.at[i,'d'])
+        df.at[i,'max'] = np.max(df.at[i,'d'])
+        min_pos = np.unravel_index(np.argmin(df.at[i,'d']), (df.at[i,'ni'],df.at[i,'nj']))
         df.at[i,'min_pos'] = (min_pos[0] + 1, min_pos[1]+1)
-        max_pos = np.unravel_index(np.nanargmax(df.at[i,'d']), (df.at[i,'ni'],df.at[i,'nj']))
+        max_pos = np.unravel_index(np.argmax(df.at[i,'d']), (df.at[i,'ni'],df.at[i,'nj']))
         df.at[i,'max_pos'] = (max_pos[0] + 1, max_pos[1]+1)
     #df = fstpy.dataframe.sort_dataframe(df)    
     return df
@@ -502,21 +502,21 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
         diff.at[i, 'abs_diff'] = np.abs(a-b)
 
         derr = np.where(a == 0, np.abs(1-a/b), np.abs(1-b/a))
-        derr_sum=np.nansum(derr)
+        derr_sum=np.sum(derr)
         if isnan(derr_sum):
             diff.at[i, 'e_rel_max'] = 0.
             diff.at[i, 'e_rel_moy'] = 0.
         else:    
-            diff.at[i, 'e_rel_max'] = 0. if isnan(np.nanmax(derr)) else np.nanmax(derr)
-            diff.at[i, 'e_rel_moy'] = 0. if isnan(np.nanmean(derr)) else np.nanmean(derr)
-        sum_a2 = np.nansum(a**2)
-        sum_b2 = np.nansum(b**2)
-        diff.at[i, 'var_a'] = np.nanmean(sum_a2)
-        diff.at[i, 'var_b'] = np.nanmean(sum_b2)
-        diff.at[i, 'moy_a'] = np.nanmean(a)
-        diff.at[i, 'moy_b'] = np.nanmean(b)
+            diff.at[i, 'e_rel_max'] = 0. if isnan(np.max(derr)) else np.max(derr)
+            diff.at[i, 'e_rel_moy'] = 0. if isnan(np.mean(derr)) else np.mean(derr)
+        sum_a2 = np.sum(a**2)
+        sum_b2 = np.sum(b**2)
+        diff.at[i, 'var_a'] = np.mean(sum_a2)
+        diff.at[i, 'var_b'] = np.mean(sum_b2)
+        diff.at[i, 'moy_a'] = np.mean(a)
+        diff.at[i, 'moy_b'] = np.mean(b)
         
-        c_cor = np.nansum(a*b)
+        c_cor = np.sum(a*b)
         if sum_a2*sum_b2 != 0:
             c_cor = c_cor/np.sqrt(sum_a2*sum_b2)
         elif (sum_a2==0) and (sum_b2==0):
@@ -527,8 +527,8 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
             c_cor = np.sqrt(diff.at[i, 'var_a'])
         diff.at[i, 'c_cor'] = c_cor 
         diff.at[i, 'biais']=diff.at[i, 'moy_b']-diff.at[i, 'moy_a']
-        diff.at[i, 'e_max'] = np.nanmax(diff.at[i, 'abs_diff'])
-        diff.at[i, 'e_moy'] = np.nanmean(diff.at[i, 'abs_diff'])
+        diff.at[i, 'e_max'] = np.max(diff.at[i, 'abs_diff'])
+        diff.at[i, 'e_moy'] = np.mean(diff.at[i, 'abs_diff'])
         
         nbdiff = np.count_nonzero(a!=b)
         diff.at[i, 'diff_percent'] = nbdiff / a.size * 100.0

@@ -189,14 +189,16 @@ def convert_df_dtypes(df,decoded,attributes_to_decode=['ip1','ip2','ip3']):
               
     return df      
 
-def reorder_columns(df,ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas',
-            'datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']) -> pd.DataFrame:
+def reorder_columns(df) -> pd.DataFrame:
+    ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas','datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
     if df.empty:
         return df
     all_columns = set(df.columns.to_list())    
-   
-    all_columns = all_columns.difference(set(ordered))
-    ordered.extend(list(all_columns)) 
+
+    extra_columns = all_columns.difference(set(ordered))
+    if len(extra_columns) > 0:
+        ordered.extend(list(extra_columns)) 
+
     df = df[ordered]    
     return df    
 

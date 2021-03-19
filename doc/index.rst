@@ -1,6 +1,3 @@
-.. # define a hard line break for HTML
-.. |br| raw:: html
-   <br />
 
       Indices and tables
       ==================
@@ -43,6 +40,7 @@ Documentation
 * :doc:`std_enc`
 * :doc:`dataframe`
 * :doc:`dataframe_utils`
+* :doc:`unit`
 * :doc:`utils`
 
 .. toctree::
@@ -56,6 +54,7 @@ Documentation
    std_enc
    dataframe
    dataframe_utils
+   unit
    utils
 
 **Tutorial**

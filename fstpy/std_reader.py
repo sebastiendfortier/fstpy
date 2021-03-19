@@ -192,7 +192,8 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
     path_groups = df.groupby(df.path)
     res_list = []
     for _,path_df in path_groups:
-        compare_modification_times(path_df.iloc[0]['file_modification_time'], path_df.iloc[0]['path'],rmn.FST_RO, 'std_reader.py::load_data',StandardFileError)
+        if ('file_modification_time' in path_df.columns) and ((path_df.iloc[0]['file_modification_time'] is None) == False):
+            compare_modification_times(path_df.iloc[0]['file_modification_time'], path_df.iloc[0]['path'],rmn.FST_RO, 'std_reader.py::load_data',StandardFileError)
         unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
         path_df.sort_values(by=['key'],inplace=True)
         for i in path_df.index:

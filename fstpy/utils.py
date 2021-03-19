@@ -145,10 +145,10 @@ def flatten_data_series(df:pd.DataFrame) -> pd.DataFrame:
     :return: the same dataframe with all arrays set to 1 dimension
     :rtype: pd.DataFrame
     """
-    import sys
-    if len(df.nomvar.unique()) > 1:
-        sys.stderr.write('more than one variable, stacking the arrays would not yield a 3d array for one variable - no modifications made\n')
-        return df
+    # import sys
+    # if len(df.nomvar.unique()) > 1:
+    #     sys.stderr.write('more than one variable, stacking the arrays would not yield a 3d array for one variable - no modifications made\n')
+    #     return df
     for i in df.index:
         df.at[i,'d'] = df.at[i,'d'].flatten()
     return df    
@@ -164,12 +164,12 @@ def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:
     :return: a 1 row dataframe
     :rtype: pd.DataFrame
     """
-    if len(df.nomvar.unique()) > 1:
-        sys.stderr.write('more than one variable, returning a dataframe based on first row\n')
-        return df
+    # if len(df.nomvar.unique()) > 1:
+    #     sys.stderr.write('more than one variable, returning a dataframe based on first row\n')
+    #     return df
     res_d = df.iloc[0].to_dict()
     res_df = pd.DataFrame([res_d])
-    #print(res_df)
+
     #res_df['fstinl_params'] = None
     res_df['file_modification_time'] = None
     res_df['key'] = None
