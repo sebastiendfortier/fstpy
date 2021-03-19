@@ -254,6 +254,7 @@ def get_all_grid_metadata_fields_from_std_file(path):
 def compare_modification_times(df_file_modification_time, path:str,mode:str, caller:str,error_class:Exception):
     file_modification_time = get_file_modification_time(path,mode,caller, error_class)
     if df_file_modification_time != file_modification_time:
+        #print(df_file_modification_time, file_modification_time,df_file_modification_time != file_modification_time)
         raise error_class(caller + ' - original file has been modified since the start of the operation, keys might be invalid - exiting!')
 
 
