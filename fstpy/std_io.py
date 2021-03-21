@@ -38,9 +38,9 @@ def parallel_get_records_from_file(files, get_records_func, n_cores):
 def get_records_from_file(file:str,subset:dict):
     f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
     unit = rmn.fstopenall(file)
-    print('-----------')
-    print(pd.DataFrame(get_std_file_header(unit)))
-    print('-----------')
+    # print('-----------')
+    # print(pd.DataFrame(get_std_file_header(unit)))
+    # print('-----------')
     
     if subset is None:
         keys = rmn.fstinl(unit)
