@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+from fstpy.extra import get_std_file_header
 import multiprocessing as mp
 import os.path
 import pathlib
@@ -34,12 +35,18 @@ def parallel_get_records_from_file(files, get_records_func, n_cores):
     records = [item for sublist in record_list for item in sublist]
     return records
 
-def get_records_from_file(file,subset):
+def get_records_from_file(file:str,subset:dict):
     f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
     unit = rmn.fstopenall(file)
+    # print('-----------')
+    # print(pd.DataFrame(get_std_file_header(unit)))
+    # print('-----------')
+    
     if subset is None:
         keys = rmn.fstinl(unit)
     else:
+        # datev,etiket,ip1, ip2,ip3,typvar,nomvar
+        # print([f"{k}=={v}" for k,v in subset.items()])
         keys = rmn.fstinl(unit,**subset)    
     records = []
     for k in keys:     
@@ -53,6 +60,7 @@ def get_records_from_file(file,subset):
 def get_records_from_file_and_load(file,subset):
     f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_from_file_and_load',StandardFileReaderError)
     unit = rmn.fstopenall(file)
+
     if subset is None:
         keys = rmn.fstinl(unit)
     else:    
