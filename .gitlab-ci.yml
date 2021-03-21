@@ -61,9 +61,9 @@ install_doc:
     - cd doc/_build/html
     - echo $PWD
     - echo `pwd`
-    - echo 'rm -rf ${FSTPY_DOC_DIR}*'
+    - echo 'rm -rf "${FSTPY_DOC_DIR}"*'
     # - ssh sbf000@ppp3 rm -rf ${FSTPY_DOC_DIR}*
-    # - ssh sbf000@ppp3 'cp -r * ${FSTPY_DOC_DIR}.'
+    # - ssh sbf000@ppp3 cp -r * ${FSTPY_DOC_DIR}.
 
 ssm_package:
   stage: ssm_package
