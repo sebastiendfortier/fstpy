@@ -35,14 +35,14 @@ run_unittest:
   stage: run_unittest 
   script:
     - cd test    
-    - python -m pytest -n ${ORD_SOUMET_CPUS} -m unit_tests 
+    - python -m pytest -n ${JOB_CPUS} -m unit_tests 
     
 
 run_regtests:
   stage: run_regtests
   script:
     - cd test
-    - python -m pytest -n ${ORD_SOUMET_CPUS} -m regressions
+    - python -m pytest -n ${JOB_CPUS} -m regressions
 
 make_doc:
   stage: make_doc
@@ -62,8 +62,8 @@ install_doc:
     - ssh sbf000@ppp4 'rm -rf /home/sbf000/public_html/fstpy/latest/*'
     # /fs/site4/eccc/cmd/s/sgci800/ci_work_dir/ci_builds/ebd41348/0/CMDS/fstpy/doc
     # /home/sgci800/cache/CMDS/fstpy/sbf_std_writer_dev/20296
-    # - ssh sbf000@ppp4 'echo '${cdir}' > toto.txt'
-    - ssh sbf000@ppp4 'cp -r '${cdir}'/.* /home/sbf000/public_html/fstpy/latest/.'
+    - ssh sbf000@ppp4 'echo '${cdir}' > toto.txt'
+    - ssh sbf000@ppp4 cp -r ${cdir}/* /home/sbf000/public_html/fstpy/latest/'
 
 ssm_package:
   stage: ssm_package
