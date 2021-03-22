@@ -47,7 +47,7 @@ run_regtests:
 
 make_doc:
   stage: make_doc
-  script:
+  script: 
     - cd doc
     - make doc
   artifacts:
