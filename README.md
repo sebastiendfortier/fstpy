@@ -37,31 +37,14 @@ a great variety of built-in plotting functions.
 Requirements
 ============
 
-If you don't already have python 3.6, numpy, pandas, dask and xarray,
-install usage requirements in a personal conda environment
+packages
+--------
 
-``` bash
-# This applies for CMC science users
-# create a link in your science home directory to the sitestore to 
-# put conda environments, defaults in your home directory (not good)  
-mkdir $sitestore_ppp4/conda/.conda  
-ln -s $sitestore_ppp4/conda/.conda /home/$science-user/.conda  
-# get conda if you don't already have it  
-. ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
-# create a conda environment for fstpy's requirements   
-conda create -n fstpy_req python=3.6   
-# whenever you need to use this environment on science run the following
-# (if you have'nt loaded the conda ssm, you'll need to do it everytime)
-# unless you put it in your profile
-. activate fstpy_req   
-# installing required packages in fstpy_req environment  
-conda install -n fstpy_req numpy pandas dask xarray    
-# get rmn python library    
-. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2    
-# you are now ready to use fstpy
-# when you don't wnat to use the environment anymore run the following    
-# conda deactivate    
-```
+-   python 3.6
+-   numpy
+-   pandas
+-   dask
+-   xarray
 
 Installation
 ============
@@ -73,18 +56,25 @@ Use the ssm package
 Using fstpy in scripts or Jupyter Lab/Notebook
 ----------------------------------------------
 
-### set your environment
+### Use pre-build developpement environment
 
 ``` bash
+# get conda if you don't already have it  
+. ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
+# create a link to pre-built environment
+cd ~/.conda/envs/
+ln -s ~sgci800/envs/fstpy_full
+# whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)
+# unless you put it in your profile
 # activate your conda environment     
-. activate fstpy_req     
+. activate fstpy_full     
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
 . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.3      
 ```
 
-### use fstpy
+### Use fstpy
 
 ``` python
 # inside your script    
@@ -92,7 +82,7 @@ import fstpy.all as fstpy
 df = fstpy.StandardFileReader('path to my fst file').to_pandas()
 ```
 
-### Usage example
+### Example
 
 ``` python
 data_path = prefix + '/data/'    
@@ -114,6 +104,20 @@ fstpy.StandardFileWriter(dest_path,just_tt_and_uv).to_fst()
 
 Contributing
 ============
+
+Using pre-build developpement environment
+-----------------------------------------
+
+``` bash
+# get conda if you don't already have it  
+. ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
+# create a link to pre-built environment
+cd ~/.conda/envs/
+ln -s ~sgci800/envs/fstpy_full
+# whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)
+# unless you put it in your profile
+. activate fstpy_full   
+```
 
 Creating the developpement environment
 --------------------------------------
@@ -172,6 +176,7 @@ Building documentation
 
 ``` bash
 # This will build documentation in docs/build and there you will find index.html 
+cd doc
 make clean    
 make doc
 ```
