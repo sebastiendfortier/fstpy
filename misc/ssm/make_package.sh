@@ -49,15 +49,15 @@ mv ${PKGNAME}.ssm /tmp/${USER}/.
 FSTPY_SSM_BASE=/fs/site4/eccc/cmd/w/sbf000
 echo 'ssm domain is '${FSTPY_SSM_BASE}
 #echo 'unpublish old package'
-ssh sbf000@ppp4 ssm unpublish -d ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION} -p ${PKGNAME}
-ssh sbf000@ppp4ssm uninstall -d ${FSTPY_SSM_BASE}/master -p ${PKGNAME}
+ssh sbf000@ppp4 source .profile&&ssm unpublish -d ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION} -p ${PKGNAME}
+ssh sbf000@ppp4 source .profile&&ssm uninstall -d ${FSTPY_SSM_BASE}/master -p ${PKGNAME}
 
 #ssm created -d ${FSTPY_SSM_BASE}/master
 echo 'Installing package to '${FSTPY_SSM_BASE}/master
-ssh sbf000@ppp4 ssm install -d ${FSTPY_SSM_BASE}/master -f /tmp/${USER}/${PKGNAME}.ssm
+ssh sbf000@ppp4 source .profile&&ssm install -d ${FSTPY_SSM_BASE}/master -f /tmp/${USER}/${PKGNAME}.ssm
 echo 'Publishing package '${PKGNAME}' to '${FSTPY_SSM_BASE}/fstpy-beta-${VERSION}
-ssh sbf000@ppp4 ssm created -d ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION}
-ssh sbf000@ppp4 ssm publish -d ${FSTPY_SSM_BASE}/master -P ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION} -p ${PKGNAME}
+ssh sbf000@ppp4 source .profile&&ssm created -d ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION}
+ssh sbf000@ppp4 source .profile&&ssm publish -d ${FSTPY_SSM_BASE}/master -P ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION} -p ${PKGNAME}
 
 rm /tmp/${USER}/${PKGNAME}.ssm
 
