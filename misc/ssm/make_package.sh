@@ -44,22 +44,22 @@ echo 'Cleaning up '${PKGNAME}' directory'
 rm -rf control.json
 rm -rf ${PKGNAME}/
 
-mv ${PKGNAME}.ssm /tmp/sbf000/.
+mv ${PKGNAME}.ssm /tmp/${USER}/.
 
 FSTPY_SSM_BASE=/fs/site4/eccc/cmd/w/sbf000
 echo 'ssm domain is '${FSTPY_SSM_BASE}
 #echo 'unpublish old package'
-ssm unpublish -d ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION} -p ${PKGNAME}
-ssm uninstall -d ${FSTPY_SSM_BASE}/master -p ${PKGNAME}
+ssh sbf000@ppp4 ssm unpublish -d ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION} -p ${PKGNAME}
+ssh sbf000@ppp4ssm uninstall -d ${FSTPY_SSM_BASE}/master -p ${PKGNAME}
 
 #ssm created -d ${FSTPY_SSM_BASE}/master
 echo 'Installing package to '${FSTPY_SSM_BASE}/master
-ssm install -d ${FSTPY_SSM_BASE}/master -f /tmp/sbf000/${PKGNAME}.ssm
+ssh sbf000@ppp4 ssm install -d ${FSTPY_SSM_BASE}/master -f /tmp/${USER}/${PKGNAME}.ssm
 echo 'Publishing package '${PKGNAME}' to '${FSTPY_SSM_BASE}/fstpy-beta-${VERSION}
-ssm created -d ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION}
-ssm publish -d ${FSTPY_SSM_BASE}/master -P ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION} -p ${PKGNAME}
+ssh sbf000@ppp4 ssm created -d ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION}
+ssh sbf000@ppp4 ssm publish -d ${FSTPY_SSM_BASE}/master -P ${FSTPY_SSM_BASE}/fstpy-beta-${VERSION} -p ${PKGNAME}
 
-rm /tmp/sbf000/${PKGNAME}.ssm
+rm /tmp/${USER}/${PKGNAME}.ssm
 
 echo 'Execute . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta'-${VERSION}' to use this package'
 
