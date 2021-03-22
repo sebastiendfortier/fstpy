@@ -2,7 +2,21 @@
 #+OPTIONS: toc:1
 
 * Requirements
-If you don't already have python 3.6, numpy, pandas, dask and xarray, install usage requirements in a personal conda environment
+** Using pre-build developpement environment
+  #+BEGIN_SRC sh
+      # get conda if you don't already have it  
+      . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
+      # create a link to pre-built environment
+      cd ~/.conda/envs/
+      ln -s ~sgci800/envs/fstpy_full
+      # whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)
+      # unless you put it in your profile
+      . activate fstpy_full   
+  #+END_SRC  
+  
+** Install requirements in a personal conda environment
+
+If you don't already have python 3.6, numpy, pandas, dask and xarray, you can install usage requirements in a personal conda environment
     #+BEGIN_SRC sh
       # This applies for CMC science users
       # create a link in your science home directory to the sitestore to 
