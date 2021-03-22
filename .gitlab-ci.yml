@@ -57,8 +57,8 @@ install_doc:
   stage: install_doc
   script:
     - cd doc/_build/html
-    - ssh sbf000@ppp3 'rm -rf /home/sbf000/public_html/fstpy/latest/*'
-    - ssh sbf000@ppp3 echo "/home/sgci800/cache/'${CI_PROJECT_PATH}'/'${CI_BUILD_REF_NAME}'/'${CI_PIPELINE_ID}'/"
+    - ssh sbf000@ppp4 'rm -rf /home/sbf000/public_html/fstpy/latest/*'
+    - ssh sbf000@ppp4 'echo /home/sgci800/cache/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}'
     # - ssh sbf000@ppp3 'cp -r .* /home/sbf000/public_html/fstpy/latest/.'
 
 ssm_package:
