@@ -269,10 +269,11 @@ def get_std_file_header (funit, out=None):
     out['ig4'] = np.empty(nrecs, dtype='int32')
     out['datev'] = np.empty(nrecs, dtype='int32')
     out['key'] = np.empty(nrecs, dtype='int32')
-    lng = np.empty(nrecs, dtype='int32')
     out['dltf'] = np.empty(nrecs, dtype='ubyte')
-    # out['swa'] =  np.empty(nrecs, dtype='uint32')
+    lng = np.empty(nrecs, dtype='int32')
     ubc = np.empty(nrecs, dtype='uint16')
+    # out['swa'] =  np.empty(nrecs, dtype='uint32')
+    
     # out['xtra1'] = np.empty(nrecs, dtype='uint32')
     # out['xtra2'] = np.empty(nrecs, dtype='uint32')
     # out['xtra3'] = np.empty(nrecs, dtype='uint32')
