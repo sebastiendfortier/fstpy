@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
 import concurrent.futures
 import datetime
+from fstpy import DATYP_DICT
 import multiprocessing as mp
 
 import dask.array as da
 import numpy as np
 import pandas as pd
+import rpnpy.librmn.all as rmn
 
 # from .dataframe_utils import add_empty_columns
 from .exceptions import StandardFileError
 from .logger_config import logger
-from .std_dec import (convert_rmndate_to_datetime, decode_ip,
+from .std_dec import (convert_rmndate_to_datetime, 
                       get_unit_and_description, is_surface,
                       level_type_follows_topography, parse_etiket)
-from .std_io import read_record
 
 
-def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:str='numpy', attributes_to_decode:list=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']) -> pd.DataFrame:
+
+def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:str='numpy', attributes_to_decode:list=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip2','ip3','datyp','level_info']) -> pd.DataFrame:
     """Adds basic and decoded columns to the dataframe. 
 
     :param df: input dataframe
@@ -25,20 +27,20 @@ def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:st
     :type decode_metadata: bool
     :param array_container: array container, defaults to 'numpy'
     :type array_container: str, optional
-    :param attributes_to_decode: attributes to decode, defaults to ['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']
+    :param attributes_to_decode: attributes to decode, defaults to ['flags','etiket','unit','dateo','datev','forecast_hour','ip2','ip3','datyp','level_info']
     :type attributes_to_decode: list, optional
     :return: dataframe with decoded columns
     :rtype: pd.DataFrame
     """
-    df = post_process_dataframe(df,decode_metadata,attributes_to_decode)
+    df = post_process_dataframe(df)
     
-    #df = add_composite_columns(df,decode_metadata,array_container)
-    df = parallel_add_composite_columns_tr(df,decode_metadata,array_container,attributes_to_decode,n_cores=min(mp.cpu_count(),len(df.index)))   
+    df = add_composite_columns(df,decode_metadata,array_container)
+    # df = parallel_add_composite_columns_tr(df,decode_metadata,array_container,attributes_to_decode,n_cores=min(mp.cpu_count(),len(df.index),1))   
     
     return df
 
-def clean_dataframe(df,decode_metadata,attributes_to_decode=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']):
-    df = convert_df_dtypes(df,decode_metadata,attributes_to_decode)
+def clean_dataframe(df,decode_metadata,attributes_to_decode=['flags','etiket','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']):
+    # df = convert_df_dtypes(df,decode_metadata,attributes_to_decode)
 
     df = reorder_columns(df)  
 
@@ -46,53 +48,160 @@ def clean_dataframe(df,decode_metadata,attributes_to_decode=['flags','etiket','v
     return df
 
 
-def add_composite_columns(df,decode,array_container, attributes_to_decode=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']):
-    from fstpy import DATYP_DICT    
-    for i in df.index:            
-        if not ((isinstance(df.at[i,'d'],np.ndarray)) or (isinstance(df.at[i,'d'],da.core.Array))):
-            df.at[i,'d'] = (read_record,array_container,int(df.at[i,'key']))
+def create_shape(ni,nj):
+    return (ni,nj)
 
-        #create a grid identifier for each record
-        if df.at[i,'nomvar'] in [">>", "^^", "!!", "!!SF", "HY"]:
-            df.at[i,'grid'] = "".join([str(df.at[i,'ip1']),str(df.at[i,'ip2'])])
-        else:
-            df.at[i,'grid'] = "".join([str(df.at[i,'ig1']),str(df.at[i,'ig2'])])
+def add_shape_column(df):
+    vmake_shape = np.vectorize(create_shape,otypes=['object'])
+    df['shape'] = vmake_shape(df['ni'],df['nj'])
+    return df
 
-        if decode:
-            if 'flags' in attributes_to_decode:
-                df['unit_converted'] = False
-                df['zapped'] = False
-                df['filtered'] = False
-                df['interpolated'] = False
-                df['bounded'] = False
-                df['ensemble_extra_info'] = False
-                df['multiple_modifications'] = False
-            if 'vctype' in attributes_to_decode:    
-                df['vctype'] = ''
-            if 'etiket' in attributes_to_decode:    
-                df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = parse_etiket(df.at[i,'etiket'])
-            if 'unit' in attributes_to_decode:
-                df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
-            if 'dateo' in attributes_to_decode:    
-                df.at[i,'date_of_observation'] = convert_rmndate_to_datetime(int(df.at[i,'dateo']))
-            if 'datev' in attributes_to_decode:
-                df.at[i,'date_of_validity'] = convert_rmndate_to_datetime(int(df.at[i,'datev']))    
-            if 'forecast_hour' in attributes_to_decode:    
-                df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))         
-            if 'ip1' in attributes_to_decode:
-                df.at[i,'level'],df.at[i,'ip1_kind'],df.at[i,'ip1_pkind'] = decode_ip(int(df.at[i,'ip1']))
-            if 'ip2' in attributes_to_decode:
-                df.at[i,'ip2_dec'],df.at[i,'ip2_kind'],df.at[i,'ip2_pkind'] = decode_ip(int(df.at[i,'ip2']))
-            if 'ip3' in attributes_to_decode:
-                df.at[i,'ip3_dec'],df.at[i,'ip3_kind'],df.at[i,'ip3_pkind'] = decode_ip(int(df.at[i,'ip3']))
-            if 'datyp' in attributes_to_decode:
-                df.at[i,'data_type_str'] = DATYP_DICT[df.at[i,'datyp']]
-            if 'level_info' in attributes_to_decode:    
-                df.at[i,'surface'] = is_surface(df.at[i,'ip1_kind'],df.at[i,'level'])
-                df.at[i,'follow_topography'] = level_type_follows_topography(df.at[i,'ip1_kind'])
-    if decode and ('ip1' in attributes_to_decode) and ('vctype' in attributes_to_decode):
+
+
+
+def create_data(d,key:int,array_container:str):
+    if not ((isinstance(d,np.ndarray)) or (isinstance(d,da.core.Array))):
+        d = (array_container,int(key))
+    return d
+
+def add_data_column(df,array_container):
+    vcreate_data = np.vectorize(create_data,otypes=['object'])    
+    df['d'] = vcreate_data(df['d'],df['key'],array_container)
+    return df
+
+
+def add_parsed_etiket_columns(df):
+    # df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = parse_etiket(df.at[i,'etiket'])
+    vparse_etiket = np.vectorize(parse_etiket,otypes=['str','str','str','str'])    
+    df['label'],df['run'],df['implementation'],df['ensemble_member'] = vparse_etiket(df['etiket'])
+    return df
+
+def add_unit_and_description_columns(df):
+    # df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
+    vget_unit_and_description = np.vectorize(get_unit_and_description,otypes=['str','str'])    
+    df['unit'],df['description'] = vget_unit_and_description(df['nomvar'])
+    return df
+
+def add_flags_columns(df):
+    df['unit_converted'] = False
+    df['zapped'] = False
+    df['filtered'] = False
+    df['interpolated'] = False
+    df['bounded'] = False
+    df['ensemble_extra_info'] = False
+    df['multiple_modifications'] = False
+    return df
+
+def add_decoded_date_column(df,attr='dateo'):
+    vconvert_rmndate_to_datetime = np.vectorize(convert_rmndate_to_datetime,otypes=['datetime64'])  
+    if attr == 'dateo':  
+        df['date_of_observation'] = vconvert_rmndate_to_datetime(df['dateo'])
+    else:    
+        df['date_of_validity'] = vconvert_rmndate_to_datetime(df['datev'])
+    return df
+
+def create_forecast_hour(deet,npas):
+    return datetime.timedelta(seconds=int(npas * deet))
+
+def add_forecast_hour_column(df):
+    # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
+    vcreate_forecast_hour = np.vectorize(create_forecast_hour,otypes=['timedelta64'])    
+    df['forecast_hour'] = vcreate_forecast_hour(df['deet'],df['npas'])
+    return df
+
+# def decode_ip1(ip1):
+#     i1,_,_ = rmn.DecodeIp(ip1,0,0) 
+#     pkind = '' if i1.kind in [-1,3,15,17] else rmn.kindToString(i1.kind).strip()
+#     return i1.v1,i1.kind,pkind
+
+def decode_ip2(ip2):
+    _,i2,_ = rmn.DecodeIp(0,ip2,0) 
+    pkind = '' if i2.kind in [-1,3,15,17] else rmn.kindToString(i2.kind).strip()
+    return i2.v1,i2.kind,pkind
+
+def decode_ip3(ip3):
+    _,_,i3 = rmn.DecodeIp(0,0,ip3) 
+    pkind = '' if i3.kind in [-1,3,15,17] else rmn.kindToString(i3.kind).strip()
+    return i3.v1,i3.kind,pkind
+
+# def add_decoded_ip1_columns(df):
+#     vdecode_ip1 = np.vectorize(decode_ip1,otypes=['float32','int32','str'])  
+#     df['level'],df['ip1_kind'],df['ip1_pkind'] = vdecode_ip1(df['ip1'])
+#     return df
+
+def add_decoded_ip2_columns(df):
+    vdecode_ip2 = np.vectorize(decode_ip2,otypes=['float32','int32','str'])  
+    df['ip2_dec'],df['ip2_kind'],df['ip2_pkind'] = vdecode_ip2(df['ip2'])
+    return df
+
+def add_decoded_ip3_columns(df):
+    vdecode_ip3 = np.vectorize(decode_ip3,otypes=['float32','int32','str'])  
+    df['ip3_dec'],df['ip3_kind'],df['ip3_pkind'] = vdecode_ip3(df['ip3'])    
+    return df
+
+def create_data_type_str(datyp):
+    return DATYP_DICT[datyp]
+
+def add_data_type_str_column(df):
+    vcreate_data_type_str = np.vectorize(create_data_type_str,otypes=['str'])  
+    df['data_type_str'] = vcreate_data_type_str(df['datyp'])    
+    return df
+
+def create_level_info(ip1):
+    i1,_,_ = rmn.DecodeIp(ip1,0,0) 
+    ip1_pkind = '' if i1.kind in [-1,3,15,17] else rmn.kindToString(i1.kind).strip()
+    level=i1.v1
+    ip1_kind = i1.kind
+    surface = is_surface(ip1_kind,level)
+    follow_topography = level_type_follows_topography(ip1_kind)
+    return level,ip1_kind,ip1_pkind,surface,follow_topography
+
+def add_level_info_columns(df):
+    vcreate_level_info = np.vectorize(create_level_info,otypes=['float32','int32','str','bool','bool'])  
+    df['level'],df['ip1_kind'],df['ip1_pkind'],df['surface'],df['follow_topography'] = vcreate_level_info(df['ip1'])    
+    return df
+
+def add_composite_columns(df,decode,array_container, attributes_to_decode=['flags','etiket','unit','dateo','datev','forecast_hour','ip2','ip3','datyp','level_info']):
+    
+    df = add_data_column(df,array_container)
+    # df = add_grid_column(df)
+    df = add_shape_column(df)
+    
+    if decode:
+        if 'etiket' in attributes_to_decode:    
+            df = add_parsed_etiket_columns(df)
+
+        if 'unit' in attributes_to_decode:
+            df = add_unit_and_description_columns(df)
+
+        if 'dateo' in attributes_to_decode:    
+            df = add_decoded_date_column(df,'dateo')
+
+        if 'datev' in attributes_to_decode:
+            df = add_decoded_date_column(df,'datev')  
+
+        if 'forecast_hour' in attributes_to_decode:
+            df = add_forecast_hour_column(df) 
+
+        if 'ip2' in attributes_to_decode:
+            df = add_decoded_ip2_columns(df)     
+
+        if 'ip3' in attributes_to_decode:
+            df = add_decoded_ip3_columns(df)   
+
+        if 'datyp' in attributes_to_decode:    
+            df = add_data_type_str_column(df)   
+
+        if ('level_info' in  attributes_to_decode): 
+            df = add_level_info_columns(df)                
+
+        if 'flags' in attributes_to_decode:
+            df = add_flags_columns(df)
+
+  
+
+    if decode and ('level_info' in attributes_to_decode):
         df = set_vertical_coordinate_type(df)    
-    #print(df)    
     return df
 
 def add_unit_column(df):
@@ -113,81 +222,25 @@ def add_empty_columns(df, columns, init, dtype_str):
             df = df.astype({col:dtype_str})
     return df         
 
-def post_process_dataframe(df,decode,attributes_to_decode=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']):
+def post_process_dataframe(df):
     if 'dltf' in df.columns:
         df = df[df.dltf == 0]
-    df.drop(columns=['swa', 'ubc','lng','xtra1','xtra2','xtra3','dltf'], inplace=True,errors='ignore')
-    
-    if 'nomvar' in df.columns:
-        df['nomvar'] = df['nomvar'].str.strip()
-    
-    if 'etiket' in df.columns:    
-        df['etiket'] = df['etiket'].str.strip()
-    
-    if 'typvar' in df.columns:
-        df['typvar'] = df['typvar'].str.strip()
-
-    if 'grtyp' in df.columns:
-        df['grtyp'] = df['grtyp'].str.strip()
-        
+    df.drop(columns=['dltf'], inplace=True,errors='ignore')
     if 'd' not in df.columns:
         df['d']=None
-    #attributes_to_decode=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']    
-    if decode:
-        
-        if 'flags' in attributes_to_decode:
-            df = add_empty_columns(df, ['follow_topography','surface','zapped','filtered','interpolated','unit_converted','bounded','ensemble_extra_info','multiple_modifications'], False, 'bool')
-        if 'datyp' in attributes_to_decode:
-            df = add_empty_columns(df, ['data_type_str'],'', 'O')
-        if 'unit' in attributes_to_decode:
-            df = add_empty_columns(df, ['description','unit'],'', 'O')
-        if 'etiket' in attributes_to_decode:
-            df = add_empty_columns(df, ['ensemble_member','implementation','label','run'],'', 'O')
-        if 'vctype' in attributes_to_decode:
-            df = add_empty_columns(df, ['vctype'],'', 'O')
-        if 'ip1' in attributes_to_decode:
-            df = add_empty_columns(df, ['level'], 0., 'float32')
-            df = add_empty_columns(df, ['ip1_kind'], 0, 'int32')
-            df = add_empty_columns(df, ['ip1_pkind'],'', 'O')
-        if 'ip2' in attributes_to_decode:
-            df = add_empty_columns(df, ['ip2_dec'], 0., 'float32')
-            df = add_empty_columns(df, ['ip2_kind'], 0, 'int32')
-            df = add_empty_columns(df, ['ip2_pkind'],'', 'O')
-        if 'ip3' in attributes_to_decode:
-            df = add_empty_columns(df, ['ip3_dec'], 0., 'float32')
-            df = add_empty_columns(df, ['ip3_kind'], 0, 'int32')
-            df = add_empty_columns(df, ['ip3_pkind'],'', 'O')
-        if ('dateo' in attributes_to_decode) and ('date_of_observation' not in df.columns):    
-            df['date_of_observation'] = None
-        if ('datev' in attributes_to_decode) and ('date_of_validity' not in df.columns): 
-            df['date_of_validity'] = None       
-        if ('forecast_hour' in attributes_to_decode) and ('forecast_hour' not in df.columns): 
-            df['forecast_hour'] = None       
         
     return df
 
-def convert_df_dtypes(df,decoded,attributes_to_decode=['ip1','ip2','ip3']):
-    if not df.empty:
-        if not decoded:    
-            df = df.astype(
-                {'key':'int32','ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
-                'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32',
-                'dateo':'int32', 'datyp':'int32'}
-                )
-        else:
-
-            df = df.astype(
-                {'key':'int32','ni':'int32', 'nj':'int32', 'nk':'int32', 'ip1':'int32', 'ip2':'int32', 'ip3':'int32', 'deet':'int32', 'npas':'int32',
-                'nbits':'int32' , 'ig1':'int32', 'ig2':'int32', 'ig3':'int32', 'ig4':'int32', 'datev':'int32',
-                'dateo':'int32', 'datyp':'int32'})
-            if ('ip1' in attributes_to_decode) and ('level' in df.columns) and ('ip1_kind' in df.columns):
-                df = df.astype({'level':'float32','ip1_kind':'int32'})
-            if ('ip2' in attributes_to_decode) and ('ip2_dec' in df.columns) and ('ip2_kind' in df.columns):    
-                df = df.astype({'ip2_dec':'float32','ip2_kind':'int32'})
-            if ('ip3' in attributes_to_decode) and ('ip3_dec' in df.columns) and ('ip3_kind' in df.columns):    
-                df = df.astype({'ip3_dec':'float32','ip3_kind':'int32'})
-              
-    return df      
+# def convert_df_dtypes(df,decoded,attributes_to_decode=['ip1','ip2','ip3']):
+#     if not df.empty:
+#         if decoded:    
+#             if ('ip1' in attributes_to_decode) and ('level' in df.columns) and ('ip1_kind' in df.columns):
+#                 df = df.astype({'level':'float32','ip1_kind':'int32'})
+#             if ('ip2' in attributes_to_decode) and ('ip2_dec' in df.columns) and ('ip2_kind' in df.columns):    
+#                 df = df.astype({'ip2_dec':'float32','ip2_kind':'int32'})
+#             if ('ip3' in attributes_to_decode) and ('ip3_dec' in df.columns) and ('ip3_kind' in df.columns):    
+#                 df = df.astype({'ip3_dec':'float32','ip3_kind':'int32'})
+#     return df      
 
 def reorder_columns(df) -> pd.DataFrame:
     ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas','datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
@@ -215,7 +268,9 @@ def sort_dataframe(df) -> pd.DataFrame:
 def set_vertical_coordinate_type(df) -> pd.DataFrame:
     from fstpy import VCTYPES
     newdfs=[]
+    df['vctype'] = 'UNKNOWN'
     grid_groups = df.groupby(df.grid)
+    #print(df[['ip1','ip2','ig1','ig2']])
     for _, grid in grid_groups:
         toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(grid)
         ip1_kind_groups = grid.groupby(grid.ip1_kind)
@@ -232,10 +287,10 @@ def set_vertical_coordinate_type(df) -> pd.DataFrame:
                     if len(vctyte_df.index)>1:
                         logger.warning('set_vertical_coordinate_type - more than one match!!!')
                     ip1_kind_group['vctype'] = vctyte_df.iloc[0]['vctype']
-                newdfs.append(ip1_kind_group)
+            newdfs.append(ip1_kind_group)
 
-        df = pd.concat(newdfs)
-        return df    
+    df = pd.concat(newdfs)
+    return df    
 
 def get_meta_fields_exists(grid):
     toctoc = grid.query('nomvar=="!!"')

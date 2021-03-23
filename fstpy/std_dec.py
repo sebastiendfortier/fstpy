@@ -47,7 +47,7 @@ def convert_rmndate_to_datetime(date:int) -> datetime.datetime:
     if date not in dummy_stamps:
         return RPNDate(int(date)).toDateTime().replace(tzinfo=None)
     else:
-        return str(date)
+        return None
 
 def is_surface(ip1_kind:int,level:float) -> bool:
     """Return a bool that tell us if the level is a surface level

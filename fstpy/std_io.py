@@ -7,7 +7,8 @@ import pathlib
 import sys
 import time
 
-import dask as da
+import dask.array as da
+import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
 
@@ -27,53 +28,99 @@ def close_fst(file_id:int, file:str,caller_class:str):
     logger.info(caller_class + ' - closing file %s', file)
     rmn.fstcloseall(file_id)
 
-def parallel_get_records_from_file(files, get_records_func, n_cores):
+def parallel_get_dataframe_from_file(files, get_records_func, n_cores):
     # Step 1: Init multiprocessing.Pool()
     pool = mp.Pool(n_cores)
-    record_list = pool.starmap(get_records_func, [file for file in files])
+    df_list = pool.starmap(get_records_func, [file for file in files])
     pool.close()    
-    records = [item for sublist in record_list for item in sublist]
-    return records
+    df = pd.concat(df_list)
+    return df
 
-def get_records_from_file(file:str,subset:dict):
+
+def create_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int):
+    if nomvar in ["^>",">>", "^^", "!!", "!!SF", "HY"]:
+        grid = "".join([str(ip1),str(ip2)])
+    else:    
+        grid = "".join([str(ig1),str(ig2)])
+    return grid    
+
+def add_grid_column(df):
+    vcreate_grid_identifier = np.vectorize(create_grid_identifier,otypes=['str'])    
+    df['grid'] = vcreate_grid_identifier(df['nomvar'],df['ip1'],df['ip2'],df['ig1'],df['ig2'])
+    return df
+
+def get_dataframe_from_file(file:str,subset:dict,array_container:str=None):
     f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
     unit = rmn.fstopenall(file)
-    # print('-----------')
-    # print(pd.DataFrame(get_std_file_header(unit)))
-    # print('-----------')
-    
-    if subset is None:
-        keys = rmn.fstinl(unit)
-    else:
-        # datev,etiket,ip1, ip2,ip3,typvar,nomvar
-        # print([f"{k}=={v}" for k,v in subset.items()])
-        keys = rmn.fstinl(unit,**subset)    
-    records = []
-    for k in keys:     
-        rec = rmn.fstprm(k)
-        rec['path'] = file
-        rec['file_modification_time'] = f_mod_time
-        records.append(rec)
-    rmn.fstcloseall(unit)
-    return records   
 
-def get_records_from_file_and_load(file,subset):
-    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_from_file_and_load',StandardFileReaderError)
-    unit = rmn.fstopenall(file)
+    records = get_std_file_header(unit)
 
-    if subset is None:
-        keys = rmn.fstinl(unit)
-    else:    
-        keys = rmn.fstinl(unit,**subset)
-    records = []    
-    for k in keys:     
-        rec = rmn.fstluk(k)
-        rec['path'] = file
-        rec['file_modification_time'] = f_mod_time
-        records.append(rec)
-    
     rmn.fstcloseall(unit)
-    return records
+
+    df = pd.DataFrame(records)
+    
+    df['path'] = file
+    df['file_modification_time'] = f_mod_time
+    
+    df = add_grid_column(df)
+
+    if (subset is None) == False:
+        valid_params = ['datev','etiket','ip1', 'ip2','ip3','typvar','nomvar']
+        query_str = []
+        for k,v in subset.items():
+            if k in valid_params:
+                if isinstance(v,str):
+                    query_str.append(f'{k}=="{v}"')
+                else:
+                    query_str.append(f'({k}=="{v}")')
+            else:
+                raise StandardFileReaderError('invalid key in subset!')    
+        subdf = df.query(' and '.join(query_str))
+        
+        # add metadata of this subset
+        metadf = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]')
+
+        subdfmeta = metadf.query('grid in %s'%subdf.grid.unique())    
+        if (not subdf.empty) and (not subdfmeta.empty):
+            df = pd.concat([subdf,subdfmeta])
+        elif (not subdf.empty) and (subdfmeta.empty):    
+            df = subdf
+        elif subdf.empty:
+            df = subdf   
+
+    return df   
+
+def _fstluk(key):
+    return rmn.fstluk(int(key))['d']
+
+def _fstluk_dask(key):
+    return da.from_array(rmn.fstluk(int(key))['d'])
+
+
+def add_numpy_data_column(df):
+    vfstluk = np.vectorize(_fstluk,otypes='O')
+    df['d'] = vfstluk(df['key'])
+    return df
+
+def add_dask_data_column(df):
+    vfstluk = np.vectorize(_fstluk_dask,otypes='O')
+    df['d'] = vfstluk(df['key'])
+    return df
+
+def get_dataframe_from_file_and_load(file:str,subset:dict,array_container:str):
+    df = get_dataframe_from_file(file,subset,None)
+    unit=rmn.fstopenall(file,rmn.FST_RO)
+    if array_container in ['numpy','dask.array']:
+        if array_container == 'numpy':
+            df = add_numpy_data_column(df)
+        else:
+            df = add_dask_data_column(df)    
+    # df['d'] = None
+    # for i in df.index:
+    #     df.at[i,'d'] = rmn.fstluk(int(df.at[i,'key']))['d']
+
+    rmn.fstcloseall(unit)    
+    return df
 
 # written by Micheal Neish creator of fstd2nc
 # Lightweight test for FST files.
@@ -102,12 +149,12 @@ def get_file_modification_time(path:str,mode:str,caller_class,exception_class):
 
     return file_modification_time    
     
-def get_all_record_keys(file_id, subset):
-    if (subset is None) == False:
-        keys = rmn.fstinl(file_id,**subset)
-    else:
-        keys = rmn.fstinl(file_id)
-    return keys  
+# def get_all_record_keys(file_id, subset):
+#     if (subset is None) == False:
+#         keys = rmn.fstinl(file_id,**subset)
+#     else:
+#         keys = rmn.fstinl(file_id)
+#     return keys  
 
 
 

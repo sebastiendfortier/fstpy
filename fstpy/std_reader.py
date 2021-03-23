@@ -15,8 +15,8 @@ import xarray as xr
 from .dataframe import add_decoded_columns, clean_dataframe, sort_dataframe
 from .exceptions import StandardFileError
 from .std_io import (compare_modification_times, get_lat_lon,
-                     get_records_from_file, get_records_from_file_and_load,
-                     parallel_get_records_from_file)
+                     get_dataframe_from_file, get_dataframe_from_file_and_load,
+                     parallel_get_dataframe_from_file, read_record)
 from .utils import initializer
 from .xarray import (get_date_of_validity_data_array, get_latitude_data_array,
                      get_level_data_array, get_longitude_data_array,
@@ -87,21 +87,20 @@ class StandardFileReader:
         
         if isinstance(self.filenames, list):
             # convert to list of tuple (path,subset)
-            self.filenames = list(zip(self.filenames,itertools.repeat(self.subset)))
+            self.filenames = list(zip(self.filenames,itertools.repeat(self.subset),itertools.repeat(self.array_container)))
             if self.load_data:
-                records = parallel_get_records_from_file(self.filenames, get_records_from_file_and_load, n_cores=min(mp.cpu_count(),len(self.filenames)))
+                df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file_and_load, n_cores=min(mp.cpu_count(),len(self.filenames),1))
             else:
-                records = parallel_get_records_from_file(self.filenames, get_records_from_file, n_cores=min(mp.cpu_count(),len(self.filenames)))    
-           
-            df = pd.DataFrame(records)
+                df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file, n_cores=min(mp.cpu_count(),len(self.filenames),1))    
+            # print(df)
         else:
             
             if self.load_data:
-                records = get_records_from_file_and_load(self.filenames,self.subset)
+                df = get_dataframe_from_file_and_load(self.filenames,self.subset,self.array_container)
             else:
-                records = get_records_from_file(self.filenames,self.subset)    
+                df = get_dataframe_from_file(self.filenames,self.subset,None)    
            
-            df = pd.DataFrame(records)
+
 
         df = add_decoded_columns(df,self.decode_metadata,self.array_container)    
 
@@ -202,7 +201,7 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
             if isinstance(path_df.at[i,'d'],np.ndarray):
                 continue
             #call stored function with param, rmn.fstluk(key) 
-            path_df.at[i,'d'] = path_df.at[i,'d'][0](path_df.at[i,'d'][1],path_df.at[i,'d'][2])
+            path_df.at[i,'d'] = read_record(path_df.at[i,'d'][0],path_df.at[i,'d'][1])
             #path_df.at[i,'fstinl_params'] = None
             # path_df.at[i,'path'] = None
         res_list.append(path_df)
