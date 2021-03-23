@@ -5,8 +5,32 @@ import numpy as np
 import rpnpy.librmn.all as rmn
 from rpnpy.rpndate import RPNDate
 
-from fstpy import STDVAR
+from fstpy import DATYP_DICT, STDVAR
 
+def get_forecast_hour(deet,npas):
+    return datetime.timedelta(seconds=int(npas * deet))
+
+def decode_ip2(ip2):
+    _,i2,_ = rmn.DecodeIp(0,ip2,0) 
+    pkind = '' if i2.kind in [-1,3,15,17] else rmn.kindToString(i2.kind).strip()
+    return i2.v1,i2.kind,pkind
+
+def decode_ip3(ip3):
+    _,_,i3 = rmn.DecodeIp(0,0,ip3) 
+    pkind = '' if i3.kind in [-1,3,15,17] else rmn.kindToString(i3.kind).strip()
+    return i3.v1,i3.kind,pkind
+
+def get_data_type_str(datyp):
+    return DATYP_DICT[datyp]
+
+def get_level_info(ip1):
+    i1,_,_ = rmn.DecodeIp(ip1,0,0) 
+    ip1_pkind = '' if i1.kind in [-1,3,15,17] else rmn.kindToString(i1.kind).strip()
+    level=i1.v1
+    ip1_kind = i1.kind
+    surface = is_surface(ip1_kind,level)
+    follow_topography = level_type_follows_topography(ip1_kind)
+    return level,ip1_kind,ip1_pkind,surface,follow_topography
 
 def get_unit_and_description(nomvar):
     """Reads the Standard file dictionnary and gets the unit and description associated with the variable name
@@ -47,7 +71,7 @@ def convert_rmndate_to_datetime(date:int) -> datetime.datetime:
     if date not in dummy_stamps:
         return RPNDate(int(date)).toDateTime().replace(tzinfo=None)
     else:
-        return str(date)
+        return None
 
 def is_surface(ip1_kind:int,level:float) -> bool:
     """Return a bool that tell us if the level is a surface level
@@ -92,7 +116,7 @@ def level_type_follows_topography(ip1_kind:int) -> bool:
     else:
         return False  
 
-def create_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int) -> str:
+def get_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int) -> str:
     """Create a grid identifer from ip2,ip2 or ig1,ig2 depending of the varibale. 
     Meta information like >> have their grid identifiers strored in ip1,and ip2, 
     while regular viables have them strored in ig1 and ig2
@@ -110,7 +134,7 @@ def create_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int) -> str:
     :return: concatenation of ig1,ig2 or ip1,ip2 depending on variable name
     :rtype: str
 
-    >>> create_grid_identifier('TT',94733000,6,33792,77761)
+    >>> get_grid_identifier('TT',94733000,6,33792,77761)
     '3379277761'
     """
     if nomvar.strip() in [">>", "^^", "!!", "!!SF", "HY"]:
@@ -120,39 +144,7 @@ def create_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int) -> str:
     return grid
 
 
-def decode_ip(ip:int):
-    """Decode the int ip value into float value, kind int, kind str
-
-    :param ip: int value for ip
-    :type ip: int
-    :return: decoded ip in the form of value, kind int and kind str
-    :rtype: float,int,str
-
-    >>> decode_ip(94733000)
-    (0.36116, 5, 'hy')
-    """
-    v_dec_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(ip))
-    value = float("%.6f"%-1) if v_dec_kind[1] == -1 else float("%.6f"%v_dec_kind[0])
-    kind = int(v_dec_kind[1])
-    pkind = get_pkind(kind)
-    return value, kind, pkind
-
-
-def get_pkind(ip1_kind:int) -> str:
-    """Gets the string representation of a kind int, if it has no representation, returns empty string
-
-    :param ip1_kind: kind int
-    :type ip1_kind: int
-    :return: string representation of a kind int
-    :rtype: str
-
-    >>> get_pkind(5)
-    'hy' 
-    """
-    return '' if ip1_kind in [-1,3,15,17] else rmn.kindToString(ip1_kind).strip()
-
-
-def parse_etiket(raw_etiket:str):
+def get_parsed_etiket(raw_etiket:str):
     """parses the etiket of a standard file to get label, run, implementation and ensemble member if available
 
     :param raw_etiket: raw etiket before parsing
@@ -160,9 +152,9 @@ def parse_etiket(raw_etiket:str):
     :return: the parsed etiket, run, implementation and ensemble member
     :rtype: str  
 
-    >>> parse_etiket('')
+    >>> get_parsed_etiket('')
     ('', '', '', '')
-    >>> parse_etiket('R1_V710_N')
+    >>> get_parsed_etiket('R1_V710_N')
     ('_V710_', 'R1', 'N', '')
     """
     import re
@@ -209,6 +201,38 @@ def parse_etiket(raw_etiket:str):
 
 
 
+
+
+# def decode_ip(ip:int):
+#     """Decode the int ip value into float value, kind int, kind str
+
+#     :param ip: int value for ip
+#     :type ip: int
+#     :return: decoded ip in the form of value, kind int and kind str
+#     :rtype: float,int,str
+
+#     >>> decode_ip(94733000)
+#     (0.36116, 5, 'hy')
+#     """
+#     v_dec_kind = rmn.convertIp(rmn.CONVIP_DECODE,int(ip))
+#     value = float("%.6f"%-1) if v_dec_kind[1] == -1 else float("%.6f"%v_dec_kind[0])
+#     kind = int(v_dec_kind[1])
+#     pkind = get_pkind(kind)
+#     return value, kind, pkind
+
+
+# def get_pkind(ip1_kind:int) -> str:
+#     """Gets the string representation of a kind int, if it has no representation, returns empty string
+
+#     :param ip1_kind: kind int
+#     :type ip1_kind: int
+#     :return: string representation of a kind int
+#     :rtype: str
+
+#     >>> get_pkind(5)
+#     'hy' 
+#     """
+#     return '' if ip1_kind in [-1,3,15,17] else rmn.kindToString(ip1_kind).strip()
 
 
 # def get_level_and_kind(ip1:int):
@@ -281,7 +305,7 @@ def parse_etiket(raw_etiket:str):
 #     :rtype: [type]
 #     """
 #     dec_record = {}
-#     dec_record['label'],dec_record['run'],dec_record['implementation'],dec_record['ensemble_member'] = parse_etiket(etiket)
+#     dec_record['label'],dec_record['run'],dec_record['implementation'],dec_record['ensemble_member'] = get_parsed_etiket(etiket)
 #     dec_record['unit'],dec_record['description']=get_unit_and_description(nomvar)
 #     #create a real date of observation
 #     dec_record['date_of_observation'] = convert_rmndate_to_datetime(int(dateo))
