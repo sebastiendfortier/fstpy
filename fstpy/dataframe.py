@@ -1,20 +1,14 @@
 # -*- coding: utf-8 -*-
 import concurrent.futures
-import datetime
-from fstpy import DATYP_DICT
-import multiprocessing as mp
+import dask
 
-import dask.array as da
 import numpy as np
 import pandas as pd
-import rpnpy.librmn.all as rmn
 
-# from .dataframe_utils import add_empty_columns
 from .exceptions import StandardFileError
 from .logger_config import logger
 from .std_dec import (convert_rmndate_to_datetime, 
-                      get_unit_and_description, is_surface,
-                      level_type_follows_topography, parse_etiket)
+                      get_parsed_etiket, get_unit_and_description)
 
 
 
@@ -48,31 +42,33 @@ def clean_dataframe(df,decode_metadata,attributes_to_decode=['flags','etiket','u
     return df
 
 
-def create_shape(ni,nj):
+def get_data_holder(d,key:int,array_container:str):
+    import dask.array as da
+    if not ((isinstance(d,np.ndarray)) or (isinstance(d,da.core.Array))):
+        d = (array_container,int(key))
+    return d
+
+def get_shape(ni,nj):
     return (ni,nj)
+    
 
 def add_shape_column(df):
-    vmake_shape = np.vectorize(create_shape,otypes=['object'])
+    vmake_shape = np.vectorize(get_shape,otypes=['object'])
     df['shape'] = vmake_shape(df['ni'],df['nj'])
     return df
 
 
 
 
-def create_data(d,key:int,array_container:str):
-    if not ((isinstance(d,np.ndarray)) or (isinstance(d,da.core.Array))):
-        d = (array_container,int(key))
-    return d
-
 def add_data_column(df,array_container):
-    vcreate_data = np.vectorize(create_data,otypes=['object'])    
+    vcreate_data = np.vectorize(get_data_holder,otypes=['object'])    
     df['d'] = vcreate_data(df['d'],df['key'],array_container)
     return df
 
 
 def add_parsed_etiket_columns(df):
-    # df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = parse_etiket(df.at[i,'etiket'])
-    vparse_etiket = np.vectorize(parse_etiket,otypes=['str','str','str','str'])    
+    # df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = get_parsed_etiket(df.at[i,'etiket'])
+    vparse_etiket = np.vectorize(get_parsed_etiket,otypes=['str','str','str','str'])    
     df['label'],df['run'],df['implementation'],df['ensemble_member'] = vparse_etiket(df['etiket'])
     return df
 
@@ -100,64 +96,40 @@ def add_decoded_date_column(df,attr='dateo'):
         df['date_of_validity'] = vconvert_rmndate_to_datetime(df['datev'])
     return df
 
-def create_forecast_hour(deet,npas):
-    return datetime.timedelta(seconds=int(npas * deet))
 
 def add_forecast_hour_column(df):
+    from .std_dec import get_forecast_hour
     # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
-    vcreate_forecast_hour = np.vectorize(create_forecast_hour,otypes=['timedelta64'])    
+    vcreate_forecast_hour = np.vectorize(get_forecast_hour,otypes=['timedelta64'])    
     df['forecast_hour'] = vcreate_forecast_hour(df['deet'],df['npas'])
     return df
 
-# def decode_ip1(ip1):
-#     i1,_,_ = rmn.DecodeIp(ip1,0,0) 
-#     pkind = '' if i1.kind in [-1,3,15,17] else rmn.kindToString(i1.kind).strip()
-#     return i1.v1,i1.kind,pkind
 
-def decode_ip2(ip2):
-    _,i2,_ = rmn.DecodeIp(0,ip2,0) 
-    pkind = '' if i2.kind in [-1,3,15,17] else rmn.kindToString(i2.kind).strip()
-    return i2.v1,i2.kind,pkind
-
-def decode_ip3(ip3):
-    _,_,i3 = rmn.DecodeIp(0,0,ip3) 
-    pkind = '' if i3.kind in [-1,3,15,17] else rmn.kindToString(i3.kind).strip()
-    return i3.v1,i3.kind,pkind
-
-# def add_decoded_ip1_columns(df):
-#     vdecode_ip1 = np.vectorize(decode_ip1,otypes=['float32','int32','str'])  
-#     df['level'],df['ip1_kind'],df['ip1_pkind'] = vdecode_ip1(df['ip1'])
-#     return df
 
 def add_decoded_ip2_columns(df):
+    from .std_dec import decode_ip2
     vdecode_ip2 = np.vectorize(decode_ip2,otypes=['float32','int32','str'])  
     df['ip2_dec'],df['ip2_kind'],df['ip2_pkind'] = vdecode_ip2(df['ip2'])
     return df
 
 def add_decoded_ip3_columns(df):
+    from .std_dec import decode_ip3
     vdecode_ip3 = np.vectorize(decode_ip3,otypes=['float32','int32','str'])  
     df['ip3_dec'],df['ip3_kind'],df['ip3_pkind'] = vdecode_ip3(df['ip3'])    
     return df
 
-def create_data_type_str(datyp):
-    return DATYP_DICT[datyp]
-
 def add_data_type_str_column(df):
-    vcreate_data_type_str = np.vectorize(create_data_type_str,otypes=['str'])  
+    from .std_dec import get_data_type_str
+    vcreate_data_type_str = np.vectorize(get_data_type_str,otypes=['str'])  
     df['data_type_str'] = vcreate_data_type_str(df['datyp'])    
     return df
 
-def create_level_info(ip1):
-    i1,_,_ = rmn.DecodeIp(ip1,0,0) 
-    ip1_pkind = '' if i1.kind in [-1,3,15,17] else rmn.kindToString(i1.kind).strip()
-    level=i1.v1
-    ip1_kind = i1.kind
-    surface = is_surface(ip1_kind,level)
-    follow_topography = level_type_follows_topography(ip1_kind)
-    return level,ip1_kind,ip1_pkind,surface,follow_topography
+
+
 
 def add_level_info_columns(df):
-    vcreate_level_info = np.vectorize(create_level_info,otypes=['float32','int32','str','bool','bool'])  
+    from .std_dec import get_level_info
+    vcreate_level_info = np.vectorize(get_level_info,otypes=['float32','int32','str','bool','bool'])  
     df['level'],df['ip1_kind'],df['ip1_pkind'],df['surface'],df['follow_topography'] = vcreate_level_info(df['ip1'])    
     return df
 
@@ -500,12 +472,12 @@ def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attr
 #         #create a printable data type for voir
 #         df.at[i,'data_type_str'] = constants.DATYP_DICT[df.at[i,'datyp']]
 #         #create a grid identifier for each record
-#         df.at[i,'grid'] = std_io.create_grid_identifier(df.at[i,'nomvar'],df.at[i,'ip1'],df.at[i,'ip2'],df.at[i,'ig1'],df.at[i,'ig2'])
+#         df.at[i,'grid'] = std_io.get_grid_identifier(df.at[i,'nomvar'],df.at[i,'ip1'],df.at[i,'ip2'],df.at[i,'ig1'],df.at[i,'ig2'])
 #         #logger.debug(df.at[i,'ip1_kind'],df.at[i,'level'])
 #         #set surface flag for surface levels
 #         std_io.set_surface(df, i, meter_levels)
 #         std_io.set_follow_topography(df, i)
-#         df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = std_io.parse_etiket(df.at[i,'etiket'])
+#         df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = std_io.get_parsed_etiket(df.at[i,'etiket'])
 #         df.at[i,'d'] = (rmn.fstluk,int(df.at[i,'key']))
 #     return df
 

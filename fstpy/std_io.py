@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import datetime
-from fstpy.extra import get_std_file_header
 import multiprocessing as mp
 import os.path
 import pathlib
@@ -12,9 +11,11 @@ import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
 
+from fstpy.extra import get_std_file_header
+
 from .exceptions import StandardFileError, StandardFileReaderError
 from .logger_config import logger
-from .std_dec import create_grid_identifier
+from .std_dec import get_grid_identifier
 from .utils import create_1row_df_from_model, validate_df_not_empty
 
 
@@ -36,19 +37,11 @@ def parallel_get_dataframe_from_file(files, get_records_func, n_cores):
     df = pd.concat(df_list)
     return df
 
-
-def create_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int):
-    if nomvar in ["^>",">>", "^^", "!!", "!!SF", "HY"]:
-        grid = "".join([str(ip1),str(ip2)])
-    else:    
-        grid = "".join([str(ig1),str(ig2)])
-    return grid    
-
 def add_grid_column(df):
-    vcreate_grid_identifier = np.vectorize(create_grid_identifier,otypes=['str'])    
+    vcreate_grid_identifier = np.vectorize(get_grid_identifier,otypes=['str'])    
     df['grid'] = vcreate_grid_identifier(df['nomvar'],df['ip1'],df['ip2'],df['ig1'],df['ig2'])
     return df
-
+    
 def get_dataframe_from_file(file:str,subset:dict,array_container:str=None):
     f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
     unit = rmn.fstopenall(file)
@@ -95,7 +88,6 @@ def _fstluk(key):
 
 def _fstluk_dask(key):
     return da.from_array(rmn.fstluk(int(key))['d'])
-
 
 def add_numpy_data_column(df):
     vfstluk = np.vectorize(_fstluk,otypes='O')
@@ -148,15 +140,6 @@ def get_file_modification_time(path:str,mode:str,caller_class,exception_class):
     file_modification_time = datetime.datetime.strptime(file_modification_time, "%a %b %d %H:%M:%S %Y")
 
     return file_modification_time    
-    
-# def get_all_record_keys(file_id, subset):
-#     if (subset is None) == False:
-#         keys = rmn.fstinl(file_id,**subset)
-#     else:
-#         keys = rmn.fstinl(file_id)
-#     return keys  
-
-
 
 def read_record(array_container,key):
     if array_container == 'dask.array':
@@ -297,7 +280,7 @@ def get_all_grid_metadata_fields_from_std_file(path):
         #del record['key']
         strip_string_values(record)
         #create a grid identifier for each record
-        record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+        record['grid'] = get_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
         remove_extra_keys(record)
         record['path'] = path
         record['file_modification_time'] = get_file_modification_time(path,rmn.FST_RO,'get_all_meta_data_fields_from_std_file',StandardFileError)
@@ -316,10 +299,16 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
     
 #df_file_modification_time = df.iloc[0]['file_modification_time']
 
-
+    
+# def get_all_record_keys(file_id, subset):
+#     if (subset is None) == False:
+#         keys = rmn.fstinl(file_id,**subset)
+#     else:
+#         keys = rmn.fstinl(file_id)
+#     return keys  
 
 # def get_records(keys,load_data):
-#     # from .std_dec import create_grid_identifier,decode_metadata
+#     # from .std_dec import get_grid_identifier,decode_metadata
 #     records = []    
 #     if load_data:
 #         for k in keys:
@@ -334,7 +323,7 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
 #             # #del record['key']
 #             # strip_string_values(record)
 #             # #create a grid identifier for each record
-#             # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+#             # record['grid'] = get_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
 #             # remove_extra_keys(record)
 
 #             # if decode:
@@ -368,7 +357,7 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
 #             # #del record['key'] #i don't know if we need
 #             # strip_string_values(record)
 #             # #create a grid identifier for each record
-#             # record['grid'] = create_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+#             # record['grid'] = get_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
 #             # remove_extra_keys(record)
 
 #             # if decode:

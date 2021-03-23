@@ -11,10 +11,11 @@ import rpnpy.librmn.all as rmn
 import fstpy
 from fstpy import DATYP_DICT, KIND_DICT
 
-from .dataframe import remove_from_df, reorder_columns, sort_dataframe
+from .dataframe import (add_level_info_columns, remove_from_df,
+                        reorder_columns, sort_dataframe)
 from .exceptions import SelectError, StandardFileError
 from .logger_config import logger
-from .std_dec import convert_rmndate_to_datetime, decode_ip
+from .std_dec import convert_rmndate_to_datetime
 from .std_reader import StandardFileReader, load_data
 from .utils import validate_df_not_empty
 
@@ -56,12 +57,13 @@ def voir(df:pd.DataFrame,style=False):
     df['datyp'] = df['datyp'].map(DATYP_DICT)
     df['datev'] = df['datev'].apply(convert_rmndate_to_datetime)
     df['dateo'] = df['dateo'].apply(convert_rmndate_to_datetime)
-    res = df['ip1'].apply(decode_ip)
-    df['level'] = None
-    df[' '] = None
-    for i in df.index:
-        df.at[i,'level']=res.loc[i][0] 
-        df.at[i,' '] = res.loc[i][2]
+    df = add_level_info_columns(df)
+    # res = df['ip1'].apply(decode_ip)
+    # df['level'] = None
+    # df[' '] = None
+    # for i in df.index:
+    #     df.at[i,'level']=res.loc[i][0] 
+    #     df.at[i,' '] = res.loc[i][2]
 
     res_df = df.sort_values(by=['nomvar','level'],ascending=True)
 
@@ -138,12 +140,13 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     validate_df_not_empty(df,'fststat',StandardFileError)
     df = load_data(df)
     df = compute_stats(df)
-    res = df['ip1'].apply(decode_ip)
-    df['level'] = None
-    df[' '] = None
-    for i in df.index:
-        df.at[i,'level']=res.loc[i][0] 
-        df.at[i,' '] = res.loc[i][2]
+    df = add_level_info_columns(df)
+    # res = df['ip1'].apply(decode_ip)
+    # df['level'] = None
+    # df[' '] = None
+    # for i in df.index:
+    #     df.at[i,'level']=res.loc[i][0] 
+    #     df.at[i,' '] = res.loc[i][2]
 
     df.sort_values(by=['nomvar','level'],ascending=True,inplace=True)
 
@@ -334,10 +337,11 @@ def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
     
     sys.stdout.write('zap - changed ip1, triggers updating level and ip1_kind\n')
     df.loc[:,'ip1'] = ip1_value
-    level, ip1_kind, ip1_pkind = decode_ip(ip1_value)
-    df.loc[:,'level'] = level
-    df.loc[:,'ip1_kind'] = ip1_kind
-    df.loc[:,'ip1_pkind'] = ip1_pkind
+    df = add_level_info_columns(df)
+    # level, ip1_kind, ip1_pkind = decode_ip(ip1_value)
+    # df.loc[:,'level'] = level
+    # df.loc[:,'ip1_kind'] = ip1_kind
+    # df.loc[:,'ip1_pkind'] = ip1_pkind
     return df
 
 def zap_level(df:pd.DataFrame, level_value:float, ip1_kind_value:int) -> pd.DataFrame:
