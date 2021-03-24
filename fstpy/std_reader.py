@@ -105,7 +105,10 @@ class StandardFileReader:
         df = add_decoded_columns(df,self.decode_metadata,self.array_container)    
 
         df = clean_dataframe(df,self.decode_metadata)
-
+        columns = ['nomvar','typvar','etiket','ni','nj','nk','dateo',
+                'ip1','ip2','ip3','deet','npas','datyp','nbits',
+                'grtyp','ig1','ig3','ig4','datev','key']
+        df = df.drop_duplicates(subset=columns,keep='first')
         return df    
 
 
