@@ -89,9 +89,9 @@ class StandardFileReader:
             # convert to list of tuple (path,subset)
             self.filenames = list(zip(self.filenames,itertools.repeat(self.subset),itertools.repeat(self.array_container)))
             if self.load_data:
-                df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file_and_load, n_cores=min(mp.cpu_count(),len(self.filenames),1))
+                df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file_and_load, n_cores=min(mp.cpu_count(),len(self.filenames)))
             else:
-                df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file, n_cores=min(mp.cpu_count(),len(self.filenames),1))    
+                df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file, n_cores=min(mp.cpu_count(),len(self.filenames)))    
             # print(df)
         else:
             
@@ -105,14 +105,9 @@ class StandardFileReader:
         df = add_decoded_columns(df,self.decode_metadata,self.array_container)    
 
         df = clean_dataframe(df,self.decode_metadata)
-        columns = ['nomvar','typvar','etiket','ni','nj','nk','dateo',
-                'ip1','ip2','ip3','deet','npas','datyp','nbits',
-                'grtyp','ig1','ig3','ig4','datev','key']
-        df = df.drop_duplicates(subset=columns,keep='first')
+        
         return df    
-
-
-   
+ 
 
 
     def to_xarray(self, timeseries=False, attributes=False):
