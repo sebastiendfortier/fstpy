@@ -42,7 +42,7 @@ def add_grid_column(df):
     df['grid'] = vcreate_grid_identifier(df['nomvar'],df['ip1'],df['ip2'],df['ig1'],df['ig2'])
     return df
     
-def get_dataframe_from_file(file:str,subset:dict,array_container:str=None):
+def get_dataframe_from_file(file:str,query:str,array_container:str=None):
     f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
     unit = rmn.fstopenall(file)
 
@@ -57,20 +57,20 @@ def get_dataframe_from_file(file:str,subset:dict,array_container:str=None):
     
     df = add_grid_column(df)
 
-    if (subset is None) == False:
-        valid_params = ['datev','etiket','ip1', 'ip2','ip3','typvar','nomvar']
-        query_str = []
-        for k,v in subset.items():
-            if k in valid_params:
-                if isinstance(v,str):
-                    query_str.append(f'{k}=="{v}"')
-                else:
-                    query_str.append(f'({k}=="{v}")')
-            else:
-                raise StandardFileReaderError('invalid key in subset!')    
-        subdf = df.query(' and '.join(query_str))
+    if (query is None) == False:
+        # valid_params = ['datev','etiket','ip1', 'ip2','ip3','typvar','nomvar']
+        # query_str = []
+        # for k,v in query.items():
+        #     if k in valid_params:
+        #         if isinstance(v,str):
+        #             query_str.append(f'{k}=="{v}"')
+        #         else:
+        #             query_str.append(f'({k}=="{v}")')
+        #     else:
+        #         raise StandardFileReaderError('invalid key in query!')    
+        subdf = df.query(query)
         
-        # add metadata of this subset
+        # add metadata of this query
         metadf = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]')
 
         subdfmeta = metadf.query('grid in %s'%subdf.grid.unique())    
@@ -99,8 +99,8 @@ def add_dask_data_column(df):
     df['d'] = vfstluk(df['key'])
     return df
 
-def get_dataframe_from_file_and_load(file:str,subset:dict,array_container:str):
-    df = get_dataframe_from_file(file,subset,None)
+def get_dataframe_from_file_and_load(file:str,query:str,array_container:str):
+    df = get_dataframe_from_file(file,query,None)
     unit=rmn.fstopenall(file,rmn.FST_RO)
     if array_container in ['numpy','dask.array']:
         if array_container == 'numpy':
@@ -300,9 +300,9 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
 #df_file_modification_time = df.iloc[0]['file_modification_time']
 
     
-# def get_all_record_keys(file_id, subset):
-#     if (subset is None) == False:
-#         keys = rmn.fstinl(file_id,**subset)
+# def get_all_record_keys(file_id, query):
+#     if (query is None) == False:
+#         keys = rmn.fstinl(file_id,**query)
 #     else:
 #         keys = rmn.fstinl(file_id)
 #     return keys  

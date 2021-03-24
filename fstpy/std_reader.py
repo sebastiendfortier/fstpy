@@ -57,14 +57,14 @@ class StandardFileReader:
         :type decode_metadata: bool, optional    
         :param load_data: if True, the data will be read, not just the metadata (fstluk vs fstprm), default False    
         :type load_data: bool, optional    
-        :param subset: parameter to pass to fstinl to select specific records (https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.0/rpnpy/librmn/fstd98#fstinl)    
-        :type subset: dict, optional    
+        :param query: parameter to pass to dataframe.query method, to select specific records    
+        :type query: str, optional    
         :param array_container: specifies the type of arrays that data is contained in, default 'numpy', can be set to 'dask.array'   
         :type array_container: str    
     """
     meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
     @initializer
-    def __init__(self, filenames, decode_metadata=False,load_data=False,subset=None,array_container='numpy'):
+    def __init__(self, filenames, decode_metadata=False,load_data=False,query=None,array_container='numpy'):
         #{'datev':-1, 'etiket':' ', 'ip1':-1, 'ip2':-1, 'ip3':-1, 'typvar':' ', 'nomvar':' '}
         """init instance"""
         if self.array_container not in ['numpy','dask.array']:
@@ -86,8 +86,8 @@ class StandardFileReader:
         """
         
         if isinstance(self.filenames, list):
-            # convert to list of tuple (path,subset)
-            self.filenames = list(zip(self.filenames,itertools.repeat(self.subset),itertools.repeat(self.array_container)))
+            # convert to list of tuple (path,query)
+            self.filenames = list(zip(self.filenames,itertools.repeat(self.query),itertools.repeat(self.array_container)))
             if self.load_data:
                 df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file_and_load, n_cores=min(mp.cpu_count(),len(self.filenames)))
             else:
@@ -96,9 +96,9 @@ class StandardFileReader:
         else:
             
             if self.load_data:
-                df = get_dataframe_from_file_and_load(self.filenames,self.subset,self.array_container)
+                df = get_dataframe_from_file_and_load(self.filenames,self.query,self.array_container)
             else:
-                df = get_dataframe_from_file(self.filenames,self.subset,None)    
+                df = get_dataframe_from_file(self.filenames,self.query,None)    
            
 
 
