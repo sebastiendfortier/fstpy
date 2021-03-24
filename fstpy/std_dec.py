@@ -7,23 +7,60 @@ from rpnpy.rpndate import RPNDate
 
 from fstpy import DATYP_DICT, STDVAR
 
-def get_forecast_hour(deet,npas):
+def get_forecast_hour(deet:int,npas:int) -> datetime.timedelta:
+    """creates a timedelta object in seconds from deet * npas
+
+    :param deet: This is the length of a time step used during a model integration, in seconds.
+    :type deet: int
+    :param npas:This is the time step number at which the field was written during an integration. The number of the initial time step is 0. 
+    :type npas: int
+    :return: time delta in seconds
+    :rtype: datetime.timedelta
+    """
     return datetime.timedelta(seconds=int(npas * deet))
 
-def decode_ip2(ip2):
+def decode_ip2(ip2:int):
+    """decodes the ip2 int value to its float value, kind and kind string
+
+    :param ip2: encoded value stored in ip2
+    :type ip2: int
+    :return: decoded ip2 value, kind and printable kind string
+    :rtype: float,int,str
+    """
     _,i2,_ = rmn.DecodeIp(0,ip2,0) 
     pkind = '' if i2.kind in [-1,3,15,17] else rmn.kindToString(i2.kind).strip()
     return i2.v1,i2.kind,pkind
 
-def decode_ip3(ip3):
+def decode_ip3(ip3:int):
+    """decodes the ip3 int value to its float value, kind and kind string
+
+    :param ip3: encoded value stored in ip3
+    :type ip3: int
+    :return: decoded ip3 value, kind and printable kind string
+    :rtype: float,int,str
+    """
     _,_,i3 = rmn.DecodeIp(0,0,ip3) 
     pkind = '' if i3.kind in [-1,3,15,17] else rmn.kindToString(i3.kind).strip()
     return i3.v1,i3.kind,pkind
 
-def get_data_type_str(datyp):
+def get_data_type_str(datyp:int):
+    """gets the data type string from the datyp int
+
+    :param datyp: data type int value
+    :type datyp: int
+    :return: string eqivalent of the datyp int value
+    :rtype: str
+    """
     return DATYP_DICT[datyp]
 
-def get_level_info(ip1):
+def get_level_info(ip1:int):
+    """gets all relevant level info from the ip1 int value
+
+    :param ip1: encoded value stored in ip1
+    :type ip1: int
+    :return: level value, kind and kind str obtained from decoding ip1 and bools representing if the level is a surface level and if it follows topography.
+    :rtype: float,int,str,bool,bool
+    """
     i1,_,_ = rmn.DecodeIp(ip1,0,0) 
     ip1_pkind = '' if i1.kind in [-1,3,15,17] else rmn.kindToString(i1.kind).strip()
     level=i1.v1

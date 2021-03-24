@@ -39,6 +39,13 @@ def clean_dataframe(df,decode_metadata,attributes_to_decode=['flags','etiket','u
     df = reorder_columns(df)  
 
     df = sort_dataframe(df)
+
+    columns = ['nomvar','typvar','etiket','ni','nj','nk','dateo',
+        'ip1','ip2','ip3','deet','npas','datyp','nbits',
+        'grtyp','ig1','ig3','ig4','datev','key']
+
+    df = df.drop_duplicates(subset=columns,keep='first')
+
     return df
 
 
@@ -66,19 +73,32 @@ def add_data_column(df,array_container):
     return df
 
 
-def add_parsed_etiket_columns(df):
+def add_parsed_etiket_columns(df:pd.DataFrame) ->pd.DataFrame:
+    """adds label,run,implementation and ensemble_member columns from the parsed etikets to a dataframe
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: dataframe with label,run,implementation and ensemble_member columns added
+    :rtype: pd.DataFrame
+    """
     # df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = get_parsed_etiket(df.at[i,'etiket'])
     vparse_etiket = np.vectorize(get_parsed_etiket,otypes=['str','str','str','str'])    
     df['label'],df['run'],df['implementation'],df['ensemble_member'] = vparse_etiket(df['etiket'])
     return df
 
-def add_unit_and_description_columns(df):
-    # df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
+def add_unit_and_description_columns(df:pd.DataFrame) ->pd.DataFrame:
+    """adds unit and description from the nomvars to a dataframe
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: dataframe with unit and description columns added
+    :rtype: pd.DataFrame
+    """
     vget_unit_and_description = np.vectorize(get_unit_and_description,otypes=['str','str'])    
     df['unit'],df['description'] = vget_unit_and_description(df['nomvar'])
     return df
 
-def add_flags_columns(df):
+def add_flags_columns(df:pd.DataFrame) ->pd.DataFrame:
     df['unit_converted'] = False
     df['zapped'] = False
     df['filtered'] = False
@@ -88,7 +108,16 @@ def add_flags_columns(df):
     df['multiple_modifications'] = False
     return df
 
-def add_decoded_date_column(df,attr='dateo'):
+def add_decoded_date_column(df:pd.DataFrame,attr:str='dateo') ->pd.DataFrame:
+    """adds the decoded dateo or datev column to the dataframe
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :param attr: selected date to decode, defaults to 'dateo'
+    :type attr: str, optional
+    :return: either date_of_observation or date_of_validity column added to the dataframe
+    :rtype: pd.DataFrame
+    """
     vconvert_rmndate_to_datetime = np.vectorize(convert_rmndate_to_datetime,otypes=['datetime64'])  
     if attr == 'dateo':  
         df['date_of_observation'] = vconvert_rmndate_to_datetime(df['dateo'])
@@ -97,7 +126,14 @@ def add_decoded_date_column(df,attr='dateo'):
     return df
 
 
-def add_forecast_hour_column(df):
+def add_forecast_hour_column(df:pd.DataFrame) -> pd.DataFrame:
+    """adds the forecast_hour column derived from the deet and npas columns
+
+    :param df:dataframe
+    :type df: pd.DataFrame
+    :return: forecast_hour column added to the dataframe
+    :rtype: pd.DataFrame
+    """
     from .std_dec import get_forecast_hour
     # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
     vcreate_forecast_hour = np.vectorize(get_forecast_hour,otypes=['timedelta64'])    
@@ -106,28 +142,53 @@ def add_forecast_hour_column(df):
 
 
 
-def add_decoded_ip2_columns(df):
+def add_decoded_ip2_columns(df:pd.DataFrame) -> pd.DataFrame:
+    """adds the decoded ip2 columns to the dataframe
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: ip2_dec,ip2_kind and ip2_pkind columns added to the dataframe
+    :rtype: pd.DataFrame
+    """
     from .std_dec import decode_ip2
     vdecode_ip2 = np.vectorize(decode_ip2,otypes=['float32','int32','str'])  
     df['ip2_dec'],df['ip2_kind'],df['ip2_pkind'] = vdecode_ip2(df['ip2'])
     return df
 
-def add_decoded_ip3_columns(df):
+def add_decoded_ip3_columns(df:pd.DataFrame) -> pd.DataFrame:
+    """adds the decoded ip3 columns to the dataframe
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: ip3_dec,ip3_kind and ip3_pkind columns added to the dataframe
+    :rtype: pd.DataFrame
+    """
     from .std_dec import decode_ip3
     vdecode_ip3 = np.vectorize(decode_ip3,otypes=['float32','int32','str'])  
     df['ip3_dec'],df['ip3_kind'],df['ip3_pkind'] = vdecode_ip3(df['ip3'])    
     return df
 
-def add_data_type_str_column(df):
+def add_data_type_str_column(df:pd.DataFrame) -> pd.DataFrame:
+    """adds the data type decoded to string value column to the dataframe
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: data_type_str column added to the dataframe
+    :rtype: pd.DataFrame
+    """
     from .std_dec import get_data_type_str
     vcreate_data_type_str = np.vectorize(get_data_type_str,otypes=['str'])  
     df['data_type_str'] = vcreate_data_type_str(df['datyp'])    
     return df
 
+def add_level_info_columns(df:pd.DataFrame) -> pd.DataFrame:
+    """adds all relevant level info from the ip1 column values 
 
-
-
-def add_level_info_columns(df):
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: level, ip1_kind, ip1_pkind,surface and follow_topography columns added to the dataframe.
+    :rtype: pd.DataFrame
+    """
     from .std_dec import get_level_info
     vcreate_level_info = np.vectorize(get_level_info,otypes=['float32','int32','str','bool','bool'])  
     df['level'],df['ip1_kind'],df['ip1_pkind'],df['surface'],df['follow_topography'] = vcreate_level_info(df['ip1'])    
