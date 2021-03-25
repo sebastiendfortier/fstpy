@@ -45,7 +45,7 @@ def tmp_file():
 # def test_default_not_load_datad_same_file(input_file,tmp_file):
 #     file = tmp_file
 
-#     std_file = StandardFileReader(input_file,load_data=True,subset={'nomvar':'TT'})
+#     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="TT"')
 #     df = std_file.to_pandas()
 
 #     std_file_writer = StandardFileWriter(file,df)
@@ -65,7 +65,7 @@ def tmp_file():
 # def test_default_not_load_datad_same_file_overwrite(input_file,tmp_file):
 #     file = tmp_file
 
-#     std_file = StandardFileReader(input_file,load_data=True,subset={'nomvar':'TT'})
+#     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="TT"')
 #     df = std_file.to_pandas()
 
 #     std_file_writer = StandardFileWriter(file,df)
@@ -155,7 +155,7 @@ def tmp_file():
 # #     assert status
 
 # # def test_default_no_extra_load_datad(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,subset={'nomvar':'UU'})
+# #     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,query='nomvar=="UU"')
 # #     df = std_file.to_pandas()
 
 # #     std_file_writer = StandardFileWriter(tmp_file,df)
@@ -168,8 +168,8 @@ def tmp_file():
 # #     delete_file(tmp_file)
 # #     assert status
 
-# # def test_default_load_datad_subset(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,load_data=True,subset={'nomvar':'UU'})
+# # def test_default_load_datad_query(input_file,tmp_file):
+# #     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="UU"')
 # #     df = std_file.to_pandas()
     
 # #     std_file_writer = StandardFileWriter(tmp_file,df)
@@ -235,7 +235,7 @@ def tmp_file():
 # #     assert status
 
 # # def test_params_no_extra_writer_load_data(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,decode_metadata=False,subset={'nomvar':'UU'})
+# #     std_file = StandardFileReader(input_file,decode_metadata=False,query='nomvar=="UU"')
 # #     df = std_file.to_pandas()
 
 # #     std_file_writer = StandardFileWriter(tmp_file,df,load_data=True)
@@ -248,8 +248,8 @@ def tmp_file():
 # #     delete_file(tmp_file)
 # #     assert status
 
-# # def test_params_subset_writer_load_data(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,subset={'nomvar':'UU'})
+# # def test_params_query_writer_load_data(input_file,tmp_file):
+# #     std_file = StandardFileReader(input_file,query='nomvar=="UU"')
 # #     df = std_file.to_pandas()
     
 # #     std_file_writer = StandardFileWriter(tmp_file,df,load_data=True)

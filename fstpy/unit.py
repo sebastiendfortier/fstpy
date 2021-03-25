@@ -5,7 +5,7 @@ import pandas as pd
 from fstpy import get_column_value_from_row, get_unit_by_name
 from fstpy.std_dec import get_unit_and_description
 
-from .dataframe import add_unit_column
+from .dataframe import add_unit_and_description_columns
 from .exceptions import UnitConversionError
 from .std_reader import load_data
 
@@ -266,7 +266,8 @@ def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=Fals
    """
    df = load_data(df)
    if 'unit' not in df.columns:
-      df = add_unit_column(df)
+      df = add_unit_and_description_columns(df)
+
    unit_to = get_unit_by_name(to_unit_name)
    #unit_groups = df.groupby(df.unit)
    #converted_dfs = [] 

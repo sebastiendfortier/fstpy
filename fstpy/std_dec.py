@@ -174,7 +174,7 @@ def get_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int) -> str:
     >>> get_grid_identifier('TT',94733000,6,33792,77761)
     '3379277761'
     """
-    if nomvar.strip() in [">>", "^^", "!!", "!!SF", "HY"]:
+    if nomvar.strip() in ["^>",">>", "^^", "!!", "!!SF"]:
         grid = "".join([str(ip1),str(ip2)])
     else:
         grid = "".join([str(ig1),str(ig2)])
