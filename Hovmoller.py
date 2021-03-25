@@ -203,7 +203,7 @@ def get_time_data_array(vv):
 
 
 def get_dataframe_sorted_by_date():
-    df = fstpy.StandardFileReader('/fs/homeu1/eccc/cmd/cmda/pbu000/hovmuller/p_levels/reg/VV_250hPa_RU_0.3d',load_data=True,subset={'nomvar':'VV'})()
+    df = fstpy.StandardFileReader('/fs/homeu1/eccc/cmd/cmda/pbu000/hovmuller/p_levels/reg/VV_250hPa_RU_0.3d',load_data=True,query='nomvar=="VV"')()
 
     vv = df.copy(deep=True)
 

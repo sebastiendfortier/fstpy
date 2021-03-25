@@ -42,7 +42,7 @@ def add_grid_column(df):
     df['grid'] = vcreate_grid_identifier(df['nomvar'],df['ip1'],df['ip2'],df['ig1'],df['ig2'])
     return df
     
-def get_dataframe_from_file(file:str,subset:dict,array_container:str=None):
+def get_dataframe_from_file(file:str,query:str,array_container:str=None):
     f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
     unit = rmn.fstopenall(file)
 
@@ -52,8 +52,8 @@ def get_dataframe_from_file(file:str,subset:dict,array_container:str=None):
 
     df = pd.DataFrame(records)
     
-    df['path'] = file
-    df['file_modification_time'] = f_mod_time
+    df.loc[:,'path'] = file
+    df.loc[:,'file_modification_time'] = f_mod_time
     
     df = add_grid_column(df)
 
@@ -110,16 +110,16 @@ def _fstluk_dask(key):
 
 def add_numpy_data_column(df):
     vfstluk = np.vectorize(_fstluk,otypes='O')
-    df['d'] = vfstluk(df['key'])
+    df.loc[:,'d'] = vfstluk(df['key'])
     return df
 
 def add_dask_data_column(df):
     vfstluk = np.vectorize(_fstluk_dask,otypes='O')
-    df['d'] = vfstluk(df['key'])
+    df.loc[:,'d'] = vfstluk(df['key'])
     return df
 
-def get_dataframe_from_file_and_load(file:str,subset:dict,array_container:str):
-    df = get_dataframe_from_file(file,subset,None)
+def get_dataframe_from_file_and_load(file:str,query:str,array_container:str):
+    df = get_dataframe_from_file(file,query,None)
     unit=rmn.fstopenall(file,rmn.FST_RO)
     if array_container in ['numpy','dask.array']:
         if array_container == 'numpy':
@@ -214,13 +214,13 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
             tictic_df = latlon_df.query('(nomvar=="^^") and (grid=="%s")'%row['grid'],no_fail=True)
             tactac_df = latlon_df.query('(nomvar==">>") and (grid=="%s")'%row['grid'],no_fail=True)
             lat_df = create_1row_df_from_model(tictic_df)
-            lat_df['nomvar'] = 'LA'
+            lat_df.loc[:,'nomvar'] = 'LA'
             lat_df.at[0,'d'] = grid['lat']
             lat_df.at[0,'ni'] = grid['lat'].shape[0]
             lat_df.at[0,'nj'] = grid['lat'].shape[1]
             lat_df.at[0,'shape'] = grid['lat'].shape
             lon_df = create_1row_df_from_model(tactac_df)
-            lon_df['nomvar'] = 'LO'
+            lon_df.loc[:,'nomvar'] = 'LO'
             lon_df.at[0,'d'] = grid['lon']
             lon_df.at[0,'ni'] = grid['lon'].shape[0]
             lon_df.at[0,'nj'] = grid['lon'].shape[1]
@@ -319,9 +319,9 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
 #df_file_modification_time = df.iloc[0]['file_modification_time']
 
     
-# def get_all_record_keys(file_id, subset):
-#     if (subset is None) == False:
-#         keys = rmn.fstinl(file_id,**subset)
+# def get_all_record_keys(file_id, query):
+#     if (query is None) == False:
+#         keys = rmn.fstinl(file_id,**query)
 #     else:
 #         keys = rmn.fstinl(file_id)
 #     return keys  
