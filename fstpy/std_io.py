@@ -57,6 +57,9 @@ def get_dataframe_from_file(file:str,subset:dict,array_container:str=None):
     
     df = add_grid_column(df)
 
+
+    hy_df = df.query('nomvar == "HY"')
+
     if (subset is None) == False:
         valid_params = ['datev','etiket','ip1', 'ip2','ip3','typvar','nomvar']
         query_str = []
@@ -68,18 +71,34 @@ def get_dataframe_from_file(file:str,subset:dict,array_container:str=None):
                     query_str.append(f'({k}=="{v}")')
             else:
                 raise StandardFileReaderError('invalid key in subset!')    
-        subdf = df.query(' and '.join(query_str))
-        
-        # add metadata of this subset
-        metadf = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]')
+        sub_df = df.query(' and '.join(query_str))
 
-        subdfmeta = metadf.query('grid in %s'%subdf.grid.unique())    
-        if (not subdf.empty) and (not subdfmeta.empty):
-            df = pd.concat([subdf,subdfmeta])
-        elif (not subdf.empty) and (subdfmeta.empty):    
-            df = subdf
-        elif subdf.empty:
-            df = subdf   
+        # get metadata
+        metadf = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1"]')
+
+        subdfmeta = metadf.query('grid in %s'%sub_df.grid.unique())   
+
+        if (not sub_df.empty) and (not subdfmeta.empty):
+            df = pd.concat([sub_df,subdfmeta])
+        elif (not sub_df.empty) and (subdfmeta.empty):    
+            df = sub_df
+        elif sub_df.empty:
+            df = sub_df   
+
+        if (not df.empty) and (not hy_df.empty):
+            df = pd.concat([df,hy_df])
+
+
+    # check HY count
+    hy_count = hy_df.nomvar.count()
+    if hy_count > 1:
+        sys.stderr.write('More than one HY in this file! - UNKNOWN BEHAVIOR, continue at your own risk')
+    
+    #fix grid
+    #in theory there should only be one set of metadata
+
+
+
 
     return df   
 
