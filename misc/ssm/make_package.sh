@@ -5,7 +5,7 @@ ROOT_DIR=${DIR:0:${#DIR}-8}
 cd ${DIR}
 VERSION=$(head -n 1 ${ROOT_DIR}VERSION)
 #echo ${VERSION}
-PKGNAME=fstpy_${VERSION}_ubuntu-18.04-skylake-64
+PKGNAME=fstpy_${VERSION}_${BASE_ARCH}
 
 echo '{' > control.json
 echo '    "name": "fstpy",' >> control.json
@@ -15,16 +15,11 @@ echo '    "maintainer": "CMDS",' >> control.json
 echo '    "description": "fstpy package",' >> control.json
 echo '    "x-build-date": "'`date`'",' >> control.json
 echo '    "x-build-platform": "'${BASE_ARCH}'",' >> control.json
-echo '    "x-build-host": "'${TRUE_HOST}'",' >> control.json
+echo '    "x-build-host": "'`hostname -f`'",' >> control.json
 echo '    "x-build-user": "'${USER}'",' >> control.json
-echo '    "x-build-uname": [' >> control.json
-echo '        "Linux",' >> control.json
-echo '        "'${TRUE_HOST}'",' >> control.json
-echo '        "3.10.0-957.el7.x86_64",' >> control.json
-echo '        "#1 SMP Thu Oct 4 20:48:51 UTC 2018",' >> control.json
-echo '        "x86_64"' >> control.json
-echo '    ]' >> control.json
+echo '    "x-build-uname": "('`uname -s`', '`uname -n`', '`uname -r`', '`uname -v`', '`uname -m`')"' >> control.json
 echo '}' >> control.json
+
 
 echo 'Building package '${PKGNAME}
 mkdir -p ${PKGNAME}/lib/packages/fstpy

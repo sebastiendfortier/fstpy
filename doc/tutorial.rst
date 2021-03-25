@@ -35,7 +35,7 @@ See the contents of the dataframe
 .. code:: python
 
    import fstpy.all as fstpy
-   df = fstpy.StandardFileReader('/fs/site4/eccc/cmd/w/sbf000/fstpy/source_data_5005.std',load_data=True,subset={'nomvar':'TT'}).to_pandas()
+   df = fstpy.StandardFileReader('/fs/site4/eccc/cmd/w/sbf000/fstpy/source_data_5005.std',load_data=True,query='nomvar=="TT"').to_pandas()
    # show the last rows of the dataframe
    print(df.tail())
 
