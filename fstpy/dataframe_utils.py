@@ -239,12 +239,12 @@ def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
 # df['std'] = dask.compute(std_delayed)[0]
 def compute_stats_dask(df:pd.DataFrame) -> pd.DataFrame:
 
-    df['min'] = None
-    df['max'] = None
-    df['mean'] = None
-    df['std'] = None
-    df['min_pos'] = None
-    df['max_pos'] = None
+    df.loc[:,'min'] = None
+    df.loc[:,'max'] = None
+    df.loc[:,'mean'] = None
+    df.loc[:,'std'] = None
+    df.loc[:,'min_pos'] = None
+    df.loc[:,'max_pos'] = None
     #add_empty_columns(df, ['min','max','mean','std'],np.nan,'float32')
     #add_empty_columns(df, ['min_pos','max_pos'],None,dtype_str='O')
     min_delayed=[]
@@ -269,32 +269,32 @@ def compute_stats_dask(df:pd.DataFrame) -> pd.DataFrame:
         # max_pos_delayed = dask.delayed(np.unravel_index)(dask.delayed(np.nanargmax)(df.at[i, 'd']), (df.at[i,'ni'],df.at[i,'nj']))
 
 
-    df['min'] = dask.compute(min_delayed)[0]
-    df['max'] = dask.compute(max_delayed)[0]
-    df['mean'] = dask.compute(mean_delayed)[0]
-    df['std'] = dask.compute(std_delayed)[0]
-    df['min_pos'] = dask.compute(argmin_delayed)[0]
+    df.loc[:,'min'] = dask.compute(min_delayed)[0]
+    df.loc[:,'max'] = dask.compute(max_delayed)[0]
+    df.loc[:,'mean'] = dask.compute(mean_delayed)[0]
+    df.loc[:,'std'] = dask.compute(std_delayed)[0]
+    df.loc[:,'min_pos'] = dask.compute(argmin_delayed)[0]
     #argmax = dask.compute(argmax_delayed)[0]
-    df['max_pos'] = dask.compute(argmax_delayed)[0]
+    df.loc[:,'max_pos'] = dask.compute(argmax_delayed)[0]
     # max_pos = dask.compute(max_pos_delayed)[0]
-    df['min_pos1'] = None
-    df['max_pos1'] = None
+    df.loc[:,'min_pos1'] = None
+    df.loc[:,'max_pos1'] = None
     for i in df.index:
         df.at[i,'min_pos1'] = np.unravel_index(df.at[i,'min_pos'], (df.at[i,'ni'],df.at[i,'nj']))
         df.at[i,'max_pos1'] = np.unravel_index(df.at[i,'max_pos'], (df.at[i,'ni'],df.at[i,'nj']))
 
-    df['min_pos'] = df['min_pos1']
-    df['max_pos'] = df['max_pos1']
+    df.loc[:,'min_pos'] = df['min_pos1']
+    df.loc[:,'max_pos'] = df['max_pos1']
     #df = fstpy.dataframe.sort_dataframe(df)    
     return df
 
 def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
-    df['min'] = None
-    df['max'] = None
-    df['mean'] = None
-    df['std'] = None
-    df['min_pos'] = (0,0)
-    df['max_pos'] = (0,0)
+    df.loc[:,'min'] = None
+    df.loc[:,'max'] = None
+    df.loc[:,'mean'] = None
+    df.loc[:,'std'] = None
+    df.loc[:,'min_pos'] = (0,0)
+    df.loc[:,'max_pos'] = (0,0)
     #add_empty_columns(df, ['min','max','mean','std'],np.nan,'float32')
     #add_empty_columns(df, ['min_pos','max_pos'],None,dtype_str='O')
     for i in df.index:
@@ -346,14 +346,14 @@ def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
 
 def zap_level(df:pd.DataFrame, level_value:float, ip1_kind_value:int) -> pd.DataFrame:
     sys.stdout.write('zap - changed level, triggers updating ip1\n')
-    df['level'] = level_value
-    df['ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, level_value, ip1_kind_value)
+    df.loc[:,'level'] = level_value
+    df.loc[:,'ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, level_value, ip1_kind_value)
     return df
 
 def zap_ip1_kind(df:pd.DataFrame, ip1_kind_value:int) -> pd.DataFrame:
     sys.stdout.write('zap - changed ip1_kind, triggers updating ip1 and ip1_pkind\n')
-    df['ip1_kind'] = ip1_kind_value
-    df['ip1_pkind'] = KIND_DICT[int(ip1_kind_value)]
+    df.loc[:,'ip1_kind'] = ip1_kind_value
+    df.loc[:,'ip1_pkind'] = KIND_DICT[int(ip1_kind_value)]
     for i in df.index:
         df.at[i,'ip1'] = rmn.convertIp(rmn.CONVIP_ENCODE, df.at[i,'level'], ip1_kind_value)
     return df
@@ -379,8 +379,8 @@ def zap_npas(df:pd.DataFrame, npas_value:int) -> pd.DataFrame:
 
 def zap_forecast_hour(df:pd.DataFrame, forecast_hour_value:int) -> pd.DataFrame:
     sys.stdout.write('zap - changed forecast_hour, triggers updating npas\n')
-    df['forecast_hour'] = forecast_hour_value
-    df['ip2'] = np.floor(df['forecast_hour']).astype(int)
+    df.loc[:,'forecast_hour'] = forecast_hour_value
+    df.loc[:,'ip2'] = np.floor(df['forecast_hour']).astype(int)
     for i in df.index:
         df.at[i,'npas'] = df.at[i,'forecast_hour'] * 3600. / df.at[i,'deet']
         df.at[i,'npas'] = df.at[i,'npas'].astype(int)
@@ -388,17 +388,17 @@ def zap_forecast_hour(df:pd.DataFrame, forecast_hour_value:int) -> pd.DataFrame:
 
 
 def add_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
-    diff['abs_diff'] = diff['d_x'].copy(deep=True)
-    diff['e_rel_max'] = diff['d_x'].copy(deep=True)
-    diff['e_rel_moy'] = diff['d_x'].copy(deep=True)
-    diff['var_a'] = diff['d_x'].copy(deep=True)
-    diff['var_b'] = diff['d_x'].copy(deep=True)
-    diff['c_cor'] = diff['d_x'].copy(deep=True)
-    diff['moy_a'] = diff['d_x'].copy(deep=True)
-    diff['moy_b'] = diff['d_x'].copy(deep=True)
-    diff['bias'] = diff['d_x'].copy(deep=True)
-    diff['e_max'] = diff['d_x'].copy(deep=True)
-    diff['e_moy'] = diff['d_x'].copy(deep=True)
+    diff.loc[:,'abs_diff'] = diff['d_x'].copy(deep=True)
+    diff.loc[:,'e_rel_max'] = diff['d_x'].copy(deep=True)
+    diff.loc[:,'e_rel_moy'] = diff['d_x'].copy(deep=True)
+    diff.loc[:,'var_a'] = diff['d_x'].copy(deep=True)
+    diff.loc[:,'var_b'] = diff['d_x'].copy(deep=True)
+    diff.loc[:,'c_cor'] = diff['d_x'].copy(deep=True)
+    diff.loc[:,'moy_a'] = diff['d_x'].copy(deep=True)
+    diff.loc[:,'moy_b'] = diff['d_x'].copy(deep=True)
+    diff.loc[:,'bias'] = diff['d_x'].copy(deep=True)
+    diff.loc[:,'e_max'] = diff['d_x'].copy(deep=True)
+    diff.loc[:,'e_moy'] = diff['d_x'].copy(deep=True)
     diff.drop(columns=['d_x', 'd_y'], inplace=True,errors='ignore')
     return diff
 
