@@ -17,7 +17,9 @@ def get_forecast_hour(deet:int,npas:int) -> datetime.timedelta:
     :return: time delta in seconds
     :rtype: datetime.timedelta
     """
-    return datetime.timedelta(seconds=int(npas * deet))
+    if (deet != 0) and (npas != 0):
+        return datetime.timedelta(seconds=int(npas * deet))
+    return None    
 
 def decode_ip2(ip2:int):
     """decodes the ip2 int value to its float value, kind and kind string

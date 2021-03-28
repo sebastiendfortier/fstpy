@@ -37,6 +37,7 @@ Documentation
 
 **Modules**
 
+* :doc:`all`
 * :doc:`std_reader`
 * :doc:`std_writer`
 * :doc:`std_dec`
@@ -51,6 +52,7 @@ Documentation
    :hidden:
    :caption: Modules
 
+   all
    std_reader
    std_writer
    std_dec
