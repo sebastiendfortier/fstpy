@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from ctypes import Structure, POINTER, c_void_p, c_uint32, c_int32, c_int, c_uint, c_byte, c_char_p
+
 #methode de micheal avec rmnlib
 #########################################################################
 # def get_std_file_header (funit, out=None):
@@ -170,27 +170,27 @@ from ctypes import Structure, POINTER, c_void_p, c_uint32, c_int32, c_int, c_uin
 # 0xaabbcc 
 
 # Read a 32-bit integer from a buffer
-def read32(b) -> int:
+def read32(b):# -> int:
     return (b[0]<<24) | (b[1]<<16) | (b[2]<<8) | (b[3]<<0)
 
 # Read a 24-bit integer from a buffer
-def read24(b) -> int:
+def read24(b):# -> int:
     return (b[0]<<16) | (b[1]<<8) | (b[2]<<0)
 
 
 # Read a 16-bit integer from a buffer
-def read16(b) -> int:
+def read16(b):# -> int:
     return (b[0]<<8) | (b[1]<<0)
 
 
 # Read a 32-bit integer from a stream
-def fread32(f) -> int:
+def fread32(f):# -> int:
     b = f.read(4)
     return read32(b)
 
 
 # Read a 32-bit float from a stream
-def  freadfloat(f) -> float:
+def  freadfloat(f):# -> float:
     x = fread32(f)
     return float(x)
 
@@ -208,10 +208,10 @@ def readchar(dest_bytes,src, n): #4 cas, la cle est {j:sh}
         dest_bytes[i] += 32
 
 
-# Validate the byte count at the beginning/end of an unformatted Fortran stream
-def  ftn_section (f, n:int=4): 
-    m = fread32(f)
-    assert 4 == 4
+# # Validate the byte count at the beginning/end of an unformatted Fortran stream
+# def  ftn_section (f, n=4): 
+#     m = fread32(f)
+#     assert 4 == 4
 
 class FileHeader:
     file_size=0
@@ -255,21 +255,22 @@ class RecordHeader:
     ip3=0
     dateo=0
     checksum=0
+    ubc=0
 
-def print_file_header(h:FileHeader):
+def print_file_header(h):
     print("file_size: %d, num_overwrites: %d, num_extensions: %d, nchunks: %d, last_chunk: %x, max_data_length: %d, num_erasures: %d, nrecs: %d"%( h.file_size, h.num_overwrites, h.num_extensions, h.nchunks, h.last_chunk, h.max_data_length, h.num_erasures, h.nrecs))
     
-def print_chunk_header(h:ChunkHeader) :
+def print_chunk_header(h) :
     print("this_chunk: %x, next_chunk: %x, nrecs: %d, checksum: %x"%( h.this_chunk, h.next_chunk, h.nrecs, h.checksum))
 
-def print_record_header (h:RecordHeader):
+def print_record_header (h):
     print("status: %d, size: %d, data pointer: %x, deet: %d, npak: %d, ni: %d, grtyp: '%c', nj: %d, datyp: %d nk: %d, npas: %d, ig4: %d, ig2: %d, ig1: %d, ig3: %d, etiket: '%s', typvar: '%s', nomvar: '%s', ip1: %d, ip2: %d, ip3: %d, \ndateo: %d"%( h.status, h.size, h.data, h.deet, h.npak, h.ni, h.grtyp, h.nj, h.datyp, h.nk, h.npas, h.ig4, h.ig2, h.ig1, h.ig3, h.etiket, h.typvar, h.nomvar, h.ip1, h.ip2, h.ip2, h.dateo))
 
-
-def print_record_header1 (h:RecordHeader):
+def print_record_header1 (h):
     print("%4s %2s %12s %4d %4d %1d %10d %8d %8d %8d %4d %4d %3d %2d %c %5d %5d %5d %5d"%(h.nomvar,h.typvar,h.etiket,h.ni, h.nj,h.nk,h.dateo,h.ip1,h.ip2,h.ip3, h.deet, h.npas, h.datyp, h.npak, h.grtyp, h.ig1, h.ig2, h.ig3, h.ig4))
-import binascii
-def read_file_header (f) -> FileHeader:
+
+
+def read_file_header (f):# -> FileHeader:
     h = FileHeader()
     buf = f.read(208)
     buf[0]
@@ -308,10 +309,10 @@ def read_file_header (f) -> FileHeader:
         assert (buf[offset:offset+4] == ncle)  # validate key names
         assert ((read16(buf[offset+4:])>>3) == 31+i*32)  # validate bit1
         assert ((read24(buf[offset+5:])&0x7FFFF) == 0x7C000) # validate lcls/tcle    
-    print_file_header(h)  
+    #print_file_header(h)  
     return h
 
-def read_chunk_header (f) -> ChunkHeader:
+def read_chunk_header (f):# -> ChunkHeader:
     h = ChunkHeader()  
     buf = f.read(32)
     assert (buf[0] == 0) # idtyp
@@ -327,24 +328,42 @@ def read_chunk_header (f) -> ChunkHeader:
     h.nrecs = read32(buf[20:])
     h.checksum = read32(buf[24:])
     assert (read32(buf[28:]) == 0)  # reserved3
-    print_chunk_header(h)
+    #print_chunk_header(h)
     return h
 
-def read_record_header (f) -> RecordHeader:
+def read_record_header (f):# -> RecordHeader:
     h = RecordHeader()
     buf = f.read(72)
+    
+    # temp8 = buf[0]//(2**24)
+    # lng = buf[0]%(2**24)
+    
+    # dltf = temp8//128
+    # temp8 = temp8%128
+    # print(f"lng={lng} dltf={dltf}")
+
+
+    # deet = buf[1]//256 
+    # nbits = buf[1]%256 
+    # print(f"lng={lng} dltf={dltf} deet={deet} nbits={nbits}")
+
+    # # np.divmod(raw[:,1,1],256, out['ni'], out['grtyp'].view('ubyte'))
+    # # np.divmod(raw[:,2,0],256, out['nj'], out['datyp'])
+    # # np.divmod(raw[:,2,1],4096, out['nk'], ubc)
+
     h.status = buf[0]
-    h.size = read24(buf[1:])
-    h.data = read32(buf[4:]) * 8
+    h.size = read24(buf[1:]) #1,2,3
+    h.data = read32(buf[4:]) * 8 #4,5,6,7
     assert (h.data > 8)
     h.data -= 8  # rewind a bit to get the proper start of the data
-    h.deet = read24(buf[8:])
+    h.deet = read24(buf[8:])#8,9,10
     h.npak = buf[11]
-    h.ni = read24(buf[12:])
+    h.ni = read24(buf[12:])#12,13,14
     h.grtyp = buf[15]
-    h.nj = read24(buf[16:])
+    h.nj = read24(buf[16:])#16,17,18
     h.datyp = buf[19]
-    h.nk = read24(buf[20:])>>4
+    h.nk = read24(buf[20:])>>4#20,21,22
+    h.ubc = read24(buf[23:])
     #TODO: ubc
     h.npas = (read32(buf[24:])>>6)
     h.ig4 = read24(buf[28:])
@@ -450,26 +469,26 @@ def read_record_header (f) -> RecordHeader:
     h.checksum = 0
     for i in range(0,72,4):#(int i = 0 i < 72 i+= 4) 
         h.checksum ^= ((buf[i]<<24) | (buf[i+1]<<16) | (buf[i+2]<<8) | buf[i+3])
-    print_record_header1(h)
+    #print_record_header1(h)
     return h
 
 
 
     
-def get_record_headers (filename) -> []:
+def get_record_headers (filename):# -> []:
     f = open(filename, "rb")
     fileheader = read_file_header(f)
 
     chunkheaders = []
     rec = 0
     for c in range(0,fileheader.nchunks):#(int c = 0 c < fileheader.nchunks c++) 
-        chunckheader = ChunkHeader()
+        # chunckheader = ChunkHeader()
         chunckheader = read_chunk_header(f)
         chunkheaders.append(chunckheader)
         checksum = 0
         recordheaders = []
         for r in range(0,chunckheader.nrecs):#(int r = 0 r < chunkheader.nrecs r++) 
-            h = RecordHeader()
+            # h = RecordHeader()
             h = read_record_header(f)
             recordheaders.append(h)
             # Skip erased records
@@ -488,5 +507,11 @@ def get_record_headers (filename) -> []:
     return recordheaders    
 
 if __name__ == "__main__":
-    # h = get_record_headers('/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std')
-    h = get_record_headers('/space/hall3/sitestore/eccc/cmod/prod/hubs/gridpt/dbase/prog/glbeta/2021031912_240')
+    path='/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std'
+    print(f'voir on {path}')
+    h_list = get_record_headers(path)
+    for rec in h_list:
+        print_record_header(rec)
+    # import shutil
+    # print(shutil.get_terminal_size().lines)
+    #h = get_record_headers('/space/hall3/sitestore/eccc/cmod/prod/hubs/gridpt/dbase/prog/glbeta/2021031912_240')
