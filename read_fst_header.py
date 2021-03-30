@@ -256,6 +256,8 @@ class RecordHeader:
     dateo=0
     checksum=0
     ubc=0
+    swa=0
+    dltf=0
 
 def print_file_header(h):
     print("file_size: %d, num_overwrites: %d, num_extensions: %d, nchunks: %d, last_chunk: %x, max_data_length: %d, num_erasures: %d, nrecs: %d"%( h.file_size, h.num_overwrites, h.num_extensions, h.nchunks, h.last_chunk, h.max_data_length, h.num_erasures, h.nrecs))
@@ -264,7 +266,7 @@ def print_chunk_header(h) :
     print("this_chunk: %x, next_chunk: %x, nrecs: %d, checksum: %x"%( h.this_chunk, h.next_chunk, h.nrecs, h.checksum))
 
 def print_record_header (h):
-    print("status: %d, size: %d, data pointer: %x, deet: %d, npak: %d, ni: %d, grtyp: '%c', nj: %d, datyp: %d nk: %d, npas: %d, ig4: %d, ig2: %d, ig1: %d, ig3: %d, etiket: '%s', typvar: '%s', nomvar: '%s', ip1: %d, ip2: %d, ip3: %d, \ndateo: %d"%( h.status, h.size, h.data, h.deet, h.npak, h.ni, h.grtyp, h.nj, h.datyp, h.nk, h.npas, h.ig4, h.ig2, h.ig1, h.ig3, h.etiket, h.typvar, h.nomvar, h.ip1, h.ip2, h.ip2, h.dateo))
+    print("status: %d, size: %d, data pointer: %x, deet: %d, npak: %d, ni: %d, grtyp: '%c', nj: %d, datyp: %d nk: %d, npas: %d, ig4: %d, ig2: %d, ig1: %d, ig3: %d, etiket: '%s', typvar: '%s', nomvar: '%s', ip1: %d, ip2: %d, ip3: %d, dateo: %d, swa: %d, ubc: %d, dltf: %d"%( h.status, h.size, h.data, h.deet, h.npak, h.ni, h.grtyp, h.nj, h.datyp, h.nk, h.npas, h.ig4, h.ig2, h.ig1, h.ig3, h.etiket, h.typvar, h.nomvar, h.ip1, h.ip2, h.ip2, h.dateo,h.swa,h.ubc,h.dltf))
 
 def print_record_header1 (h):
     print("%4s %2s %12s %4d %4d %1d %10d %8d %8d %8d %4d %4d %3d %2d %c %5d %5d %5d %5d"%(h.nomvar,h.typvar,h.etiket,h.ni, h.nj,h.nk,h.dateo,h.ip1,h.ip2,h.ip3, h.deet, h.npas, h.datyp, h.npak, h.grtyp, h.ig1, h.ig2, h.ig3, h.ig4))
@@ -363,20 +365,20 @@ def read_record_header (f):# -> RecordHeader:
     h.nj = read24(buf[16:])#16,17,18
     h.datyp = buf[19]
     h.nk = read24(buf[20:])>>4#20,21,22
-    h.ubc = read24(buf[23:])
+    h.ubc = buf[23]
     #TODO: ubc
-    h.npas = (read32(buf[24:])>>6)
-    h.ig4 = read24(buf[28:])
+    h.npas = (read32(buf[24:])>>6)#24,25,26,27
+    h.ig4 = read24(buf[28:])#28,29,30
     h.ig2 = buf[31]*65536 + buf[35]*256 + buf[39]
-    h.ig1 = read24(buf[32:])
-    h.ig3 = read24(buf[36:])
+    h.ig1 = read24(buf[32:])#32,33,34
+    h.ig3 = read24(buf[36:])#36,37,38
     
 #     h.etiket = c_char_p()
 #     h.etiket = ['','','','','','','','','','','','','',]
     h.etiket = np.empty((12),dtype='ubyte')
-    readchar (h.etiket, buf[40:], 5)
-    readchar (h.etiket[5:], buf[44:], 5)
-    readchar (h.etiket[10:], buf[48:], 2)
+    readchar (h.etiket, buf[40:], 5)#40,41,42,43
+    readchar (h.etiket[5:], buf[44:], 5)#44,45,46,47
+    readchar (h.etiket[10:], buf[48:], 2)#48
     h.etiket = ''.join(map(chr,h.etiket))
     # h.etiket[12] = 0
 #     h.etiket[12] = 0
@@ -439,13 +441,16 @@ def read_record_header (f):# -> RecordHeader:
     h.typvar[1] = (buf[50]&0x3F) + 32
     
     h.typvar = ''.join(map(chr,h.typvar))
+    ####################
+    #51 not used?
+    ####################
 
     # h.typvar[2] = 0
 #     h.typvar=binascii.b2a_uu(buf[49:50])
     #h.typvar=h.typvar.view('|S3')[0].decode('ascii').strip()
 #     h.nomvar = c_char_p()
     h.nomvar = np.empty((4),dtype='ubyte')
-    readchar(h.nomvar,buf[52:], 4)
+    readchar(h.nomvar,buf[52:], 4) #52,53,54
     h.nomvar = ''.join(map(chr,h.nomvar))
 #     h.nomvar[4] = 0
 #     h.nomvar=h.nomvar.view('|S5')[0]
@@ -454,16 +459,18 @@ def read_record_header (f):# -> RecordHeader:
     # h.nomvar=buf[52:57]
     # h.nomvar=binascii.b2a_uu(buf[52:56])[1:-1].decode('ascii').strip()
     
-    
+    ####################
+    #55 not used?
+    ####################
         
 
 
 #     h.nomvar = buf[52:56]
     #h.nomvar[4] = 0
-    h.ip1 = read32(buf[56:]) >> 4
-    h.ip2 = read32(buf[60:]) >> 4
-    h.ip3 = read32(buf[64:]) >> 4
-    h.dateo = read32(buf[68:])
+    h.ip1 = read32(buf[56:]) >> 4 #56,57,58,59
+    h.ip2 = read32(buf[60:]) >> 4 #60,61,62,63
+    h.ip3 = read32(buf[64:]) >> 4 #64,65,66,67
+    h.dateo = read32(buf[68:]) #68,69,70,71
 
     # Checksum
     h.checksum = 0
