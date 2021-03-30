@@ -354,10 +354,12 @@ def read_record_header (f) -> RecordHeader:
     
 #     h.etiket = c_char_p()
 #     h.etiket = ['','','','','','','','','','','','','',]
-#     h.etiket = np.empty((13),dtype='ubyte')
-#     readchar(h.etiket[0:], buf[40:], 5)
-#     readchar(h.etiket[5:], buf[44:], 5)
-#     readchar(h.etiket[10:], buf[48:], 2)
+    h.etiket = np.empty((12),dtype='ubyte')
+    readchar (h.etiket, buf[40:], 5)
+    readchar (h.etiket[5:], buf[44:], 5)
+    readchar (h.etiket[10:], buf[48:], 2)
+    h.etiket = ''.join(map(chr,h.etiket))
+    # h.etiket[12] = 0
 #     h.etiket[12] = 0
 #     h.etiket=h.etiket.view('|S13')[0]
 #     print(binascii.b2a_uu(h.etiket[0:5]))
@@ -368,9 +370,9 @@ def read_record_header (f) -> RecordHeader:
 #     h.etiket = etiket1# + etiket2 + etiket3
 #     R1_V710_N
 
-    a = binascii.b2a_uu(buf[40:44])[1:-1].decode('ascii').strip()
-    b = binascii.b2a_uu(buf[44:45])[1:-1].decode('ascii').strip()
-    h.etiket = ''.join([a,b])
+    # a = binascii.b2a_uu(buf[40:44])[1:-1].decode('ascii').strip()
+    # b = binascii.b2a_uu(buf[44:45])[1:-1].decode('ascii').strip()
+    # h.etiket = ''.join([a,b])
 
 
 
