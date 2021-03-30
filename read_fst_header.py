@@ -194,14 +194,14 @@ def  freadfloat(f) -> float:
     x = fread32(f)
     return float(x)
 
-def readchar(dest_bytes,src, n):
+def readchar(dest_bytes,src, n): #4 cas, la cle est {j:sh}
     for i in range(0,n):#(int i = 0; i < n; i++)
         dest_bytes[i] = 0
         # first byte needed
-        j = int((i*6)/8)
+        j = ((i*6)//8)
         # shift from the beginning
         sh = (i*6)%8
-        dest_bytes[i] |= ((src[j] << sh) >> 2)
+        dest_bytes[i] |= (((src[j] << sh)&0xFF) >> 2)
         # do we need a second byte?
         if (sh > 2):
             dest_bytes[i] |= (src[j+1]>>(10-sh))
@@ -423,11 +423,15 @@ def read_record_header (f) -> RecordHeader:
 #     h.typvar=binascii.b2a_uu(buf[49:50])
     #h.typvar=h.typvar.view('|S3')[0].decode('ascii').strip()
 #     h.nomvar = c_char_p()
-#     h.nomvar = np.empty((5),dtype='ubyte')
-#     readchar(h.nomvar,buf[52:56], 4)
+    h.nomvar = np.empty((4),dtype='ubyte')
+    readchar(h.nomvar,buf[52:], 4)
+    h.nomvar = ''.join(map(chr,h.nomvar))
 #     h.nomvar[4] = 0
 #     h.nomvar=h.nomvar.view('|S5')[0]
-    h.nomvar=binascii.b2a_uu(buf[52:56])[1:-1].decode('ascii').strip()
+
+    #b'y\xe0\x00\x00' == HU
+    # h.nomvar=buf[52:57]
+    # h.nomvar=binascii.b2a_uu(buf[52:56])[1:-1].decode('ascii').strip()
     
     
         
