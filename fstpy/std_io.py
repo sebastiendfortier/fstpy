@@ -216,8 +216,8 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
                 continue
             
             grid = rmn.gdll(g)
-            tictic_df = latlon_df.query('(nomvar=="^^") and (grid=="%s")'%row['grid'],no_fail=True)
-            tactac_df = latlon_df.query('(nomvar==">>") and (grid=="%s")'%row['grid'],no_fail=True)
+            tictic_df = latlon_df.query('(nomvar=="^^") and (grid=="%s")'%row['grid'])
+            tactac_df = latlon_df.query('(nomvar==">>") and (grid=="%s")'%row['grid'])
             lat_df = create_1row_df_from_model(tictic_df)
             lat_df.loc[:,'nomvar'] = 'LA'
             lat_df.at[0,'d'] = grid['lat']
