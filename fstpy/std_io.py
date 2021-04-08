@@ -57,31 +57,55 @@ def get_dataframe_from_file(file:str,query:str,array_container:str=None):
     
     df = add_grid_column(df)
 
-    if (query is None) == False:
-        # valid_params = ['datev','etiket','ip1', 'ip2','ip3','typvar','nomvar']
-        # query_str = []
-        # for k,v in query.items():
-        #     if k in valid_params:
-        #         if isinstance(v,str):
-        #             query_str.append(f'{k}=="{v}"')
-        #         else:
-        #             query_str.append(f'({k}=="{v}")')
-        #     else:
-        #         raise StandardFileReaderError('invalid key in query!')    
-        subdf = df.query(query)
-        
-        # add metadata of this query
-        metadf = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]')
 
-        subdfmeta = metadf.query('grid in %s'%subdf.grid.unique())    
-        if (not subdf.empty) and (not subdfmeta.empty):
-            df = pd.concat([subdf,subdfmeta])
-        elif (not subdf.empty) and (subdfmeta.empty):    
-            df = subdf
-        elif subdf.empty:
-            df = subdf   
+    hy_df = df.query('nomvar == "HY"')
+
+    if (query is None) == False:
+            
+        sub_df = df.query(query)
+
+        # get metadata
+        df = add_meta_to_query_results(df, sub_df, hy_df)
+
+
+    # check HY count
+    df = process_hy(hy_df, df)
 
     return df   
+
+def add_meta_to_query_results(df, sub_df, hy_df):
+    # get metadata
+    metadf = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1"]')
+
+    subdfmeta = metadf.query('grid in %s'%sub_df.grid.unique())   
+
+    if (not sub_df.empty) and (not subdfmeta.empty):
+        df = pd.concat([sub_df,subdfmeta])
+    elif (not sub_df.empty) and (subdfmeta.empty):    
+        df = sub_df
+    elif sub_df.empty:
+        df = sub_df   
+
+    if (not df.empty) and (not hy_df.empty):
+        df = pd.concat([df,hy_df])
+    return df
+
+def process_hy(hy_df, df):
+    # check HY count
+    hy_count = hy_df.nomvar.count()
+    if hy_count >= 1:
+        if hy_count > 1:
+            sys.stderr.write('More than one HY in this file! - UNKNOWN BEHAVIOR, continue at your own risk')
+
+        grids = [ x for x in list(df.grid.unique()) if x != 'None' ]
+        if len(grids):
+            grid = grids[0]
+            hy_df = df.query('nomvar=="HY"').copy()
+            hy_df.loc[:,'grid'] = grid
+        #remove HY    
+        df = df[df['grid']!= 'None']
+        df = pd.concat([df,hy_df])
+    return df
 
 def _fstluk(key):
     return rmn.fstluk(int(key))['d']
@@ -192,8 +216,8 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
                 continue
             
             grid = rmn.gdll(g)
-            tictic_df = latlon_df.query('(nomvar=="^^") and (grid=="%s")'%row['grid'],no_fail=True)
-            tactac_df = latlon_df.query('(nomvar==">>") and (grid=="%s")'%row['grid'],no_fail=True)
+            tictic_df = latlon_df.query('(nomvar=="^^") and (grid=="%s")'%row['grid'])
+            tactac_df = latlon_df.query('(nomvar==">>") and (grid=="%s")'%row['grid'])
             lat_df = create_1row_df_from_model(tictic_df)
             lat_df.loc[:,'nomvar'] = 'LA'
             lat_df.at[0,'d'] = grid['lat']

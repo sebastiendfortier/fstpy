@@ -60,7 +60,13 @@ DATYP_DICT = {
                     130:'i',
                     133:'e',
                     134:'f'
-                }
+                } #: :meta hide-value:
+"""data type aliases constant
+
+:return: correspondance betweeen datyp and str version of datyp
+:rtype: dict
+:meta hide-value:
+"""
 
 KIND_DICT = {
                     -1:'_',
@@ -75,7 +81,13 @@ KIND_DICT = {
                     15: '  ', #[reserved, integer]
                     17: ' ',  #[index X of conversion matrix]
                     21: 'mp'  #[pressure in metres]
-                }
+                } #: :meta hide-value:
+"""kind aliases constant
+
+:return: correspondance betweeen kind and str version of kind
+:rtype: dict
+:meta hide-value:
+"""
 
 _const_prefix='/'.join(__file__.split('/')[0:-1])
 _csv_path = _const_prefix + '/csv/'
@@ -85,12 +97,121 @@ _units = pd.read_csv(_csv_path + 'units.csv')
 _etikets = pd.read_csv(_csv_path + 'etiket.csv')
 _leveltypes = pd.read_csv(_csv_path + 'leveltype.csv')
 _thermoconstants = pd.read_csv(_csv_path + 'thermo_constants.csv')
-VCTYPES = _vctypes
-STDVAR = _stdvar
-UNITS = _units
-ETIKETS = _etikets
-LEVELTYPES = _leveltypes
-THERMO_CONSTANTS = _thermoconstants
+
+VCTYPES = _vctypes #: :meta hide-value:
+"""virtical coordinate type information table
+
+:return: correspondance betweeen datyp and str version of datyp
+:rtype: pd.DataFrame
+:meta hide-value:
+>>> fstpy.VCTYPES
+    ip1_kind  toctoc     P0     E1     PT     HY     SF  vcode                vctype
+0          5    True   True  False  False  False  False   5002      HYBRID_STAGGERED
+1          5    True   True  False  False  False  False   5001                HYBRID
+2          5    True   True  False  False  False  False   5005           HYBRID_5005
+...
+"""
+STDVAR = _stdvar #: :meta hide-value:
+"""Like the o.dict standard file dictionnary table
+
+:return: dataframe
+:rtype: pd.DataFrame
+:meta hide-value:
+>>> fstpy.STDVAR
+    nomvar                                     description_fr                        description_en              unit
+0       !!                 Descripteur de coordonnée vericale        Vertical coordinate descriptor            scalar
+1       ++                           Réservé pour usage futur               Reserved for Future Use            scalar
+2       1A                                     Albedo visible                        Visible Albedo           percent
+3       1P                           Pression à la tropopause                   Tropopause pressure       hectoPascal
+4       1T                       Température de la tropopause         Temperature at the tropopause           celsius
+..     ...                                                ...                                   ...               ...
+923    ZVC  hauteur du NCL utilisant le temperature virtuelle  LFC height using virtual temperature             meter
+924    ZVE   hauteur du NE utilisant le temperature virtuelle   EL height using virtual temperature             meter
+925     ZZ                 Mouvement vertical en coordonnée Z        Vertical Motion (Z Coordinate)  meter_per_second
+926     ^^          Position verticale dans une Grille Y ou Z    Vertical position in a Y or Z grid            scalar
+927     ^>        Position horizontale dans une grille Y ou Z  Horizontal position in a Y or Z grid            scalar
+
+[928 rows x 4 columns]
+"""
+UNITS = _units #: :meta hide-value:
+"""Units table for conversions
+
+:return: dataframe
+:rtype: pd.DataFrame
+:meta hide-value:
+>>> fstpy.UNITS
+                       name      symbol               expression  bias        factor  mass  length  time  electricCurrent  temperature  amountOfSubstance  luminousIntensity
+0                  kilogram          kg                       kg   0.0  1.000000e+00     1       0     0                0            0                  0                  0
+1     kilogram_per_kilogram       kg/kg                    kg/kg   0.0  1.000000e+00     0       0     0                0            0                  0                  0
+2             gram_per_gram         g/g                    kg/kg   0.0  1.000000e+00     0       0     0                0            0                  0                  0
+3         gram_per_kilogram        g/kg                    kg/kg   0.0  1.000000e-03     0       0     0                0            0                  0                  0
+4         kilogram_per_gram        kg/g                    kg/kg   0.0  1.000000e+03     0       0     0                0            0                  0                  0
+..                      ...         ...                      ...   ...           ...   ...     ...   ...              ...          ...                ...                ...
+153                radiance   W/(m2·sr)         W·m^(-2)·sr^(-1)   0.0  1.000000e+00     1       0    -3                0            0                  0                  0
+154  catalyticConcentration      kat/m3               kat·m^(-3)   0.0  1.000000e+00     0      -3    -1                0            0                  1                  0
+155       pascal_per_second        Pa/s          N·m^(-2)·s^(-1)   0.0  1.000000e+00     1      -1    -3                0            0                  0                  0
+156     millimeter_per_hour        mm/h                 m·s^(-1)   0.0  2.777778e-07     0       1    -1                0            0                  0                  0
+157  potentialVorticityUnit  Km2/(kg·s)  K·m^(2)·(kg^(-1)·s(-1))   0.0  1.000000e+00    -1       2    -1                0            1                  0                  0
+
+[158 rows x 12 columns]
+"""
+ETIKETS = _etikets #: :meta hide-value:
+"""Etikets table
+
+:return: dataframe
+:rtype: pd.DataFrame
+:meta hide-value:
+>>> fstpy.ETIKETS
+                plugin_name   etiket
+0             AbsoluteValue   ABSVAL
+1        AddElementsByPoint   ADDEPT
+2     AddElementsVertically   ADDEVY
+3             AddToElements   ADDTOE
+4                AirDensity   AIRDEN
+..                      ...      ...
+81          WindDeformation  WINDDEF
+82              WindModulus   WNDMOD
+83  WindModulusAndDirection   WNDMAD
+84       WindTurbulenceDVSI   WNDVSI
+85        WindVerticalShear   WNDVSH
+
+[86 rows x 2 columns]
+"""
+LEVELTYPES = _leveltypes #: :meta hide-value:
+"""Level type table
+
+:return: dataframe
+:rtype: pd.DataFrame
+:meta hide-value:
+>>> fstpy.LEVELTYPES
+                label  kind  follow_topography  surface
+0     METER_SEA_LEVEL     0                  0   np.nan
+1               SIGMA     1                  1      1.0
+2           MILLIBARS     2                  0   np.nan
+3      ARBITRARY_CODE     3                  0   np.nan
+4  METER_GROUND_LEVEL     4                  1  0.0@5.0
+5              HYBRID     5                  1      1.0
+6               THETA     6                  0   np.nan
+7       MILLIBARS_NEW    12                  0   np.nan
+8               INDEX    13                  0   np.nan
+9              NUMBER   100                  0   np.nan
+"""
+THERMO_CONSTANTS = _thermoconstants 
+"""Thermodynamic constants table
+
+:return: dataframe
+:rtype: pd.DataFrame
+:meta hide-value:
+>>> fstpy.THERMO_CONSTANTS
+        name      value
+0     'AEw1'    6.10940
+1     'AEw2'   17.62500
+2     'AEw3'  243.04000
+3     'AEi1'    6.11210
+4     'AEi2'   22.58700
+5     'AEi3'  273.86000
+6  'epsilon'    0.62198
+"""
 
 def get_constant_row_by_name(df:pd.DataFrame, df_name:str, index:str, name:str) -> pd.Series:
     row = df.loc[df[index] == name]
@@ -118,13 +239,5 @@ def get_constant_by_name(name:str) -> pd.Series:
 def get_column_value_from_row(row, column):
     return row[column].values[0]
     
-# #expose some functions and classes
-# from .std_reader import StandardFileReader,load_data
-# from .std_writer import StandardFileWriter
-# from .dataframe_utils import fstcomp,voir,fststat,zap,select
-# from .utils import delete_file,get_groups,flatten_data_series,create_1row_df_from_model
-# from .std_io import get_grid_metadata_fields,get_lat_lon
-# from .std_dec import convert_rmndate_to_datetime
-# from .unit import do_unit_conversion
-# from .constants import STDVAR,DATYP_DICT
+
 

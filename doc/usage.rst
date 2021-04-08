@@ -5,19 +5,26 @@
 Using fstpy in scripts or Jupyter Lab/Notebook
 ----------------------------------------------
 
-set your environment
-~~~~~~~~~~~~~~~~~~~~
+Use pre-build developpement environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
+   # get conda if you don't already have it  
+   . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
+   # create a link to pre-built environment
+   cd ~/.conda/envs/
+   ln -s ~sgci800/envs/fstpy_full
+   # whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)
+   # unless you put it in your profile
    # activate your conda environment     
-   . activate fstpy_req     
+   . activate fstpy_full     
    # get rmn python library      
    . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
    # get fstpy ssm package
    . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-1.0.3      
 
-use fstpy
+Use fstpy
 ~~~~~~~~~
 
 .. code:: python
@@ -26,8 +33,8 @@ use fstpy
    import fstpy.all as fstpy   
    df = fstpy.StandardFileReader('path to my fst file').to_pandas()
 
-Usage example
-~~~~~~~~~~~~~
+Example
+~~~~~~~
 
 .. code:: python
 

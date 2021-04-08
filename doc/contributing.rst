@@ -5,6 +5,20 @@
 Contributing
 ============
 
+Using pre-build developpement environment
+-----------------------------------------
+
+.. code:: bash
+
+   # get conda if you don't already have it  
+   . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
+   # create a link to pre-built environment
+   cd ~/.conda/envs/
+   ln -s ~sgci800/envs/fstpy_full
+   # whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)
+   # unless you put it in your profile
+   . activate fstpy_full   
+
 Creating the developpement environment
 --------------------------------------
 
@@ -63,5 +77,6 @@ Building documentation
 .. code:: bash
 
    # This will build documentation in docs/build and there you will find index.html 
+   cd doc
    make clean    
    make doc

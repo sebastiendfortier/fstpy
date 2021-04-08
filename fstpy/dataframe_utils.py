@@ -536,7 +536,7 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
         
         nbdiff = np.count_nonzero(a!=b)
         diff.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
-        if not ((-1.000001 <= diff.at[i, 'c_cor'] <= 1.000001) and (-0.1 <= diff.at[i, 'e_rel_max'] <= 0.1) and (-0.1 <= diff.at[i, 'e_rel_moy'] <= 0.1)):
+        if not ((-1.0000001 <= diff.at[i, 'c_cor'] <= 1.0000001) and (-0.1 <= diff.at[i, 'e_rel_max'] <= 0.1) and (-0.1 <= diff.at[i, 'e_rel_moy'] <= 0.1)):
             diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
             success = False
     return success            
