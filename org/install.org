@@ -4,7 +4,7 @@
 * Installation
 Use the ssm package
   #+BEGIN_SRC 
-  . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta-_VERSION_
+  . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/_VERSION_/
   #+END_SRC
 
 
