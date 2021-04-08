@@ -39,6 +39,7 @@ echo 'Cleaning up '${PKGNAME}' directory'
 rm -rf control.json
 rm -rf ${PKGNAME}/
 
+
 mv ${PKGNAME}.ssm /tmp/${USER}/.
 
 FSTPY_SSM_BASE=/fs/site4/eccc/cmd/w/sbf000
@@ -56,6 +57,8 @@ ssh sbf000@ppp4 source .profile&&ssm publish -d ${FSTPY_SSM_BASE}/master -P ${FS
 
 rm /tmp/${USER}/${PKGNAME}.ssm
 
+# echo 'Execute . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/'${VERSION}'/' to use official package'
+echo 'Execute . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/'${VERSION}'/ to use official package'
 echo 'Execute . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/fstpy-beta'-${VERSION}' to use this package'
 
 
