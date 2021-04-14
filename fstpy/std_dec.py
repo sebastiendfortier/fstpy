@@ -6,6 +6,23 @@ import rpnpy.librmn.all as rmn
 from rpnpy.rpndate import RPNDate
 
 from fstpy import DATYP_DICT, STDVAR
+    
+
+def level_sort_order(kind:int) -> bool:
+    """returns the level sort order
+
+    :param kind: level kind
+    :type kind: int
+    :return: True if the level type is ascending or False otherwise
+    :rtype: bool
+    """
+    order = {0:'ascending',1:'descending',2:'descending',4:'ascending',5:'descending',21:'ascending'}
+    # kind = 0, 4, 21 ascending ( meters above ground, meters above msl, galchen meters )
+    # kind = 1, 2     descending (pressure, sigma)
+    # kind = 3, 5, 6  neither (arbitrary, hybrid, theta)
+    if kind in order.keys():
+        return  True if order[kind] == 'ascending' else False
+    return False
 
 def get_forecast_hour(deet:int,npas:int) -> datetime.timedelta:
     """creates a timedelta object in seconds from deet * npas
