@@ -46,6 +46,7 @@ class StandardFileReader:
                 'ensemble_member':str, ensemble member derived from etiket |br|    
                 'surface':bool, True if the level is a surface level |br|   
                 'follow_topography':bool, indicates if this type of level follows topography |br|   
+                'ascending':bool, indicates if this type of level is in ascending order |br| 
                 'vctype':str, vertical level type |br|   
                 'forecast_hour':timedelta, forecast hour obtained from deet * npas / 3600 |br|   
                 'ip2_dec':value of decoded ip2  |br|  
@@ -104,7 +105,7 @@ class StandardFileReader:
 
         df = add_decoded_columns(df,self.decode_metadata,self.array_container)    
 
-        df = clean_dataframe(df,self.decode_metadata)
+        df = clean_dataframe(df)
         
         return df    
  

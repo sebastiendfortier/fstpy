@@ -11,7 +11,8 @@ from .std_dec import (convert_rmndate_to_datetime,
 
 
 
-def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:str='numpy', attributes_to_decode:list=['flags','etiket','vctype','unit','dateo','datev','forecast_hour','ip2','ip3','datyp','level_info']) -> pd.DataFrame:
+
+def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:str='numpy') -> pd.DataFrame:
     """Adds basic and decoded columns to the dataframe. 
 
     :param df: input dataframe
@@ -20,7 +21,6 @@ def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:st
     :type decode_metadata: bool
     :param array_container: array container, defaults to 'numpy'
     :type array_container: str, optional
-    :param attributes_to_decode: attributes to decode, defaults to ['flags','etiket','unit','dateo','datev','forecast_hour','ip2','ip3','datyp','level_info']
     :type attributes_to_decode: list, optional
     :return: dataframe with decoded columns
     :rtype: pd.DataFrame
@@ -32,7 +32,7 @@ def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:st
     
     return df
 
-def clean_dataframe(df,decode_metadata,attributes_to_decode=['flags','etiket','unit','dateo','datev','forecast_hour','ip1','ip2','ip3','datyp','level_info']):
+def clean_dataframe(df):
     # df = convert_df_dtypes(df,decode_metadata,attributes_to_decode)
 
     df = reorder_columns(df)  
@@ -141,31 +141,31 @@ def add_forecast_hour_column(df:pd.DataFrame) -> pd.DataFrame:
 
 
 
-def add_decoded_ip2_columns(df:pd.DataFrame) -> pd.DataFrame:
-    """adds the decoded ip2 columns to the dataframe
+# def add_decoded_ip2_columns(df:pd.DataFrame) -> pd.DataFrame:
+#     """adds the decoded ip2 columns to the dataframe
 
-    :param df: dataframe
-    :type df: pd.DataFrame
-    :return: ip2_dec,ip2_kind and ip2_pkind columns added to the dataframe
-    :rtype: pd.DataFrame
-    """
-    from .std_dec import decode_ip2
-    vdecode_ip2 = np.vectorize(decode_ip2,otypes=['float32','int32','str'])  
-    df.loc[:,'ip2_dec'],df.loc[:,'ip2_kind'],df.loc[:,'ip2_pkind'] = vdecode_ip2(df['ip2'])
-    return df
+#     :param df: dataframe
+#     :type df: pd.DataFrame
+#     :return: ip2_dec,ip2_kind and ip2_pkind columns added to the dataframe
+#     :rtype: pd.DataFrame
+#     """
+#     from .std_dec import decode_ip2
+#     vdecode_ip2 = np.vectorize(decode_ip2,otypes=['float32','int32','str'])  
+#     df.loc[:,'ip2_dec'],df.loc[:,'ip2_kind'],df.loc[:,'ip2_pkind'] = vdecode_ip2(df['ip2'])
+#     return df
 
-def add_decoded_ip3_columns(df:pd.DataFrame) -> pd.DataFrame:
-    """adds the decoded ip3 columns to the dataframe
+# def add_decoded_ip3_columns(df:pd.DataFrame) -> pd.DataFrame:
+#     """adds the decoded ip3 columns to the dataframe
 
-    :param df: dataframe
-    :type df: pd.DataFrame
-    :return: ip3_dec,ip3_kind and ip3_pkind columns added to the dataframe
-    :rtype: pd.DataFrame
-    """
-    from .std_dec import decode_ip3
-    vdecode_ip3 = np.vectorize(decode_ip3,otypes=['float32','int32','str'])  
-    df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'] = vdecode_ip3(df['ip3'])    
-    return df
+#     :param df: dataframe
+#     :type df: pd.DataFrame
+#     :return: ip3_dec,ip3_kind and ip3_pkind columns added to the dataframe
+#     :rtype: pd.DataFrame
+#     """
+#     from .std_dec import decode_ip3
+#     vdecode_ip3 = np.vectorize(decode_ip3,otypes=['float32','int32','str'])  
+#     df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'] = vdecode_ip3(df['ip3'])    
+#     return df
 
 def add_data_type_str_column(df:pd.DataFrame) -> pd.DataFrame:
     """adds the data type decoded to string value column to the dataframe
@@ -180,7 +180,8 @@ def add_data_type_str_column(df:pd.DataFrame) -> pd.DataFrame:
     df.loc[:,'data_type_str'] = vcreate_data_type_str(df['datyp'])    
     return df
 
-def add_level_info_columns(df:pd.DataFrame) -> pd.DataFrame:
+
+def add_ip_info_columns(df:pd.DataFrame) -> pd.DataFrame:
     """adds all relevant level info from the ip1 column values 
 
     :param df: dataframe
@@ -188,12 +189,12 @@ def add_level_info_columns(df:pd.DataFrame) -> pd.DataFrame:
     :return: level, ip1_kind, ip1_pkind,surface and follow_topography columns added to the dataframe.
     :rtype: pd.DataFrame
     """
-    from .std_dec import get_level_info
-    vcreate_level_info = np.vectorize(get_level_info,otypes=['float32','int32','str','bool','bool'])  
-    df.loc[:,'level'],df.loc[:,'ip1_kind'],df.loc[:,'ip1_pkind'],df.loc[:,'surface'],df.loc[:,'follow_topography'] = vcreate_level_info(df['ip1'])    
+    from .std_dec import get_ip_info
+    vcreate_ip_info = np.vectorize(get_ip_info,otypes=['float32','int32','str','float32','int32','str','float32','int32','str','bool','bool','bool','object'])  
+    df.loc[:,'level'],df.loc[:,'ip1_kind'],df.loc[:,'ip1_pkind'],df.loc[:,'ip2_dec'],df.loc[:,'ip2_kind'],df.loc[:,'ip2_pkind'],df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'],df.loc[:,'surface'],df.loc[:,'follow_topography'],df.loc[:,'ascending'],df.loc[:,'interval'] = vcreate_ip_info(df['ip1'],df['ip2'],df['ip3'])    
     return df
 
-def add_composite_columns(df,decode,array_container, attributes_to_decode=['flags','etiket','unit','dateo','datev','forecast_hour','ip2','ip3','datyp','level_info']):
+def add_composite_columns(df,decode,array_container, attributes_to_decode=['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']):
     
     df = add_data_column(df,array_container)
     # df = add_grid_column(df)
@@ -215,24 +216,18 @@ def add_composite_columns(df,decode,array_container, attributes_to_decode=['flag
         if 'forecast_hour' in attributes_to_decode:
             df = add_forecast_hour_column(df) 
 
-        if 'ip2' in attributes_to_decode:
-            df = add_decoded_ip2_columns(df)     
-
-        if 'ip3' in attributes_to_decode:
-            df = add_decoded_ip3_columns(df)   
-
         if 'datyp' in attributes_to_decode:    
             df = add_data_type_str_column(df)   
 
-        if ('level_info' in  attributes_to_decode): 
-            df = add_level_info_columns(df)                
+        if ('ip_info' in  attributes_to_decode): 
+            df = add_ip_info_columns(df)                
 
         if 'flags' in attributes_to_decode:
             df = add_flags_columns(df)
 
   
 
-    if decode and ('level_info' in attributes_to_decode):
+    if decode and ('ip_info' in attributes_to_decode):
         df = set_vertical_coordinate_type(df)    
     return df
 

@@ -4,11 +4,45 @@ import datetime
 import numpy as np
 import rpnpy.librmn.all as rmn
 from rpnpy.rpndate import RPNDate
-
+from .utils import initializer
 from fstpy import DATYP_DICT, STDVAR
-    
 
-def level_sort_order(kind:int) -> bool:
+class Interval:
+    @initializer
+    def __init__(self,low,high,kind) -> None:
+        pass
+    def delta(self):
+        if self.kind not in [0,2,4,21,10]:
+            return None
+        return self.high-self.low
+
+
+#  kind    : level_type
+#  0       : m  [metres] (height with respect to sea level)
+#  1       : sg [sigma] (0.0->1.0)
+#  2       : mb [mbars] (pressure in millibars)
+#  3       :    [others] (arbitrary code)
+#  4       : M  [metres] (height with respect to ground level)
+#  5       : hy [hybrid] (0.0->1.0)
+#  6       : th [theta]
+# 10       : H  [hours]
+# 15       :    [reserved, integer]
+# 17       :    [index X of conversion matrix]
+# 21       : mp [pressure in metres]
+
+
+def get_interval(ip1,level,ip1_kind,ip2,ip2_dec,ip2_kind,ip3,ip3_dec,ip3_kind):    
+    if (ip3 >= 32768):
+        if ((ip3_kind == ip2_kind) and  (ip2 >= 32768)):
+            return Interval(ip3_dec,ip2_dec,ip2_kind)
+        elif ((ip3_kind == ip1_kind) and (ip1 >= 32768)):
+            return Interval(level,ip3_dec,ip1_kind)
+
+    return None
+
+                
+
+def get_level_sort_order(kind:int) -> bool:
     """returns the level sort order
 
     :param kind: level kind
@@ -72,21 +106,32 @@ def get_data_type_str(datyp:int):
     """
     return DATYP_DICT[datyp]
 
-def get_level_info(ip1:int):
+def get_ip_info(ip1:int,ip2:int,ip3:int):
     """gets all relevant level info from the ip1 int value
 
     :param ip1: encoded value stored in ip1
     :type ip1: int
-    :return: level value, kind and kind str obtained from decoding ip1 and bools representing if the level is a surface level and if it follows topography.
-    :rtype: float,int,str,bool,bool
+    :return: level value, kind and kind str obtained from decoding ip1 and bools representing if the level is a surface level, if it follows topography and its sort order.
+    :rtype: float,int,str,bool,bool,bool
     """
-    i1,_,_ = rmn.DecodeIp(ip1,0,0) 
+    i1,i2,i3 = rmn.DecodeIp(ip1,ip2,ip3) 
     ip1_pkind = '' if i1.kind in [-1,3,15,17] else rmn.kindToString(i1.kind).strip()
     level=i1.v1
     ip1_kind = i1.kind
+
+    ip2_pkind = '' if i2.kind in [-1,3,15,17] else rmn.kindToString(i2.kind).strip()
+    ip2_dec=i2.v1
+    ip2_kind = i2.kind
+
+    ip3_pkind = '' if i3.kind in [-1,3,15,17] else rmn.kindToString(i3.kind).strip()
+    ip3_dec=i3.v1
+    ip3_kind = i3.kind
+
     surface = is_surface(ip1_kind,level)
     follow_topography = level_type_follows_topography(ip1_kind)
-    return level,ip1_kind,ip1_pkind,surface,follow_topography
+    ascending = get_level_sort_order(ip1_kind)
+    interval = get_interval(ip1,level,ip1_kind,ip2,ip2_dec,ip2_kind,ip3,ip3_dec,ip3_kind)
+    return level,ip1_kind,ip1_pkind,ip2_dec,ip2_kind,ip2_pkind,ip3_dec,ip3_kind,ip3_pkind,surface,follow_topography,ascending,interval
 
 def get_unit_and_description(nomvar):
     """Reads the Standard file dictionnary and gets the unit and description associated with the variable name

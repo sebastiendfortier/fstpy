@@ -11,7 +11,7 @@ import rpnpy.librmn.all as rmn
 import fstpy
 from fstpy import DATYP_DICT, KIND_DICT
 
-from .dataframe import (add_level_info_columns, remove_from_df,
+from .dataframe import (add_ip_info_columns, remove_from_df,
                         reorder_columns, sort_dataframe)
 from .exceptions import SelectError, StandardFileError
 from .logger_config import logger
@@ -57,7 +57,7 @@ def voir(df:pd.DataFrame,style=False):
     df['datyp'] = df['datyp'].map(DATYP_DICT)
     df['datev'] = df['datev'].apply(convert_rmndate_to_datetime)
     df['dateo'] = df['dateo'].apply(convert_rmndate_to_datetime)
-    df = add_level_info_columns(df)
+    df = add_ip_info_columns(df)
     # res = df['ip1'].apply(decode_ip)
     # df['level'] = None
     # df[' '] = None
@@ -140,7 +140,7 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     validate_df_not_empty(df,'fststat',StandardFileError)
     df = load_data(df)
     df = compute_stats(df)
-    df = add_level_info_columns(df)
+    df = add_ip_info_columns(df)
     # res = df['ip1'].apply(decode_ip)
     # df['level'] = None
     # df[' '] = None
@@ -337,7 +337,7 @@ def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
     
     sys.stdout.write('zap - changed ip1, triggers updating level and ip1_kind\n')
     df.loc[:,'ip1'] = ip1_value
-    df = add_level_info_columns(df)
+    df = add_ip_info_columns(df)
     # level, ip1_kind, ip1_pkind = decode_ip(ip1_value)
     # df.loc[:,'level'] = level
     # df.loc[:,'ip1_kind'] = ip1_kind
