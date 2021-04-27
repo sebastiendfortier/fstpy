@@ -65,7 +65,7 @@ class Pressure:
         elif vctype == "PRESSURE":
             p0_df = meta_df.query('nomvar=="P0"')
             p0_data = p0_df.iloc[0]['d']
-            px_df = pressure_pressure_array_pressure_df(df,p0_data,self.standard_atmosphere)
+            px_df = pressure_pressure_df(df,p0_data)
 
         elif vctype == "ETA":
             p0_df = meta_df.query('nomvar=="P0"')
@@ -82,66 +82,41 @@ class Pressure:
             px_df = sigma_pressure_df(df,p0_data,self.standard_atmosphere)
 
         return px_df
-
+###################################################################################  
+###################################################################################  
 class Pressure2Pressure:
     @initializer
-    def __init__(self,levels,p0_data,standard_atmosphere) -> None:
-        if not self.standard_atmosphere:
-            self.create_vgrid_descriptor()
-
-    def create_vgrid_descriptor(self):    
-        try:
-		    # myvgd = vgd.vgd_new_gen_2001(&myvgd, vLevels, numVLevels, 0, 0)
-            self.myvgd = vgd.vgd_new_pres(self.levels)
-        except vgd.VGDError:
-            sys.stderr.write("There was a problem creating the VGridDescriptor")
-
-    def std_atm_pressure(self,level):
-        pres = np.full(self.p0_data.shape,level,dtype=np.float32,order='F')
-        pres = self.get_pres_eta_to_pres(level)
+    def __init__(self) -> None:
+        pass
+    def pressure(self,level,p0_data):
+        pres = np.full(p0_data.shape,level,dtype=np.float32,order='F')
         return pres
-
-    def vgrid_pressure(self,ip1):
-        p0_data = do_unit_conversion_array(self.p0_data,from_unit_name='millibar',to_unit_name='pascal')
-        pres = vgd.vgd_levels(self.myvgd, rfld=p0_data,ip1list=ip1)
-        return pres          
+     
 ###################################################################################            
-def pressure_pressure_array(levels,kind,p0_data,standard_atmosphere) -> list:
-    p = Pressure2Pressure(levels,p0_data,standard_atmosphere)
+def pressure_pressure_array(levels,kind,p0_data) -> list:
+    p = Pressure2Pressure()
     vip1_all = np.vectorize(rmn.ip1_all)
     ips = vip1_all(levels,kind)
-
     pressures=[]
-    if standard_atmosphere:
-        for lvl,ip in zip(levels,ips):
-            pres = p.std_atm_pressure(lvl,p0_data)
-            mydict = {}
-            mydict[ip]=pres
-            pressures.append(mydict)    
-    else:
-        for ip in ips:
-            pres = p.vgrid_pressure(ip,p0_data)
-            mydict = {}
-            mydict[ip]=pres
-            pressures.append(mydict)    
+
+    for lvl,ip in zip(levels,ips):
+        pres = p.pressure(lvl,p0_data)
+        mydict = {}
+        mydict[ip]=pres
+        pressures.append(mydict)    
     return pressures
 
-def pressure_pressure_array_pressure_df(df:pd.DataFrame,p0_data,standard_atmosphere) -> pd.DataFrame:
+def pressure_pressure_df(df:pd.DataFrame,p0_data) -> pd.DataFrame:
     df = df.drop_duplicates('ip1')
-    levels = df.level.unique()
-    p = Pressure2Pressure(levels,standard_atmosphere)
+    p = Pressure2Pressure()
     press = []    
     for i in df.index:
-        ip = df.at[i,'ip1']
         lvl = df.at[i,'level']
         px_s = df.iloc[i, df.columns != 'd'].copy(deep=True)
         px_s['nomvar'] = "PX"
         px_s['unit'] = "pascal"
         px_s['description'] = "Pressure of the Model"
-        if standard_atmosphere:
-            pres = p.std_atm_pressure(lvl)
-        else:
-            pres = p.vgrid_pressure(ip,p0_data)
+        pres = p.pressure(lvl,p0_data)
         px_s['d'] = pres
         press.append(px_s)
     pressure_df = pd.DataFrame(press)
