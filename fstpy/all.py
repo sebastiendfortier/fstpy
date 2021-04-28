@@ -8,7 +8,7 @@ from .dataframe import (add_data_type_str_column, add_decoded_columns,
 from .dataframe_utils import fstcomp, fststat, select, select_zap, voir, zap
 from .std_reader import StandardFileReader, load_data
 from .std_writer import StandardFileWriter
-from .unit import do_unit_conversion
+from .unit import do_unit_conversion,do_unit_conversion_array
 from .utils import (create_1row_df_from_model, delete_file,
                     flatten_data_series, get_grid_groups, get_groups,
                     get_level_groups, validate_df_not_empty, validate_nomvar)

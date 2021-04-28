@@ -10,6 +10,10 @@ pytestmark = [pytest.mark.std_writer_regtests, pytest.mark.regressions]
 def plugin_test_dir():
     return TEST_PATH +"WriterStd/testsFiles/"
 
+##### ajouter un test
+##### tester des nana a l'ecriture
+
+
 def test_regtest_1():
     pass
 #     """Test #1 : Tester l'option --output avec un path qui n'existe pas!"""

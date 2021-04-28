@@ -1,20 +1,29 @@
 # -*- coding: utf-8 -*-
 import datetime
+import sys
 
 import numpy as np
 import rpnpy.librmn.all as rmn
 from rpnpy.rpndate import RPNDate
-from .utils import initializer
+
 from fstpy import DATYP_DICT, STDVAR
 
+
+
 class Interval:
-    @initializer
-    def __init__(self,low,high,kind) -> None:
+    def __init__(self,ip,low,high,kind) -> None:
+        self.ip = ip
+        self.low = low
+        self.high = high
+        self.kind = kind
+        self.pkind = '' if kind in [-1,3,15,17] else rmn.kindToString(kind).strip()
         pass
     def delta(self):
         if self.kind not in [0,2,4,21,10]:
             return None
         return self.high-self.low
+    def __str__(self):
+        return f'{self.ip}:{self.low}{self.pkind}@{self.high}{self.pkind}'    
 
 
 #  kind    : level_type
@@ -31,16 +40,36 @@ class Interval:
 # 21       : mp [pressure in metres]
 
 
-def get_interval(ip1,level,ip1_kind,ip2,ip2_dec,ip2_kind,ip3,ip3_dec,ip3_kind):    
-    if (ip3 >= 32768):
-        if ((ip3_kind == ip2_kind) and  (ip2 >= 32768)):
-            return Interval(ip3_dec,ip2_dec,ip2_kind)
-        elif ((ip3_kind == ip1_kind) and (ip1 >= 32768)):
-            return Interval(level,ip3_dec,ip1_kind)
+def get_interval(ip3,ip1:int,i1v1:float,i1v2:float,i1kind:int,ip2:int,i2v1:float,i2v2:float,i2kind:int) -> Interval:  
+    """Gets interval if exists from ip values
 
+    :param ip1: ip1 value
+    :type ip1: int
+    :param i1v1: ip1 low decoded value
+    :type i1v1: float
+    :param i1v2: ip1 high decoded value
+    :type i1v2: float
+    :param i1kind: ip1 kind
+    :type i1kind: int
+    :param ip2: ip2 value
+    :type ip2: int
+    :param i2v1: ip2 low decoded value
+    :type i2v1: float
+    :param i2v2: ip2 high decoded value
+    :type i2v2: float
+    :param i2kind: ip2 kind
+    :type i2kind: int
+    :return: decoded interval
+    :rtype: Interval
+    """
+    if ip3 > 32768:
+        if (ip1 > 32768) and (i1v1 != i1v2):
+            return Interval('ip1',i1v1,i1v2,i1kind)
+        elif (ip2 > 32768) and (i2v1 != i2v2):    
+            return Interval('ip2',i2v1,i2v2,i2kind)
+        else:
+            return None        
     return None
-
-                
 
 def get_level_sort_order(kind:int) -> bool:
     """returns the level sort order
@@ -130,7 +159,8 @@ def get_ip_info(ip1:int,ip2:int,ip3:int):
     surface = is_surface(ip1_kind,level)
     follow_topography = level_type_follows_topography(ip1_kind)
     ascending = get_level_sort_order(ip1_kind)
-    interval = get_interval(ip1,level,ip1_kind,ip2,ip2_dec,ip2_kind,ip3,ip3_dec,ip3_kind)
+    
+    interval = get_interval(ip3,ip1,i1.v1,i1.v2,i1.kind,ip2,i2.v1,i2.v2,i2.kind)
     return level,ip1_kind,ip1_pkind,ip2_dec,ip2_kind,ip2_pkind,ip3_dec,ip3_kind,ip3_pkind,surface,follow_topography,ascending,interval
 
 def get_unit_and_description(nomvar):

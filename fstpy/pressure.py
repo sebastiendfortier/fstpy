@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
-from fstpy.unit import do_unit_conversion, do_unit_conversion_array
-from .utils import initializer, validate_df_not_empty,get_groups
-from .dataframe_utils import select,zap
-from .std_reader import load_data
-import pandas as pd
-import numpy as np
-import math
-import rpnpy.vgd.all as vgd
-import sys
-import rpnpy.librmn.all as rmn
-import rpnpy.vgd.proto as vgdp
 import ctypes
+import math
+import sys
+
+import numpy as np
+import pandas as pd
+import rpnpy.librmn.all as rmn
+import rpnpy.vgd.all as vgd
+import rpnpy.vgd.proto as vgdp
+
+from fstpy.unit import do_unit_conversion, do_unit_conversion_array
+
+from .dataframe_utils import select, zap
+from .std_reader import load_data
+from .utils import get_groups, initializer, validate_df_not_empty
 
 STANDARD_ATMOSPHERE = 1013.25
 
@@ -145,7 +148,12 @@ class Sigma2Pressure:
 
     def vgrid_pressure(self,ip1,p0_data):
         p0_data = do_unit_conversion_array(p0_data,from_unit_name='millibar',to_unit_name='pascal')
-        pres = vgd.vgd_levels(self.myvgd, rfld=p0_data,ip1list=ip1)
+        try:
+            pres = vgd.vgd_levels(self.myvgd, rfld=p0_data,ip1list=ip1)
+        except vgd.VGDError:
+            sys.stderr.write("There was a problem creating the pressure")    
+            return None
+        pres = do_unit_conversion_array(pres,from_unit_name='pascal',to_unit_name='hectoPascal')
         return pres   
 
     def get_pres_Sigma2Pressure_to_pres(levels):
@@ -238,7 +246,12 @@ class Eta2Pressure:
 
     def vgrid_pressure(self,ip1):
         self.p0_data = do_unit_conversion_array(self.p0_data,from_unit_name='millibar',to_unit_name='pascal')
-        pres = vgd.vgd_levels(self.myvgd, rfld=self.p0_data,ip1list=ip1)
+        try:
+            pres = vgd.vgd_levels(self.myvgd, rfld=self.p0_data,ip1list=ip1)
+        except vgd.VGDError:
+            sys.stderr.write("There was a problem creating the pressure")
+            return None
+        pres = do_unit_conversion_array(pres,from_unit_name='pascal',to_unit_name='hectoPascal')
         return pres
 
     def get_pres_eta_to_pres(self,level):
@@ -318,14 +331,9 @@ class Hybrid2Pressure:
             sys.stderr.write("There was a problem creating the VGridDescriptor")
 
     def get_hybrid_coord_info(self):
-        if self.hy_data is None:
-            self.ptop = -999.0
-            self.pref = -999.0
-            self.rcoef = -999.0
-        else:
-            self.ptop = self.hy_data[0]
-            self.pref = self.ig1
-            self.rcoef = self.ig2/1000.0
+        self.ptop = self.hy_data[0]
+        self.pref = self.ig1
+        self.rcoef = self.ig2/1000.0
 
     def std_atm_pressure(self,lvl):
         self.get_ptop_pref_rcoef()
@@ -333,7 +341,13 @@ class Hybrid2Pressure:
         return pres
 
     def vgrid_pressure(self,ip1):
-        pres = vgd.vgd_levels(self.myvgd, rfld=self.p0_data,ip1list=ip1)
+        self.p0_data = do_unit_conversion_array(self.p0_data,from_unit_name='millibar',to_unit_name='pascal')
+        try:
+            pres = vgd.vgd_levels(self.myvgd, rfld=self.p0_data,ip1list=ip1)
+        except vgd.VGDError:
+            sys.stderr.write("There was a problem creating the pressure")    
+            return None
+        pres = do_unit_conversion_array(pres,from_unit_name='pascal',to_unit_name='hectoPascal')
         return pres
 
     def get_ptop_pref_rcoef(self):
@@ -346,11 +360,6 @@ class Hybrid2Pressure:
         :return: presure at top, reference pressure, reference coefficient
         :rtype: tuple
         """
-        if len(self.hy_data) == 0:
-            self.ptop = -1.
-            self.pref = -1.
-            self.rcoef = -1.
-
         self.ptop = self.hy_data[0]
         self.pref = self.ig1
         self.rcoef = self.ig2 / 1000.0
@@ -493,11 +502,14 @@ class HybridStaggered2Pressure:
     def vgrid_pressure(self,ip1):
         ip = ctypes.c_int(ip1)
         pres = np.empty((self.p0_ni,self.p0_nj,1),dtype='float32', order='F')
+        self.p0_data = do_unit_conversion_array(self.p0_data,from_unit_name='millibar',to_unit_name='pascal')
         status = vgdp.c_vgd_levels(self.myvgd, self.p0_data.shape[0], self.p0_data.shape[1], 1, ip, pres, self.p0_data, 0)
         if not status:
-            sys.stderr.write("There was a problem creating the VGridDescriptor")
+            sys.stderr.write("There was a problem creating the pressure")
             pres = None
-        pres = np.squeeze(pres)    
+        else:
+            pres = np.squeeze(pres)    
+            pres = do_unit_conversion_array(pres,from_unit_name='pascal',to_unit_name='hectoPascal')
         return pres
 
     def get_pressure(self):
