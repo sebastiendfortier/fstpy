@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import glob
-import os
 from test import TEST_PATH, TMP_PATH
 
 import pytest

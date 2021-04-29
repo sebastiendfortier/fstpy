@@ -84,7 +84,7 @@ def get_header(file):
 
 def add_meta_to_query_results(df, sub_df, hy_df):
     # get metadata
-    metadf = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1"]')
+    metadf = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1","PN"]')
     # print(metadf.query('grid in %s'%list(sub_df.grid.unique())) )  
     # print(list(sub_df.grid.unique()))  
     # print(sub_df)  
@@ -208,7 +208,7 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
 
     validate_df_not_empty(latlon_df,'get_2d_lat_lon - while trying to find [">>","^^"]',StandardFileError)
     
-    no_meta_df = without_x_grid_df.query('nomvar not in %s'%["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"])
+    no_meta_df = without_x_grid_df.query('nomvar not in %s'%["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"])
 
     latlons = []
     path_groups = no_meta_df.groupby(no_meta_df.path)
@@ -306,7 +306,8 @@ def get_all_grid_metadata_fields_from_std_file(path):
     e1_keys = rmn.fstinl(unit,nomvar='E1')
     p0_keys = rmn.fstinl(unit,nomvar='P0')
     pt_keys = rmn.fstinl(unit,nomvar='PT')
-    keys = lat_keys + lon_keys + tictac_keys + toctoc_keys + hy_keys + sf_keys + e1_keys + p0_keys + pt_keys
+    pn_keys = rmn.fstinl(unit,nomvar='PN')
+    keys = lat_keys + lon_keys + tictac_keys + toctoc_keys + hy_keys + sf_keys + e1_keys + p0_keys + pt_keys + pn_keys
     records=[]
     for key in keys:
         record = rmn.fstluk(key)

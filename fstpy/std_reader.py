@@ -63,7 +63,7 @@ class StandardFileReader:
         :param array_container: specifies the type of arrays that data is contained in, default 'numpy', can be set to 'dask.array'   
         :type array_container: str    
     """
-    meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
+    meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]
     @initializer
     def __init__(self, filenames, decode_metadata=False,load_data=False,query=None,array_container='numpy'):
         #{'datev':-1, 'etiket':' ', 'ip1':-1, 'ip2':-1, 'ip3':-1, 'typvar':' ', 'nomvar':' '}

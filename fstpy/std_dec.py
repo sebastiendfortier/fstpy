@@ -97,33 +97,33 @@ def get_forecast_hour(deet:int,npas:int) -> datetime.timedelta:
     :return: time delta in seconds
     :rtype: datetime.timedelta
     """
-    if (deet != 0) and (npas != 0):
+    if (deet != 0) or (npas != 0):
         return datetime.timedelta(seconds=int(npas * deet))
-    return None    
+    return datetime.timedelta(0)    
 
-def decode_ip2(ip2:int):
-    """decodes the ip2 int value to its float value, kind and kind string
+# def decode_ip2(ip2:int):
+#     """decodes the ip2 int value to its float value, kind and kind string
 
-    :param ip2: encoded value stored in ip2
-    :type ip2: int
-    :return: decoded ip2 value, kind and printable kind string
-    :rtype: float,int,str
-    """
-    _,i2,_ = rmn.DecodeIp(0,ip2,0) 
-    pkind = '' if i2.kind in [-1,3,15,17] else rmn.kindToString(i2.kind).strip()
-    return i2.v1,i2.kind,pkind
+#     :param ip2: encoded value stored in ip2
+#     :type ip2: int
+#     :return: decoded ip2 value, kind and printable kind string
+#     :rtype: float,int,str
+#     """
+#     _,i2,_ = rmn.DecodeIp(0,ip2,0) 
+#     pkind = '' if i2.kind in [-1,3,15,17] else rmn.kindToString(i2.kind).strip()
+#     return i2.v1,i2.kind,pkind
 
-def decode_ip3(ip3:int):
-    """decodes the ip3 int value to its float value, kind and kind string
+# def decode_ip3(ip3:int):
+#     """decodes the ip3 int value to its float value, kind and kind string
 
-    :param ip3: encoded value stored in ip3
-    :type ip3: int
-    :return: decoded ip3 value, kind and printable kind string
-    :rtype: float,int,str
-    """
-    _,_,i3 = rmn.DecodeIp(0,0,ip3) 
-    pkind = '' if i3.kind in [-1,3,15,17] else rmn.kindToString(i3.kind).strip()
-    return i3.v1,i3.kind,pkind
+#     :param ip3: encoded value stored in ip3
+#     :type ip3: int
+#     :return: decoded ip3 value, kind and printable kind string
+#     :rtype: float,int,str
+#     """
+#     _,_,i3 = rmn.DecodeIp(0,0,ip3) 
+#     pkind = '' if i3.kind in [-1,3,15,17] else rmn.kindToString(i3.kind).strip()
+#     return i3.v1,i3.kind,pkind
 
 def get_data_type_str(datyp:int):
     """gets the data type string from the datyp int

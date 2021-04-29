@@ -270,7 +270,7 @@ def do_unit_conversion_array(arr, from_unit_name,to_unit_name='scalar') -> np.nd
       converter = get_converter(unit_from, unit_to)
       converted_arr = converter(arr)
        
-   return converted_arr
+   return converted_arr.astype('float32')
 
 def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False) -> pd.DataFrame:
    """Converts the data portion 'd' of all the records of a dataframe to the specified unit
@@ -306,7 +306,7 @@ def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=Fals
             unit_to = get_unit_by_name(to_unit_name)
          unit_from = get_unit_by_name(current_unit)
          converter = get_converter(unit_from, unit_to)
-         df.at[i,'d'] = converter(df.at[i,'d'])
+         df.at[i,'d'] = converter(df.at[i,'d']).astype('float32')
          df.at[i,'unit'] = to_unit_name
          df.at[i,'unit_converted'] = True
         

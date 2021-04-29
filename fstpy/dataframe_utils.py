@@ -222,7 +222,7 @@ def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
 ##################################################################################################
 ##################################################################################################
 def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
-    for meta in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]:
+    for meta in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]:
         df = df[df['nomvar'] != meta]
     return df
 

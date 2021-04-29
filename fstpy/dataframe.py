@@ -135,7 +135,7 @@ def add_forecast_hour_column(df:pd.DataFrame) -> pd.DataFrame:
     """
     from .std_dec import get_forecast_hour
     # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
-    vcreate_forecast_hour = np.vectorize(get_forecast_hour,otypes=['timedelta64'])    
+    vcreate_forecast_hour = np.vectorize(get_forecast_hour,otypes=['timedelta64[ns]'])    
     df.loc[:,'forecast_hour'] = vcreate_forecast_hour(df['deet'],df['npas'])
     return df
 
@@ -304,13 +304,17 @@ def set_vertical_coordinate_type(df) -> pd.DataFrame:
         ip1_kind_groups = grid.groupby(grid.ip1_kind)
         for _, ip1_kind_group in ip1_kind_groups:
             #these ip1_kinds are not defined
-            without_meta = ip1_kind_group.query('(ip1_kind not in [-1,3,6])')
+            without_meta = ip1_kind_group.query('(ip1_kind not in [-1,3,6]) and (nomvar not in ["!!","HY","P0","PT",">>","^^","PN"])')
             if not without_meta.empty:
                 #logger.debug(without_meta.iloc[0]['nomvar'])
                 ip1_kind = without_meta.iloc[0]['ip1_kind']
                 ip1_kind_group.loc[:,'vctype'] = 'UNKNOWN'
                 #vctype_dict = {'ip1_kind':ip1_kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
-                vctyte_df = VCTYPES.query('(ip1_kind==%s) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%s)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,vcode))
+                # print(VCTYPES)
+                # print(VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(5,False,True,False,False,False,False,-1)))
+                # print('\n(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,vcode))
+                vctyte_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,vcode))
+                # print(vctyte_df)
                 if not vctyte_df.empty:
                     if len(vctyte_df.index)>1:
                         logger.warning('set_vertical_coordinate_type - more than one match!!!')
@@ -318,6 +322,7 @@ def set_vertical_coordinate_type(df) -> pd.DataFrame:
             newdfs.append(ip1_kind_group)
 
     df = pd.concat(newdfs)
+    df.loc[df['nomvar'].isin([">>","^^","!!","P0","PT","HY","PN"]), "vctype"] = "UNKNOWN"
     return df    
 
 def get_meta_fields_exists(grid):
