@@ -327,7 +327,7 @@ class Eta2Pressure:
         def eta_to_pres(level:float, ptop:float, p0:float) -> float:
             return (ptop * ( 1.0 - level)) + level * p0
         self.get_ptop()    
-        print(level,self.ptop,self.p0_data)
+        # print(level,self.ptop,self.p0_data)
         veta_to_pres = np.vectorize(eta_to_pres)
         pres_values = veta_to_pres(level,self.ptop,self.p0_data)
         return pres_values
@@ -654,6 +654,8 @@ def create_px_record(df, i):
     px_s['nomvar'] = "PX"
     px_s['unit'] = "pascal"
     px_s['description'] = "Pressure of the Model"
+    px_s['nbits'] = 16
+    px_s['datyp'] = 1
     return px_s
 
 def convert_levels_to_ips(levels, kind):
