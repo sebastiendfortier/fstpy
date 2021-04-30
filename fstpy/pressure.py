@@ -6,12 +6,8 @@ import sys
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
-import rpnpy.vgd.all as vgd
 import rpnpy.vgd.proto as vgdp
 
-from fstpy.unit import do_unit_conversion, do_unit_conversion_array
-
-from .dataframe_utils import select, zap
 from .std_reader import load_data
 from .utils import initializer, validate_df_not_empty
 
@@ -113,27 +109,28 @@ class Pressure:
 ###################################################################################  
 ###################################################################################  
 class Pressure2Pressure:
-    def __init__(self) -> None:
+    def __init__(self,standard_atmosphere) -> None:
         pass
     def pressure(self,level,shape):
         pres = np.full(shape,level,dtype=np.float32,order='F')
         return pres
      
 ###################################################################################            
-def compute_pressure_from_pressure_coord_array(levels,kind,shape) -> list:
+def compute_pressure_from_pressure_coord_array(levels,kind,shape,standard_atmosphere) -> list:
     p = Pressure2Pressure()
-    vip1_all = np.vectorize(rmn.ip1_all)
-    ips = vip1_all(levels,kind)
+    ips = convert_levels_to_ips(levels, kind)
     pressures=[]
 
     for lvl,ip in zip(levels,ips):
-        pres = p.pressure(lvl,shape)
         mydict = {}
+        pres = p.pressure(lvl,shape)
+        if pres is None:
+            continue
         mydict[ip]=pres
         pressures.append(mydict)    
     return pressures
 
-def compute_pressure_from_pressure_coord_df(df:pd.DataFrame) -> pd.DataFrame:
+def compute_pressure_from_pressure_coord_df(df:pd.DataFrame,standard_atmosphere) -> pd.DataFrame:
     if df.empty:
         return None
     df = df.drop_duplicates('ip1')
@@ -141,11 +138,10 @@ def compute_pressure_from_pressure_coord_df(df:pd.DataFrame) -> pd.DataFrame:
     press = []    
     for i in df.index:
         lvl = df.at[i,'level']
-        px_s = df.loc[i, df.columns != 'd'].copy(deep=True)
-        px_s['nomvar'] = "PX"
-        px_s['unit'] = "pascal"
-        px_s['description'] = "Pressure of the Model"
+        px_s = create_px_record(df, i)
         pres = p.pressure(lvl,(df.at[i,'ni'],df.at[i,'nj']))
+        if pres is None:
+            continue
         px_s['d'] = pres
         press.append(px_s)
     pressure_df = pd.DataFrame(press)
@@ -180,7 +176,7 @@ class Sigma2Pressure:
 
 
     def std_atm_pressure(self,level):
-        pres = self.get_pres_eta_to_pres(level)
+        pres = self.get_pres_sigma_to_pres(level)
         return pres
 
     def vgrid_pressure(self,ip1):
@@ -196,8 +192,8 @@ class Sigma2Pressure:
  
         return pres
 
-    def get_pres_Sigma2Pressure_to_pres(levels):
-        """Sigma2Pressure to pressure conversion function
+    def get_pres_sigma_to_pres(self,levels):
+        """sigma to pressure to pressure conversion function
 
         :param p0: surface pressure
         :type p0: float
@@ -206,28 +202,32 @@ class Sigma2Pressure:
         :return: pressure for current level
         :rtype: float
         """
-        def Sigma2Pressure_to_pres(level) -> float:
+        def sigma_to_pres(level) -> float:
             return STANDARD_ATMOSPHERE * level
-        vpres_to_Sigma2Pressure = np.vectorize(Sigma2Pressure_to_pres)
-        pres_values = vpres_to_Sigma2Pressure(levels)
-        return pres_values    
+        vsigma_to_pres = np.vectorize(sigma_to_pres)
+        pres_values = vsigma_to_pres(levels)
+        pres = np.full(self.p0_data.shape,pres_values,dtype=np.float32,order='F')
+        return pres    
 ###################################################################################            
 def compute_pressure_from_sigma_coord_array(levels,kind,p0_data,standard_atmosphere) -> list:
     p = Sigma2Pressure(levels,p0_data,standard_atmosphere)
-    vip1_all = np.vectorize(rmn.ip1_all)
-    ips = vip1_all(levels,kind)
+    ips = convert_levels_to_ips(levels, kind)
 
     pressures=[]
     if standard_atmosphere:
         for lvl,ip in zip(levels,ips):
-            pres = p.std_atm_pressure(lvl)
             mydict = {}
+            pres = p.std_atm_pressure(lvl)
+            if pres is None:
+                continue
             mydict[ip]=pres
             pressures.append(mydict)    
     else:
         for ip in ips:
-            pres = p.vgrid_pressure(ip)
             mydict = {}
+            pres = p.vgrid_pressure(ip)
+            if pres is None:
+                continue
             mydict[ip]=pres
             pressures.append(mydict)    
     return pressures
@@ -242,14 +242,13 @@ def compute_pressure_from_sigma_coord_df(df:pd.DataFrame,p0_data,standard_atmosp
     for i in df.index:
         ip = df.at[i,'ip1']
         lvl = df.at[i,'level']
-        px_s = df.loc[i, df.columns != 'd'].copy(deep=True)
-        px_s['nomvar'] = "PX"
-        px_s['unit'] = "pascal"
-        px_s['description'] = "Pressure of the Model"
+        px_s = create_px_record(df, i)
         if standard_atmosphere:
             pres = p.std_atm_pressure(lvl)
         else:
             pres = p.vgrid_pressure(ip)
+        if pres is None:
+            continue    
         px_s['d'] = pres
         press.append(px_s)
     pressure_df = pd.DataFrame(press)
@@ -279,7 +278,8 @@ class Eta2Pressure:
         # see https://wiki.cmc.ec.gc.ca/wiki/Vgrid/C_interface/Cvgd_new_gen for kind and version
         kind = 1
         version = 2
-        status = vgdp.c_vgd_new_gen(myvgd, kind, version, self.levels, len(self.levels), None,None,self.ptop,None,None,0,0,None,None)
+        ptop = ctypes.pointer(ctypes.c_double(self.ptop*100))
+        status = vgdp.c_vgd_new_gen(myvgd, kind, version, self.levels, len(self.levels), None,None,ptop,None,None,0,0,None,None)
         if status:
             sys.stderr.write("Eta2Pressure - There was a problem creating the VGridDescriptor\n")
         self.myvgd = myvgd   
@@ -292,7 +292,7 @@ class Eta2Pressure:
             # get value from !!
             self.ptop = self.bb_data[0]/100.0
             # ptop = ((float)(*BBfm)(0,1,0))/100.0
-        self.ptop = ctypes.pointer(ctypes.c_double(self.ptop*100))    
+            
 
 
     def std_atm_pressure(self,level):
@@ -326,26 +326,31 @@ class Eta2Pressure:
         """
         def eta_to_pres(level:float, ptop:float, p0:float) -> float:
             return (ptop * ( 1.0 - level)) + level * p0
+        self.get_ptop()    
+        print(level,self.ptop,self.p0_data)
         veta_to_pres = np.vectorize(eta_to_pres)
         pres_values = veta_to_pres(level,self.ptop,self.p0_data)
         return pres_values
 ###################################################################################
 def compute_pressure_from_eta_coord_array(levels,kind,pt_data,bb_data,p0_data,standard_atmosphere) -> list:
     p = Eta2Pressure(levels,pt_data,bb_data,p0_data,standard_atmosphere)
-    vip1_all = np.vectorize(rmn.ip1_all)
-    ips = vip1_all(levels,kind)
+    ips = convert_levels_to_ips(levels, kind)
 
     pressures=[]
     if standard_atmosphere:
         for lvl,ip in zip(levels,ips):
-            pres = p.std_atm_pressure(lvl)
             mydict = {}
+            pres = p.std_atm_pressure(lvl)
+            if pres is None:
+                continue
             mydict[ip]=pres
             pressures.append(mydict)    
     else:
         for ip in ips:
-            pres = p.vgrid_pressure(ip)
             mydict = {}
+            pres = p.vgrid_pressure(ip)
+            if pres is None:
+                continue
             mydict[ip]=pres
             pressures.append(mydict)    
     return pressures
@@ -360,14 +365,13 @@ def compute_pressure_from_eta_coord_df(df:pd.DataFrame,pt_data,bb_data,p0_data,s
     for i in df.index:
         ip = df.at[i,'ip1']
         lvl = df.at[i,'level']
-        px_s = df.loc[i, df.columns != 'd'].copy(deep=True)
-        px_s['nomvar'] = "PX"
-        px_s['unit'] = "pascal"
-        px_s['description'] = "Pressure of the Model"
+        px_s = create_px_record(df, i)
         if standard_atmosphere:
             pres = p.std_atm_pressure(lvl)
         else:
             pres = p.vgrid_pressure(ip)
+        if pres is None:
+            continue    
         px_s['d'] = pres
         press.append(px_s)
     pressure_df = pd.DataFrame(press)
@@ -491,20 +495,23 @@ class Hybrid2Pressure:
 ###################################################################################        
 def compute_pressure_from_hyb_coord_array(hy_data,hy_ig1,hy_ig2,p0_data,levels,kind,standard_atmosphere) -> list:
     p = Hybrid2Pressure(hy_data,hy_ig1,hy_ig2,p0_data,levels,kind,standard_atmosphere)
-    vip1_all = np.vectorize(rmn.ip1_all)
-    ips = vip1_all(levels,kind)
+    ips = convert_levels_to_ips(levels, kind)
 
     pressures=[]
     if standard_atmosphere:
         for lvl,ip in zip(levels,ips):
-            pres = p.std_atm_pressure(lvl)
             mydict = {}
+            pres = p.std_atm_pressure(lvl)
+            if pres is None:
+                continue
             mydict[ip]=pres
             pressures.append(mydict)    
     else:
         for ip in ips:
-            pres = p.vgrid_pressure(ip)
             mydict = {}
+            pres = p.vgrid_pressure(ip)
+            if pres is None:
+                continue
             mydict[ip]=pres
             pressures.append(mydict)     
     return pressures
@@ -520,14 +527,13 @@ def compute_pressure_from_hyb_coord_df(df:pd.DataFrame,hy_data,hy_ig1,hy_ig2,p0_
     for i in df.index:
         ip = df.at[i,'ip1']
         lvl = df.at[i,'level']
-        px_s = df.loc[i, df.columns != 'd'].copy(deep=True)
-        px_s['nomvar'] = "PX"
-        px_s['unit'] = "pascal"
-        px_s['description'] = "Pressure of the Model"
+        px_s = create_px_record(df, i)
         if standard_atmosphere:
             pres = p.std_atm_pressure(lvl)
         else:
             pres = p.vgrid_pressure(ip)
+        if pres is None:
+            continue    
         px_s['d'] = pres
         press.append(px_s)
     pressure_df = pd.DataFrame(press)
@@ -612,6 +618,9 @@ def compute_pressure_from_hybstag_coord_array(ip1s,bb_data,p0_data,standard_atmo
     pressures=[]
     for ip in ip1s:
         mydict = {}
+        pres = p.get_pressure()(ip)
+        if pres is None:
+            continue
         mydict[ip] = p.get_pressure()(ip)
         pressures.append(mydict)    
     return pressures
@@ -626,18 +635,26 @@ def compute_pressure_from_hybstag_coord_df(df:pd.DataFrame,bb_data,p0_data,stand
         ip = df.at[i,'ip1']
         if ip == 0:
             continue
-        px_s = df.loc[i, df.columns != 'd'].copy(deep=True)
-        px_s['nomvar'] = "PX"
-        px_s['unit'] = "pascal"
-        px_s['description'] = "Pressure of the Model"
+        px_s = create_px_record(df, i)
         pres = p.get_pressure()(ip)
+        if pres is None:
+            continue
         px_s['d'] = pres
         press.append(px_s)
     pressure_df = pd.DataFrame(press)
     # pressure_df = do_unit_conversion(pressure_df,to_unit_name='hectoPascal')
     return pressure_df
+
 ###################################################################################
 ###################################################################################
+def create_px_record(df, i):
+    px_s = df.loc[i, df.columns != 'd'].copy(deep=True)
+    px_s['nomvar'] = "PX"
+    px_s['unit'] = "pascal"
+    px_s['description'] = "Pressure of the Model"
+    return px_s
 
-
- 
+def convert_levels_to_ips(levels, kind):
+    vip1_all = np.vectorize(rmn.ip1_all)
+    ips = vip1_all(levels,kind)
+    return ips
