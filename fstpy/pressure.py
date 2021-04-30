@@ -76,7 +76,7 @@ class Pressure:
             px_df = compute_pressure_from_hybstag_coord_df(df,bb_data,p0_data,self.standard_atmosphere)
 
         elif vctype == "PRESSURE":
-            px_df = compute_pressure_from_pressure_coord_df(df)
+            px_df = compute_pressure_from_pressure_coord_df(df,self.standard_atmosphere)
 
         elif vctype == "ETA":
             p0_df = meta_df.query('nomvar=="P0"')
@@ -117,7 +117,7 @@ class Pressure2Pressure:
      
 ###################################################################################            
 def compute_pressure_from_pressure_coord_array(levels,kind,shape,standard_atmosphere) -> list:
-    p = Pressure2Pressure()
+    p = Pressure2Pressure(standard_atmosphere)
     ips = convert_levels_to_ips(levels, kind)
     pressures=[]
 
@@ -134,7 +134,7 @@ def compute_pressure_from_pressure_coord_df(df:pd.DataFrame,standard_atmosphere)
     if df.empty:
         return None
     df = df.drop_duplicates('ip1')
-    p = Pressure2Pressure()
+    p = Pressure2Pressure(standard_atmosphere)
     press = []    
     for i in df.index:
         lvl = df.at[i,'level']
@@ -422,7 +422,7 @@ class Hybrid2Pressure:
 
     def std_atm_pressure(self,lvl):
         self.get_ptop_pref_rcoef()
-        pres = self.get_pres_hyb_to_pres(lvl, self.kind, self.ptop, self.pref, self.rcoef)
+        pres = self.get_pres_hyb_to_pres(lvl)
         return pres
 
     def vgrid_pressure(self,ip1):
@@ -448,11 +448,11 @@ class Hybrid2Pressure:
         :rtype: tuple
         """
         self.ptop = self.hy_data[0]
-        self.pref = self.ig1
-        self.rcoef = self.ig2 / 1000.0
+        self.pref = self.hy_ig1
+        self.rcoef = self.hy_ig2 / 1000.0
 
 
-    def get_pres_hyb_to_pres(levels,kind:int,ptop:float,pref:float,rcoef:float):
+    def get_pres_hyb_to_pres(self,levels):
         """hybrid to pressure conversion function
 
         :param kind: current level kind
@@ -488,8 +488,9 @@ class Hybrid2Pressure:
             else:
                 return -1.
         vhyb_to_pres = np.vectorize(std_atm_pressure1)
-        pres_values = vhyb_to_pres(levels,kind,ptop,pref,rcoef)
-        return pres_values
+        pres_values = vhyb_to_pres(levels,self.kind,self.ptop,self.pref,self.rcoef)
+        pres = np.full(self.p0_data.shape,pres_values,dtype=np.float32,order='F')
+        return pres
 
 
 ###################################################################################        
@@ -582,7 +583,8 @@ class HybridStaggered2Pressure:
 
         vhybstag_to_pres = np.vectorize(hybstag_to_pres)
         pres_values = vhybstag_to_pres(a, b, pref)
-        return pres_values
+        pres = np.full(self.p0_data.shape,pres_values[0],dtype=np.float32,order='F')
+        return pres 
 
     def std_atm_pressure(self,ip1):
         ips = self.bb_data[0][3:].astype(int)
