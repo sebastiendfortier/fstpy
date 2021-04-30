@@ -295,6 +295,8 @@ def sort_dataframe(df) -> pd.DataFrame:
 
 def set_vertical_coordinate_type(df) -> pd.DataFrame:
     from fstpy import VCTYPES
+    if 'level' not in df.columns:
+        df = add_ip_info_columns(df)
     newdfs=[]
     df.loc[:,'vctype'] = 'UNKNOWN'
     grid_groups = df.groupby(df.grid)

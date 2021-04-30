@@ -7,9 +7,18 @@ from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.utils import delete_file
 from rpnpy.librmn.all import FSTDError
-
+import shutil
+import os
 pytestmark = [pytest.mark.std_reader_regtests, pytest.mark.regressions]
 
+
+def pytest_sessionstart(session):
+    shutil.rmtree(TMP_PATH)
+    os.mkdir(TMP_PATH)
+
+def pytest_sessionfinish(session, exitstatus):
+    """Cleanup a testing directory once we are finished."""
+    shutil.rmtree(TMP_PATH)
 
 
 # @pytest.fixture(scope="session", autouse=True)

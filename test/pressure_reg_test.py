@@ -7,8 +7,19 @@ from fstpy.std_writer import StandardFileWriter
 from fstpy.utils import delete_file
 from fstpy.pressure import Pressure
 from rpnpy.librmn.all import FSTDError
+import os
+import shutil
 
 pytestmark = [pytest.mark.pressure_regtests, pytest.mark.regressions]
+
+
+def pytest_sessionstart(session):
+    shutil.rmtree(TMP_PATH)
+    os.mkdir(TMP_PATH)
+
+def pytest_sessionfinish(session, exitstatus):
+    """Cleanup a testing directory once we are finished."""
+    shutil.rmtree(TMP_PATH)
 
 @pytest.fixture
 def plugin_test_dir():
@@ -517,27 +528,27 @@ def test_regtest_20(plugin_test_dir):
 #     assert(res == False)
 
 
-def test_regtest_22(plugin_test_dir):
-    """Test #22 : Test avec l'option -- coordinateType ETA_COORDINATE alors que le fichier d'entree n'est pas en coordonnees ETA - Champs PT et P0 sont absents."""
-    # open and read source
-    source0 = plugin_test_dir + "input_eta_2008061012_000_model_noPTnoP0.std"
-    src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
+# def test_regtest_22(plugin_test_dir):
+#     """Test #22 : Test avec l'option -- coordinateType ETA_COORDINATE alors que le fichier d'entree n'est pas en coordonnees ETA - Champs PT et P0 sont absents."""
+#     # open and read source
+#     source0 = plugin_test_dir + "input_eta_2008061012_000_model_noPTnoP0.std"
+#     src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
 
 
-    #compute Pressure
-    df = Pressure(src_df0,True).compute()
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Pressure --coordinateType ETA_COORDINATE --standardAtmosphere --referenceField TT] >> [WriterStd --output {destination_path} --ignoreExtended]
+#     #compute Pressure
+#     df = Pressure(src_df0,True).compute()
+#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Pressure --coordinateType ETA_COORDINATE --standardAtmosphere --referenceField TT] >> [WriterStd --output {destination_path} --ignoreExtended]
 
-    #write the result
-    results_file = TMP_PATH + "test_22.std"
-    StandardFileWriter(results_file,df).to_fst()
+#     #write the result
+#     results_file = TMP_PATH + "test_22.std"
+#     StandardFileWriter(results_file,df).to_fst()
 
-    # open and read comparison file
-    file_to_compare = plugin_test_dir + "nan"
+#     # open and read comparison file
+#     file_to_compare = plugin_test_dir + "nan"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
-    assert(res == False)
+#     #compare results
+#     res = fstcomp(results_file,file_to_compare)
+#     assert(res == False)
 
 
 # def test_regtest_23(plugin_test_dir):
@@ -563,27 +574,27 @@ def test_regtest_22(plugin_test_dir):
 #     assert(res == False)
 
 
-def test_regtest_24(plugin_test_dir):
-    """Test #24 : Test avec l'option -- coordinateType SIGMA_COORDINATE alors que le fichier d'entree n'est pas en coordonnees SIGMA - Champ P0 est absent."""
-    # open and read source
-    source0 = plugin_test_dir + "hu_sig_noP0_fileSrc.std"
-    src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
+# def test_regtest_24(plugin_test_dir):
+#     """Test #24 : Test avec l'option -- coordinateType SIGMA_COORDINATE alors que le fichier d'entree n'est pas en coordonnees SIGMA - Champ P0 est absent."""
+#     # open and read source
+#     source0 = plugin_test_dir + "hu_sig_noP0_fileSrc.std"
+#     src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
 
 
-    #compute Pressure
-    df = Pressure(src_df0,True).compute()
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Pressure --coordinateType SIGMA_COORDINATE --standardAtmosphere --referenceField HU] >> [WriterStd --output {destination_path} --ignoreExtended]
+#     #compute Pressure
+#     df = Pressure(src_df0,True).compute()
+#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Pressure --coordinateType SIGMA_COORDINATE --standardAtmosphere --referenceField HU] >> [WriterStd --output {destination_path} --ignoreExtended]
 
-    #write the result
-    results_file = TMP_PATH + "test_24.std"
-    StandardFileWriter(results_file,df).to_fst()
+#     #write the result
+#     results_file = TMP_PATH + "test_24.std"
+#     StandardFileWriter(results_file,df).to_fst()
 
-    # open and read comparison file
-    file_to_compare = plugin_test_dir + "nan"
+#     # open and read comparison file
+#     file_to_compare = plugin_test_dir + "nan"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
-    assert(res == False)
+#     #compare results
+#     res = fstcomp(results_file,file_to_compare)
+#     assert(res == False)
 
 
 # def test_regtest_25(plugin_test_dir):
