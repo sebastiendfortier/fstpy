@@ -35,14 +35,14 @@ run_unittest:
   stage: run_unittest 
   script:
     - cd test    
-    - python -m pytest -m unit_tests 
+    - python -m pytest -n ${JOB_CPUS} -m unit_tests 
     
 
 run_regtests:
   stage: run_regtests
   script:
     - cd test
-    - python -m pytest -m regressions
+    - python -m pytest -n ${JOB_CPUS} -m regressions
 
 make_doc:
   stage: make_doc
