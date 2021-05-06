@@ -741,7 +741,7 @@ class HybridStaggered2Pressure:
         a_8 = self.bb_data[1][3:]
         b_8 = self.bb_data[2][3:]
         pref = self.bb_data[1][1]
-        pres = self.get_std_atm_pressure(a_8[ipindex], b_8[ipindex], pref)
+        pres = self.get_std_atm_pressure(a_8[ipindex][0], b_8[ipindex][0], pref)
         return pres
 
     def vgrid_pressure(self,ip1):
