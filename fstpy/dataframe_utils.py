@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
-from math import isnan
+import math
 
 import dask
 import dask.array as da
@@ -507,12 +507,12 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
 
         derr = np.where(a == 0, np.abs(1-a/b), np.abs(1-b/a))
         derr_sum=np.sum(derr)
-        if isnan(derr_sum):
+        if math.isnan(derr_sum):
             diff.at[i, 'e_rel_max'] = 0.
             diff.at[i, 'e_rel_moy'] = 0.
         else:    
-            diff.at[i, 'e_rel_max'] = 0. if isnan(np.max(derr)) else np.max(derr)
-            diff.at[i, 'e_rel_moy'] = 0. if isnan(np.mean(derr)) else np.mean(derr)
+            diff.at[i, 'e_rel_max'] = 0. if math.isnan(np.max(derr)) else np.max(derr)
+            diff.at[i, 'e_rel_moy'] = 0. if math.isnan(np.mean(derr)) else np.mean(derr)
         sum_a2 = np.sum(a**2)
         sum_b2 = np.sum(b**2)
         diff.at[i, 'var_a'] = np.mean(sum_a2)
@@ -536,7 +536,9 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
         
         nbdiff = np.count_nonzero(a!=b)
         diff.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
-        if not ((-1.0000001 <= diff.at[i, 'c_cor'] <= 1.0000001) and (-0.1 <= diff.at[i, 'e_rel_max'] <= 0.1) and (-0.1 <= diff.at[i, 'e_rel_moy'] <= 0.1)):
-            diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
-            success = False
+        # print(diff.at[i, 'c_cor'],1.0,1.0+1e-07,1-1e-07,math.isclose(diff.at[i, 'c_cor'],1.0,rel_tol=1e-07))
+        if (not math.isclose(diff.at[i, 'c_cor'],1.0,rel_tol=1e-06)) and (not math.isclose(diff.at[i, 'e_rel_max'],0.0,rel_tol=1e-06)):
+                if not math.isclose(diff.at[i, 'e_rel_moy'],0.0,rel_tol=1e-06):
+                    diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
+                    success = False
     return success            
