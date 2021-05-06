@@ -12,24 +12,8 @@ import os
 pytestmark = [pytest.mark.std_reader_regtests, pytest.mark.regressions]
 
 
-def pytest_sessionstart(session):
-    shutil.rmtree(TMP_PATH)
-    os.mkdir(TMP_PATH)
-
-def pytest_sessionfinish(session, exitstatus):
-    """Cleanup a testing directory once we are finished."""
-    shutil.rmtree(TMP_PATH)
 
 
-# @pytest.fixture(scope="session", autouse=True)
-# def cleanup(request):
-#     """Cleanup a testing directory once we are finished."""
-#     def remove_test_dir():
-#         print('cleanup')
-#         files = glob.glob(TMP_PATH+'/*')
-#         for f in files:
-#             os.remove(f)
-#     request.addfinalizer(remove_test_dir)
 
 @pytest.fixture
 def plugin_test_dir():
@@ -55,7 +39,7 @@ def test_regtest_2(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,T6] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_2.std"
+    results_file = TMP_PATH + "test_read_reg_2.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -74,7 +58,7 @@ def test_regtest_3(plugin_test_dir):
     src_df0 = StandardFileReader(source0).to_pandas()
 
     #write the result
-    results_file = TMP_PATH + "test_3.std"
+    results_file = TMP_PATH + "test_read_reg_3.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -95,7 +79,7 @@ def test_regtest_5(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_5.std"
+    results_file = TMP_PATH + "test_read_reg_5.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -119,7 +103,7 @@ def test_regtest_6(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,TT] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_6.std"
+    results_file = TMP_PATH + "test_read_reg_6.std"
     StandardFileWriter(results_file, df).to_fst()
 
     # open and read comparison file
@@ -140,7 +124,7 @@ def test_regtest_7(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --noMetadata --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_7.std"
+    results_file = TMP_PATH + "test_read_reg_7.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -164,7 +148,7 @@ def test_regtest_8(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
     #write the result
-    results_file = TMP_PATH + "test_8.std"
+    results_file = TMP_PATH + "test_read_reg_8.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -188,7 +172,7 @@ def test_regtest_9(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
     #write the result
-    results_file = TMP_PATH + "test_9.std"
+    results_file = TMP_PATH + "test_read_reg_9.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -214,7 +198,7 @@ def test_regtest_10(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]} {sources[1]} {sources[2]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_10.std"
+    results_file = TMP_PATH + "test_read_reg_10.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -238,7 +222,7 @@ def test_regtest_11(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_11.std"
+    results_file = TMP_PATH + "test_read_reg_11.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -262,7 +246,7 @@ def test_regtest_12(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
     #write the result
-    results_file = TMP_PATH + "test_12.std"
+    results_file = TMP_PATH + "test_read_reg_12.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -286,7 +270,7 @@ def test_regtest_13(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --noUnitConversion]
 
     #write the result
-    results_file = TMP_PATH + "test_13.std"
+    results_file = TMP_PATH + "test_read_reg_13.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # # open and read comparison file
@@ -309,7 +293,7 @@ def test_regtest_14(plugin_test_dir):
     #['[ReaderStd --ignoreExtended --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]']
 
     #write the result
-    results_file = TMP_PATH + "test_14.std"
+    results_file = TMP_PATH + "test_read_reg_14.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -333,7 +317,7 @@ def test_regtest_15(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_15.std"
+    results_file = TMP_PATH + "test_read_reg_15.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -357,7 +341,7 @@ def test_regtest_16(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_16.std"
+    results_file = TMP_PATH + "test_read_reg_16.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -381,7 +365,7 @@ def test_regtest_17(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_17.std"
+    results_file = TMP_PATH + "test_read_reg_17.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -405,7 +389,7 @@ def test_regtest_18(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_18.std"
+    results_file = TMP_PATH + "test_read_reg_18.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -429,7 +413,7 @@ def test_regtest_19(plugin_test_dir):
     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path}]
 
     #write the result
-    results_file = TMP_PATH + "test_19.std"
+    results_file = TMP_PATH + "test_read_reg_19.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -454,7 +438,7 @@ def test_regtest_20(plugin_test_dir):
     #[ReaderStd --input {sources[0]}] >> [Select --fieldName FN] >> [WriterStd --output {destination_path}]
 
     #write the result
-    results_file = TMP_PATH + "test_20.std"
+    results_file = TMP_PATH + "test_read_reg_20.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -479,7 +463,7 @@ def test_regtest_21(plugin_test_dir):
 
     src_df0 = zap(src_df0,etiket='K80')
     #write the result
-    results_file = TMP_PATH + "test_21.std"
+    results_file = TMP_PATH + "test_read_reg_21.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -503,7 +487,7 @@ def test_regtest_22(plugin_test_dir):
     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path}]
 
     #write the result
-    results_file = TMP_PATH + "test_22.std"
+    results_file = TMP_PATH + "test_read_reg_22.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -528,7 +512,7 @@ def test_regtest_23(plugin_test_dir):
     #[ReaderStd --input {sources[0]}] >> [ZapSmart --fieldNameFrom AI --fieldNameTo PT] >> [WriterStd --output {destination_path}]
 
     #write the result
-    results_file = TMP_PATH + "test_23.std"
+    results_file = TMP_PATH + "test_read_reg_23.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -552,7 +536,7 @@ def test_regtest_23(plugin_test_dir):
 #     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path} --writingMode APPEND]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_25.std"
+#     results_file = TMP_PATH + "test_read_reg_25.std"
 #     StandardFileWriter(results_file, src_df0).to_fst()
  
 #     # open and read comparison file
@@ -576,7 +560,7 @@ def test_regtest_26(plugin_test_dir):
     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path} ]
 
     #write the result
-    results_file = TMP_PATH + "test_26.std"
+    results_file = TMP_PATH + "test_read_reg_26.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -602,7 +586,7 @@ def test_regtest_28(plugin_test_dir):
     #[ReaderStd --input {sources[0]} {sources[1]} {sources[2]} --ignoreExtended] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_28.std"
+    results_file = TMP_PATH + "test_read_reg_28.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -626,7 +610,7 @@ def test_regtest_29(plugin_test_dir):
     #['[ReaderStd --input {sources[0]} --ignoreExtended] >> ', '[WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE --flagMissingData]']
 
     #write the result
-    results_file = TMP_PATH + "test_29.std"
+    results_file = TMP_PATH + "test_read_reg_29.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -652,7 +636,7 @@ def test_regtest_30(plugin_test_dir):
     #['[ReaderStd --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
     #write the result
-    results_file = TMP_PATH + "test_30.std"
+    results_file = TMP_PATH + "test_read_reg_30.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -681,7 +665,7 @@ def test_regtest_30(plugin_test_dir):
 #     #['[ReaderStd --input {sources[0]}] >> ', '[Select --forecastHour 24] >>', '[WriterStd --output {destination_path}]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_31.std"
+#     results_file = TMP_PATH + "test_read_reg_31.std"
 #     StandardFileWriter(results_file, src_df0).to_fst()
 
 #     # open and read comparison file
@@ -705,7 +689,7 @@ def test_regtest_32(plugin_test_dir):
     #['[ReaderStd --input {sources[0]}] >>', '[Select --fieldName WGEX] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
     #write the result
-    results_file = TMP_PATH + "test_32.std"
+    results_file = TMP_PATH + "test_read_reg_32.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -729,7 +713,7 @@ def test_regtest_33(plugin_test_dir):
     #['[ReaderStd --input {sources[0]}]>>', '[WriterStd --output {destination_path}]']
 
     #write the result
-    results_file = TMP_PATH + "test_33.std"
+    results_file = TMP_PATH + "test_read_reg_33.std"
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
