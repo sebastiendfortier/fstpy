@@ -65,7 +65,7 @@ def get_dataframe_from_file(file:str,query:str,array_container:str=None):
 
     # check HY count
     df = process_hy(hy_df, df)
-
+    df = df[df.dltf==0]
     return df   
 
 def add_path_and_mod_time(file, df):
@@ -128,6 +128,18 @@ def _fstluk_dask(key):
 def add_numpy_data_column(df):
     vfstluk = np.vectorize(_fstluk,otypes='O')
     df.loc[:,'d'] = vfstluk(df['key'])
+    # print(df[['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'key']])
+    # df.loc[:,'d'] = None
+    # print('dtype:\n',df['d'].dtype)
+    # for i in df.index:
+    #     print('-------------------------------------------------------------')
+    #     print('d:\n',df.iloc[i].to_dict())
+    #     print('d:\n',df.at[i,'d'])
+    #     df.at[i,'d'] = None
+    #     key = df.at[i,'key']
+    #     print('luk rec:\n',rmn.fstluk(int(key)))
+    #     print('luk d:\n',rmn.fstluk(int(key))['d'])
+    #     df.at[i,'d'] = rmn.fstluk(int(key))['d']
     return df
 
 def add_dask_data_column(df):
