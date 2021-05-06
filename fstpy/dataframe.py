@@ -310,12 +310,21 @@ def set_vertical_coordinate_type(df) -> pd.DataFrame:
             if not without_meta.empty:
                 #logger.debug(without_meta.iloc[0]['nomvar'])
                 ip1_kind = without_meta.iloc[0]['ip1_kind']
+                # print(vcode)
+                if len(vcode) > 1:
+                    for vc in vcode:
+                        d,_=divmod(vc,1000)
+                        if ip1_kind == d:
+                            this_vcode = vc
+                            continue
+                else:
+                    this_vcode = vcode[0]
                 ip1_kind_group.loc[:,'vctype'] = 'UNKNOWN'
                 #vctype_dict = {'ip1_kind':ip1_kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
                 # print(VCTYPES)
                 # print(VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(5,False,True,False,False,False,False,-1)))
-                # print('\n(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,vcode))
-                vctyte_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,vcode))
+                # print('\n(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
+                vctyte_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
                 # print(vctyte_df)
                 if not vctyte_df.empty:
                     if len(vctyte_df.index)>1:
@@ -329,11 +338,13 @@ def set_vertical_coordinate_type(df) -> pd.DataFrame:
 
 def get_meta_fields_exists(grid):
     toctoc = grid.query('nomvar=="!!"')
+    vcode = []
     if not toctoc.empty:
-        vcode = toctoc.iloc[0]['ig1']
+        for i in toctoc.index:
+            vcode.append(toctoc.at[i,'ig1'])
         toctoc = True
     else:
-        vcode = -1
+        vcode.append(-1)
         toctoc = False
     p0 = meta_exists(grid,"P0")
     e1 = meta_exists(grid,"E1")
