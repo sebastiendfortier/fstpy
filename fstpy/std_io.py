@@ -43,17 +43,12 @@ def add_grid_column(df):
     return df
     
 def get_dataframe_from_file(file:str,query:str,array_container:str=None):
-    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'get_records_and_load',StandardFileReaderError)
-    unit = rmn.fstopenall(file)
-
-    records = get_std_file_header(unit)
-
-    rmn.fstcloseall(unit)
+    
+    records = get_header(file)
 
     df = pd.DataFrame(records)
     
-    df.loc[:,'path'] = file
-    df.loc[:,'file_modification_time'] = f_mod_time
+    df = add_path_and_mod_time(file, df)
     
     df = add_grid_column(df)
 
@@ -70,14 +65,31 @@ def get_dataframe_from_file(file:str,query:str,array_container:str=None):
 
     # check HY count
     df = process_hy(hy_df, df)
-
+    df = df[df.dltf==0]
     return df   
+
+def add_path_and_mod_time(file, df):
+    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'add_path_and_mod_time',StandardFileReaderError)
+    df.loc[:,'path'] = file
+    df.loc[:,'file_modification_time'] = f_mod_time
+    return df
+
+def get_header(file):
+    unit = rmn.fstopenall(file)
+
+    records = get_std_file_header(unit)
+
+    rmn.fstcloseall(unit)
+    return records
 
 def add_meta_to_query_results(df, sub_df, hy_df):
     # get metadata
-    metadf = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1"]')
-
-    subdfmeta = metadf.query('grid in %s'%sub_df.grid.unique())   
+    metadf = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1","PN"]')
+    # print(metadf.query('grid in %s'%list(sub_df.grid.unique())) )  
+    # print(list(sub_df.grid.unique()))  
+    # print(sub_df)  
+    subdfmeta = metadf.query('grid in %s'%list(sub_df.grid.unique())) 
+    # print(subdfmeta)  
 
     if (not sub_df.empty) and (not subdfmeta.empty):
         df = pd.concat([sub_df,subdfmeta])
@@ -95,7 +107,7 @@ def process_hy(hy_df, df):
     hy_count = hy_df.nomvar.count()
     if hy_count >= 1:
         if hy_count > 1:
-            sys.stderr.write('More than one HY in this file! - UNKNOWN BEHAVIOR, continue at your own risk')
+            sys.stderr.write('More than one HY in this file! - UNKNOWN BEHAVIOR, continue at your own risk\n')
 
         grids = [ x for x in list(df.grid.unique()) if x != 'None' ]
         if len(grids):
@@ -116,6 +128,18 @@ def _fstluk_dask(key):
 def add_numpy_data_column(df):
     vfstluk = np.vectorize(_fstluk,otypes='O')
     df.loc[:,'d'] = vfstluk(df['key'])
+    # print(df[['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'key']])
+    # df.loc[:,'d'] = None
+    # print('dtype:\n',df['d'].dtype)
+    # for i in df.index:
+    #     print('-------------------------------------------------------------')
+    #     print('d:\n',df.iloc[i].to_dict())
+    #     print('d:\n',df.at[i,'d'])
+    #     df.at[i,'d'] = None
+    #     key = df.at[i,'key']
+    #     print('luk rec:\n',rmn.fstluk(int(key)))
+    #     print('luk d:\n',rmn.fstluk(int(key))['d'])
+    #     df.at[i,'d'] = rmn.fstluk(int(key))['d']
     return df
 
 def add_dask_data_column(df):
@@ -196,7 +220,7 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
 
     validate_df_not_empty(latlon_df,'get_2d_lat_lon - while trying to find [">>","^^"]',StandardFileError)
     
-    no_meta_df = without_x_grid_df.query('nomvar not in %s'%["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"])
+    no_meta_df = without_x_grid_df.query('nomvar not in %s'%["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"])
 
     latlons = []
     path_groups = no_meta_df.groupby(no_meta_df.path)
@@ -294,7 +318,8 @@ def get_all_grid_metadata_fields_from_std_file(path):
     e1_keys = rmn.fstinl(unit,nomvar='E1')
     p0_keys = rmn.fstinl(unit,nomvar='P0')
     pt_keys = rmn.fstinl(unit,nomvar='PT')
-    keys = lat_keys + lon_keys + tictac_keys + toctoc_keys + hy_keys + sf_keys + e1_keys + p0_keys + pt_keys
+    pn_keys = rmn.fstinl(unit,nomvar='PN')
+    keys = lat_keys + lon_keys + tictac_keys + toctoc_keys + hy_keys + sf_keys + e1_keys + p0_keys + pt_keys + pn_keys
     records=[]
     for key in keys:
         record = rmn.fstluk(key)

@@ -42,19 +42,19 @@ class StandardFileWriter:
             self.df = pd.concat([self.df, self.meta_df])
             self.df.drop_duplicates(subset=['grtyp','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True,keep='first')
         self.df.reset_index(drop=True,inplace=True)        
-
+        
         if not self.update_meta_only:
             self.df = load_data(self.df)
-
-        self.file_id, self.file_modification_time = open_fst(self.filename, rmn.FST_RW, 'StandardFileWriter', StandardFileWriterError)
+        self.file_id, self.file_modification_time = open_fst(self.filename,rmn.FST_RW, 'StandardFileWriter', StandardFileWriterError)
         self._write()
         close_fst(self.file_id,self.filename,'StandardFileWriter')
 
 
     def _write(self):
         logger.info('StandardFileWriter - writing to file %s', self.filename)  
-
+        self.df.drop_duplicates(subset=['grtyp','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True,keep='first')
         self.df = sort_dataframe(self.df)
+        
         for i in self.df.index:
             #set_typvar(self.df,i)
             record_path = self.df.at[i,'path']
@@ -69,10 +69,10 @@ class StandardFileWriter:
                 write_dataframe_record_to_file(self.file_id,self.df,i)     
 
 def write_dataframe_record_to_file(file_id,df,i):
-
     #df = change_etiket_if_a_plugin_name(df,i)
     df = reshape_data_to_original_shape(df,i)
-    rmn.fstecr(file_id, np.asfortranarray(df.at[i,'d']), df.loc[i].to_dict())     
+    rmn.fstecr(file_id, data=np.asfortranarray(df.at[i,'d']), meta=df.loc[i].to_dict())     
+ 
 
 def update_meta_data(df, i):
     d = df.loc[i].to_dict()
@@ -85,8 +85,7 @@ def identical_destination_and_record_path(record_path, filename):
     return record_path == filename
 
 def reshape_data_to_original_shape(df, i):
-    if df.at[i,'d'].shape != df.at[i,'shape']:
-        #sys.stderr.write('difference detected between array shape and record metadata shape\n')
+    if df.at[i,'d'].shape != tuple(df.at[i,'shape']):
         df.at[i,'d'] = df.at[i,'d'].reshape(df.at[i,'shape'])
     return df
 

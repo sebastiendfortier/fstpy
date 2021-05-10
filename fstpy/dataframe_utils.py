@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
-from math import isnan
+import math
 
 import dask
 import dask.array as da
@@ -11,7 +11,7 @@ import rpnpy.librmn.all as rmn
 import fstpy
 from fstpy import DATYP_DICT, KIND_DICT
 
-from .dataframe import (add_level_info_columns, remove_from_df,
+from .dataframe import (add_ip_info_columns, remove_from_df,
                         reorder_columns, sort_dataframe)
 from .exceptions import SelectError, StandardFileError
 from .logger_config import logger
@@ -57,7 +57,7 @@ def voir(df:pd.DataFrame,style=False):
     df['datyp'] = df['datyp'].map(DATYP_DICT)
     df['datev'] = df['datev'].apply(convert_rmndate_to_datetime)
     df['dateo'] = df['dateo'].apply(convert_rmndate_to_datetime)
-    df = add_level_info_columns(df)
+    df = add_ip_info_columns(df)
     # res = df['ip1'].apply(decode_ip)
     # df['level'] = None
     # df[' '] = None
@@ -140,7 +140,7 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     validate_df_not_empty(df,'fststat',StandardFileError)
     df = load_data(df)
     df = compute_stats(df)
-    df = add_level_info_columns(df)
+    df = add_ip_info_columns(df)
     # res = df['ip1'].apply(decode_ip)
     # df['level'] = None
     # df[' '] = None
@@ -222,7 +222,7 @@ def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
 ##################################################################################################
 ##################################################################################################
 def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
-    for meta in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]:
+    for meta in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]:
         df = df[df['nomvar'] != meta]
     return df
 
@@ -337,7 +337,7 @@ def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
     
     sys.stdout.write('zap - changed ip1, triggers updating level and ip1_kind\n')
     df.loc[:,'ip1'] = ip1_value
-    df = add_level_info_columns(df)
+    df = add_ip_info_columns(df)
     # level, ip1_kind, ip1_pkind = decode_ip(ip1_value)
     # df.loc[:,'level'] = level
     # df.loc[:,'ip1_kind'] = ip1_kind
@@ -507,12 +507,12 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
 
         derr = np.where(a == 0, np.abs(1-a/b), np.abs(1-b/a))
         derr_sum=np.sum(derr)
-        if isnan(derr_sum):
+        if math.isnan(derr_sum):
             diff.at[i, 'e_rel_max'] = 0.
             diff.at[i, 'e_rel_moy'] = 0.
         else:    
-            diff.at[i, 'e_rel_max'] = 0. if isnan(np.max(derr)) else np.max(derr)
-            diff.at[i, 'e_rel_moy'] = 0. if isnan(np.mean(derr)) else np.mean(derr)
+            diff.at[i, 'e_rel_max'] = 0. if math.isnan(np.max(derr)) else np.max(derr)
+            diff.at[i, 'e_rel_moy'] = 0. if math.isnan(np.mean(derr)) else np.mean(derr)
         sum_a2 = np.sum(a**2)
         sum_b2 = np.sum(b**2)
         diff.at[i, 'var_a'] = np.mean(sum_a2)
@@ -536,7 +536,9 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
         
         nbdiff = np.count_nonzero(a!=b)
         diff.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
-        if not ((-1.0000001 <= diff.at[i, 'c_cor'] <= 1.0000001) and (-0.1 <= diff.at[i, 'e_rel_max'] <= 0.1) and (-0.1 <= diff.at[i, 'e_rel_moy'] <= 0.1)):
-            diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
-            success = False
+        # print(diff.at[i, 'c_cor'],1.0,1.0+1e-07,1-1e-07,math.isclose(diff.at[i, 'c_cor'],1.0,rel_tol=1e-07))
+        if (not math.isclose(diff.at[i, 'c_cor'],1.0,rel_tol=1e-06)) and (not math.isclose(diff.at[i, 'e_rel_max'],0.0,rel_tol=1e-06)):
+                if not math.isclose(diff.at[i, 'e_rel_moy'],0.0,rel_tol=1e-06):
+                    diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
+                    success = False
     return success            

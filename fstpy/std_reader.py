@@ -46,6 +46,7 @@ class StandardFileReader:
                 'ensemble_member':str, ensemble member derived from etiket |br|    
                 'surface':bool, True if the level is a surface level |br|   
                 'follow_topography':bool, indicates if this type of level follows topography |br|   
+                'ascending':bool, indicates if this type of level is in ascending order |br| 
                 'vctype':str, vertical level type |br|   
                 'forecast_hour':timedelta, forecast hour obtained from deet * npas / 3600 |br|   
                 'ip2_dec':value of decoded ip2  |br|  
@@ -62,7 +63,7 @@ class StandardFileReader:
         :param array_container: specifies the type of arrays that data is contained in, default 'numpy', can be set to 'dask.array'   
         :type array_container: str    
     """
-    meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
+    meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]
     @initializer
     def __init__(self, filenames, decode_metadata=False,load_data=False,query=None,array_container='numpy'):
         #{'datev':-1, 'etiket':' ', 'ip1':-1, 'ip2':-1, 'ip3':-1, 'typvar':' ', 'nomvar':' '}
@@ -104,7 +105,7 @@ class StandardFileReader:
 
         df = add_decoded_columns(df,self.decode_metadata,self.array_container)    
 
-        df = clean_dataframe(df,self.decode_metadata)
+        df = clean_dataframe(df)
         
         return df    
  

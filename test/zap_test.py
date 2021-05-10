@@ -23,7 +23,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --typeOfField BLABLABLA]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_1.std"
+#     results_file = TMP_PATH + "test_zap_1.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -46,7 +46,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --run BLABLABLA]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_2.std"
+#     results_file = TMP_PATH + "test_zap_2.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -69,7 +69,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --ensembleMember BLABLABLA]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_3.std"
+#     results_file = TMP_PATH + "test_zap_3.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -92,7 +92,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --verticalLevel -1]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_5.std"
+#     results_file = TMP_PATH + "test_zap_5.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -115,7 +115,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --verticalLevelType BLABLABLA]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_6.std"
+#     results_file = TMP_PATH + "test_zap_6.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -138,7 +138,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --forecastHour -10]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_7.std"
+#     results_file = TMP_PATH + "test_zap_7.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -161,7 +161,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --forecastHourOnly -10]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_8.std"
+#     results_file = TMP_PATH + "test_zap_8.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -184,7 +184,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --userDefinedIndex -10]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_9.std"
+#     results_file = TMP_PATH + "test_zap_9.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -207,7 +207,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --nbitsForDataStorage i65]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_10.std"
+#     results_file = TMP_PATH + "test_zap_10.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -230,7 +230,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --unit i65]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_11.std"
+#     results_file = TMP_PATH + "test_zap_11.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -253,7 +253,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --forecastHourOnly -10:00:00]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_12.std"
+#     results_file = TMP_PATH + "test_zap_12.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -276,7 +276,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHourOnly 11:00:01] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_13.std"
+#     results_file = TMP_PATH + "test_zap_13.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -299,7 +299,7 @@ def plugin_test_dir():
 #     #[ReaderStd --input {sources[0]}] >> [Zap --forecastHour -10:00:00]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_14.std"
+#     results_file = TMP_PATH + "test_zap_14.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -322,7 +322,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHour 11:38:00] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_15.std"
+#     results_file = TMP_PATH + "test_zap_15.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -345,7 +345,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHour 11.633333333] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_16.std"
+#     results_file = TMP_PATH + "test_zap_16.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -368,7 +368,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHourOnly 11.633333333 --lenghtOfTimeStep 1 --timeStepNumber 41880] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_17.std"
+#     results_file = TMP_PATH + "test_zap_17.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -391,7 +391,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHourOnly 11.6 --lenghtOfTimeStep 1 --timeStepNumber 41880] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_18.std"
+#     results_file = TMP_PATH + "test_zap_18.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -414,7 +414,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHourOnly 11.633333333 --lenghtOfTimeStep 2 --timeStepNumber 41880] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_19.std"
+#     results_file = TMP_PATH + "test_zap_19.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -437,7 +437,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHourOnly 11.633333333 --lenghtOfTimeStep 1 --timeStepNumber 41888] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_20.std"
+#     results_file = TMP_PATH + "test_zap_20.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -460,7 +460,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHourOnly 11.633333333 --lenghtOfTimeStep 1] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_21.std"
+#     results_file = TMP_PATH + "test_zap_21.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -483,7 +483,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHourOnly 11.633333333 --timeStepNumber 41880] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_22.std"
+#     results_file = TMP_PATH + "test_zap_22.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -506,7 +506,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHourOnly 11:31:00 --lenghtOfTimeStep 1 --timeStepNumber 41460] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_23.std"
+#     results_file = TMP_PATH + "test_zap_23.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -529,7 +529,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHourOnly 11:31:00 --lenghtOfTimeStep 60 --timeStepNumber 691] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_24.std"
+#     results_file = TMP_PATH + "test_zap_24.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -552,7 +552,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --forecastHourOnly 11:31:01 --lenghtOfTimeStep 1 --timeStepNumber 41461] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_25.std"
+#     results_file = TMP_PATH + "test_zap_25.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -575,7 +575,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag ZAPPED=TRUE,BOUNDED=FALSE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_26.std"
+#     results_file = TMP_PATH + "test_zap_26.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -598,7 +598,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag ZAPPED=TRUE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_27.std"
+#     results_file = TMP_PATH + "test_zap_27.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -621,7 +621,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag ZAPPEDS=TRUE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_28.std"
+#     results_file = TMP_PATH + "test_zap_28.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -644,7 +644,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag ZAPPED=TRU] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_29.std"
+#     results_file = TMP_PATH + "test_zap_29.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -667,7 +667,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag FILTERED=TRUE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_30.std"
+#     results_file = TMP_PATH + "test_zap_30.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -690,7 +690,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag INTERPOLATED=TRUE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_31.std"
+#     results_file = TMP_PATH + "test_zap_31.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -713,7 +713,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag UNITCONVERTED=TRUE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_32.std"
+#     results_file = TMP_PATH + "test_zap_32.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -736,7 +736,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag ALL_FLAGS=TRUE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_33.std"
+#     results_file = TMP_PATH + "test_zap_33.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -759,7 +759,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag ZAPPED=FALSE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_34.std"
+#     results_file = TMP_PATH + "test_zap_34.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -782,7 +782,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag ZAPPED=FALSE,FILTERED=FALSE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_35.std"
+#     results_file = TMP_PATH + "test_zap_35.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -805,7 +805,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag FILTERED=FALSE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_36.std"
+#     results_file = TMP_PATH + "test_zap_36.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -828,7 +828,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag INTERPOLATED=FALSE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_37.std"
+#     results_file = TMP_PATH + "test_zap_37.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -851,7 +851,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag UNITCONVERTED=FALSE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_38.std"
+#     results_file = TMP_PATH + "test_zap_38.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -874,7 +874,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag ZAPPED=TRUE,FILTERED=TRUE] >>', '[Zap --modificationFlag ZAPPED=FALSE,FILTERED=FALSE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_39.std"
+#     results_file = TMP_PATH + "test_zap_39.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file
@@ -897,7 +897,7 @@ def plugin_test_dir():
 #     #['[ReaderStd --input {sources[0]}] >>', '[Zap --modificationFlag ALL_FLAGS=FALSE] >>', '[Zap --modificationFlag ENSEMBLEEXTRAINFO=TRUE] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
 #     #write the result
-#     results_file = TMP_PATH + "test_40.std"
+#     results_file = TMP_PATH + "test_zap_40.std"
 #     StandardFileWriter(results_file, df, erase=True).to_fst()
 
 #     # open and read comparison file

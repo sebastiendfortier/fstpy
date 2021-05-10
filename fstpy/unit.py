@@ -247,6 +247,31 @@ def get_converter(unit_from:str, unit_to:str):
    converter = factor_conversion(from_factor,to_factor)
    return np.vectorize(converter)
 
+def do_unit_conversion_array(arr, from_unit_name,to_unit_name='scalar') -> np.ndarray:
+   """Converts the data to the specified unit provided in the to_unit_name parameter. 
+   
+   :param arr: array to be converted
+   :type df: np.ndarray
+   :param from_unit_name: unit name to convert from
+   :type from_unit_name: str
+   :param to_unit_name: unit name to convert to, defaults to 'scalar'
+   :type to_unit_name: str, optional
+   :return: an array containing the converted data
+   :rtype: np.ndarray
+   """
+   unit_to = get_unit_by_name(to_unit_name)
+   #unit_groups = df.groupby(df.unit)
+   #converted_dfs = [] 
+
+   if from_unit_name == to_unit_name:
+      return arr
+   else:
+      unit_from = get_unit_by_name(from_unit_name)
+      converter = get_converter(unit_from, unit_to)
+      converted_arr = converter(arr)
+       
+   return converted_arr.astype('float32')
+
 def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False) -> pd.DataFrame:
    """Converts the data portion 'd' of all the records of a dataframe to the specified unit
    provided in the to_unit_name parameter. If the standard_unit flag is True, the to_unit_name 
@@ -281,7 +306,7 @@ def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=Fals
             unit_to = get_unit_by_name(to_unit_name)
          unit_from = get_unit_by_name(current_unit)
          converter = get_converter(unit_from, unit_to)
-         df.at[i,'d'] = converter(df.at[i,'d'])
+         df.at[i,'d'] = converter(df.at[i,'d']).astype('float32')
          df.at[i,'unit'] = to_unit_name
          df.at[i,'unit_converted'] = True
         

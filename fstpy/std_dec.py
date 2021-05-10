@@ -1,14 +1,77 @@
 # -*- coding: utf-8 -*-
 import datetime
+import sys
 
 import numpy as np
 import rpnpy.librmn.all as rmn
 from rpnpy.rpndate import RPNDate
 
 from fstpy import DATYP_DICT, STDVAR
-    
 
-def level_sort_order(kind:int) -> bool:
+
+
+class Interval:
+    def __init__(self,ip,low,high,kind) -> None:
+        self.ip = ip
+        self.low = low
+        self.high = high
+        self.kind = kind
+        self.pkind = '' if kind in [-1,3,15,17] else rmn.kindToString(kind).strip()
+        pass
+    def delta(self):
+        if self.kind not in [0,2,4,21,10]:
+            return None
+        return self.high-self.low
+    def __str__(self):
+        return f'{self.ip}:{self.low}{self.pkind}@{self.high}{self.pkind}'    
+
+
+#  kind    : level_type
+#  0       : m  [metres] (height with respect to sea level)
+#  1       : sg [sigma] (0.0->1.0)
+#  2       : mb [mbars] (pressure in millibars)
+#  3       :    [others] (arbitrary code)
+#  4       : M  [metres] (height with respect to ground level)
+#  5       : hy [hybrid] (0.0->1.0)
+#  6       : th [theta]
+# 10       : H  [hours]
+# 15       :    [reserved, integer]
+# 17       :    [index X of conversion matrix]
+# 21       : mp [pressure in metres]
+
+
+def get_interval(ip3,ip1:int,i1v1:float,i1v2:float,i1kind:int,ip2:int,i2v1:float,i2v2:float,i2kind:int) -> Interval:  
+    """Gets interval if exists from ip values
+
+    :param ip1: ip1 value
+    :type ip1: int
+    :param i1v1: ip1 low decoded value
+    :type i1v1: float
+    :param i1v2: ip1 high decoded value
+    :type i1v2: float
+    :param i1kind: ip1 kind
+    :type i1kind: int
+    :param ip2: ip2 value
+    :type ip2: int
+    :param i2v1: ip2 low decoded value
+    :type i2v1: float
+    :param i2v2: ip2 high decoded value
+    :type i2v2: float
+    :param i2kind: ip2 kind
+    :type i2kind: int
+    :return: decoded interval
+    :rtype: Interval
+    """
+    if ip3 > 32768:
+        if (ip1 > 32768) and (i1v1 != i1v2):
+            return Interval('ip1',i1v1,i1v2,i1kind)
+        elif (ip2 > 32768) and (i2v1 != i2v2):    
+            return Interval('ip2',i2v1,i2v2,i2kind)
+        else:
+            return None        
+    return None
+
+def get_level_sort_order(kind:int) -> bool:
     """returns the level sort order
 
     :param kind: level kind
@@ -34,33 +97,33 @@ def get_forecast_hour(deet:int,npas:int) -> datetime.timedelta:
     :return: time delta in seconds
     :rtype: datetime.timedelta
     """
-    if (deet != 0) and (npas != 0):
+    if (deet != 0) or (npas != 0):
         return datetime.timedelta(seconds=int(npas * deet))
-    return None    
+    return datetime.timedelta(0)    
 
-def decode_ip2(ip2:int):
-    """decodes the ip2 int value to its float value, kind and kind string
+# def decode_ip2(ip2:int):
+#     """decodes the ip2 int value to its float value, kind and kind string
 
-    :param ip2: encoded value stored in ip2
-    :type ip2: int
-    :return: decoded ip2 value, kind and printable kind string
-    :rtype: float,int,str
-    """
-    _,i2,_ = rmn.DecodeIp(0,ip2,0) 
-    pkind = '' if i2.kind in [-1,3,15,17] else rmn.kindToString(i2.kind).strip()
-    return i2.v1,i2.kind,pkind
+#     :param ip2: encoded value stored in ip2
+#     :type ip2: int
+#     :return: decoded ip2 value, kind and printable kind string
+#     :rtype: float,int,str
+#     """
+#     _,i2,_ = rmn.DecodeIp(0,ip2,0) 
+#     pkind = '' if i2.kind in [-1,3,15,17] else rmn.kindToString(i2.kind).strip()
+#     return i2.v1,i2.kind,pkind
 
-def decode_ip3(ip3:int):
-    """decodes the ip3 int value to its float value, kind and kind string
+# def decode_ip3(ip3:int):
+#     """decodes the ip3 int value to its float value, kind and kind string
 
-    :param ip3: encoded value stored in ip3
-    :type ip3: int
-    :return: decoded ip3 value, kind and printable kind string
-    :rtype: float,int,str
-    """
-    _,_,i3 = rmn.DecodeIp(0,0,ip3) 
-    pkind = '' if i3.kind in [-1,3,15,17] else rmn.kindToString(i3.kind).strip()
-    return i3.v1,i3.kind,pkind
+#     :param ip3: encoded value stored in ip3
+#     :type ip3: int
+#     :return: decoded ip3 value, kind and printable kind string
+#     :rtype: float,int,str
+#     """
+#     _,_,i3 = rmn.DecodeIp(0,0,ip3) 
+#     pkind = '' if i3.kind in [-1,3,15,17] else rmn.kindToString(i3.kind).strip()
+#     return i3.v1,i3.kind,pkind
 
 def get_data_type_str(datyp:int):
     """gets the data type string from the datyp int
@@ -72,21 +135,33 @@ def get_data_type_str(datyp:int):
     """
     return DATYP_DICT[datyp]
 
-def get_level_info(ip1:int):
+def get_ip_info(ip1:int,ip2:int,ip3:int):
     """gets all relevant level info from the ip1 int value
 
     :param ip1: encoded value stored in ip1
     :type ip1: int
-    :return: level value, kind and kind str obtained from decoding ip1 and bools representing if the level is a surface level and if it follows topography.
-    :rtype: float,int,str,bool,bool
+    :return: level value, kind and kind str obtained from decoding ip1 and bools representing if the level is a surface level, if it follows topography and its sort order.
+    :rtype: float,int,str,bool,bool,bool
     """
-    i1,_,_ = rmn.DecodeIp(ip1,0,0) 
+    i1,i2,i3 = rmn.DecodeIp(ip1,ip2,ip3) 
     ip1_pkind = '' if i1.kind in [-1,3,15,17] else rmn.kindToString(i1.kind).strip()
     level=i1.v1
     ip1_kind = i1.kind
+
+    ip2_pkind = '' if i2.kind in [-1,3,15,17] else rmn.kindToString(i2.kind).strip()
+    ip2_dec=i2.v1
+    ip2_kind = i2.kind
+
+    ip3_pkind = '' if i3.kind in [-1,3,15,17] else rmn.kindToString(i3.kind).strip()
+    ip3_dec=i3.v1
+    ip3_kind = i3.kind
+
     surface = is_surface(ip1_kind,level)
     follow_topography = level_type_follows_topography(ip1_kind)
-    return level,ip1_kind,ip1_pkind,surface,follow_topography
+    ascending = get_level_sort_order(ip1_kind)
+    
+    interval = get_interval(ip3,ip1,i1.v1,i1.v2,i1.kind,ip2,i2.v1,i2.v2,i2.kind)
+    return level,ip1_kind,ip1_pkind,ip2_dec,ip2_kind,ip2_pkind,ip3_dec,ip3_kind,ip3_pkind,surface,follow_topography,ascending,interval
 
 def get_unit_and_description(nomvar):
     """Reads the Standard file dictionnary and gets the unit and description associated with the variable name

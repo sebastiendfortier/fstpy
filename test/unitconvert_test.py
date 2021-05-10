@@ -38,7 +38,7 @@ def windmodulus(df):
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit kilometer_per_hour] >> [WriterStd --output {destination_path} --noUnitConversion]
 #     df = zap(df,ip1=41394464)
 #     #write the result
-#     results_file = TMP_PATH + "test_1.std"
+#     results_file = TMP_PATH + "test_unitconv_1.std"
 #     delete_file(results_file)
 
 #     StandardFileWriter(results_file, df).to_fst()
@@ -65,7 +65,7 @@ def windmodulus(df):
 #     df = zap(df,etiket='WINDMODULUS')
 
 #     #write the result
-#     results_file = TMP_PATH + "test_2.std"
+#     results_file = TMP_PATH + "test_unitconv_2.std"
 #     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
@@ -88,7 +88,7 @@ def windmodulus(df):
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit knot] >> [WriterStd --output {destination_path}]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_3.std"
+#     results_file = TMP_PATH + "test_unitconv_3.std"
 #     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
@@ -112,7 +112,7 @@ def windmodulus(df):
 
 #     df = zap(df,nomvar='UV*')
 #     #write the result
-#     results_file = TMP_PATH + "test_4.std"
+#     results_file = TMP_PATH + "test_unitconv_4.std"
 #     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
@@ -135,7 +135,7 @@ def windmodulus(df):
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WindModulus] >> [UnitConvert --unit kilometer_per_hour] >> [Zap --fieldName UV* --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 #     df = zap(df,nomvar='UV*')
 #     #write the result
-#     results_file = TMP_PATH + "test_5.std"
+#     results_file = TMP_PATH + "test_unitconv_5.std"
 #     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
@@ -168,7 +168,7 @@ def windmodulus(df):
 #     df = pd.concat([uuvv_df,tt_df])
 #     df = zap(df,nomvar='R1558V0N')
 #     #write the result
-#     results_file = TMP_PATH + "test_6.std"
+#     results_file = TMP_PATH + "test_unitconv_6.std"
 #     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
@@ -211,7 +211,7 @@ def windmodulus(df):
 #     # [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_7.std"
+#     results_file = TMP_PATH + "test_unitconv_7.std"
 #     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
@@ -242,7 +242,7 @@ def windmodulus(df):
 #     # [Zap --pdsLabel TESTGEORGESK --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 #     all_df = zap(all_df,etiket="TESTGEORGESK")
 #     #write the result
-#     results_file = TMP_PATH + "test_8.std"
+#     results_file = TMP_PATH + "test_unitconv_8.std"
 #     StandardFileWriter(results_file, all_df).to_fst()
 
 #     # open and read comparison file
@@ -278,7 +278,7 @@ def windmodulus(df):
 #     # [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_9.std"
+#     results_file = TMP_PATH + "test_unitconv_9.std"
 #     StandardFileWriter(results_file, all_df).to_fst()
 
 #     # open and read comparison file
@@ -319,7 +319,7 @@ def windmodulus(df):
 #     # [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_10.std"
+#     results_file = TMP_PATH + "test_unitconv_10.std"
 #     StandardFileWriter(results_file, all_df).to_fst()
 
 #     # open and read comparison file
@@ -342,7 +342,7 @@ def windmodulus(df):
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit scoobidoo --ignoreMissing] >> [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_11.std"
+#     results_file = TMP_PATH + "test_unitconv_11.std"
 #     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
@@ -365,7 +365,7 @@ def windmodulus(df):
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit scoobidoobidoo]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_12.std"
+#     results_file = TMP_PATH + "test_unitconv_12.std"
 #     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
