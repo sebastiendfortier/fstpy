@@ -332,7 +332,7 @@ def set_vertical_coordinate_type(df) -> pd.DataFrame:
                     ip1_kind_group.loc[:,'vctype'] = vctyte_df.iloc[0]['vctype']
             newdfs.append(ip1_kind_group)
 
-    df = pd.concat(newdfs)
+    df = pd.concat(newdfs,ignore_index=True)
     df.loc[df['nomvar'].isin([">>","^^","!!","P0","PT","HY","PN"]), "vctype"] = "UNKNOWN"
     return df    
 
@@ -371,7 +371,7 @@ def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove:pd.DataFrame) ->
     columns = df_to_remove.columns.values.tolist()
     columns.remove('d')
     #columns.remove('fstinl_params')
-    tmp_df = pd.concat([df_to_remove_from, df_to_remove]).drop_duplicates(subset=columns,keep=False)
+    tmp_df = pd.concat([df_to_remove_from, df_to_remove],ignore_index=True).drop_duplicates(subset=columns,keep=False)
     tmp_df = sort_dataframe(tmp_df)
     tmp_df.reset_index(inplace=True,drop=True) 
     return tmp_df
@@ -428,7 +428,7 @@ def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attr
             else:
                 dataframes.append(data)
                 #print('%r %s d is %d ' % (d, data, len(data)))
-    df = pd.concat(dataframes)
+    df = pd.concat(dataframes,ignore_index=True)
     df = sort_dataframe(df)
     return df
 

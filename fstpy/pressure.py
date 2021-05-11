@@ -50,7 +50,7 @@ class Pressure:
                     if not(px_df is None):
                         pxdfs.append(px_df)
         if len(pxdfs) > 1:                     
-            res = pd.concat(pxdfs)
+            res = pd.concat(pxdfs,ignore_index=True)
         elif len(pxdfs) == 1: 
             res = pxdfs[0]
         else:

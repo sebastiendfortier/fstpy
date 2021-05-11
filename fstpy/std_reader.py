@@ -206,7 +206,7 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
         res_list.append(path_df)
         rmn.fstcloseall(unit)
     if len(res_list) >= 1:
-        res_df = pd.concat(res_list)    
+        res_df = pd.concat(res_list,ignore_index=True)    
     else:
         res_df = df
     res_df = sort_dataframe(res_df)

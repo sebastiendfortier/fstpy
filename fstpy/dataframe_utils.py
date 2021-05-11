@@ -196,7 +196,7 @@ def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_fail=False, en
         columns = df.columns.values.tolist()
         columns.remove('d')
         #columns.remove('fstinl_params')
-        tmp_df = pd.concat([df, tmp_df]).drop_duplicates(subset=columns,keep=False)
+        tmp_df = pd.concat([df, tmp_df],ignore_index=True).drop_duplicates(subset=columns,keep=False)
     tmp_df = sort_dataframe(tmp_df) 
     return tmp_df
 
@@ -214,7 +214,7 @@ def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
     selection_df = select(df,query)
     df = remove_from_df(df,selection_df)
     zapped_df = zap(selection_df,**kwargs)
-    res_df = pd.concat([df,zapped_df])
+    res_df = pd.concat([df,zapped_df],ignore_index=True)
     res_df = sort_dataframe(res_df)
     return res_df
 
@@ -464,7 +464,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     common_with_1 = common.merge(df1, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
     #Rows in df2 Which Are Not Available in df1
     common_with_2 = common.merge(df2, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'right_only']
-    missing = pd.concat([common_with_1, common_with_2])
+    missing = pd.concat([common_with_1, common_with_2],ignore_index=True)
     missing = remove_meta_data_fields(missing)
     if len(common.index) != 0:
         if len(common_with_1.index) != 0:

@@ -186,16 +186,16 @@ def get_temperature_converter(unit_from, unit_to):
       converter = celsius_to_celsius(from_bias, from_factor)       
       return converter 
    if (from_name == "celsius") and (to_name == "fahrenheit"):
-      converter = celsius_to_fahrenheit(from_bias, from_factor)    
+      converter = celsius_to_fahrenheit(from_bias, from_factor, to_bias, to_factor)    
       return converter 
    if (from_name == "celsius") and (to_name == "rankine"):
-      converter = celsius_to_rankine(from_bias, from_factor)       
+      converter = celsius_to_rankine(from_bias, from_factor, to_bias, to_factor)       
       return converter 
    if (from_name == "fahrenheit") and (to_name == "kelvin"):
       converter = fahrenheit_to_kelvin(from_bias, from_factor)     
       return converter 
    if (from_name == "fahrenheit") and (to_name == "celsius"):
-      converter = fahrenheit_to_celsius(from_bias, from_factor)    
+      converter = fahrenheit_to_celsius(from_bias, from_factor, to_bias, to_factor)    
       return converter 
    if (from_name == "fahrenheit") and (to_name == "fahrenheit"):
       converter = fahrenheit_to_fahrenheit(from_bias, from_factor) 
@@ -207,10 +207,10 @@ def get_temperature_converter(unit_from, unit_to):
       converter = rankine_to_kelvin(from_bias, from_factor)        
       return converter 
    if (from_name == "rankine")    and (to_name == "celsius"):
-      converter = rankine_to_celsius(from_bias, from_factor)       
+      converter = rankine_to_celsius(from_bias, from_factor, to_bias, to_factor)       
       return converter 
    if (from_name == "rankine")    and (to_name == "fahrenheit"):
-      converter = rankine_to_fahrenheit(from_bias, from_factor)    
+      converter = rankine_to_fahrenheit(from_bias, from_factor, to_bias, to_factor)    
       return converter 
    if (from_name == "rankine")    and (to_name == "rankine"):
       converter = rankine_to_rankine(from_bias, from_factor)
@@ -294,6 +294,7 @@ def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=Fals
       df = add_unit_and_description_columns(df)
 
    unit_to = get_unit_by_name(to_unit_name)
+
    #unit_groups = df.groupby(df.unit)
    #converted_dfs = [] 
    for i in df.index:
