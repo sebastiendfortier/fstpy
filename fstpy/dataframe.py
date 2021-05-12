@@ -49,8 +49,8 @@ def clean_dataframe(df):
 
 
 def get_data_holder(d,key:int,array_container:str):
-    import dask.array as da
-    if not ((isinstance(d,np.ndarray)) or (isinstance(d,da.core.Array))):
+    # import dask.array as da
+    if not (isinstance(d,np.ndarray)):# or (isinstance(d,da.core.Array))):
         d = (array_container,int(key))
     return d
 

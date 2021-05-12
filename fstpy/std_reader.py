@@ -7,10 +7,10 @@ import sys
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
-from dask.array.core import Array as dask_array_type
-from dask.config import set as dask_config_set
+# from dask.array.core import Array as dask_array_type
+# from dask.config import set as dask_config_set
 
-import xarray as xr
+# import xarray as xr
 
 from .dataframe import add_decoded_columns, clean_dataframe, sort_dataframe
 from .exceptions import StandardFileError
@@ -18,9 +18,9 @@ from .std_io import (compare_modification_times, get_lat_lon,
                      get_dataframe_from_file, get_dataframe_from_file_and_load,
                      parallel_get_dataframe_from_file, read_record)
 from .utils import initializer
-from .xarray import (get_date_of_validity_data_array, get_latitude_data_array,
-                     get_level_data_array, get_longitude_data_array,
-                     get_variable_data_array, set_data_array_attributes)
+# from .xarray import (get_date_of_validity_data_array, get_latitude_data_array,
+#                      get_level_data_array, get_longitude_data_array,
+#                      get_variable_data_array, set_data_array_attributes)
 
 
 class StandardFileReader:
@@ -111,72 +111,72 @@ class StandardFileReader:
  
 
 
-    def to_xarray(self, timeseries=False, attributes=False):
-        """creates a xarray from the provided data
+    # def to_xarray(self, timeseries=False, attributes=False):
+    #     """creates a xarray from the provided data
 
-        :param timeseries: if True, organizes the xarray into a time series, defaults to False
-        :type timeseries: bool, optional
-        :param attributes: if True, will add attributes to the data arrays, defaults to False
-        :type attributes: bool, optional
-        :return: xarray containing contents of cmc standard files
-        :rtype: xarray.DataSet
-        """
+    #     :param timeseries: if True, organizes the xarray into a time series, defaults to False
+    #     :type timeseries: bool, optional
+    #     :param attributes: if True, will add attributes to the data arrays, defaults to False
+    #     :type attributes: bool, optional
+    #     :return: xarray containing contents of cmc standard files
+    #     :rtype: xarray.DataSet
+    #     """
         
-        dask_config_set(**{'array.slicing.split_large_chunks': True})
+    #     # dask_config_set(**{'array.slicing.split_large_chunks': True})
         
-        self.array_container = 'dask.array'
-        self.decode_metadata = True
-        df = self.to_pandas()
-        df = load_data(df)
-        counter = 0
-        data_list = []
-        grid_groups = df.groupby(df.grid)
+    #     # self.array_container = 'dask.array'
+    #     self.decode_metadata = True
+    #     df = self.to_pandas()
+    #     df = load_data(df)
+    #     counter = 0
+    #     data_list = []
+    #     grid_groups = df.groupby(df.grid)
         
-        for _,grid_df in grid_groups:
-            counter += 1
-            if len(grid_groups.size()) > 1:
-                lat_name = 'rlat%s'%counter
-                lon_name = 'rlon%s'%counter
-                datev_name = 'time%s'%counter
-                level_name = 'level%s'%counter
-            else:
-                lat_name = 'rlat'
-                lon_name = 'rlon'
-                datev_name = 'time'
-                level_name = 'level'    
-            lat_lon_df = get_lat_lon(grid_df)
-            longitudes = get_longitude_data_array(lat_lon_df,lon_name)
-            #print(longitudes.shape)
-            latitudes = get_latitude_data_array(lat_lon_df,lat_name)
-            #print(latitudes.shape)
-            nomvar_groups = grid_df.groupby(grid_df.nomvar)
-            for _,nomvar_df in nomvar_groups:
-                nomvar_df.sort_values(by='level',inplace=True)
-                if nomvar_df.iloc[0]['nomvar'] in ['!!','>>','^^','^>','HY']:
-                    continue
-                if len(nomvar_df.datev.unique()) > 1 and timeseries:
-                    time_dim = get_date_of_validity_data_array(nomvar_df,datev_name)
-                    nomvar_df.sort_values(by=['date_of_validity'],ascending=True,inplace=True)
-                else: #nomvar_df.ip1.unique() > 1:
-                    level_dim = get_level_data_array(nomvar_df,level_name)
-                    nomvar_df.sort_values(by=['level'],ascending=False,inplace=True)
-                attribs = {}
-                if attributes:
-                    attribs = set_data_array_attributes(attribs,nomvar_df, timeseries)
+    #     for _,grid_df in grid_groups:
+    #         counter += 1
+    #         if len(grid_groups.size()) > 1:
+    #             lat_name = 'rlat%s'%counter
+    #             lon_name = 'rlon%s'%counter
+    #             datev_name = 'time%s'%counter
+    #             level_name = 'level%s'%counter
+    #         else:
+    #             lat_name = 'rlat'
+    #             lon_name = 'rlon'
+    #             datev_name = 'time'
+    #             level_name = 'level'    
+    #         lat_lon_df = get_lat_lon(grid_df)
+    #         longitudes = get_longitude_data_array(lat_lon_df,lon_name)
+    #         #print(longitudes.shape)
+    #         latitudes = get_latitude_data_array(lat_lon_df,lat_name)
+    #         #print(latitudes.shape)
+    #         nomvar_groups = grid_df.groupby(grid_df.nomvar)
+    #         for _,nomvar_df in nomvar_groups:
+    #             nomvar_df.sort_values(by='level',inplace=True)
+    #             if nomvar_df.iloc[0]['nomvar'] in ['!!','>>','^^','^>','HY']:
+    #                 continue
+    #             if len(nomvar_df.datev.unique()) > 1 and timeseries:
+    #                 time_dim = get_date_of_validity_data_array(nomvar_df,datev_name)
+    #                 nomvar_df.sort_values(by=['date_of_validity'],ascending=True,inplace=True)
+    #             else: #nomvar_df.ip1.unique() > 1:
+    #                 level_dim = get_level_data_array(nomvar_df,level_name)
+    #                 nomvar_df.sort_values(by=['level'],ascending=False,inplace=True)
+    #             attribs = {}
+    #             if attributes:
+    #                 attribs = set_data_array_attributes(attribs,nomvar_df, timeseries)
                 
-                nomvar = nomvar_df.iloc[-1]['nomvar']
-                if timeseries:
-                    data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, time_dim, datev_name, latitudes, lat_name, longitudes, lon_name, timeseries=True))    
-                else:    
-                    data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, level_dim, level_name, latitudes, lat_name, longitudes, lon_name, timeseries=False))    
+    #             nomvar = nomvar_df.iloc[-1]['nomvar']
+    #             if timeseries:
+    #                 data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, time_dim, datev_name, latitudes, lat_name, longitudes, lon_name, timeseries=True))    
+    #             else:    
+    #                 data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, level_dim, level_name, latitudes, lat_name, longitudes, lon_name, timeseries=False))    
 
-        d = {}   
-        for variable in data_list:
-                d.update({variable.name:variable})
+    #     d = {}   
+    #     for variable in data_list:
+    #             d.update({variable.name:variable})
 
-        ds = xr.Dataset(d)
+    #     ds = xr.Dataset(d)
 
-        return ds
+    #     return ds
 
  
 def load_data(df:pd.DataFrame) -> pd.DataFrame:
@@ -195,8 +195,8 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
         unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
         path_df.sort_values(by=['key'],inplace=True)
         for i in path_df.index:
-            if isinstance(path_df.at[i,'d'],dask_array_type):
-                continue
+            # if isinstance(path_df.at[i,'d'],dask_array_type):
+            #     continue
             if isinstance(path_df.at[i,'d'],np.ndarray):
                 continue
             #call stored function with param, rmn.fstluk(key) 

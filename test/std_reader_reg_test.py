@@ -40,6 +40,7 @@ def test_regtest_2(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_2.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -59,6 +60,7 @@ def test_regtest_3(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_3.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -80,6 +82,7 @@ def test_regtest_5(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_5.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -104,6 +107,7 @@ def test_regtest_6(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_6.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, df).to_fst()
 
     # open and read comparison file
@@ -125,6 +129,7 @@ def test_regtest_7(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_7.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -149,6 +154,7 @@ def test_regtest_8(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_8.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -173,6 +179,7 @@ def test_regtest_9(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_9.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -199,6 +206,7 @@ def test_regtest_10(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_10.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -223,6 +231,7 @@ def test_regtest_11(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_11.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -247,6 +256,7 @@ def test_regtest_12(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_12.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -271,6 +281,7 @@ def test_regtest_13(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_13.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # # open and read comparison file
@@ -294,6 +305,7 @@ def test_regtest_14(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_14.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -318,6 +330,7 @@ def test_regtest_15(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_15.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -342,6 +355,7 @@ def test_regtest_16(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_16.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -366,6 +380,7 @@ def test_regtest_17(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_17.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -390,6 +405,7 @@ def test_regtest_18(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_18.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -414,6 +430,7 @@ def test_regtest_19(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_19.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -439,6 +456,7 @@ def test_regtest_20(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_20.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -464,6 +482,7 @@ def test_regtest_21(plugin_test_dir):
     src_df0 = zap(src_df0,etiket='K80')
     #write the result
     results_file = TMP_PATH + "test_read_reg_21.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -488,6 +507,7 @@ def test_regtest_22(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_22.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -513,6 +533,7 @@ def test_regtest_23(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_23.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -561,6 +582,7 @@ def test_regtest_26(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_26.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -587,6 +609,7 @@ def test_regtest_28(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_28.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -611,6 +634,7 @@ def test_regtest_29(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_29.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -637,6 +661,7 @@ def test_regtest_30(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_30.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -690,6 +715,7 @@ def test_regtest_32(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_32.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -714,6 +740,7 @@ def test_regtest_33(plugin_test_dir):
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_33.std"
+    delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file

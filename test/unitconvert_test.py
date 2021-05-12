@@ -162,44 +162,44 @@ def test_regtest_5(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_6(plugin_test_dir):
-    """Test #6 : test a case with complete roundtrip conversion celcius -> kelvin -> fahrenheit -> celsius"""
-    # open and read source
-    source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
-    src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
-    uuvv_df = select(src_df0,'nomvar!="TT"')
-    tt_df = select(src_df0,'nomvar=="TT"')
-    #compute do_unit_conversion
-    print(tt_df['d'])
-    tt_df = do_unit_conversion(tt_df,'kelvin')
-    print(tt_df['d'])
-    tt_df = do_unit_conversion(tt_df,'fahrenheit')
-    print(tt_df['d'])
-    tt_df = do_unit_conversion(tt_df,'celsius')
-    print(tt_df['d'])
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
-    # (
-    # ([Select --fieldName TT] >> [UnitConvert --unit kelvin] >> 
-    # [UnitConvert --unit fahrenheit] >> 
-    # [UnitConvert --unit celsius]
-    # ) + 
-    # [Select --fieldName TT --exclude]) >> [Zap --pdsLabel R1558V0N --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+# def test_regtest_6(plugin_test_dir):
+#     """Test #6 : test a case with complete roundtrip conversion celcius -> kelvin -> fahrenheit -> celsius"""
+#     # open and read source
+#     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+#     src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
+#     uuvv_df = select(src_df0,'nomvar!="TT"')
+#     tt_df = select(src_df0,'nomvar=="TT"')
+#     #compute do_unit_conversion
+#     print(tt_df['d'])
+#     tt_df = do_unit_conversion(tt_df,'kelvin')
+#     print(tt_df['d'])
+#     tt_df = do_unit_conversion(tt_df,'fahrenheit')
+#     print(tt_df['d'])
+#     tt_df = do_unit_conversion(tt_df,'celsius')
+#     print(tt_df['d'])
+#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
+#     # (
+#     # ([Select --fieldName TT] >> [UnitConvert --unit kelvin] >> 
+#     # [UnitConvert --unit fahrenheit] >> 
+#     # [UnitConvert --unit celsius]
+#     # ) + 
+#     # [Select --fieldName TT --exclude]) >> [Zap --pdsLabel R1558V0N --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-    df = pd.concat([uuvv_df,tt_df])
-    # df = zap(df,etiket='R1558V0N')
+#     df = pd.concat([uuvv_df,tt_df])
+#     # df = zap(df,etiket='R1558V0N')
     
-    #write the result
-    results_file = TMP_PATH + "test_unitconv_6.std"
-    delete_file(results_file)
-    StandardFileWriter(results_file, df).to_fst()
+#     #write the result
+#     results_file = TMP_PATH + "test_unitconv_6.std"
+#     delete_file(results_file)
+#     StandardFileWriter(results_file, df).to_fst()
 
-    # open and read comparison file
-    file_to_compare = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+#     # open and read comparison file
+#     file_to_compare = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
-    delete_file(results_file)
-    assert(res == True)
+#     #compare results
+#     res = fstcomp(results_file,file_to_compare)
+#     delete_file(results_file)
+#     assert(res == True)
 
 
 # def test_regtest_7(plugin_test_dir):
