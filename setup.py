@@ -25,6 +25,12 @@ setuptools.setup(
         "License :: OSI Approved :: GNU License",
         "Operating System :: OS Linux",
     ],
+    install_requires=[
+        dask>=2021.3.0,
+        numpy>=1.19.2,
+        pandas>=1.1.3,
+        xarray>=0.17.0,
+    ],
     package_dir={"": "fstpy"},
     packages=setuptools.find_packages(where="fstpy"),
     python_requires=">=3.6",
