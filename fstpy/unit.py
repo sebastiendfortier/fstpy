@@ -9,7 +9,7 @@ from .dataframe import add_unit_and_description_columns
 from .exceptions import UnitConversionError
 from .std_reader import load_data
 
-
+USE_TABLE = True
 class no_conversion:
    def __init__(self, bias = 0.0,   factor = 1.0):
       pass
@@ -26,14 +26,20 @@ class kelvin_to_celsius:
    def __init__(self, bias = 0.0, factor = 1.0):
       self.bias = bias
    def __call__(self,v):
-      return v - self.bias
+      if USE_TABLE:
+         return v - self.bias
+      return v-273.15
+      
 
 class kelvin_to_fahrenheit:
    def __init__(self, bias = 0.0,   factor = 1.0):
       self.bias=bias
       self.factor=factor
    def __call__(self,v):
-      return v * 1/self.factor - self.bias
+      if USE_TABLE:
+         return v * 1/self.factor - self.bias
+      return (v-273.15)*(9/5)+32
+      
 
 class kelvin_to_rankine:
    def __init__(self, bias = 0.0, factor = 1.0):
@@ -47,7 +53,10 @@ class celsius_to_kelvin:
       self.bias=bias
       self.factor=factor
    def __call__(self,v):
-      return v +  self.bias
+      if USE_TABLE:
+         return v +  self.bias
+      return v + 273.15
+      
 
 class celsius_to_celsius:
    def __init__(self,  bias = 0.0,   factor = 1.0):
@@ -64,7 +73,9 @@ class celsius_to_fahrenheit:
    def __call__(self,v):
       a = kelvin_to_fahrenheit(self.fbias, self.ffactor)
       b = celsius_to_kelvin(self.cbias, self.cfactor)
-      return a(b(v))
+      if USE_TABLE:
+         return a(b(v))
+      return (v*9/5)+32
 
 class celsius_to_rankine:
    def __init__(self, cbias = 0.0,   cfactor = 1.0,   rbias = 0.0,   rfactor = 1.0):
@@ -82,7 +93,10 @@ class fahrenheit_to_kelvin:
       self.bias=bias
       self.factor=factor
    def __call__(self,v):
-      return v +  self.bias * self.factor
+      if USE_TABLE:
+         return v +  self.bias * self.factor
+      return (v-32)*(5/9)+273.15
+      
 
 class fahrenheit_to_celsius:
    def __init__(self, fbias = 0.0,   ffactor = 1.0,   cbias = 0.0,   cfactor = 1.0):
@@ -93,7 +107,10 @@ class fahrenheit_to_celsius:
    def __call__(self,v):
       a = kelvin_to_celsius(self.cbias, self.cfactor)
       b = fahrenheit_to_kelvin(self.fbias, self.ffactor)
-      return a(b(v))
+      if USE_TABLE:
+         return a(b(v))
+      return (v-32)*(5/9)
+      
 
 class fahrenheit_to_fahrenheit:
    def __init__(self, bias,   factor):
@@ -186,16 +203,16 @@ def get_temperature_converter(unit_from, unit_to):
       converter = celsius_to_celsius(from_bias, from_factor)       
       return converter 
    if (from_name == "celsius") and (to_name == "fahrenheit"):
-      converter = celsius_to_fahrenheit(from_bias, from_factor)    
+      converter = celsius_to_fahrenheit(from_bias, from_factor, to_bias, to_factor)    
       return converter 
    if (from_name == "celsius") and (to_name == "rankine"):
-      converter = celsius_to_rankine(from_bias, from_factor)       
+      converter = celsius_to_rankine(from_bias, from_factor, to_bias, to_factor)       
       return converter 
    if (from_name == "fahrenheit") and (to_name == "kelvin"):
       converter = fahrenheit_to_kelvin(from_bias, from_factor)     
       return converter 
    if (from_name == "fahrenheit") and (to_name == "celsius"):
-      converter = fahrenheit_to_celsius(from_bias, from_factor)    
+      converter = fahrenheit_to_celsius(from_bias, from_factor, to_bias, to_factor)    
       return converter 
    if (from_name == "fahrenheit") and (to_name == "fahrenheit"):
       converter = fahrenheit_to_fahrenheit(from_bias, from_factor) 
@@ -207,10 +224,10 @@ def get_temperature_converter(unit_from, unit_to):
       converter = rankine_to_kelvin(from_bias, from_factor)        
       return converter 
    if (from_name == "rankine")    and (to_name == "celsius"):
-      converter = rankine_to_celsius(from_bias, from_factor)       
+      converter = rankine_to_celsius(from_bias, from_factor, to_bias, to_factor)       
       return converter 
    if (from_name == "rankine")    and (to_name == "fahrenheit"):
-      converter = rankine_to_fahrenheit(from_bias, from_factor)    
+      converter = rankine_to_fahrenheit(from_bias, from_factor, to_bias, to_factor)    
       return converter 
    if (from_name == "rankine")    and (to_name == "rankine"):
       converter = rankine_to_rankine(from_bias, from_factor)
@@ -245,7 +262,7 @@ def get_converter(unit_from:str, unit_to:str):
       converter = no_conversion()
       return converter
    converter = factor_conversion(from_factor,to_factor)
-   return np.vectorize(converter)
+   return np.vectorize(converter,otypes=['float32'])
 
 def do_unit_conversion_array(arr, from_unit_name,to_unit_name='scalar') -> np.ndarray:
    """Converts the data to the specified unit provided in the to_unit_name parameter. 
@@ -294,11 +311,12 @@ def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=Fals
       df = add_unit_and_description_columns(df)
 
    unit_to = get_unit_by_name(to_unit_name)
+
    #unit_groups = df.groupby(df.unit)
    #converted_dfs = [] 
    for i in df.index:
       current_unit = df.at[i,'unit']
-      if current_unit == to_unit_name:
+      if (current_unit == to_unit_name) or (current_unit == 'scalar') or (to_unit_name == 'scalar'):
          continue
       else:
          if standard_unit:

@@ -6,7 +6,7 @@ import pathlib
 import sys
 import time
 
-import dask.array as da
+# import dask.array as da
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
@@ -34,7 +34,7 @@ def parallel_get_dataframe_from_file(files, get_records_func, n_cores):
     pool = mp.Pool(n_cores)
     df_list = pool.starmap(get_records_func, [file for file in files])
     pool.close()    
-    df = pd.concat(df_list)
+    df = pd.concat(df_list,ignore_index=True)
     return df
 
 def add_grid_column(df):
@@ -92,14 +92,14 @@ def add_meta_to_query_results(df, sub_df, hy_df):
     # print(subdfmeta)  
 
     if (not sub_df.empty) and (not subdfmeta.empty):
-        df = pd.concat([sub_df,subdfmeta])
+        df = pd.concat([sub_df,subdfmeta],ignore_index=True)
     elif (not sub_df.empty) and (subdfmeta.empty):    
         df = sub_df
     elif sub_df.empty:
         df = sub_df   
 
     if (not df.empty) and (not hy_df.empty):
-        df = pd.concat([df,hy_df])
+        df = pd.concat([df,hy_df],ignore_index=True)
     return df
 
 def process_hy(hy_df, df):
@@ -116,7 +116,7 @@ def process_hy(hy_df, df):
             hy_df.loc[:,'grid'] = grid
         #remove HY    
         df = df[df['grid']!= 'None']
-        df = pd.concat([df,hy_df])
+        df = pd.concat([df,hy_df],ignore_index=True)
     return df
 
 def _fstluk(key):
@@ -258,7 +258,7 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
             latlons.append(lon_df)
 
         rmn.fstcloseall(file_id)
-    latlon = pd.concat(latlons)
+    latlon = pd.concat(latlons,ignore_index=True)
     latlon.reset_index(inplace=True,drop=True)
     return latlon
 
@@ -300,7 +300,7 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
                 #print(latlon_df)
               
     if len(meta_dfs):
-        result = pd.concat(meta_dfs)
+        result = pd.concat(meta_dfs,ignore_index=True)
         result = result.reset_index(drop=True)
         return result
     else:
@@ -340,7 +340,8 @@ def get_all_grid_metadata_fields_from_std_file(path):
 
 def compare_modification_times(df_file_modification_time, path:str,mode:str, caller:str,error_class:Exception):
     file_modification_time = get_file_modification_time(path,mode,caller, error_class)
-    if df_file_modification_time != file_modification_time:
+    print( np.datetime64(df_file_modification_time)-np.datetime64(file_modification_time) == np.timedelta64(0))
+    if np.datetime64(df_file_modification_time)-np.datetime64(file_modification_time) != np.timedelta64(0):
         #print(df_file_modification_time, file_modification_time,df_file_modification_time != file_modification_time)
         raise error_class(caller + ' - original file has been modified since the start of the operation, keys might be invalid - exiting!')
 

@@ -39,7 +39,7 @@ class StandardFileWriter:
         self.meta_df = get_grid_metadata_fields(self.df)
 
         if not self.meta_df.empty:
-            self.df = pd.concat([self.df, self.meta_df])
+            self.df = pd.concat([self.df, self.meta_df],ignore_index=True)
             self.df.drop_duplicates(subset=['grtyp','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True,keep='first')
         self.df.reset_index(drop=True,inplace=True)        
         

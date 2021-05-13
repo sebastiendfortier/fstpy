@@ -320,13 +320,13 @@ def test_regtest_13(plugin_test_dir):
     #compute Pressure
     df = Pressure(src_df0).compute()
     #[ReaderStd --input {sources[0]}] >> [Pressure --coordinateType HYBRID_STAGGERED_COORDINATE --referenceField UU] >>[WriterStd --output {destination_path} --ignoreExtended]
-    df['etiket'] = 'PRESSR'
+    df['etiket'] = '__PRESSX'
     #write the result
     results_file = TMP_PATH + "test_pres_reg_13.std"
     write_result(results_file,df)
 
     # open and read comparison file
-    file_to_compare = plugin_test_dir + "px_hyb_stg_file2cmp.std"
+    file_to_compare = plugin_test_dir + "d.comp_res/px_hyb_stg_file2cmp.std"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)

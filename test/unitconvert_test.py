@@ -7,6 +7,7 @@ from fstpy.utils import delete_file
 from test import TMP_PATH, TEST_PATH
 import pandas as pd
 import pytest
+from fstpy.exceptions import UnitConversionError
 
 
 pytestmark = [pytest.mark.unit_regtests, pytest.mark.regressions]
@@ -16,7 +17,7 @@ pytestmark = [pytest.mark.unit_regtests, pytest.mark.regressions]
 def plugin_test_dir():
     return TEST_PATH +"UnitConvert/testsFiles/"
 
-@pytest.fixture
+
 def windmodulus(df):
     uu_df = select(df,'nomvar=="UU"')
     vv_df = select(df,'nomvar=="VV"')
@@ -28,135 +29,154 @@ def windmodulus(df):
         uv_df.at[i,'d'] = (uu**2 + vv**2)**.5
     return uv_df
 
-# def test_regtest_1(plugin_test_dir):
-#     """Test #1 : test a case simple conversion"""
-#     # open and read source
-#     source0 = plugin_test_dir + "windModulus_file2cmp.std"
-#     src_df0 = StandardFileReader(source0).to_pandas()
-#     #compute do_unit_conversion
-#     df = do_unit_conversion(src_df0,'kilometer_per_hour')
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit kilometer_per_hour] >> [WriterStd --output {destination_path} --noUnitConversion]
-#     df = zap(df,ip1=41394464)
-#     #write the result
-#     results_file = TMP_PATH + "test_unitconv_1.std"
-#     delete_file(results_file)
+def test_regtest_1(plugin_test_dir):
+    """Test #1 : test a case simple conversion"""
+    # open and read source
+    source0 = plugin_test_dir + "windModulus_file2cmp.std"
+    src_df0 = StandardFileReader(source0).to_pandas()
+    #compute do_unit_conversion
+    df = do_unit_conversion(src_df0,'kilometer_per_hour')
+    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit kilometer_per_hour] >> [WriterStd --output {destination_path} --noUnitConversion]
+    df['ip1']=41394464
+    df['etiket']='WINDMOX'
+    #write the result
+    results_file = TMP_PATH + "test_unitconv_1.std"
+    delete_file(results_file)
 
-#     StandardFileWriter(results_file, df).to_fst()
+    StandardFileWriter(results_file, df).to_fst()
 
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "unitConvertUVInKmhExtended_file2cmp.std"
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "unitConvertUVInKmhExtended_file2cmp.std"
 
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     delete_file(results_file)
-#     assert(res == True)
-
-
-# def test_regtest_2(plugin_test_dir):
-#     """Test #2 : test a case with no conversion"""
-#     # open and read source
-#     source0 = plugin_test_dir + "windModulus_file2cmp.std"
-#     src_df0 = StandardFileReader(source0).to_pandas()
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(res == True)
 
 
-#     #compute do_unit_conversion
-#     df = do_unit_conversion(src_df0, 'knot')
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit knot] >> [Zap --pdsLabel WINDMODULUS --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-#     df = zap(df,etiket='WINDMODULUS')
-
-#     #write the result
-#     results_file = TMP_PATH + "test_unitconv_2.std"
-#     StandardFileWriter(results_file, df).to_fst()
-
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "windModulus_file2cmp.std"
-
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+def test_regtest_2(plugin_test_dir):
+    """Test #2 : test a case with no conversion"""
+    # open and read source
+    source0 = plugin_test_dir + "windModulus_file2cmp.std"
+    src_df0 = StandardFileReader(source0).to_pandas()
 
 
-# def test_regtest_3(plugin_test_dir):
-#     """Test #3 : test a case with no conversion (with extended info)"""
-#     # open and read source
-#     source0 = plugin_test_dir + "windModulus_file2cmp.std"
-#     src_df0 = StandardFileReader(source0).to_pandas()
+    #compute do_unit_conversion
+    df = do_unit_conversion(src_df0, 'knot')
+    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit knot] >> [Zap --pdsLabel WINDMODULUS --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    df = zap(df,etiket='WINDMODULUS')
+
+    #write the result
+    results_file = TMP_PATH + "test_unitconv_2.std"
+    delete_file(results_file)
+    StandardFileWriter(results_file, df).to_fst()
+
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "windModulus_file2cmp.std"
+
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(res == True)
 
 
-#     #compute do_unit_conversion
-#     df = do_unit_conversion(src_df0,'knot')
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit knot] >> [WriterStd --output {destination_path}]
-
-#     #write the result
-#     results_file = TMP_PATH + "test_unitconv_3.std"
-#     StandardFileWriter(results_file, df).to_fst()
-
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "windModulusExtended_file2cmp.std"
-
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+def test_regtest_3(plugin_test_dir):
+    """Test #3 : test a case with no conversion (with extended info)"""
+    # open and read source
+    source0 = plugin_test_dir + "windModulus_file2cmp.std"
+    src_df0 = StandardFileReader(source0).to_pandas()
 
 
-# def test_regtest_4(plugin_test_dir):
-#     """Test #4 : test a case with simple conversion and another plugin 2D"""
-#     # open and read source
-#     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
-#     src_df0 = StandardFileReader(source0).to_pandas()
+    #compute do_unit_conversion
+    df = do_unit_conversion(src_df0,'knot')
+    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit knot] >> [WriterStd --output {destination_path}]
 
-#     src_df0 = windmodulus(src_df0)
-#     #compute do_unit_conversion
-#     df = do_unit_conversion(src_df0,'kilometer_per_hour')
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WindModulus] >> [UnitConvert --unit kilometer_per_hour] >> [Zap --fieldName UV* --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    df['ip1']=41394464
+    df['etiket']='WINDMOX'
 
-#     df = zap(df,nomvar='UV*')
-#     #write the result
-#     results_file = TMP_PATH + "test_unitconv_4.std"
-#     StandardFileWriter(results_file, df).to_fst()
+    #write the result
+    results_file = TMP_PATH + "test_unitconv_3.std"
+    delete_file(results_file)
+    StandardFileWriter(results_file, df).to_fst()
 
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "unitConvertUVInKmh_file2cmp.std"
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "windModulusExtended_file2cmp.std"
 
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(res == True)
 
 
-# def test_regtest_5(plugin_test_dir):
-#     """Test #5 : test a case with simple conversion and another plugin 3D"""
-#     # open and read source
-#     source0 = plugin_test_dir + "UUVV5x5x2_fileSrc.std"
-#     src_df0 = StandardFileReader(source0).to_pandas()
+def test_regtest_4(plugin_test_dir):
+    """Test #4 : test a case with simple conversion and another plugin 2D"""
+    # open and read source
+    source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
+    src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
 
-#     src_df0 = windmodulus(src_df0)
-#     #compute do_unit_conversion
-#     df = do_unit_conversion(src_df0,'kilometer_per_hour')
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WindModulus] >> [UnitConvert --unit kilometer_per_hour] >> [Zap --fieldName UV* --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-#     df = zap(df,nomvar='UV*')
-#     #write the result
-#     results_file = TMP_PATH + "test_unitconv_5.std"
-#     StandardFileWriter(results_file, df).to_fst()
+    src_df0 = windmodulus(src_df0)
+    #compute do_unit_conversion
+    df = do_unit_conversion(src_df0,'kilometer_per_hour')
+    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WindModulus] >> [UnitConvert --unit kilometer_per_hour] >> [Zap --fieldName UV* --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "unitConvertUVInKmh3D_file2cmp.std"
+    df = zap(df,nomvar='UV*')
+    df['nomvar'] = 'UV*'
+    df['etiket'] = 'WINDMODULUS'
+    #write the result
+    results_file = TMP_PATH + "test_unitconv_4.std"
+    delete_file(results_file)
+    StandardFileWriter(results_file, df).to_fst()
 
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "unitConvertUVInKmh_file2cmp.std"
+
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(res == True)
+
+
+def test_regtest_5(plugin_test_dir):
+    """Test #5 : test a case with simple conversion and another plugin 3D"""
+    # open and read source
+    source0 = plugin_test_dir + "UUVV5x5x2_fileSrc.std"
+    src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
+
+    src_df0 = windmodulus(src_df0)
+    #compute do_unit_conversion
+    df = do_unit_conversion(src_df0,'kilometer_per_hour')
+    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WindModulus] >> [UnitConvert --unit kilometer_per_hour] >> [Zap --fieldName UV* --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    df['nomvar'] = 'UV*'
+    df['etiket'] = 'WINDMODULUS'
+    #write the result
+    results_file = TMP_PATH + "test_unitconv_5.std"
+    delete_file(results_file)
+    StandardFileWriter(results_file, df).to_fst()
+
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "unitConvertUVInKmh3D_file2cmp.std"
+
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(res == True)
 
 
 # def test_regtest_6(plugin_test_dir):
 #     """Test #6 : test a case with complete roundtrip conversion celcius -> kelvin -> fahrenheit -> celsius"""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
-#     src_df0 = StandardFileReader(source0).to_pandas()
+#     src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
 #     uuvv_df = select(src_df0,'nomvar!="TT"')
 #     tt_df = select(src_df0,'nomvar=="TT"')
 #     #compute do_unit_conversion
+#     print(tt_df['d'])
 #     tt_df = do_unit_conversion(tt_df,'kelvin')
+#     print(tt_df['d'])
 #     tt_df = do_unit_conversion(tt_df,'fahrenheit')
+#     print(tt_df['d'])
 #     tt_df = do_unit_conversion(tt_df,'celsius')
+#     print(tt_df['d'])
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
 #     # (
 #     # ([Select --fieldName TT] >> [UnitConvert --unit kelvin] >> 
@@ -166,9 +186,11 @@ def windmodulus(df):
 #     # [Select --fieldName TT --exclude]) >> [Zap --pdsLabel R1558V0N --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     df = pd.concat([uuvv_df,tt_df])
-#     df = zap(df,nomvar='R1558V0N')
+#     # df = zap(df,etiket='R1558V0N')
+    
 #     #write the result
 #     results_file = TMP_PATH + "test_unitconv_6.std"
+#     delete_file(results_file)
 #     StandardFileWriter(results_file, df).to_fst()
 
 #     # open and read comparison file
@@ -176,6 +198,7 @@ def windmodulus(df):
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
+#     delete_file(results_file)
 #     assert(res == True)
 
 
@@ -185,20 +208,24 @@ def windmodulus(df):
 #     source0 = plugin_test_dir + "input_big_fileSrc.std"
 #     src_df0 = StandardFileReader(source0).to_pandas()
 
-#     tt_df = select(src_df0,'(nomvar=="TT") and (etiket==R1558V0N)')
+#     tt_df = select(src_df0,'(nomvar=="TT") and (etiket=="R1558V0N")')
 #     #compute do_unit_conversion
 #     tt_df = do_unit_conversion(tt_df,'kelvin')
 
-#     uuvv_df = select(src_df0,'(nomvar in ["UU","VV"]) and (etiket==R1558V0N)')
+#     uuvv_df = select(src_df0,'(nomvar in ["UU","VV"]) and (etiket=="R1558V0N")')
 #     #compute do_unit_conversion
 #     uuvv_df = do_unit_conversion(uuvv_df,'kilometer_per_hour')
 
-#     gz_df = select(src_df0,'(nomvar=="GZ") and (etiket==R1558V0N)')
+#     gz_df = select(src_df0,'(nomvar=="GZ") and (etiket=="R1558V0N")')
 #     #compute do_unit_conversion
 #     gz_df = do_unit_conversion(gz_df,'foot')
 
-#     df = pd.concat([tt_df,uuvv_df,gz_df])
+#     df = pd.concat([tt_df,uuvv_df,gz_df],ignore_index=True)
 #     df = do_unit_conversion(df,standard_unit=True)
+#     df['etiket'] = 'R1558V0N'
+
+#     others_df = select(src_df0,'(nomvar in ["TT","UU","VV","GZ"]) and (etiket!="R1558V0N")')
+
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
 #     # (
 #     # (
@@ -210,15 +237,18 @@ def windmodulus(df):
 #     # [Select --fieldName TT,UU,VV,GZ --pdsLabel R1558V0N --exclude]) >> 
 #     # [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
+#     all_df = pd.concat([df,others_df],ignore_index=True)
 #     #write the result
 #     results_file = TMP_PATH + "test_unitconv_7.std"
-#     StandardFileWriter(results_file, df).to_fst()
+#     delete_file(results_file)
+#     StandardFileWriter(results_file, all_df).to_fst()
 
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "input_big_fileSrc.std"
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
+#     delete_file(results_file)
 #     assert(res == True)
 
 
@@ -233,16 +263,20 @@ def windmodulus(df):
 
 #     #compute do_unit_conversion
 #     tt_df = do_unit_conversion(tt_df,'kelvin')
-#     all_df = pd.concat([es_df,tt_df])
-#     all_df = do_unit_conversion(all_df,'celsius')
+#     es_df = do_unit_conversion(es_df,'celsius')
+
+#     es_df['etiket'] = 'TESTGEORGESK'
+#     all_df = pd.concat([es_df,tt_df],ignore_index=True)
+    
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
 #     # (
 #     # ([Select --fieldName TT] >> [UnitConvert --unit kelvin]) + [Select --fieldName ES]) >> 
 #     # [UnitConvert --unit celsius] >> 
 #     # [Zap --pdsLabel TESTGEORGESK --doNotFlagAsZapped] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-#     all_df = zap(all_df,etiket="TESTGEORGESK")
+
 #     #write the result
 #     results_file = TMP_PATH + "test_unitconv_8.std"
+#     delete_file(results_file)
 #     StandardFileWriter(results_file, all_df).to_fst()
 
 #     # open and read comparison file
@@ -250,6 +284,7 @@ def windmodulus(df):
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
+#     delete_file(results_file)
 #     assert(res == True)
 
 
@@ -266,9 +301,10 @@ def windmodulus(df):
 #     #compute do_unit_conversion
 #     tt_df = do_unit_conversion(tt_df,'kelvin')
 #     es_df = do_unit_conversion(es_df,'fahrenheit')
-#     all_df = pd.concat([es_df,tt_df])
-#     all_df = do_unit_conversion(all_df,'celsius')
 
+#     all_df = pd.concat([es_df,tt_df],ignore_index=True)
+#     all_df = do_unit_conversion(all_df,'celsius')
+    
 #     #compute do_unit_conversion
 #     all_df = zap(all_df,etiket="TESTGEORGESK")
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
@@ -279,6 +315,7 @@ def windmodulus(df):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_unitconv_9.std"
+#     delete_file(results_file)
 #     StandardFileWriter(results_file, all_df).to_fst()
 
 #     # open and read comparison file
@@ -286,6 +323,7 @@ def windmodulus(df):
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
+#     delete_file(results_file)
 #     assert(res == True)
 
 
@@ -295,17 +333,22 @@ def windmodulus(df):
 #     source0 = plugin_test_dir + "input_big_fileSrc.std"
 #     src_df0 = StandardFileReader(source0).to_pandas()
 
-#     tt_df = select(src_df0,'nomvar=="TT"')
-#     uuvv_df = select(src_df0,'nomvar in ["UU","VV"')
-#     gz_df = select(src_df0,'nomvar=="GZ"')
+#     tt_df = select(src_df0,'nomvar=="TT" and etiket=="R1558V0N"')
+#     uuvv_df = select(src_df0,'nomvar in ["UU","VV"] and etiket=="R1558V0N"')
+#     gz_df = select(src_df0,'nomvar=="GZ" and etiket=="R1558V0N"')
 #     gz_df = zap(gz_df,nomvar='ZGZ')
 #     #compute do_unit_conversion
 #     tt_df = do_unit_conversion(tt_df,'kelvin')
 #     uuvv_df = do_unit_conversion(uuvv_df,'kilometer_per_hour')
 #     gz_df = do_unit_conversion(gz_df,'foot')
 
-#     all_df = pd.concat([tt_df,uuvv_df,gz_df])
+#     # gz_df['nomvar'] = 'ZGZ'
+
+#     all_df = pd.concat([tt_df,uuvv_df,gz_df],ignore_index=True)
 #     all_df = do_unit_conversion(all_df,standard_unit=True)
+
+#     others_df = select(src_df0,'(nomvar in ["TT","UU","VV","GZ"]) and (etiket!="R1558V0N")')
+#     all_df = pd.concat([all_df,others_df],ignore_index=True)
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
 #     # (
 #     # (
@@ -320,6 +363,7 @@ def windmodulus(df):
 
 #     #write the result
 #     results_file = TMP_PATH + "test_unitconv_10.std"
+#     delete_file(results_file)
 #     StandardFileWriter(results_file, all_df).to_fst()
 
 #     # open and read comparison file
@@ -327,29 +371,7 @@ def windmodulus(df):
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
-
-
-# def test_regtest_11(plugin_test_dir):
-#     """Test #11 : test --ignoremissing"""
-#     # open and read source
-#     source0 = plugin_test_dir + "windModulus_file2cmp.std"
-#     src_df0 = StandardFileReader(source0).to_pandas()
-
-
-#     #compute do_unit_conversion
-#     df = do_unit_conversion(src_df0,'scoobidoo')
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit scoobidoo --ignoreMissing] >> [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-
-#     #write the result
-#     results_file = TMP_PATH + "test_unitconv_11.std"
-#     StandardFileWriter(results_file, df).to_fst()
-
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "ignoremissing_file2cmp.std"
-
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
+#     delete_file(results_file)
 #     assert(res == True)
 
 
@@ -361,18 +383,6 @@ def windmodulus(df):
 
 
 #     #compute do_unit_conversion
-#     df = do_unit_conversion(src_df0,'scoobidoobidoo')
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit scoobidoobidoo]
-
-#     #write the result
-#     results_file = TMP_PATH + "test_unitconv_12.std"
-#     StandardFileWriter(results_file, df).to_fst()
-
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "nan"
-
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     assert(res == False)
-
-
+#     with pytest.raises(UnitConversionError):
+#         df = do_unit_conversion(src_df0,'scoobidoobidoo')
+    

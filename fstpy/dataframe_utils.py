@@ -2,8 +2,8 @@
 import sys
 import math
 
-import dask
-import dask.array as da
+# import dask
+# import dask.array as da
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
@@ -196,7 +196,7 @@ def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_fail=False, en
         columns = df.columns.values.tolist()
         columns.remove('d')
         #columns.remove('fstinl_params')
-        tmp_df = pd.concat([df, tmp_df]).drop_duplicates(subset=columns,keep=False)
+        tmp_df = pd.concat([df, tmp_df],ignore_index=True).drop_duplicates(subset=columns,keep=False)
     tmp_df = sort_dataframe(tmp_df) 
     return tmp_df
 
@@ -214,7 +214,7 @@ def select_zap(df:pd.DataFrame, query:str, **kwargs:dict) -> pd.DataFrame:
     selection_df = select(df,query)
     df = remove_from_df(df,selection_df)
     zapped_df = zap(selection_df,**kwargs)
-    res_df = pd.concat([df,zapped_df])
+    res_df = pd.concat([df,zapped_df],ignore_index=True)
     res_df = sort_dataframe(res_df)
     return res_df
 
@@ -237,56 +237,56 @@ def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
 # df['max'] = dask.compute(max_delayed)[0]
 # df['mean'] = dask.compute(mean_delayed)[0]
 # df['std'] = dask.compute(std_delayed)[0]
-def compute_stats_dask(df:pd.DataFrame) -> pd.DataFrame:
+# def compute_stats_dask(df:pd.DataFrame) -> pd.DataFrame:
 
-    df.loc[:,'min'] = None
-    df.loc[:,'max'] = None
-    df.loc[:,'mean'] = None
-    df.loc[:,'std'] = None
-    df.loc[:,'min_pos'] = None
-    df.loc[:,'max_pos'] = None
-    #add_empty_columns(df, ['min','max','mean','std'],np.nan,'float32')
-    #add_empty_columns(df, ['min_pos','max_pos'],None,dtype_str='O')
-    min_delayed=[]
-    max_delayed=[]
-    mean_delayed=[]
-    std_delayed=[]
-    argmin_delayed=[]
-    #min_pos_delayed=[]
-    argmax_delayed=[]
-    #max_pos_delayed=[]
-    for i in df.index:   
-        if isinstance(df.at[i, 'd'],np.ndarray):
-            df.at[i, 'd'] = da.from_array(df.at[i, 'd'])
-        min_delayed.append(dask.delayed(np.nanmin)(df.at[i, 'd']))
-        max_delayed.append(dask.delayed(np.nanmax)(df.at[i, 'd']))
-        mean_delayed.append(dask.delayed(np.nanmean)(df.at[i, 'd']))
-        std_delayed.append(dask.delayed(np.nanstd)(df.at[i, 'd']))
-        argmin_delayed.append(dask.delayed(np.nanargmin)(df.at[i, 'd']))
-        #min_pos_delayed.append(dask.delayed(np.unravel_index)(argmin_delayed, (df.at[i,'ni'],df.at[i,'nj'])))
-        argmax_delayed.append(dask.delayed(np.nanargmax)(df.at[i, 'd']))
-        #max_pos_delayed.append(dask.delayed(np.unravel_index)(argmax_delayed, (df.at[i,'ni'],df.at[i,'nj'])))
-        # max_pos_delayed = dask.delayed(np.unravel_index)(dask.delayed(np.nanargmax)(df.at[i, 'd']), (df.at[i,'ni'],df.at[i,'nj']))
+#     df.loc[:,'min'] = None
+#     df.loc[:,'max'] = None
+#     df.loc[:,'mean'] = None
+#     df.loc[:,'std'] = None
+#     df.loc[:,'min_pos'] = None
+#     df.loc[:,'max_pos'] = None
+#     #add_empty_columns(df, ['min','max','mean','std'],np.nan,'float32')
+#     #add_empty_columns(df, ['min_pos','max_pos'],None,dtype_str='O')
+#     min_delayed=[]
+#     max_delayed=[]
+#     mean_delayed=[]
+#     std_delayed=[]
+#     argmin_delayed=[]
+#     #min_pos_delayed=[]
+#     argmax_delayed=[]
+#     #max_pos_delayed=[]
+#     for i in df.index:   
+#         if isinstance(df.at[i, 'd'],np.ndarray):
+#             df.at[i, 'd'] = da.from_array(df.at[i, 'd'])
+#         min_delayed.append(dask.delayed(np.nanmin)(df.at[i, 'd']))
+#         max_delayed.append(dask.delayed(np.nanmax)(df.at[i, 'd']))
+#         mean_delayed.append(dask.delayed(np.nanmean)(df.at[i, 'd']))
+#         std_delayed.append(dask.delayed(np.nanstd)(df.at[i, 'd']))
+#         argmin_delayed.append(dask.delayed(np.nanargmin)(df.at[i, 'd']))
+#         #min_pos_delayed.append(dask.delayed(np.unravel_index)(argmin_delayed, (df.at[i,'ni'],df.at[i,'nj'])))
+#         argmax_delayed.append(dask.delayed(np.nanargmax)(df.at[i, 'd']))
+#         #max_pos_delayed.append(dask.delayed(np.unravel_index)(argmax_delayed, (df.at[i,'ni'],df.at[i,'nj'])))
+#         # max_pos_delayed = dask.delayed(np.unravel_index)(dask.delayed(np.nanargmax)(df.at[i, 'd']), (df.at[i,'ni'],df.at[i,'nj']))
 
 
-    df.loc[:,'min'] = dask.compute(min_delayed)[0]
-    df.loc[:,'max'] = dask.compute(max_delayed)[0]
-    df.loc[:,'mean'] = dask.compute(mean_delayed)[0]
-    df.loc[:,'std'] = dask.compute(std_delayed)[0]
-    df.loc[:,'min_pos'] = dask.compute(argmin_delayed)[0]
-    #argmax = dask.compute(argmax_delayed)[0]
-    df.loc[:,'max_pos'] = dask.compute(argmax_delayed)[0]
-    # max_pos = dask.compute(max_pos_delayed)[0]
-    df.loc[:,'min_pos1'] = None
-    df.loc[:,'max_pos1'] = None
-    for i in df.index:
-        df.at[i,'min_pos1'] = np.unravel_index(df.at[i,'min_pos'], (df.at[i,'ni'],df.at[i,'nj']))
-        df.at[i,'max_pos1'] = np.unravel_index(df.at[i,'max_pos'], (df.at[i,'ni'],df.at[i,'nj']))
+#     df.loc[:,'min'] = dask.compute(min_delayed)[0]
+#     df.loc[:,'max'] = dask.compute(max_delayed)[0]
+#     df.loc[:,'mean'] = dask.compute(mean_delayed)[0]
+#     df.loc[:,'std'] = dask.compute(std_delayed)[0]
+#     df.loc[:,'min_pos'] = dask.compute(argmin_delayed)[0]
+#     #argmax = dask.compute(argmax_delayed)[0]
+#     df.loc[:,'max_pos'] = dask.compute(argmax_delayed)[0]
+#     # max_pos = dask.compute(max_pos_delayed)[0]
+#     df.loc[:,'min_pos1'] = None
+#     df.loc[:,'max_pos1'] = None
+#     for i in df.index:
+#         df.at[i,'min_pos1'] = np.unravel_index(df.at[i,'min_pos'], (df.at[i,'ni'],df.at[i,'nj']))
+#         df.at[i,'max_pos1'] = np.unravel_index(df.at[i,'max_pos'], (df.at[i,'ni'],df.at[i,'nj']))
 
-    df.loc[:,'min_pos'] = df['min_pos1']
-    df.loc[:,'max_pos'] = df['max_pos1']
-    #df = fstpy.dataframe.sort_dataframe(df)    
-    return df
+#     df.loc[:,'min_pos'] = df['min_pos1']
+#     df.loc[:,'max_pos'] = df['max_pos1']
+#     #df = fstpy.dataframe.sort_dataframe(df)    
+#     return df
 
 def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
     df.loc[:,'min'] = None
@@ -464,7 +464,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     common_with_1 = common.merge(df1, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
     #Rows in df2 Which Are Not Available in df1
     common_with_2 = common.merge(df2, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'right_only']
-    missing = pd.concat([common_with_1, common_with_2])
+    missing = pd.concat([common_with_1, common_with_2],ignore_index=True)
     missing = remove_meta_data_fields(missing)
     if len(common.index) != 0:
         if len(common_with_1.index) != 0:
@@ -537,8 +537,7 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame) -> bool:
         nbdiff = np.count_nonzero(a!=b)
         diff.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
         # print(diff.at[i, 'c_cor'],1.0,1.0+1e-07,1-1e-07,math.isclose(diff.at[i, 'c_cor'],1.0,rel_tol=1e-07))
-        if (not math.isclose(diff.at[i, 'c_cor'],1.0,rel_tol=1e-06)) and (not math.isclose(diff.at[i, 'e_rel_max'],0.0,rel_tol=1e-06)):
-                if not math.isclose(diff.at[i, 'e_rel_moy'],0.0,rel_tol=1e-06):
-                    diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
-                    success = False
+        if (not math.isclose(diff.at[i, 'c_cor'],1.0,rel_tol=1e-06)) and (not math.isclose(diff.at[i, 'e_rel_max'],0.0,rel_tol=1e-06)) and (not math.isclose(diff.at[i, 'e_rel_moy'],0.0,rel_tol=1e-06)):
+            diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
+            success = False
     return success            
