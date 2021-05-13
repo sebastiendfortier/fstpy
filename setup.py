@@ -26,7 +26,6 @@ setuptools.setup(
         "Operating System :: OS Linux",
     ],
     install_requires=[
-        numpy>=1.19.5,
         pandas>=1.0.0,
     ],
     package_dir={"": "fstpy"},
