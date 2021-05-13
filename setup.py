@@ -28,7 +28,7 @@ setuptools.setup(
     install_requires=[
         'pandas>=1.0.0',
     ],
-    package_dir={"": "fstpy"},
-    packages=setuptools.find_packages(where="fstpy"),
-    python_requires=">=3.6",
+    packages=setuptools.find_packages(exclude='test'),
+    include_package_data=True,
+    python_requires='>=3.6',
 )
