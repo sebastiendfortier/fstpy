@@ -13,12 +13,12 @@ setuptools.setup(
     version=__version__,
     author="Sebastien Fortier",
     author_email="sebastien.fortier@canada.ca",
-    description="A small example package",
+    description="High level pandas interface to fstd files",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://gitlab.science.gc.ca/cmds/fstpy",
     project_urls={
-        "Bug Tracker": "https://gitlab.science.gc.ca/cmds/fstpy/issues",
+        "Bug Tracker": "https://gitlab.science.gc.ca/CMDS/fstpy/issues",
     },
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -26,8 +26,7 @@ setuptools.setup(
         "Operating System :: OS Linux",
     ],
     install_requires=[
-        numpy>=1.19.5,
-        pandas>=1.0.0,
+        'pandas>=1.0.0',
     ],
     package_dir={"": "fstpy"},
     packages=setuptools.find_packages(where="fstpy"),
