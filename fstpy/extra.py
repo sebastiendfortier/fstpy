@@ -27,6 +27,7 @@ Note: These rely on some assumptions about the internal structures of librmn,
 
 from ctypes import Structure, POINTER, c_void_p, c_uint32, c_int32, c_int, c_uint, c_byte, c_char_p
 from rpnpy.librmn import librmn
+import rpnpy.librmn.all as rmn
 
 
 # From fnom.h
@@ -213,6 +214,24 @@ def get_std_file_header (funit, out=None):
   NOTE: This includes deleted records as well.  You can filter them out using
         the 'dltf' flag.
   '''
+  
+  keys=rmn.fstinl(funit)
+  out = []
+  for k in keys:
+    rec = rmn.fstprm(k)
+    rec.pop('xtra1')
+    rec.pop('xtra2')
+    rec.pop('xtra3')
+    rec.pop('ubc')
+    rec.pop('lng')
+    rec.pop('swa')
+    rec['nomvar'] = rec['nomvar'].strip()
+    rec['typvar'] = rec['typvar'].strip()
+    rec['etiket'] = rec['etiket'].strip()
+    rec['grtyp'] = rec['grtyp'].strip()
+    out.append(rec)
+  out = [rmn.fstprm(k) for k in keys]
+  return out
   from ctypes import cast
   import numpy as np
   # Get the raw (packed) parameters.
