@@ -229,8 +229,9 @@ def get_std_file_header (funit, out=None):
     rec['typvar'] = rec['typvar'].strip()
     rec['etiket'] = rec['etiket'].strip()
     rec['grtyp'] = rec['grtyp'].strip()
-    out.append(rec)
-  out = [rmn.fstprm(k) for k in keys]
+    desired_order_list = ['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','grtyp','ig1','ig2','ig3','ig4','datev','key','dltf']
+    reordered_dict = {k: rec[k] for k in desired_order_list}
+    out.append(reordered_dict)
   return out
   from ctypes import cast
   import numpy as np
@@ -366,3 +367,6 @@ def get_std_file_header (funit, out=None):
   # out.pop('lng')
   # out.pop('swa')
   return out
+
+
+
