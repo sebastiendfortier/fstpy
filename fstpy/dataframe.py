@@ -13,7 +13,7 @@ from .std_dec import (convert_rmndate_to_datetime,
 
 # get modifier information from the second character of typvar
 def parse_typvar(typvar:str):
-    if len(typvar != 2):
+    if len(typvar) != 2:
         return
     typvar2 = typvar[1]   
     multiple_modifications = False
