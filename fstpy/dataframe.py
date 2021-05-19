@@ -11,6 +11,50 @@ from .std_dec import (convert_rmndate_to_datetime,
 
 
 
+# get modifier information from the second character of typvar
+def parse_typvar(typvar:str):
+    if len(typvar != 2):
+        return
+    typvar2 = typvar[1]   
+    multiple_modifications = False
+    zapped = False
+    filtered = False
+    interpolated = False
+    unit_converted = False
+    bounded = False
+    missing_data = False
+    ensemble_extra_info = False
+    if (typvar2 == 'M'):
+        # Il n'y a pas de façon de savoir quelle modif a ete faite
+        multiple_modifications = True
+    elif (typvar2 == 'Z'):
+        zapped = True
+    elif (typvar2 == 'F'):
+        filtered = True
+    elif (typvar2 == 'I'):
+        interpolated = True
+    elif (typvar2 == 'U'):
+        unit_converted = True
+    elif (typvar2 == 'B'):
+        bounded = True
+    elif (typvar2 == '?'):
+        missing_data = True
+    elif (typvar2 == '!'):
+        ensemble_extra_info = True
+    return multiple_modifications,zapped,filtered,interpolated,unit_converted,bounded,missing_data,ensemble_extra_info
+    
+def add_flag_values(df:pd.DataFrame) -> pd.DataFrame:
+    """adds the correct flag values derived from parsing the typvar
+
+    :param df:dataframe
+    :type df: pd.DataFrame
+    :return: flag values set according to second character of typvar if present
+    :rtype: pd.DataFrame
+    """
+    # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
+    vparse_typvar = np.vectorize(parse_typvar,otypes=['bool','bool','bool','bool','bool','bool','bool','bool'])    
+    df.loc[:,'multiple_modifications'],df.loc[:,'zapped'],df.loc[:,'filtered'],df.loc[:,'interpolated'],df.loc[:,'unit_converted'],df.loc[:,'bounded'],df.loc[:,'missing_data'],df.loc[:,'ensemble_extra_info'] = vparse_typvar(df['typvar'])
+    return df
 
 def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:str='numpy') -> pd.DataFrame:
     """Adds basic and decoded columns to the dataframe. 
@@ -224,6 +268,7 @@ def add_composite_columns(df,decode,array_container, attributes_to_decode=['flag
 
         if 'flags' in attributes_to_decode:
             df = add_flags_columns(df)
+            df = add_flag_values(df)
 
   
 
