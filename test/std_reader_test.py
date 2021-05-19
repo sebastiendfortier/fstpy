@@ -18,15 +18,19 @@ def test_open(input_file):
     assert std_file.meta_data == StandardFileReader.meta_data
 
 
-def test_params_add_extra_columns_false(input_file):
+def test_params_decode_metadata_false(input_file):
     std_file = StandardFileReader(input_file,decode_metadata=False)
     df = std_file.to_pandas()
     assert len(df.index) == 1874
     assert len(df.columns) == 26
 
+def test_params_decode_metadata_True(input_file):
+    std_file = StandardFileReader(input_file,decode_metadata=True)
+    df = std_file.to_pandas()
+    assert len(df.index) == 1874
     assert len(df.columns) == 58
 
-def test_params_add_extra_columns_false_load_data(input_file):
+def test_params_decode_metadata_false_load_data(input_file):
     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,query='nomvar=="UU"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
@@ -34,7 +38,13 @@ def test_params_add_extra_columns_false_load_data(input_file):
     assert 'd' in df.columns 
     assert not df['d'].isnull().all()
 
+def test_params_decode_metadata_true_load_data(input_file):
+    std_file = StandardFileReader(input_file,load_data=True,decode_metadata=True,query='nomvar=="UU"')
+    df = std_file.to_pandas()
+    assert len(df.index) == 90
     assert len(df.columns) == 58
+    assert 'd' in df.columns 
+    assert not df['d'].isnull().all()
 
 def test_params_load_data_true(input_file):
     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="UU"')
