@@ -71,7 +71,7 @@
    df1 = pd.read_csv('test_data_1.csv')
    df1.query('name=="meter"')
    df2 = pd.read_csv('test_data_2.csv')
-   new_df = pd.concat([df1,df2])
+   new_df = pd.concat([df1,df2],ignore_index=True)
    print(new_df)     
    #+END_SRC
 

@@ -385,7 +385,7 @@
         # at this point we have uv_df and tt_df but uv_df is in knots
         # we need to do a unit conversion on uv_df to get it in kph
         # print(UNITS) to get a list of units
-        uv_df = fstpy.do_unit_conversion(uv_df,'kilometer_per_hour')
+        uv_df = fstpy.unit_convert(uv_df,'kilometer_per_hour')
 
         # create a record to hold wind chill reseult
         re_df = uv_df.copy(deep=True)
@@ -513,7 +513,7 @@
         mean_df.at[0,'d'] = mean_arr 
 
         # combine all results into a single dataframe
-        res_df = pd.concat([min_df,max_df,std_df,mean_df])
+        res_df = pd.concat([min_df,max_df,std_df,mean_df],ignore_index=True)
         print(res_df.to_string())
     #+END_SRC
 
