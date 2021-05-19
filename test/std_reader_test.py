@@ -24,6 +24,7 @@ def test_params_add_extra_columns_false(input_file):
     assert len(df.index) == 1874
     assert len(df.columns) == 26
 
+    assert len(df.columns) == 58
 
 def test_params_add_extra_columns_false_load_data(input_file):
     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,query='nomvar=="UU"')
@@ -33,6 +34,7 @@ def test_params_add_extra_columns_false_load_data(input_file):
     assert 'd' in df.columns 
     assert not df['d'].isnull().all()
 
+    assert len(df.columns) == 58
 
 def test_params_load_data_true(input_file):
     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="UU"')

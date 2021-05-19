@@ -143,6 +143,7 @@ def add_unit_and_description_columns(df:pd.DataFrame) ->pd.DataFrame:
 
 def add_flags_columns(df:pd.DataFrame) ->pd.DataFrame:
     df.loc[:,'unit_converted'] = False
+    df.loc[:,'missing_data'] = False
     df.loc[:,'zapped'] = False
     df.loc[:,'filtered'] = False
     df.loc[:,'interpolated'] = False
