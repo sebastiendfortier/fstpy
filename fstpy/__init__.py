@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 import pandas as pd
 # __version__ = '1.0.1'
@@ -93,7 +94,22 @@ _const_prefix='/'.join(__file__.split('/')[0:-1])
 _csv_path = _const_prefix + '/csv/'
 _vctypes = pd.read_csv(_csv_path + 'verticalcoordinatetypes.csv')
 _stdvar = pd.read_csv(_csv_path + 'stdvar.csv')
-_units = pd.read_csv(_csv_path + 'units.csv')
+_units = pd.read_csv(_csv_path + 'units.csv'
+,dtype=
+{
+    'name':str,
+    'symbol':str,
+    'expression':str,
+    'bias':'float32',
+    'factor':'float32',
+    'mass':'int32',
+    'length':'int32',
+    'time':'int32',
+    'electricCurrent':'int32',
+    'temperature':'int32',
+    'amountOfSubstance':'int32',
+    'luminousIntensity':'int32'
+    })
 _etikets = pd.read_csv(_csv_path + 'etiket.csv')
 _leveltypes = pd.read_csv(_csv_path + 'leveltype.csv')
 _thermoconstants = pd.read_csv(_csv_path + 'thermo_constants.csv')

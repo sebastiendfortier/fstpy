@@ -463,7 +463,7 @@ def get_intersecting_levels(df:pd.DataFrame, nomvars:list) -> pd.DataFrame:
     query_res = df.query('(%s) and (level in %s)' % (query_strings, list(common_levels)))
     if query_res.empty:
         logger.error('get_intersecting_levels - no intersecting levels found')
-        return
+        return pd.DataFrame(dtype='object')
     return query_res    
 
 def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attributes_to_decode,n_cores):

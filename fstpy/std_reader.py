@@ -93,7 +93,7 @@ class StandardFileReader:
                 df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file_and_load, n_cores=min(mp.cpu_count(),len(self.filenames)))
             else:
                 df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file, n_cores=min(mp.cpu_count(),len(self.filenames)))    
-            # print(df)
+
         else:
             
             if self.load_data:

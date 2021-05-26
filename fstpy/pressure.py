@@ -73,23 +73,23 @@ class Pressure:
             px_df = None
 
         elif vctype == "HYBRID":
-            sys.stdout.write('Found HYBRID vertical coordinate type - computing pressure')
+            sys.stdout.write('Found HYBRID vertical coordinate type - computing pressure\n')
             px_df = compute_pressure_from_hyb_coord_df(df,meta_df,self.standard_atmosphere)
 
         elif (vctype == "HYBRID_5005") or( vctype == "HYBRID_STAGGERED"):
-            sys.stdout.write('Found HYBRID STAGGERED (5005,5002) vertical coordinate type - computing pressure')
+            sys.stdout.write('Found HYBRID STAGGERED (5005,5002) vertical coordinate type - computing pressure\n')
             px_df = compute_pressure_from_hybstag_coord_df(df,meta_df,self.standard_atmosphere)
 
         elif vctype == "PRESSURE":
-            sys.stdout.write('Found PRESSURE vertical coordinate type - computing pressure')
+            sys.stdout.write('Found PRESSURE vertical coordinate type - computing pressure\n')
             px_df = compute_pressure_from_pressure_coord_df(df,self.standard_atmosphere)
 
         elif vctype == "ETA":
-            sys.stdout.write('Found ETA vertical coordinate type - computing pressure')
+            sys.stdout.write('Found ETA vertical coordinate type - computing pressure\n')
             px_df = compute_pressure_from_eta_coord_df(df,meta_df,self.standard_atmosphere)
 
         elif vctype == "SIGMA":
-            sys.stdout.write('Found SIGMA vertical coordinate type - computing pressure')
+            sys.stdout.write('Found SIGMA vertical coordinate type - computing pressure\n')
             px_df = compute_pressure_from_sigma_coord_df(df,meta_df,self.standard_atmosphere)
 
         return px_df
@@ -156,7 +156,7 @@ def compute_pressure_from_pressure_coord_df(df:pd.DataFrame,standard_atmosphere:
         px_s['d'] = pres
         press.append(px_s)
     pressure_df = pd.DataFrame(press)
-    # pressure_df = do_unit_conversion(pressure_df,to_unit_name='hectoPascal')
+    # pressure_df = unit_convert(pressure_df,to_unit_name='hectoPascal')
     return pressure_df 
             
 ###################################################################################
@@ -202,14 +202,14 @@ class Sigma2Pressure:
     def vgrid_pressure(self,ip1:int):
         ip = ctypes.c_int(ip1)
         pres = np.empty((self.p0_data.shape[0],self.p0_data.shape[1],1),dtype='float32', order='F')
-        # p0 = do_unit_conversion_array(self.p0_data,from_unit_name='millibar',to_unit_name='pascal') equals * 100.
+        # p0 = unit_convert_array(self.p0_data,from_unit_name='millibar',to_unit_name='pascal') equals * 100.
         status = vgdp.c_vgd_levels(self.myvgd, self.p0_data.shape[0], self.p0_data.shape[1], 1, ip, pres, self.p0_data*100.0, 0)
         if status:
             sys.stderr.write("Sigma2Pressure - There was a problem creating the pressure\n")
             pres = None
         else:
             pres = np.squeeze(pres)    
-            # pres = do_unit_conversion_array(pres,from_unit_name='pascal',to_unit_name='hectoPascal')
+            # pres = unit_convert_array(pres,from_unit_name='pascal',to_unit_name='hectoPascal')
  
         return pres/100.0
 
@@ -302,7 +302,7 @@ def compute_pressure_from_sigma_coord_df(df:pd.DataFrame,meta_df:pd.DataFrame,st
         px_s['d'] = pres
         press.append(px_s)
     pressure_df = pd.DataFrame(press)
-    # pressure_df = do_unit_conversion(pressure_df,to_unit_name='hectoPascal')
+    # pressure_df = unit_convert(pressure_df,to_unit_name='hectoPascal')
     return pressure_df               
 ###################################################################################
 ###################################################################################
@@ -428,20 +428,20 @@ def compute_pressure_from_eta_coord_array(levels:list,pt_data:np.ndarray,bb_data
 def get_eta_metadata(meta_df,forecast_hour):
     p0_df = meta_df.query(f'(nomvar=="P0") and (forecast_hour=="{forecast_hour}")')
     if p0_df.empty:
-        return None,None,None
+        return None,None,None,None,None
     p0_data = p0_df.iloc[0]['d']    
     pt_df = meta_df.query(f'(nomvar=="PT") and (forecast_hour=="{forecast_hour}")')
     if not pt_df.empty: 
         pt_data = pt_df.iloc[0]['d']
     else:
-        pt_data = None,None,None
+        pt_data = None,None,None,None,None
     bb_df = meta_df.query('(nomvar=="!!") and (ig1==1002)')
     if not bb_df.empty: 
         bb_data = bb_df.iloc[0]['d']
     else:
-        bb_data = None,None,None
+        bb_data = None,None,None,None,None
     if bb_df.empty and pt_df.empty:
-        return None,None,None
+        return None,None,None,None,None
     return p0_data, pt_data, bb_data, p0_df.iloc[0]['datyp'], p0_df.iloc[0]['nbits']    
 
 def compute_pressure_from_eta_coord_df(df:pd.DataFrame,meta_df:pd.DataFrame,standard_atmosphere:bool=False) -> pd.DataFrame:

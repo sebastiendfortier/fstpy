@@ -59,13 +59,13 @@ install_doc:
   script:
     - cd doc/_build/html
     - cdir=`pwd`
-    - ssh sbf000@ppp4 'rm -rf /home/sbf000/public_html/fstpy/latest/*'
-    - ssh sbf000@ppp4 cp -r ${cdir}/* /home/sbf000/public_html/fstpy/latest/
+    - ssh sbf000@ppp3 'rm -rf /home/sbf000/public_html/fstpy/latest/*'
+    - ssh sbf000@ppp3 cp -r ${cdir}/* /home/sbf000/public_html/fstpy/latest/
 
 ssm_package:
   stage: ssm_package
   script:
-    - cd misc/ssm
+    - cd ssm
     - ./make_package.sh
 
 

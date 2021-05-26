@@ -2,90 +2,58 @@
 import numpy as np
 import pandas as pd
 
-from fstpy import get_column_value_from_row, get_unit_by_name
+from fstpy import get_unit_by_name
 from fstpy.std_dec import get_unit_and_description
 
 from .dataframe import add_unit_and_description_columns
 from .exceptions import UnitConversionError
 from .std_reader import load_data
 
-USE_TABLE = True
-class no_conversion:
-   def __init__(self, bias = 0.0,   factor = 1.0):
-      pass
-   def __call__(self,v):
-      return v
-
-class kelvin_to_kelvin:
-   def __init__(self, bias = 0.0,   factor = 1.0 ):
-      pass
-   def __call__(self,v):
-      return v
-
 class kelvin_to_celsius:
-   def __init__(self, bias = 0.0, factor = 1.0):
+   def __init__(self, bias):
       self.bias = bias
    def __call__(self,v):
-      if USE_TABLE:
-         return v - self.bias
-      return v-273.15
+      return v - self.bias
       
 
 class kelvin_to_fahrenheit:
-   def __init__(self, bias = 0.0,   factor = 1.0):
+   def __init__(self, bias,   factor):
       self.bias=bias
       self.factor=factor
    def __call__(self,v):
-      if USE_TABLE:
-         return v * 1/self.factor - self.bias
-      return (v-273.15)*(9/5)+32
+      return v / self.factor - self.bias
       
 
 class kelvin_to_rankine:
-   def __init__(self, bias = 0.0, factor = 1.0):
-      self.bias=bias
+   def __init__(self, factor):
       self.factor=factor
    def __call__(self,v):
-      return v * 1/self.factor
+      return v  / self.factor
 
 class celsius_to_kelvin:
-   def __init__(self,  bias = 0.0, factor = 1.0):
+   def __init__(self,  bias):
       self.bias=bias
-      self.factor=factor
    def __call__(self,v):
-      if USE_TABLE:
-         return v +  self.bias
-      return v + 273.15
-      
-
-class celsius_to_celsius:
-   def __init__(self,  bias = 0.0,   factor = 1.0):
-      pass
-   def __call__(self,v):
-      return v
+      return v +  self.bias
 
 class celsius_to_fahrenheit:
-   def __init__(self, cbias = 0.0,   cfactor = 1.0,   fbias = 0.0,   ffactor = 1.0):
+   def __init__(self, cbias,   fbias,   ffactor):
       self.cbias=cbias
-      self.cfactor=cfactor
       self.fbias=fbias
       self.ffactor=ffactor
    def __call__(self,v):
       a = kelvin_to_fahrenheit(self.fbias, self.ffactor)
-      b = celsius_to_kelvin(self.cbias, self.cfactor)
-      if USE_TABLE:
-         return a(b(v))
-      return (v*9/5)+32
+      b = celsius_to_kelvin(self.cbias)
+      return a(b(v))
+
 
 class celsius_to_rankine:
-   def __init__(self, cbias = 0.0,   cfactor = 1.0,   rbias = 0.0,   rfactor = 1.0):
+   def __init__(self, cbias,  rfactor):
       self.cbias=cbias
-      self.cfactor=cfactor
-      self.rbias=rbias
       self.rfactor=rfactor
    def __call__(self,v):
-      a = kelvin_to_rankine(self.rbias, self.rfactor)
-      b = celsius_to_kelvin(self.cbias, self.cfactor)
+      a = kelvin_to_rankine(self.rfactor)
+      b = celsius_to_kelvin(self.cbias)
       return a(b(v))
 
 class fahrenheit_to_kelvin:
@@ -93,148 +61,109 @@ class fahrenheit_to_kelvin:
       self.bias=bias
       self.factor=factor
    def __call__(self,v):
-      if USE_TABLE:
-         return v +  self.bias * self.factor
-      return (v-32)*(5/9)+273.15
+      return (v +  self.bias) * self.factor
+
       
 
 class fahrenheit_to_celsius:
-   def __init__(self, fbias = 0.0,   ffactor = 1.0,   cbias = 0.0,   cfactor = 1.0):
+   def __init__(self, fbias,   ffactor,   cbias):
       self.fbias=fbias
       self.ffactor=ffactor
       self.cbias=cbias
-      self.cfactor=cfactor
    def __call__(self,v):
-      a = kelvin_to_celsius(self.cbias, self.cfactor)
+      a = kelvin_to_celsius(self.cbias)
       b = fahrenheit_to_kelvin(self.fbias, self.ffactor)
-      if USE_TABLE:
-         return a(b(v))
-      return (v-32)*(5/9)
+      return a(b(v))
       
-
-class fahrenheit_to_fahrenheit:
-   def __init__(self, bias,   factor):
-      self.bias=bias
-      self.factor=factor
-   def __call__(self,v):
-         return v
          
 class fahrenheit_to_rankine:
    def __init__(self,  bias, factor):
       self.bias=bias
       self.factor=factor
    def __call__(self,v):
-      a = kelvin_to_rankine(self.bias, self.factor)
+      a = kelvin_to_rankine(self.factor)
       b = fahrenheit_to_kelvin(self.bias, self.factor)
       return a(b(v))
 
 class rankine_to_kelvin:
-   def __init__(self,  bias, factor):
-      self.bias=bias
+   def __init__(self,  factor):
       self.factor=factor
    def __call__(self,v):
       return v * self.factor
          
 class rankine_to_celsius:
-   def __init__(self,  rbias = 0.0,   rfactor = 1.0,   cbias = 0.0,   cfactor = 1.0):
-      self.rbias=rbias
+   def __init__(self,  rfactor,   cbias):
       self.rfactor=rfactor
       self.cbias=cbias
-      self.cfactor=cfactor
    def __call__(self,v):
-      a = kelvin_to_celsius(self.cbias, self.cfactor)
-      b = rankine_to_kelvin(self.rbias, self.rfactor)
+      a = kelvin_to_celsius(self.cbias)
+      b = rankine_to_kelvin(self.rfactor)
       return a(b(v))
 
 class rankine_to_fahrenheit:
-   def __init__(self, rbias= 0.0, rfactor=1.0, fbias = 0.0,   ffactor = 1.0):
-      self.rbias=rbias
+   def __init__(self, rfactor, fbias,   ffactor):
       self.rfactor=rfactor
       self.fbias=fbias
       self.ffactor=ffactor
    def __call__(self,v):
       a = kelvin_to_fahrenheit(self.fbias, self.ffactor)
-      b = rankine_to_kelvin(self.rbias, self.rfactor)
+      b = rankine_to_kelvin(self.rfactor)
       return a(b(v))
-
-class rankine_to_rankine:
-   def __init__(self, bias, factor):
-      self.bias = bias
-      self.factor = factor
-   def __call__(self,v):
-      return v
 
 class factor_conversion:
    def __init__(self, from_factor, to_factor):
       self.from_factor = from_factor
       self.to_factor = to_factor
    def __call__(self,v):
-      return v * self.from_factor / self.to_factor
+      return v * (self.from_factor / self.to_factor)
 
 
 def get_temperature_converter(unit_from, unit_to):
-   from_expression = get_column_value_from_row(unit_from,'expression')
-   to_expression = get_column_value_from_row(unit_to,'expression')
-   from_factor = float(get_column_value_from_row(unit_from,'factor'))
-   to_factor = float(get_column_value_from_row(unit_to,'factor'))
-   from_bias = float(get_column_value_from_row(unit_from,'bias'))
-   to_bias = float(get_column_value_from_row(unit_to,'bias'))
-   from_name = get_column_value_from_row(unit_from,'name')
-   to_name = get_column_value_from_row(unit_to,'name')
-
-   if from_expression != to_expression:
-      raise UnitConversionError('different unit family')
-   if (from_name == "kelvin") and (to_name == "kelvin"):
-      converter = kelvin_to_kelvin(to_bias, to_factor)
-      return converter 
+   from_factor = unit_from.iloc[0]['factor']
+   to_factor = unit_to.iloc[0]['factor']
+   from_bias = unit_from.iloc[0]['bias']
+   to_bias = unit_to.iloc[0]['bias']
+   from_name = unit_from.iloc[0]['name']
+   to_name = unit_to.iloc[0]['name']
    if (from_name == "kelvin") and (to_name == "celsius"):
-      converter = kelvin_to_celsius(to_bias, to_factor)            
+      converter = kelvin_to_celsius(to_bias)            
       return converter 
    if (from_name == "kelvin") and (to_name == "fahrenheit"):
       converter = kelvin_to_fahrenheit(to_bias, to_factor)         
       return converter 
    if (from_name == "kelvin") and (to_name == "rankine"):
-      converter = kelvin_to_rankine(to_bias, to_factor)            
+      converter = kelvin_to_rankine(to_factor)            
       return converter 
    if (from_name == "celsius") and (to_name == "kelvin"):
-      converter = celsius_to_kelvin(from_bias, from_factor)        
-      return converter 
-   if (from_name == "celsius") and (to_name == "celsius"):
-      converter = celsius_to_celsius(from_bias, from_factor)       
+      converter = celsius_to_kelvin(from_bias)        
       return converter 
    if (from_name == "celsius") and (to_name == "fahrenheit"):
-      converter = celsius_to_fahrenheit(from_bias, from_factor, to_bias, to_factor)    
+      converter = celsius_to_fahrenheit(from_bias, to_bias, to_factor)    
       return converter 
    if (from_name == "celsius") and (to_name == "rankine"):
-      converter = celsius_to_rankine(from_bias, from_factor, to_bias, to_factor)       
+      converter = celsius_to_rankine(from_bias, to_factor)       
       return converter 
    if (from_name == "fahrenheit") and (to_name == "kelvin"):
       converter = fahrenheit_to_kelvin(from_bias, from_factor)     
       return converter 
    if (from_name == "fahrenheit") and (to_name == "celsius"):
-      converter = fahrenheit_to_celsius(from_bias, from_factor, to_bias, to_factor)    
-      return converter 
-   if (from_name == "fahrenheit") and (to_name == "fahrenheit"):
-      converter = fahrenheit_to_fahrenheit(from_bias, from_factor) 
+      converter = fahrenheit_to_celsius(from_bias, from_factor, to_bias)    
       return converter 
    if (from_name == "fahrenheit") and (to_name == "rankine"):
       converter = fahrenheit_to_rankine(from_bias, from_factor)    
       return converter 
    if (from_name == "rankine")    and (to_name == "kelvin"):
-      converter = rankine_to_kelvin(from_bias, from_factor)        
+      converter = rankine_to_kelvin(from_factor)        
       return converter 
    if (from_name == "rankine")    and (to_name == "celsius"):
-      converter = rankine_to_celsius(from_bias, from_factor, to_bias, to_factor)       
+      converter = rankine_to_celsius(from_factor, to_bias)       
       return converter 
    if (from_name == "rankine")    and (to_name == "fahrenheit"):
-      converter = rankine_to_fahrenheit(from_bias, from_factor, to_bias, to_factor)    
+      converter = rankine_to_fahrenheit(from_factor, to_bias, to_factor)    
       return converter 
-   if (from_name == "rankine")    and (to_name == "rankine"):
-      converter = rankine_to_rankine(from_bias, from_factor)
-      return converter 
-   return no_conversion()
+   return None
 
-def get_converter(unit_from:str, unit_to:str):
+def get_converter(unit_from:str, unit_to:str, std:bool=False):
    """Based on unit names contained in fstpy.UNITS database (dataframe), 
    attemps to provide the appropriate unit conversion function 
    based on unit name and family. The returned function takes a value
@@ -248,23 +177,29 @@ def get_converter(unit_from:str, unit_to:str):
    :return: returns the unit conversion function
    :rtype: function
    """
-   from_expression = get_column_value_from_row(unit_from,'expression')
-   to_expression = get_column_value_from_row(unit_to,'expression')
-   from_factor = float(get_column_value_from_row(unit_from,'factor'))
-   to_factor = float(get_column_value_from_row(unit_to,'factor'))
-   if from_expression != to_expression:
+   from_expression = unit_from.iloc[0]['expression']
+   to_expression = unit_to.iloc[0]['expression']
+   from_factor = unit_from.iloc[0]['factor']
+   to_factor = unit_to.iloc[0]['factor']
+
+   if (unit_from.iloc[0]['name'] == unit_to.iloc[0]['name']):
+      return None
+
+   if (from_expression != to_expression) and not std:
       raise UnitConversionError('different unit family')
+
+   if (from_expression != to_expression) and std:
+      return None
+
    if from_expression == 'K':
       converter = get_temperature_converter(unit_from, unit_to)
-      return converter
-   #compare units equality - compares to rows of a dataframe
-   if (unit_from.values[0] == unit_to.values[0]).all():
-      converter = no_conversion()
-      return converter
-   converter = factor_conversion(from_factor,to_factor)
-   return np.vectorize(converter,otypes=['float32'])
+      # return np.vectorize(converter)
+   else:
+      converter = factor_conversion(from_factor,to_factor)
 
-def do_unit_conversion_array(arr, from_unit_name,to_unit_name='scalar') -> np.ndarray:
+   return converter   
+
+def unit_convert_array(arr, from_unit_name,to_unit_name='scalar') -> np.ndarray:
    """Converts the data to the specified unit provided in the to_unit_name parameter. 
    
    :param arr: array to be converted
@@ -277,19 +212,21 @@ def do_unit_conversion_array(arr, from_unit_name,to_unit_name='scalar') -> np.nd
    :rtype: np.ndarray
    """
    unit_to = get_unit_by_name(to_unit_name)
-   #unit_groups = df.groupby(df.unit)
-   #converted_dfs = [] 
 
-   if from_unit_name == to_unit_name:
+   if (from_unit_name == to_unit_name) or (from_unit_name == 'scalar') or (to_unit_name == 'scalar'):
       return arr
    else:
       unit_from = get_unit_by_name(from_unit_name)
       converter = get_converter(unit_from, unit_to)
-      converted_arr = converter(arr)
-       
-   return converted_arr.astype('float32')
 
-def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False) -> pd.DataFrame:
+      if not(converter is None):
+         converted_arr = converter(arr)
+      else:
+         converted_arr = arr
+       
+   return converted_arr
+
+def unit_convert(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False) -> pd.DataFrame:
    """Converts the data portion 'd' of all the records of a dataframe to the specified unit
    provided in the to_unit_name parameter. If the standard_unit flag is True, the to_unit_name 
    will be ignored and the unit will be based on the standard file variable dictionnary unit
@@ -307,25 +244,29 @@ def do_unit_conversion(df:pd.DataFrame, to_unit_name='scalar',standard_unit=Fals
    :rtype: pd.DataFrame
    """
    df = load_data(df)
-   if 'unit' not in df.columns:
-      df = add_unit_and_description_columns(df)
+
+   df = add_unit_and_description_columns(df)
 
    unit_to = get_unit_by_name(to_unit_name)
 
-   #unit_groups = df.groupby(df.unit)
-   #converted_dfs = [] 
    for i in df.index:
       current_unit = df.at[i,'unit']
-      if (current_unit == to_unit_name) or (current_unit == 'scalar') or (to_unit_name == 'scalar'):
+      if (current_unit == to_unit_name):
+         continue
+      elif (not standard_unit) and ((current_unit == 'scalar') or (to_unit_name == 'scalar')):
          continue
       else:
+         unit_from = get_unit_by_name(current_unit)
          if standard_unit:
             to_unit_name,_ = get_unit_and_description(df.at[i,'nomvar'])
             unit_to = get_unit_by_name(to_unit_name)
-         unit_from = get_unit_by_name(current_unit)
-         converter = get_converter(unit_from, unit_to)
-         df.at[i,'d'] = converter(df.at[i,'d']).astype('float32')
-         df.at[i,'unit'] = to_unit_name
-         df.at[i,'unit_converted'] = True
-        
+            converter = get_converter(unit_from, unit_to, True)
+         else:   
+            converter = get_converter(unit_from, unit_to)
+         
+         if not(converter is None):
+            df.at[i,'d'] = converter(df.at[i,'d'])
+            df.at[i,'unit'] = to_unit_name
+            df.at[i,'unit_converted'] = True
+         
    return df

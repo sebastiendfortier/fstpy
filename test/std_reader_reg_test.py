@@ -67,7 +67,7 @@ def test_regtest_3(plugin_test_dir):
     file_to_compare = plugin_test_dir + "UUVV5x5_fileSrc.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare)
+    res = fstcomp(results_file,file_to_compare,e_max=0.001,e_moy=0.0001)
     delete_file(results_file)
     assert(res == True)
 
@@ -77,7 +77,6 @@ def test_regtest_5(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "input_big_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
-
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
@@ -85,12 +84,13 @@ def test_regtest_5(plugin_test_dir):
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
+    src_df0 = StandardFileReader(results_file).to_pandas()
     # open and read comparison file
     file_to_compare = plugin_test_dir + "input_big_fileSrc.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare)
-    delete_file(results_file)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.001)
+    # delete_file(results_file)
     assert(res == True)
 
 
