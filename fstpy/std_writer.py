@@ -10,7 +10,7 @@ from .exceptions import StandardFileWriterError
 from .logger_config import logger
 from .std_io import close_fst, get_grid_metadata_fields, open_fst
 from .std_reader import load_data
-from .utils import initializer, validate_df_not_empty
+from .utils import initializer
 
 
 class StandardFileWriter:
@@ -28,7 +28,8 @@ class StandardFileWriter:
     @initializer
     def __init__(self, filename:str, df:pd.DataFrame, update_meta_only=False):
 
-        validate_df_not_empty(self.df,'StandardFileWriter',StandardFileWriterError)
+        if self.df.empty:
+            raise StandardFileWriterError('StandardFileWriter - no records to process')
         self.filename = os.path.abspath(self.filename)
        
     def to_fst(self):

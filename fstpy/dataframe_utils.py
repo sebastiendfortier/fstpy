@@ -17,7 +17,7 @@ from .exceptions import SelectError, StandardFileError
 from .logger_config import logger
 from .std_dec import convert_rmndate_to_datetime
 from .std_reader import StandardFileReader, load_data
-from .utils import validate_df_not_empty
+
 
 
 def fstcomp(file1:str, file2:str, columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
@@ -53,7 +53,9 @@ def fstcomp(file1:str, file2:str, columns=['nomvar', 'etiket','ni', 'nj', 'nk', 
 
 def voir(df:pd.DataFrame,style=False):
     """Displays the metadata of the supplied records in the rpn voir format"""
-    validate_df_not_empty(df,'voir',StandardFileError)
+    if df.empty:
+        raise StandardFileError('voir - no records to process') 
+       
 
     df['datyp'] = df['datyp'].map(DATYP_DICT)
     df['datev'] = df['datev'].apply(convert_rmndate_to_datetime)
@@ -91,7 +93,8 @@ def zap(df:pd.DataFrame, validate_keys=True,**kwargs:dict ) -> pd.DataFrame:
     :rtype: pd.DataFrame
     """
     
-    validate_df_not_empty(df,'zap',StandardFileError)            
+    if df.empty:
+        raise StandardFileError('zap - no records to process')
     if validate_zap_keys:
         validate_zap_keys(**kwargs)
 
@@ -138,7 +141,8 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     
     sys.stdout.write('fststat\n')
     pd.options.display.float_format = '{:0.6E}'.format
-    validate_df_not_empty(df,'fststat',StandardFileError)
+    if df.empty:
+        raise StandardFileError('fststat - no records to process')
     df = load_data(df)
     df = compute_stats(df)
     df = add_ip_info_columns(df)

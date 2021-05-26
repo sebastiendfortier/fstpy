@@ -16,7 +16,7 @@ from fstpy.extra import get_std_file_header
 from .exceptions import StandardFileError, StandardFileReaderError
 from .logger_config import logger
 from .std_dec import get_grid_identifier
-from .utils import create_1row_df_from_model, validate_df_not_empty
+from .utils import create_1row_df_from_model
 
 
 def open_fst(path:str, mode:str, caller_class:str, error_class:Exception):
@@ -212,13 +212,15 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     :rtype: pd.DataFrame
     :raises StandardFileError: no records to process
     """
-    validate_df_not_empty(df,'get_2d_lat_lon',StandardFileError)
+    if  df.empty:
+        raise StandardFileError('get_2d_lat_lon- no records to process')
     #remove record wich have X grid type
     without_x_grid_df = df.query('grtyp != "X"')
 
     latlon_df = get_lat_lon(df)
 
-    validate_df_not_empty(latlon_df,'get_2d_lat_lon - while trying to find [">>","^^"]',StandardFileError)
+    if latlon_df.empty:
+        raise StandardFileError('get_2d_lat_lon - while trying to find [">>","^^"] - no data to process') 
     
     no_meta_df = without_x_grid_df.query('nomvar not in %s'%["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"])
 

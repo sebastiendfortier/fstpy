@@ -47,111 +47,111 @@ def delete_file(my_file:str):
     if os.path.exists(my_file):
         os.unlink(my_file)
         
-def get_grid_groups(groups:list) -> list:
-    """Takes a list of dataframes groups and groups them by grid attribute
+# def get_grid_groups(groups:list) -> list:
+#     """Takes a list of dataframes groups and groups them by grid attribute
 
-    :param groups: list of dataframes groups
-    :type groups: list
-    :return: a list of dataframe groups grouped by grid
-    :rtype: list
-    """
-    return make_groups(groups, 'grid', ['forecast_hour','nomvar','level'])
+#     :param groups: list of dataframes groups
+#     :type groups: list
+#     :return: a list of dataframe groups grouped by grid
+#     :rtype: list
+#     """
+#     return make_groups(groups, 'grid', ['forecast_hour','nomvar','level'])
 
-def get_forecast_hour_groups(groups:list) -> list:
-    """Takes a list of dataframe groups and groups them by forecast_hour attribute
+# def get_forecast_hour_groups(groups:list) -> list:
+#     """Takes a list of dataframe groups and groups them by forecast_hour attribute
 
-    :param groups: list of dataframes groups
-    :type groups: list
-    :return: a list of dataframe groups grouped by forecast_hour
-    :rtype: list
-    """
-    return make_groups(groups, 'forecast_hour', ['forecast_hour','nomvar','level'])
+#     :param groups: list of dataframes groups
+#     :type groups: list
+#     :return: a list of dataframe groups grouped by forecast_hour
+#     :rtype: list
+#     """
+#     return make_groups(groups, 'forecast_hour', ['forecast_hour','nomvar','level'])
 
-def get_nomvar_groups(groups:list) -> list:
-    """Takes a list of dataframe groups and groups them by nomvar attribute
+# def get_nomvar_groups(groups:list) -> list:
+#     """Takes a list of dataframe groups and groups them by nomvar attribute
 
-    :param groups: list of dataframes groups
-    :type groups: list
-    :return: a list of dataframe groups grouped by nomvar
-    :rtype: list
-    """
-    return make_groups(groups, 'nomvar', ['forecast_hour','nomvar','level'])
+#     :param groups: list of dataframes groups
+#     :type groups: list
+#     :return: a list of dataframe groups grouped by nomvar
+#     :rtype: list
+#     """
+#     return make_groups(groups, 'nomvar', ['forecast_hour','nomvar','level'])
 
-def get_level_groups(groups:list) -> list:
-    """Takes a list of dataframes groups and groups them by level attribute
+# def get_level_groups(groups:list) -> list:
+#     """Takes a list of dataframes groups and groups them by level attribute
 
-    :param groups: list of dataframes groups
-    :type groups: list
-    :return: a list of dataframe groups grouped by level
-    :rtype: list
-    """
-    return make_groups(groups, 'level', ['forecast_hour','nomvar'])
+#     :param groups: list of dataframes groups
+#     :type groups: list
+#     :return: a list of dataframe groups grouped by level
+#     :rtype: list
+#     """
+#     return make_groups(groups, 'level', ['forecast_hour','nomvar'])
 
-def make_groups(groups:list, group_by_attribute:list, sort_by_attributes:list) -> list:
-    """Takes a list of dataframes groups and groups them by attributes in attribute list
+# def make_groups(groups:list, group_by_attribute:list, sort_by_attributes:list) -> list:
+#     """Takes a list of dataframes groups and groups them by attributes in attribute list
 
-    :param groups: list of dataframes groups
-    :type groups: list
-    :param group_by_attribute: list of attribute names to group by
-    :type group_by_attribute: list
-    :param sort_by_attributes: attribute sort order
-    :type sort_by_attributes: list
-    :return: list of dataframe groups
-    :rtype: list
-    """
-    groupdfs = []
-    for group in groups:
-        sub_groups = group.groupby(getattr(group,group_by_attribute))
-        for _, sub_group in sub_groups:
-            groupdfs.append(sub_group.sort_values(by=sort_by_attributes)) 
-    return  groupdfs
+#     :param groups: list of dataframes groups
+#     :type groups: list
+#     :param group_by_attribute: list of attribute names to group by
+#     :type group_by_attribute: list
+#     :param sort_by_attributes: attribute sort order
+#     :type sort_by_attributes: list
+#     :return: list of dataframe groups
+#     :rtype: list
+#     """
+#     groupdfs = []
+#     for group in groups:
+#         sub_groups = group.groupby(getattr(group,group_by_attribute))
+#         for _, sub_group in sub_groups:
+#             groupdfs.append(sub_group.sort_values(by=sort_by_attributes)) 
+#     return  groupdfs
 
-def get_groups(df:pd.DataFrame, group_by_forecast_hour:bool=False,group_by_level=True) -> list:
-    """Groups a dataframe by grid attribute then by selected attribute. 
-    Dataframe can be grouped by combinations of attributes but will always be grouped by grid
+# def get_groups(df:pd.DataFrame, group_by_forecast_hour:bool=False,group_by_level=True) -> list:
+#     """Groups a dataframe by grid attribute then by selected attribute. 
+#     Dataframe can be grouped by combinations of attributes but will always be grouped by grid
 
-    :param df: a dataframe to group
-    :type df: pd.DataFrame
-    :param group_by_forecast_hour: if true, dataframe will be grouped bu forecast hour, defaults to False
-    :type group_by_forecast_hour: bool, optional
-    :param group_by_level: if true, dataframe will be grouped bu level, defaults to True
-    :type group_by_level: bool, optional
-    :return: a list of dataframe groups
-    :rtype: list
-    """
-    # create grid group
-    grid_groups = get_grid_groups([df])
-    if (group_by_forecast_hour == False) and (group_by_level == False):
-        return grid_groups
+#     :param df: a dataframe to group
+#     :type df: pd.DataFrame
+#     :param group_by_forecast_hour: if true, dataframe will be grouped bu forecast hour, defaults to False
+#     :type group_by_forecast_hour: bool, optional
+#     :param group_by_level: if true, dataframe will be grouped bu level, defaults to True
+#     :type group_by_level: bool, optional
+#     :return: a list of dataframe groups
+#     :rtype: list
+#     """
+#     # create grid group
+#     grid_groups = get_grid_groups([df])
+#     if (group_by_forecast_hour == False) and (group_by_level == False):
+#         return grid_groups
 
-    forecast_hour_groups= get_forecast_hour_groups(grid_groups)
-    if (group_by_forecast_hour == True) and (group_by_level == False):
-        return forecast_hour_groups
+#     forecast_hour_groups= get_forecast_hour_groups(grid_groups)
+#     if (group_by_forecast_hour == True) and (group_by_level == False):
+#         return forecast_hour_groups
             
-    if (group_by_forecast_hour == False) and (group_by_level == True):
-        return get_level_groups(grid_groups)
+#     if (group_by_forecast_hour == False) and (group_by_level == True):
+#         return get_level_groups(grid_groups)
     
-    if (group_by_forecast_hour == True) and (group_by_level == True):
-        return get_level_groups(forecast_hour_groups)
+#     if (group_by_forecast_hour == True) and (group_by_level == True):
+#         return get_level_groups(forecast_hour_groups)
 
 
-def flatten_data_series(df:pd.DataFrame) -> pd.DataFrame:
-    """Flattens the arrays contained in the d attribute. 
-    If each array had a 2d shape, the returned arrays will hav a 1d shape.
-    This is useful when applying certain numpy algorithms to the arrays 
+# def flatten_data_series(df:pd.DataFrame) -> pd.DataFrame:
+#     """Flattens the arrays contained in the d attribute. 
+#     If each array had a 2d shape, the returned arrays will hav a 1d shape.
+#     This is useful when applying certain numpy algorithms to the arrays 
 
-    :param df: a dataframe
-    :type df: pd.DataFrame
-    :return: the same dataframe with all arrays set to 1 dimension
-    :rtype: pd.DataFrame
-    """
-    # import sys
-    # if len(df.nomvar.unique()) > 1:
-    #     sys.stderr.write('more than one variable, stacking the arrays would not yield a 3d array for one variable - no modifications made\n')
-    #     return df
-    for i in df.index:
-        df.at[i,'d'] = df.at[i,'d'].flatten()
-    return df    
+#     :param df: a dataframe
+#     :type df: pd.DataFrame
+#     :return: the same dataframe with all arrays set to 1 dimension
+#     :rtype: pd.DataFrame
+#     """
+#     # import sys
+#     # if len(df.nomvar.unique()) > 1:
+#     #     sys.stderr.write('more than one variable, stacking the arrays would not yield a 3d array for one variable - no modifications made\n')
+#     #     return df
+#     for i in df.index:
+#         df.at[i,'d'] = df.at[i,'d'].flatten()
+#     return df    
 
 def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:
     """Creates a one row dataframe based on a model dataframe's first row. 
@@ -175,34 +175,34 @@ def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:
     res_df['key'] = None
     return res_df
 
-def validate_nomvar(nomvar:str, caller_class:str, error_class:Exception):
-    """Check that a nomvar only has 4 characters
+# def validate_nomvar(nomvar:str, caller_class:str, error_class:Exception):
+#     """Check that a nomvar only has 4 characters
 
-    :param nomvar: nomvar string
-    :type nomvar: str
-    :param caller_class: a string that indicates the name of the caller class or method
-    :type caller_class: str
-    :param error_class: The exception to throw if nomvar is not 4 characters long
-    :type error_class: Exception
-    :raises error_class: The class of the exception
-    """
-    if len(nomvar) > 4:
-        raise error_class(caller_class + ' - max 4 char for nomvar')
+#     :param nomvar: nomvar string
+#     :type nomvar: str
+#     :param caller_class: a string that indicates the name of the caller class or method
+#     :type caller_class: str
+#     :param error_class: The exception to throw if nomvar is not 4 characters long
+#     :type error_class: Exception
+#     :raises error_class: The class of the exception
+#     """
+#     if len(nomvar) > 4:
+#         raise error_class(caller_class + ' - max 4 char for nomvar')
 
-def validate_df_not_empty(df:pd.DataFrame, caller_class:str, error_class:Exception):
-    """Raises an on error on empty dataframe
+# def  validate(df:pd.DataFrame, caller_class:str, error_class:Exception):
+#     """Raises an on error on empty dataframe
 
-    :param df: input dataframe to check
-    :type df: pd.DataFrame
-    :param caller_class: a string that indicates the name of the caller class or method
-    :type caller_class: str
-    :param error_class: The exception to throw if nomvar is not 4 characters long
-    :type error_class: Exception
-    :raises error_class: The class of the exception
-    """
-    if df.empty:
-        logger.error(caller_class + ' - no records to process')
-        raise error_class(caller_class + ' - no records to process')    
+#     :param df: input dataframe to check
+#     :type df: pd.DataFrame
+#     :param caller_class: a string that indicates the name of the caller class or method
+#     :type caller_class: str
+#     :param error_class: The exception to throw if nomvar is not 4 characters long
+#     :type error_class: Exception
+#     :raises error_class: The class of the exception
+#     """
+#     if df.empty:
+#         logger.error(caller_class + ' - no records to process')
+#         raise error_class(caller_class + ' - no records to process')    
 
 
 def get_file_list(pattern:str) -> str:

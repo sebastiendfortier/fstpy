@@ -430,41 +430,41 @@ def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove:pd.DataFrame) ->
     tmp_df.reset_index(inplace=True,drop=True) 
     return tmp_df
 
-def get_intersecting_levels(df:pd.DataFrame, nomvars:list) -> pd.DataFrame:
-    """Gets the records of all intersecting levels for nomvars in list.
-    if TT,UU and VV are in the list, the output dataframe will contain all 3 
-    varaibles at all the intersectiong levels between the 3 variables 
+# def get_intersecting_levels(df:pd.DataFrame, nomvars:list) -> pd.DataFrame:
+#     """Gets the records of all intersecting levels for nomvars in list.
+#     if TT,UU and VV are in the list, the output dataframe will contain all 3 
+#     varaibles at all the intersectiong levels between the 3 variables 
 
-    :param df: input dataframe
-    :type df: pd.DataFrame
-    :param nomvars: list of nomvars to select
-    :type nomvars: list
-    :raises StandardFileError: if a problem occurs this exception will be raised
-    :return: dataframe subset
-    :rtype: pd.DataFrame
-    """
-    #logger.debug('1',df[['nomvar','surface','level','ip1_kind']])
-    if len(nomvars)<=1:
-        logger.error('get_intersecting_levels - not enough nomvars to process')
-        raise StandardFileError('not enough nomvars to process')
-    firstdf = df.query( 'nomvar == "%s"' % nomvars[0])
-    if df.empty:
-        logger.error('get_intersecting_levels - no records to intersect')
-        raise StandardFileError('get_intersecting_levels - no records to intersect')
-    common_levels = set(firstdf.level.unique())
-    query_strings = []
-    for name in nomvars:
-        current_query = 'nomvar == "%s"' % name
-        currdf = df.query('%s' % current_query)
-        levels = set(currdf.level.unique())
-        common_levels = common_levels.intersection(levels)
-        query_strings.append(current_query)
-    query_strings = " or ".join(tuple(query_strings))
-    query_res = df.query('(%s) and (level in %s)' % (query_strings, list(common_levels)))
-    if query_res.empty:
-        logger.error('get_intersecting_levels - no intersecting levels found')
-        return pd.DataFrame(dtype='object')
-    return query_res    
+#     :param df: input dataframe
+#     :type df: pd.DataFrame
+#     :param nomvars: list of nomvars to select
+#     :type nomvars: list
+#     :raises StandardFileError: if a problem occurs this exception will be raised
+#     :return: dataframe subset
+#     :rtype: pd.DataFrame
+#     """
+#     #logger.debug('1',df[['nomvar','surface','level','ip1_kind']])
+#     if len(nomvars)<=1:
+#         logger.error('get_intersecting_levels - not enough nomvars to process')
+#         raise StandardFileError('not enough nomvars to process')
+#     firstdf = df.query( 'nomvar == "%s"' % nomvars[0])
+#     if df.empty:
+#         logger.error('get_intersecting_levels - no records to intersect')
+#         raise StandardFileError('get_intersecting_levels - no records to intersect')
+#     common_levels = set(firstdf.level.unique())
+#     query_strings = []
+#     for name in nomvars:
+#         current_query = 'nomvar == "%s"' % name
+#         currdf = df.query('%s' % current_query)
+#         levels = set(currdf.level.unique())
+#         common_levels = common_levels.intersection(levels)
+#         query_strings.append(current_query)
+#     query_strings = " or ".join(tuple(query_strings))
+#     query_res = df.query('(%s) and (level in %s)' % (query_strings, list(common_levels)))
+#     if query_res.empty:
+#         logger.error('get_intersecting_levels - no intersecting levels found')
+#         return pd.DataFrame(dtype='object')
+#     return query_res    
 
 def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attributes_to_decode,n_cores):
     dataframes = []

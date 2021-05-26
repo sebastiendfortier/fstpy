@@ -10,7 +10,7 @@ import rpnpy.vgd.proto as vgdp
 
 from .dataframe import set_vertical_coordinate_type
 from .std_reader import load_data
-from .utils import initializer, validate_df_not_empty
+from .utils import initializer
 
 STANDARD_ATMOSPHERE = 1013.25
 
@@ -27,7 +27,8 @@ class Pressure:
     """
     @initializer
     def __init__(self,df:pd.DataFrame, standard_atmosphere:bool=False):
-        validate_df_not_empty(df,Pressure,PressureError) 
+        if self.df.empty:
+            raise PressureError('Pressure - no data to process')
         if 'vctype' not in self.df.columns:
             self.df = set_vertical_coordinate_type(self.df)
 

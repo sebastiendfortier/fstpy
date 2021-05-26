@@ -42,6 +42,7 @@ Documentation
 * :doc:`std_writer`
 * :doc:`std_dec`
 * :doc:`std_enc`
+* :doc:`pressure`
 * :doc:`dataframe`
 * :doc:`dataframe_utils`
 * :doc:`unit`
@@ -57,6 +58,7 @@ Documentation
    std_writer
    std_dec
    std_enc
+   pressure
    dataframe
    dataframe_utils
    unit

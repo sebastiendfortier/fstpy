@@ -475,7 +475,8 @@
         tt_df = fstpy.load_data(tt_df)
 
         # flatten arrays of the dataframe since second dimension is'nt necessary
-        tt_df = fstpy.flatten_data_series(tt_df)
+        for i in tt_df.index:
+            tt_df.at[i,'d'] = tt_df.at[i,'d'].flatten()
 
         #get a 3d array of TT
         array_3d = np.stack(tt_df['d'].to_list())
@@ -535,9 +536,9 @@
         tt_df = fstpy.select(df,'nomvar in ["TT","QR"]')
 
         # grouping data by grid, the usual case when you have multiple grids in a dataframe
-        grid_groups_list = fstpy.get_groups(tt_df,group_by_forecast_hour=False,group_by_level=False)
+        grid_groups = tt_df.groupby(by=['grid'])
 
-        for grid_df in grid_groups_list:
+        for _,grid_df in grid_groups:
             print(grid_df.head()[['nomvar','grid']])
 
     #+END_SRC
@@ -566,9 +567,9 @@
         tt_df = fstpy.select(df,'nomvar in ["TT",">>"]')
 
         # grouping data by forecast hour, the usual case when you have multiple forecast hours per grid in a dataframe
-        forecast_hour_groups_list = fstpy.get_groups(tt_df,group_by_forecast_hour=True,group_by_level=False)
+        forecast_hour_groups = tt_df.groupby(by=['grid','forecast_hour'])
 
-        for forecast_hour_df in forecast_hour_groups_list :
+        for _,forecast_hour_df in forecast_hour_groups:
             print(forecast_hour_df.head())
     #+END_SRC
 
@@ -604,9 +605,9 @@
         tt_df = fstpy.select(df,'nomvar in ["TT","UU","VV"]')
 
         # grouping data by level, the usual case when you have multiple levels per grid in a dataframe
-        levels_groups_list = fstpy.get_groups(tt_df,group_by_forecast_hour=True,group_by_level=True)
+        levels_groups =tt_df.groupby(by=['grid','level'])
 
-        for level_df in levels_groups_list:
+        for _,level_df in levels_groups:
             print(level_df.head()[['nomvar','level']])
     #+END_SRC
 

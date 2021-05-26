@@ -24,6 +24,9 @@ The following functions and constants are available through ``fstpy.``
    .. automodule:: fstpy.dataframe_utils 
       :members:
 
+   .. automodule:: fstpy.pressure
+      :members:
+
    .. automodule:: fstpy.std_writer 
       :members:
 
