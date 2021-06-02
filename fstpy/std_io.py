@@ -280,7 +280,7 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
         meta_df = pd.DataFrame(records)
         #print(meta_df[['nomvar','grid']])
         if meta_df.empty:
-            sys.stderr.write('get_meta_data_fields - no metatada in file %s\n'%path)
+            # sys.stderr.write('get_grid_metadata_fields - no metatada in file %s\n'%path)
             return pd.DataFrame(dtype=object)
         grid_groups = rec_df.groupby(rec_df.grid)
         #for each grid in the current file
@@ -342,7 +342,7 @@ def get_all_grid_metadata_fields_from_std_file(path):
 
 def compare_modification_times(df_file_modification_time, path:str,mode:str, caller:str,error_class:Exception):
     file_modification_time = get_file_modification_time(path,mode,caller, error_class)
-    print( np.datetime64(df_file_modification_time)-np.datetime64(file_modification_time) == np.timedelta64(0))
+    # print( np.datetime64(df_file_modification_time)-np.datetime64(file_modification_time) == np.timedelta64(0))
     if np.datetime64(df_file_modification_time)-np.datetime64(file_modification_time) != np.timedelta64(0):
         #print(df_file_modification_time, file_modification_time,df_file_modification_time != file_modification_time)
         raise error_class(caller + ' - original file has been modified since the start of the operation, keys might be invalid - exiting!')

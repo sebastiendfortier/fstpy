@@ -59,6 +59,7 @@ DATYP_DICT = {
                     7:'A',
                     8:'Z',
                     130:'i',
+                    132:'s',
                     133:'e',
                     134:'f'
                 } #: :meta hide-value:

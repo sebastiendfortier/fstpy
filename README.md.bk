@@ -63,7 +63,7 @@ Using fstpy in scripts or Jupyter Lab/Notebook
 . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
 # create a link to pre-built environment
 cd ~/.conda/envs/
-ln -s ~sgci800/envs/fstpy_full
+ln -s ~sgci800/.conda/envs/fstpy_full
 # whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)
 # unless you put it in your profile
 # activate your conda environment     
@@ -113,7 +113,7 @@ Using pre-build developpement environment
 . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
 # create a link to pre-built environment
 cd ~/.conda/envs/
-ln -s ~sgci800/envs/fstpy_full
+ln -s ~sgci800/.conda/envs/fstpy_full
 # whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)
 # unless you put it in your profile
 . activate fstpy_full   

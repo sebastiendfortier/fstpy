@@ -47,7 +47,7 @@ def fstcomp(file1:str, file2:str, columns=['nomvar', 'etiket','ni', 'nj', 'nk', 
     df1 = StandardFileReader(file1,load_data=True).to_pandas()
     # print('df1',df1)
     df2 = StandardFileReader(file2,load_data=True).to_pandas()
-    #print('df2',df2)
+    # print('df2',df2)
 
     return fstcomp_df(df1, df2, columns, print_unmatched=True if verbose else False,e_max=e_max,e_moy=e_moy,e_c_cor=e_c_cor)
 
@@ -56,11 +56,11 @@ def voir(df:pd.DataFrame,style=False):
     if df.empty:
         raise StandardFileError('voir - no records to process') 
        
-
-    df['datyp'] = df['datyp'].map(DATYP_DICT)
-    df['datev'] = df['datev'].apply(convert_rmndate_to_datetime)
-    df['dateo'] = df['dateo'].apply(convert_rmndate_to_datetime)
-    df = add_ip_info_columns(df)
+    to_print_df = df.copy()
+    to_print_df['datyp'] = to_print_df['datyp'].map(DATYP_DICT)
+    to_print_df['datev'] = to_print_df['datev'].apply(convert_rmndate_to_datetime)
+    to_print_df['dateo'] = to_print_df['dateo'].apply(convert_rmndate_to_datetime)
+    to_print_df = add_ip_info_columns(to_print_df)
     # res = df['ip1'].apply(decode_ip)
     # df['level'] = None
     # df[' '] = None
@@ -68,13 +68,13 @@ def voir(df:pd.DataFrame,style=False):
     #     df.at[i,'level']=res.loc[i][0] 
     #     df.at[i,' '] = res.loc[i][2]
 
-    res_df = df.sort_values(by=['nomvar','level'],ascending=True)
+    res_df = to_print_df.sort_values(by=['nomvar','level'],ascending=True)
 
     if style:
-        res_df = res_df.drop(columns=['dateo','grid','run','implementation','ensemble_member','shape','key','d','path','file_modification_time','ip1_kind','ip2_dec','ip2_kind','ip2_pkind','ip3_dec','ip3_kind','ip3_pkind','date_of_observation','date_of_validity','forecast_hour','d'],errors='ignore')
+        res_df = res_df.drop(columns=['dateo','grid','run','implementation','ensemble_member','shape','key','d','path','file_modification_time','ip1_kind','ip2_dec','ip2_kind','ip2_pkind','ip3_dec','ip3_kind','ip3_pkind','date_of_observation','date_of_validity','forecast_hour','d','surface','follow_topography','ascending','interval'],errors='ignore')
         res_df = reorder_columns(res_df,ordered=['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'datev', 'level',' ','ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'])        
     else:
-        res_df = res_df.drop(columns=['datev','grid','run','implementation','ensemble_member','shape','key','d','path','file_modification_time','ip1_kind','ip2_dec','ip2_kind','ip2_pkind','ip3_dec','ip3_kind','ip3_pkind','date_of_observation','date_of_validity','forecast_hour','d'],errors='ignore')
+        res_df = res_df.drop(columns=['datev','grid','run','implementation','ensemble_member','shape','key','d','path','file_modification_time','ip1_kind','ip2_dec','ip2_kind','ip2_pkind','ip3_dec','ip3_kind','ip3_pkind','date_of_observation','date_of_validity','forecast_hour','d','surface','follow_topography','ascending','interval'],errors='ignore')
 
     #logger.debug('    NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s) FORECASTHOUR      IP1        LEVEL        IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
     sys.stdout.write('%s\n'%res_df.reset_index(drop=True).to_string(header=True))
@@ -456,7 +456,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     #logger.debug('B',df2.loc[i])#[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']])    
     # check if they are exactly the same
     if df1.equals(df2):
-        # logger.debug('files are indetical - excluding meta data fields')
+        print('files are indetical - excluding meta data fields')
         # logger.debug('A',df1[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())
         # logger.debug('----------')
         # logger.debug('B',df2[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())
@@ -546,6 +546,7 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame,e_max=0.0001,
 
         if (not (-e_c_cor <= abs(diff.at[i, 'c_cor']-1.0) <= e_c_cor)) or (not (-e_max <= diff.at[i, 'e_rel_max'] <= e_max)) or (not (-e_moy <= diff.at[i, 'e_rel_moy']<=e_moy)):
             diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
-            print('maximum absolute difference:%s',np.max(np.abs(a-b)))
+            print('maximum absolute difference:%s'%np.max(np.abs(a-b)))
+            # print(np.abs(a-b))
             success = False
     return success            
