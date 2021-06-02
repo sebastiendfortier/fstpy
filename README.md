@@ -1,8 +1,6 @@
-Introduction
-============
+# Introduction
 
-What is it?
------------
+## What is it?
 
 Fstpy is a high level interface to rpn's rpnpy python library that
 produces pandas dataframes or Xarray's from CMC standard files. In order
@@ -10,16 +8,14 @@ to promote decoupling, modularization and collaboration, fstpy only
 reads and writes. All other operations and algorithms can be
 independent.
 
-Fstpy philosophy
-----------------
+## Fstpy philosophy
 
 The idea of ​​using a dataframe is to have a pythonic way of working
 with standard files without having to know the mechanics of rmnlib.
 Since many people come here with numpy, pandas and xarray knowledge, the
 learning curve is much less steep.
 
-Dataframes
-----------
+## Dataframes
 
 They are good for organizing information. eg: select all the tt's, sort
 them by grid then by level and produce 3d matrices for each tt of each
@@ -27,18 +23,15 @@ grid. Dataframes will help to integrate new model changes and new data
 types. Thanks to the dataframes we can also export our results more
 easily to different types of formats.
 
-Xarray's
---------
+## Xarray's
 
 They are used to analyse grouped and indexed data. They are espceially
 good for working with n-dimensional meteorological data. They also offer
 a great variety of built-in plotting functions.
 
-Requirements
-============
+# Requirements
 
-packages
---------
+## packages
 
 -   python 3.6
 -   numpy
@@ -46,15 +39,17 @@ packages
 -   dask
 -   xarray
 
-Installation
-============
+# Installation
 
 Use the ssm package
 
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.1/
+    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.2/
 
-Using fstpy in scripts or Jupyter Lab/Notebook
-----------------------------------------------
+Use the git repository package: at your own risk ;)
+
+    python3 -m pip install git+http://gitlab.science.gc.ca/CMDS/fstpy.git
+
+## Using fstpy in scripts or Jupyter Lab/Notebook
 
 ### Use pre-build developpement environment
 
@@ -71,7 +66,7 @@ ln -s ~sgci800/.conda/envs/fstpy_full
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.1/
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.2/
 ```
 
 ### Use fstpy
@@ -102,11 +97,9 @@ dest_path = '/tmp/out.std'
 fstpy.StandardFileWriter(dest_path,just_tt_and_uv).to_fst()    
 ```
 
-Contributing
-============
+# Contributing
 
-Using pre-build developpement environment
------------------------------------------
+## Using pre-build developpement environment
 
 ``` bash
 # get conda if you don't already have it  
@@ -119,8 +112,7 @@ ln -s ~sgci800/.conda/envs/fstpy_full
 . activate fstpy_full   
 ```
 
-Creating the developpement environment
---------------------------------------
+## Creating the developpement environment
 
 ``` bash
 # get conda if you don't already have it  
@@ -140,8 +132,7 @@ conda install numpy pandas dask xarray pytest
 conda env create -f fstpy_dev.yaml
 ```
 
-Getting the source code
------------------------
+## Getting the source code
 
 ``` bash
 git clone git@gitlab.science.gc.ca:cmds/fstpy.git
@@ -160,8 +151,7 @@ git push origin my_change
 Then create a merge request on science's gitlab
 <https://gitlab.science.gc.ca/cmds/fstpy/merge_requests>
 
-Testing
--------
+## Testing
 
 ``` bash
 # From the $project_root/test directory of the project
@@ -171,8 +161,7 @@ Testing
 python -m pytest  
 ```
 
-Building documentation
-----------------------
+## Building documentation
 
 ``` bash
 # This will build documentation in docs/build and there you will find index.html 
@@ -181,35 +170,30 @@ make clean
 make doc
 ```
 
-Conda basics
-============
+# Conda basics
 
 [conda
 reference](https://kiwidamien.github.io/save-the-environment-with-conda-and-how-to-let-others-run-your-programs.html)
 
-get cmc conda
--------------
+## get cmc conda
 
 ``` bash
 . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
 ```
 
-create an environment
----------------------
+## create an environment
 
 ``` bash
 conda create --name fstpy_dev python=3.6
 ```
 
-activate an environment
------------------------
+## activate an environment
 
 ``` bash
 . activate fstpy_dev
 ```
 
-install stuff in the env
-------------------------
+## install stuff in the env
 
 ``` bash
 conda install -c conda-forge sphinx-autodoc-typehints
@@ -221,43 +205,37 @@ conda install numpy pandas dask xarray pytest
 conda install sphinx
 ```
 
-export env to file
-------------------
+## export env to file
 
 ``` bash
 conda env export > fstpy_dev.yaml
 ```
 
-deactivate the env
-------------------
+## deactivate the env
 
 ``` bash
 conda deactivate
 ```
 
-deleting the env
-----------------
+## deleting the env
 
 ``` bash
 conda env remove --name fstpy_dev
 ```
 
-list all envs
--------------
+## list all envs
 
 ``` bash
 conda info --envs
 ```
 
-recreate the env from yml specs
--------------------------------
+## recreate the env from yml specs
 
 ``` bash
 conda env create --file fstpy_dev.yaml
 ```
 
-Acknowledgements
-================
+# Acknowledgements
 
 Great thanks to:
 

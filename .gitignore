@@ -16,3 +16,13 @@ global.lock
 purge.lock
 fstpy.egg-info
 doc/usage.rst
+doc/acknowledgements.rst
+doc/conda_howto.rst
+doc/contributing.rst
+doc/install.rst
+doc/intro.rst
+doc/LICENSE.rst
+doc/requirements.rst
+doc/ressources.rst
+doc/tutorial.rst
+
