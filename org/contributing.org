@@ -46,7 +46,7 @@
     # push your changes
     git push origin my_change
   #+END_SRC  
-  Then create a merge request on science's gitlab [[https://gitlab.science.gc.ca/cmds/fstpy/merge_requests]]
+  Then create a merge request on science's gitlab [[https://gitlab.science.gc.ca/CMDS/fstpy/merge_requests]]
 
 ** Testing
   #+BEGIN_SRC sh

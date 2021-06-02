@@ -17,7 +17,7 @@ setuptools.setup(
     description="High level pandas interface to fstd files",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.science.gc.ca/cmds/fstpy",
+    url="https://gitlab.science.gc.ca/CMDS/fstpy",
     project_urls={
         "Bug Tracker": "https://gitlab.science.gc.ca/CMDS/fstpy/issues",
     },

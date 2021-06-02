@@ -149,7 +149,7 @@ git push origin my_change
 ```
 
 Then create a merge request on science's gitlab
-<https://gitlab.science.gc.ca/cmds/fstpy/merge_requests>
+<https://gitlab.science.gc.ca/CMDS/fstpy/merge_requests>
 
 ## Testing
 
