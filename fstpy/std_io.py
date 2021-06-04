@@ -84,11 +84,11 @@ def get_header(file):
 
 def add_meta_to_query_results(df, sub_df, hy_df):
     # get metadata
-    metadf = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1","PN"]')
-    # print(metadf.query('grid in %s'%list(sub_df.grid.unique())) )  
+    meta_df = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1","PN"]')
+    # print(meta_df.query('grid in %s'%list(sub_df.grid.unique())) )  
     # print(list(sub_df.grid.unique()))  
     # print(sub_df)  
-    subdfmeta = metadf.query('grid in %s'%list(sub_df.grid.unique())) 
+    subdfmeta = meta_df.query('grid in %s'%list(sub_df.grid.unique())) 
     # print(subdfmeta)  
 
     if (not sub_df.empty) and (not subdfmeta.empty):
