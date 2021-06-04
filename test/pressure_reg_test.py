@@ -35,7 +35,8 @@ def test_regtest_1(plugin_test_dir):
     write_result(results_file,df)
     
     # open and read comparison file
-    file_to_compare = plugin_test_dir + "d.comp_res/px_eta_file2cmp.std"
+    file_to_compare = plugin_test_dir + "px_eta_file2cmp.std"
+    # file_to_compare =  "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_1"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -61,6 +62,7 @@ def test_regtest_2(plugin_test_dir):
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "px_eta_std_file2cmp.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_2"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -125,7 +127,7 @@ def test_regtest_5(plugin_test_dir):
 
     #compute Pressure
     df = Pressure(src_df0).compute()
-    # df['etiket'] = 'R1580V0N'
+    df['etiket'] = 'R1580V0N'
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Pressure --coordinateType SIGMA_COORDINATE --referenceField HU ] >>[Zap --pdsLabel R1580V0N] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
@@ -133,7 +135,8 @@ def test_regtest_5(plugin_test_dir):
     write_result(results_file,df)
 
     # open and read comparison file
-    file_to_compare = plugin_test_dir + "d.comp_res/px_sig_file2cmp.std"
+    file_to_compare = plugin_test_dir + "px_sig_file2cmp.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_5"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -158,6 +161,7 @@ def test_regtest_6(plugin_test_dir):
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "px_sig_std_file2cmp.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_6"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -229,7 +233,8 @@ def test_regtest_9(plugin_test_dir):
     write_result(results_file,df)
 
     # open and read comparison file
-    file_to_compare = plugin_test_dir + "d.comp_res/px_hyb_file2cmp.std"
+    file_to_compare = plugin_test_dir + "px_hyb_file2cmp.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_9"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -255,6 +260,7 @@ def test_regtest_10(plugin_test_dir):
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "px_hyb_std_file2cmp.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_10"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -320,13 +326,14 @@ def test_regtest_13(plugin_test_dir):
     #compute Pressure
     df = Pressure(src_df0).compute()
     #[ReaderStd --input {sources[0]}] >> [Pressure --coordinateType HYBRID_STAGGERED_COORDINATE --referenceField UU] >>[WriterStd --output {destination_path} --ignoreExtended]
-    df['etiket'] = '__PRESSX'
+    df['etiket'] = 'PRESSR'
     #write the result
     results_file = TMP_PATH + "test_pres_reg_13.std"
     write_result(results_file,df)
 
     # open and read comparison file
-    file_to_compare = plugin_test_dir + "d.comp_res/px_hyb_stg_file2cmp.std"
+    file_to_compare = plugin_test_dir + "px_hyb_stg_file2cmp.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_13"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -351,6 +358,7 @@ def test_regtest_14(plugin_test_dir):
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "px_hyb_stg_std_file2cmp.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_14"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -423,6 +431,7 @@ def test_regtest_17(plugin_test_dir):
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "px_pres_file2cmp.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_17"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -447,6 +456,7 @@ def test_regtest_18(plugin_test_dir):
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "px_pres_std_file2cmp.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_18"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -724,7 +734,8 @@ def test_regtest_30(plugin_test_dir):
     write_result(results_file,df)
 
     # open and read comparison file
-    file_to_compare = plugin_test_dir + "d.comp_res/px_eta_mult_fh_file2cmp.std"
+    file_to_compare = plugin_test_dir + "input_vrpcp24_00_file2cmp.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_30"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -780,28 +791,29 @@ def test_regtest_30(plugin_test_dir):
 # #     assert(res == True)
 
 
-# def test_regtest_33(plugin_test_dir):
-#     """Test #33 : Test avec un fichier glbpres avec l'option --coordinateType PRESSURE_COORDINATE"""
-#     # open and read source
-#     source0 = plugin_test_dir + "glbpres_TT_UU_VV.std"
-#     src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
+def test_regtest_33(plugin_test_dir):
+    """Test #33 : Test avec un fichier glbpres avec l'option --coordinateType PRESSURE_COORDINATE"""
+    # open and read source
+    source0 = plugin_test_dir + "glbpres_TT_UU_VV.std"
+    src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
 
 
-#     #compute Pressure
-#     df = Pressure(src_df0).compute()
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Pressure --coordinateType PRESSURE_COORDINATE --referenceField TT] >> [WriterStd --output {destination_path} --ignoreExtended ]
+    #compute Pressure
+    df = Pressure(src_df0).compute()
+    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Pressure --coordinateType PRESSURE_COORDINATE --referenceField TT] >> [WriterStd --output {destination_path} --ignoreExtended ]
+    df['etiket'] = 'PRESSR'
+    #write the result
+    results_file = TMP_PATH + "test_pres_reg_33.std"
+    StandardFileWriter(results_file,df).to_fst()
 
-#     #write the result
-#     results_file = TMP_PATH + "test_pres_reg_33.std"
-#     StandardFileWriter(results_file,df).to_fst()
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "glbpres_pressure_coordinate_file2cmp.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_33"
 
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "glbpres_pressure_coordinate_file2cmp.std"
-
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     delete_file(results_file)
-#     assert(res == True)
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(res == True)
 
 
 def test_regtest_34(plugin_test_dir):
@@ -821,6 +833,7 @@ def test_regtest_34(plugin_test_dir):
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "d.compute_pressure_varicelle_rslt.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_34"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -828,28 +841,29 @@ def test_regtest_34(plugin_test_dir):
     assert(res == True)
 
 
-# def test_regtest_35(plugin_test_dir):
-#     """Test #35 : Test avec un fichier 5005 avec l'option --coordinateType HYBRID_5005_COORDINATE thermodynamic"""
-#     # open and read source
-#     source0 = plugin_test_dir + "coord_5005_big.std"
-#     src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
+def test_regtest_35(plugin_test_dir):
+    """Test #35 : Test avec un fichier 5005 avec l'option --coordinateType HYBRID_5005_COORDINATE thermodynamic"""
+    # open and read source
+    source0 = plugin_test_dir + "coord_5005_big.std"
+    src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
 
 
-#     #compute Pressure
-#     df = Pressure(src_df0).compute()
-#     #['[ReaderStd --ignoreExtended --input {sources[0]} ]>> ', '[Pressure --coordinateType HYBRID_5005_COORDINATE --referenceField TT] >>', '[Zap --pdsLabel R1_V710_N --metadataZappable --doNotFlagAsZapped]  >>', '[Select --metadataFieldName P0,>>,^^ --exclude] >>', '[WriterStd --output {destination_path} --ignoreExtended]']
+    #compute Pressure
+    df = Pressure(src_df0).compute()
+    #['[ReaderStd --ignoreExtended --input {sources[0]} ]>> ', '[Pressure --coordinateType HYBRID_5005_COORDINATE --referenceField TT] >>', '[Zap --pdsLabel R1_V710_N --metadataZappable --doNotFlagAsZapped]  >>', '[Select --metadataFieldName P0,>>,^^ --exclude] >>', '[WriterStd --output {destination_path} --ignoreExtended]']
 
-#     #write the result
-#     results_file = TMP_PATH + "test_pres_reg_35.std"
-#     StandardFileWriter(results_file,df).to_fst()
+    #write the result
+    results_file = TMP_PATH + "test_pres_reg_35.std"
+    StandardFileWriter(results_file,df).to_fst()
 
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "resulttest_35_TT.std"
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "resulttest_35_TT.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_35"
 
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     delete_file(results_file)
-#     assert(res == True)
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(res == True)
 
 
 def test_regtest_36(plugin_test_dir):
@@ -869,6 +883,7 @@ def test_regtest_36(plugin_test_dir):
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "resulttest_36_UU.std"
+    # file_to_compare = "/fs/site4/eccc/cmd/w/sbf000/testFiles/Pressure/result_test_36"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
