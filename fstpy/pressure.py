@@ -853,6 +853,7 @@ def create_px_record(df, i, datyp, nbits,standard_atmosphere:bool):
     px_s['description'] = description
     px_s['nbits'] = nbits
     px_s['datyp'] = datyp
+    px_s['key'] = None
     return px_s
 
 def convert_levels_to_ips(levels, kind):
