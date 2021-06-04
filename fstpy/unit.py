@@ -21,7 +21,8 @@ class kelvin_to_fahrenheit:
       self.bias=bias
       self.factor=factor
    def __call__(self,v):
-      return v / self.factor - self.bias
+      return (v - 273.15) * 9/5 + 32
+      # return v / self.factor - self.bias
       
 
 class kelvin_to_rankine:
@@ -44,7 +45,8 @@ class celsius_to_fahrenheit:
    def __call__(self,v):
       a = kelvin_to_fahrenheit(self.fbias, self.ffactor)
       b = celsius_to_kelvin(self.cbias)
-      return a(b(v))
+      return (v * 9/5) + 32
+      # return a(b(v))
 
 
 class celsius_to_rankine:
@@ -61,7 +63,8 @@ class fahrenheit_to_kelvin:
       self.bias=bias
       self.factor=factor
    def __call__(self,v):
-      return (v +  self.bias) * self.factor
+      return (v - 32) * 5/9 + 273.15
+      # return (v +  self.bias) * self.factor
 
       
 
@@ -73,7 +76,8 @@ class fahrenheit_to_celsius:
    def __call__(self,v):
       a = kelvin_to_celsius(self.cbias)
       b = fahrenheit_to_kelvin(self.fbias, self.ffactor)
-      return a(b(v))
+      return (v - 32) * 5/9
+      # return a(b(v))
       
          
 class fahrenheit_to_rankine:
