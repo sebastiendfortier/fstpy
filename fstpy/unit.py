@@ -265,8 +265,10 @@ def unit_convert(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False) -> 
             converter = get_converter(unit_from, unit_to)
          
          if not(converter is None):
-            df.at[i,'d'] = converter(df.at[i,'d'])
+            converted_arr = converter(df.at[i,'d'])
+            df.at[i,'d'] = converted_arr
             df.at[i,'unit'] = to_unit_name
             df.at[i,'unit_converted'] = True
+            df.at[i,'key'] = None
          
    return df
