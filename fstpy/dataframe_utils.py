@@ -20,14 +20,14 @@ from .std_reader import StandardFileReader, load_data
 
 
 
-def fstcomp(file1:str, file2:str, columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
+def fstcomp(file1:str, file2:str, columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
     """Utility used to compare the contents of two RPN standard files (record by record).
 
     :param file1: path to file 1
     :type file1: str
     :param file2: path to file 2
     :type file2: str
-    :param columns: columns to be considered, defaults to ['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
+    :param columns: columns to be considered, defaults to ['nomvar', 'ni', 'nj', 'nk', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
     :type columns: list, optional
     :param verbose: if activated prints more information, defaults to False
     :type verbose: bool, optional
@@ -416,9 +416,9 @@ def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
     diff.drop(columns=['abs_diff'], inplace=True,errors='ignore')
     return diff
 
-def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar','etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
-    columns_to_keep = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2',
-       'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3',
+def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar','etiket','ni', 'nj', 'nk', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
+    columns_to_keep = ['nomvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2',
+       'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3',
        'ig4', 'datev', 'd']
     df1 = df1[columns_to_keep]   
     df2 = df2[columns_to_keep]   
@@ -483,16 +483,21 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
                 sys.stdout.write('%s\n'%common_with_2.to_string())
     else:
         sys.stderr.write('fstcomp - no common df to compare\n')
-        sys.stderr.write('A %s\n'%df1[['nomvar', 'typvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].reset_index(drop=True).to_string())
+        if not df1.empty:
+            sys.stderr.write('A %s\n'%df1[['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].reset_index(drop=True).to_string())
         sys.stderr.write('----------\n')
-        sys.stderr.write('B %s\n'%df2[['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].reset_index(drop=True).to_string())
+        if not df2.empty:
+            sys.stderr.write('B %s\n'%df2[['nomvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].reset_index(drop=True).to_string())
         raise StandardFileError('fstcomp - no common df to compare')
     diff = common.copy()
     #voir(diff)
     diff = add_fstcomp_columns(diff)
     
     success = compute_fstcomp_stats(common, diff,e_max,e_moy,e_c_cor)
+    
     diff = del_fstcomp_columns(diff)
+
+    # diff.sort_values(by=['nomvar','etiket','ip1'],inplace=True)
     if len(diff.index):
         sys.stdout.write('%s\n'%diff[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'biais', 'e_max', 'e_moy','diff_percent']].to_string(formatters={'level': '{:,.6f}'.format,'diff_percent': '{:,.1f}%'.format}))
         #logger.debug(diff[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'bias', 'e_max', 'e_moy']].to_string())
