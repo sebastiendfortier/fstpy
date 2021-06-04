@@ -499,13 +499,21 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
 
     # diff.sort_values(by=['nomvar','etiket','ip1'],inplace=True)
     if len(diff.index):
-        sys.stdout.write('%s\n'%diff[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'biais', 'e_max', 'e_moy','diff_percent']].to_string(formatters={'level': '{:,.6f}'.format,'diff_percent': '{:,.1f}%'.format}))
+        sys.stdout.write('%s\n'%diff[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'biais', 'e_max', 'e_moy']].to_string(formatters={'level': '{:,.6f}'.format,'diff_percent': '{:,.1f}%'.format}))
         #logger.debug(diff[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'bias', 'e_max', 'e_moy']].to_string())
     if len(missing.index):
         sys.stdout.write('missing df\n')
         sys.stdout.write('%s\n'%missing[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3']].to_string(header=False, formatters={'level': '{:,.6f}'.format}))
         #logger.debug(missing[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3']].to_string(header=False))
     return success
+
+def calc_derr(a,b):
+    if (a == 0.) and (b != 0.):
+        return abs(a-b)/abs(b)
+    elif (b == 0.) and (a != 0.):
+        return abs(a-b)/abs(a)
+    else:
+        return 0.
 
 def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
     
@@ -516,18 +524,25 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame,e_max=0.0001,
         b = common.at[i, 'd_y'].flatten()
         diff.at[i, 'abs_diff'] = np.abs(a-b)
         
-        derr = np.where(a == 0, np.abs(1-a/b), np.abs(1-b/a))
-        derr_sum=np.sum(derr)
-        if math.isnan(derr_sum):
-            diff.at[i, 'e_rel_max'] = 0.
-            diff.at[i, 'e_rel_moy'] = 0.
-        else:    
-            diff.at[i, 'e_rel_max'] = 0. if math.isnan(np.max(derr)) else np.max(derr)
-            diff.at[i, 'e_rel_moy'] = 0. if math.isnan(np.mean(derr)) else np.mean(derr)
+        vcalc_derr = np.vectorize(calc_derr)
+        derr = vcalc_derr(a,b)
+        # derr = np.where(a == 0, np.abs(1-a/b), np.abs(1-b/a))
+        # print(np.abs(derr1-derr),np.max(np.abs(derr1-derr)))
+        # derr_sum=np.sum(derr)
+        # print(derr_sum)
+        # if math.isnan(derr_sum):
+        #     diff.at[i, 'e_rel_max'] = 0.
+        #     diff.at[i, 'e_rel_moy'] = 0.
+        # else:    
+        diff.at[i, 'e_rel_max'] = np.max(derr)
+        diff.at[i, 'e_rel_moy'] = np.mean(derr)
+
         sum_a2 = np.sum(a**2)
-        sum_b2 = np.sum(b**2)
-        diff.at[i, 'var_a'] = np.mean(sum_a2)
-        diff.at[i, 'var_b'] = np.mean(sum_b2)
+        sum_b2 = np.sum(b**2)     
+        print(np.mean(sum_a2) == np.var(a))   
+        print(np.mean(sum_b2) == np.var(b))   
+        diff.at[i, 'var_a'] = np.var(a)
+        diff.at[i, 'var_b'] = np.var(b)
         diff.at[i, 'moy_a'] = np.mean(a)
         diff.at[i, 'moy_b'] = np.mean(b)
         
@@ -541,17 +556,19 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame,e_max=0.0001,
         else:
             c_cor = np.sqrt(diff.at[i, 'var_a'])
         diff.at[i, 'c_cor'] = c_cor 
-        diff.at[i, 'biais']=diff.at[i, 'moy_b']-diff.at[i, 'moy_a']
+        # diff.at[i, 'c_cor'] = np.correlate(a,b)[0]
+        diff.at[i, 'biais']=(diff.at[i, 'moy_b']-diff.at[i, 'moy_a'])
         diff.at[i, 'e_max'] = np.max(diff.at[i, 'abs_diff'])
         diff.at[i, 'e_moy'] = np.mean(diff.at[i, 'abs_diff'])
         
-        nbdiff = np.count_nonzero(a!=b)
-        diff.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
+        # nbdiff = np.count_nonzero(a!=b)
+        # diff.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
         # print(diff.at[i, 'c_cor'],1.0,1.0+1e-07,1-1e-07,math.isclose(diff.at[i, 'c_cor'],1.0,rel_tol=1e-07))
-
+        
         if (not (-e_c_cor <= abs(diff.at[i, 'c_cor']-1.0) <= e_c_cor)) or (not (-e_max <= diff.at[i, 'e_rel_max'] <= e_max)) or (not (-e_moy <= diff.at[i, 'e_rel_moy']<=e_moy)):
-            diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
-            print('maximum absolute difference:%s'%np.max(np.abs(a-b)))
+            if not np.allclose(a,b):
+                diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
+            # print('maximum absolute difference:%s'%np.max(np.abs(a-b)))
             # print(np.abs(a-b))
             success = False
     return success            
