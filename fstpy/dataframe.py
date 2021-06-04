@@ -447,16 +447,16 @@ def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove:pd.DataFrame) ->
 #     if len(nomvars)<=1:
 #         logger.error('get_intersecting_levels - not enough nomvars to process')
 #         raise StandardFileError('not enough nomvars to process')
-#     firstdf = df.query( 'nomvar == "%s"' % nomvars[0])
+#     first_df = df.query( 'nomvar == "%s"' % nomvars[0])
 #     if df.empty:
 #         logger.error('get_intersecting_levels - no records to intersect')
 #         raise StandardFileError('get_intersecting_levels - no records to intersect')
-#     common_levels = set(firstdf.level.unique())
+#     common_levels = set(first_df.level.unique())
 #     query_strings = []
 #     for name in nomvars:
 #         current_query = 'nomvar == "%s"' % name
-#         currdf = df.query('%s' % current_query)
-#         levels = set(currdf.level.unique())
+#         curr_df = df.query('%s' % current_query)
+#         levels = set(curr_df.level.unique())
 #         common_levels = common_levels.intersection(levels)
 #         query_strings.append(current_query)
 #     query_strings = " or ".join(tuple(query_strings))
