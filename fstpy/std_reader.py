@@ -214,7 +214,7 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
     return res_df    
 
 def unload_data(df:pd.DataFrame) -> pd.DataFrame:
-    """Removes the loaded data for every record in a dataframe
+    """Removes the loaded data for every record in a dataframe if it can be loaded from file
 
     :param df: dataframe to remove data from
     :type df: pd.DataFrame
