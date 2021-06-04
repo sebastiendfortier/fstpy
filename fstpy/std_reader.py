@@ -2,6 +2,7 @@
 import itertools
 import multiprocessing as mp
 import os
+from pathlib import Path
 import sys
 
 import numpy as np
@@ -71,11 +72,10 @@ class StandardFileReader:
         if self.array_container not in ['numpy','dask.array']:
             sys.stderr.write('wrong type of array container specified, defaulting to numpy\n')
             self.array_container = 'numpy'
-        if isinstance(self.filenames,list):
-            self.filenames = [os.path.abspath(f) for f in filenames]
-        else:        
-            self.filenames = os.path.abspath(self.filenames)
-
+        if isinstance(self.filenames,str): 
+            self.filenames = os.path.abspath(str(self.filenames))
+        else:
+            self.filenames = [os.path.abspath(str(f)) for f in filenames]
 
  
 
@@ -182,9 +182,9 @@ class StandardFileReader:
 def load_data(df:pd.DataFrame) -> pd.DataFrame:
     """Gets the associated data for every record in a dataframe
 
-    :param df: dataframe to fill
+    :param df: dataframe to add arrays to
     :type df: pd.DataFrame
-    :return: filled dataframe
+    :return: dataframe with filled arrays
     :rtype: pd.DataFrame
     """
     path_groups = df.groupby(df.path)
@@ -213,7 +213,18 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
     res_df.reset_index(drop=True,inplace=True)
     return res_df    
 
+def unload_data(df:pd.DataFrame) -> pd.DataFrame:
+    """Removes the loaded data for every record in a dataframe
 
+    :param df: dataframe to remove data from
+    :type df: pd.DataFrame
+    :return: dataframe with arrays removed
+    :rtype: pd.DataFrame
+    """
+    for i in df.index:
+        if isinstance(df.at[i,'d'],np.ndarray) and not(df.at[i,'key'] is None): 
+            df.at[i,'d'] = ('numpy',int(df.at[i,'key']))
+    return df  
 
 
 # def stack_arrays(df):
