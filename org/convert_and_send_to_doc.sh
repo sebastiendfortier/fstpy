@@ -9,5 +9,7 @@ DOC_DIR=${DIR:0:${#DIR}-3}doc
 #echo ${DOCDIR}
 for f in `ls *.org`
 do
-    echo 'converting '$f&&pandoc $f -o ${DOC_DIR}/${f%.org}.rst
+    cmd="pandoc $f -o ${DOC_DIR}/${f%.org}.rst"
+    echo "Converting $f : $cmd"
+    $cmd
 done
