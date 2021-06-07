@@ -11,5 +11,5 @@ for f in `ls *.org`
 do
     cmd="pandoc $f -o ${DOC_DIR}/${f%.org}.rst"
     echo "Converting $f : $cmd"
-    $cmd
+    eval $cmd
 done
