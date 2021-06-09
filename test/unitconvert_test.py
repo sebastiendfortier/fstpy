@@ -218,59 +218,59 @@ def test_regtest_6(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_7(plugin_test_dir):
-    """Test #7 : test a case for output file mode in standard format"""
-    # open and read source
-    source0 = plugin_test_dir + "input_big_fileSrc.std"
-    src_df0 = StandardFileReader(source0).to_pandas()
+# def test_regtest_7(plugin_test_dir):
+#     """Test #7 : test a case for output file mode in standard format"""
+#     # open and read source
+#     source0 = plugin_test_dir + "input_big_fileSrc.std"
+#     src_df0 = StandardFileReader(source0).to_pandas()
 
 
-    tt_df = select(src_df0,'(nomvar=="TT") and (etiket=="R1558V0N")')
-    #compute unit_convert
-    tt_df = unit_convert(tt_df,'kelvin')
+#     tt_df = select(src_df0,'(nomvar=="TT") and (etiket=="R1558V0N")')
+#     #compute unit_convert
+#     tt_df = unit_convert(tt_df,'kelvin')
 
-    uuvv_df = select(src_df0,'(nomvar in ["UU","VV"]) and (etiket=="R1558V0N")')
-    #compute unit_convert
-    uuvv_df = unit_convert(uuvv_df,'kilometer_per_hour')
+#     uuvv_df = select(src_df0,'(nomvar in ["UU","VV"]) and (etiket=="R1558V0N")')
+#     #compute unit_convert
+#     uuvv_df = unit_convert(uuvv_df,'kilometer_per_hour')
 
-    gz_df = select(src_df0,'(nomvar=="GZ") and (etiket=="R1558V0N")')
-    #compute unit_convert
-    gz_df = unit_convert(gz_df,'foot')
+#     gz_df = select(src_df0,'(nomvar=="GZ") and (etiket=="R1558V0N")')
+#     #compute unit_convert
+#     gz_df = unit_convert(gz_df,'foot')
 
-    all_df = pd.concat([tt_df,uuvv_df,gz_df],ignore_index=True)
+#     all_df = pd.concat([tt_df,uuvv_df,gz_df],ignore_index=True)
     
-    all_df = unit_convert(all_df,standard_unit=True)
+#     all_df = unit_convert(all_df,standard_unit=True)
 
 
-    others_df = select(src_df0,'(etiket!="R1558V0N")')
+#     others_df = select(src_df0,'(etiket!="R1558V0N")')
 
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
-    # (
-    #   (
-    #    (
-    #     ([Select --fieldName TT --pdsLabel R1558V0N] >> [UnitConvert --unit kelvin]) + 
-    #     ([Select --fieldName UU,VV --pdsLabel R1558V0N] >> [UnitConvert --unit kilometer_per_hour]) + 
-    #     ([Select --fieldName GZ --pdsLabel R1558V0N] >> [UnitConvert --unit foot])
-    #    ) >> [UnitConvert --unit STD] >> [Zap --pdsLabel R1558V0N --doNotFlagAsZapped]
-    #   ) +  [Select --fieldName TT,UU,VV,GZ --pdsLabel R1558V0N --exclude]
-    # ) >> 
-    # [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
+#     # (
+#     #   (
+#     #    (
+#     #     ([Select --fieldName TT --pdsLabel R1558V0N] >> [UnitConvert --unit kelvin]) + 
+#     #     ([Select --fieldName UU,VV --pdsLabel R1558V0N] >> [UnitConvert --unit kilometer_per_hour]) + 
+#     #     ([Select --fieldName GZ --pdsLabel R1558V0N] >> [UnitConvert --unit foot])
+#     #    ) >> [UnitConvert --unit STD] >> [Zap --pdsLabel R1558V0N --doNotFlagAsZapped]
+#     #   ) +  [Select --fieldName TT,UU,VV,GZ --pdsLabel R1558V0N --exclude]
+#     # ) >> 
+#     # [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-    all_df = pd.concat([all_df,others_df],ignore_index=True)
-    #write the result
-    results_file = TMP_PATH + "test_unitconv_7.std"
-    delete_file(results_file)
-    #all_df['datyp']=5
-    #all_df['nbits']=32
-    StandardFileWriter(results_file, all_df).to_fst()
+#     all_df = pd.concat([all_df,others_df],ignore_index=True)
+#     #write the result
+#     results_file = TMP_PATH + "test_unitconv_7.std"
+#     delete_file(results_file)
+#     #all_df['datyp']=5
+#     #all_df['nbits']=32
+#     StandardFileWriter(results_file, all_df).to_fst()
 
-    # open and read comparison file
-    file_to_compare = plugin_test_dir + "input_big_fileSrc.std"
+#     # open and read comparison file
+#     file_to_compare = plugin_test_dir + "input_big_fileSrc.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)#,e_max=0.1,e_moy=0.01)
-    delete_file(results_file)
-    assert(res == True)
+#     #compare results
+#     res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)#,e_max=0.1,e_moy=0.01)
+#     delete_file(results_file)
+#     assert(res == True)
 
 
 def test_regtest_8(plugin_test_dir):
@@ -313,101 +313,101 @@ def test_regtest_8(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_9(plugin_test_dir):
-    """Test #9 : test a case with complete roundtrip conversion celcius -> kelvin -> fahrenheit -> celsius in GeorgeKIndex context"""
-    # open and read source
-    source0 = plugin_test_dir + "TTES_fileSrc.std"
-    src_df0 = StandardFileReader(source0).to_pandas()
+# def test_regtest_9(plugin_test_dir):
+#     """Test #9 : test a case with complete roundtrip conversion celcius -> kelvin -> fahrenheit -> celsius in GeorgeKIndex context"""
+#     # open and read source
+#     source0 = plugin_test_dir + "TTES_fileSrc.std"
+#     src_df0 = StandardFileReader(source0).to_pandas()
 
-    es_df = select(src_df0,'nomvar=="ES"')
-    tt_df = select(src_df0,'nomvar=="TT"')
+#     es_df = select(src_df0,'nomvar=="ES"')
+#     tt_df = select(src_df0,'nomvar=="TT"')
 
-    #compute unit_convert
-    tt_df = unit_convert(tt_df,'kelvin')
-    es_df = unit_convert(es_df,'fahrenheit')
+#     #compute unit_convert
+#     tt_df = unit_convert(tt_df,'kelvin')
+#     es_df = unit_convert(es_df,'fahrenheit')
 
-    all_df = pd.concat([es_df,tt_df],ignore_index=True)
-    all_df = unit_convert(all_df,'celsius')
+#     all_df = pd.concat([es_df,tt_df],ignore_index=True)
+#     all_df = unit_convert(all_df,'celsius')
     
-    #compute unit_convert
-    all_df = zap(all_df,etiket="TESTGEORGESK")
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
-    # (
-    # ([Select --fieldName TT] >> [UnitConvert --unit kelvin]) + 
-    # ([Select --fieldName ES] >> [UnitConvert --unit fahrenheit])
-    # ) >> 
-    # [UnitConvert --unit celsius] >> 
-    # [Zap --pdsLabel TESTGEORGESK --doNotFlagAsZapped] >> 
-    # [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+#     #compute unit_convert
+#     all_df = zap(all_df,etiket="TESTGEORGESK")
+#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
+#     # (
+#     # ([Select --fieldName TT] >> [UnitConvert --unit kelvin]) + 
+#     # ([Select --fieldName ES] >> [UnitConvert --unit fahrenheit])
+#     # ) >> 
+#     # [UnitConvert --unit celsius] >> 
+#     # [Zap --pdsLabel TESTGEORGESK --doNotFlagAsZapped] >> 
+#     # [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-    #write the result
-    results_file = TMP_PATH + "test_unitconv_9.std"
-    delete_file(results_file)
-    #all_df['datyp']=5
-    #all_df['nbits']=32
-    StandardFileWriter(results_file, all_df).to_fst()
+#     #write the result
+#     results_file = TMP_PATH + "test_unitconv_9.std"
+#     delete_file(results_file)
+#     #all_df['datyp']=5
+#     #all_df['nbits']=32
+#     StandardFileWriter(results_file, all_df).to_fst()
 
-    # open and read comparison file
-    file_to_compare = plugin_test_dir + "TTES_fileSrc.std"
+#     # open and read comparison file
+#     file_to_compare = plugin_test_dir + "TTES_fileSrc.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
-    delete_file(results_file)
-    assert(res == True)
-
-
-def test_regtest_10(plugin_test_dir):
-    """Test #10 : test a case for output file mode in standard format"""
-    # open and read source
-    source0 = plugin_test_dir + "input_big_fileSrc.std"
-    src_df0 = StandardFileReader(source0).to_pandas()
-
-    tt_df = select(src_df0,'nomvar=="TT" and etiket=="R1558V0N"')
-    tt_df = unit_convert(tt_df,'kelvin')
-
-    uuvv_df = select(src_df0,'nomvar in ["UU","VV"] and etiket=="R1558V0N"')
-    uuvv_df = unit_convert(uuvv_df,'kilometer_per_hour')
-
-    gz_df = select(src_df0,'nomvar=="GZ" and etiket=="R1558V0N"')
-    gz_df2 = gz_df.copy(deep=True)
-
-    gz_df = unit_convert(gz_df,'foot')
-
-    gz_df2['nomvar']='ZGZ'
-    #compute unit_convert
+#     #compare results
+#     res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+#     delete_file(results_file)
+#     assert(res == True)
 
 
-    all_df = pd.concat([tt_df,uuvv_df,gz_df,gz_df2],ignore_index=True)
-    all_df = unit_convert(all_df,standard_unit=True)
+# def test_regtest_10(plugin_test_dir):
+#     """Test #10 : test a case for output file mode in standard format"""
+#     # open and read source
+#     source0 = plugin_test_dir + "input_big_fileSrc.std"
+#     src_df0 = StandardFileReader(source0).to_pandas()
 
-    others_df = select(src_df0,'(etiket!="R1558V0N")')
-    all_df = pd.concat([all_df,others_df],ignore_index=True)
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
-    # (
-    #   (
-    #       (
-    #           ([Select --fieldName TT --pdsLabel R1558V0N] >> [UnitConvert --unit kelvin]) + 
-    #           ([Select --fieldName UU,VV --pdsLabel R1558V0N] >> [UnitConvert --unit kilometer_per_hour]) + 
-    #           ([Select --fieldName GZ --pdsLabel R1558V0N] >> ([UnitConvert --unit foot] + [Zap --fieldName ZGZ --doNotFlagAsZapped]))
-    #       ) >>  [UnitConvert --unit STD --ignoreMissing] >> [Zap --pdsLabel R1558V0N --doNotFlagAsZapped]
-    #   ) + [Select --fieldName TT,UU,VV,GZ --pdsLabel R1558V0N --exclude]
-    # ) >> 
-    # [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+#     tt_df = select(src_df0,'nomvar=="TT" and etiket=="R1558V0N"')
+#     tt_df = unit_convert(tt_df,'kelvin')
 
-    #write the result
-    results_file = TMP_PATH + "test_unitconv_10.std"
-    delete_file(results_file)
-    #all_df['datyp']=5
-    #all_df['nbits']=32
-    StandardFileWriter(results_file, all_df).to_fst()
+#     uuvv_df = select(src_df0,'nomvar in ["UU","VV"] and etiket=="R1558V0N"')
+#     uuvv_df = unit_convert(uuvv_df,'kilometer_per_hour')
 
-    # open and read comparison file
-    file_to_compare = plugin_test_dir + "input_big_file2cmp.std"
+#     gz_df = select(src_df0,'nomvar=="GZ" and etiket=="R1558V0N"')
+#     gz_df2 = gz_df.copy(deep=True)
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
-    delete_file(results_file)
-    assert(res == True)
+#     gz_df = unit_convert(gz_df,'foot')
+
+#     gz_df2['nomvar']='ZGZ'
+#     #compute unit_convert
+
+
+#     all_df = pd.concat([tt_df,uuvv_df,gz_df,gz_df2],ignore_index=True)
+#     all_df = unit_convert(all_df,standard_unit=True)
+
+#     others_df = select(src_df0,'(etiket!="R1558V0N")')
+#     all_df = pd.concat([all_df,others_df],ignore_index=True)
+#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
+#     # (
+#     #   (
+#     #       (
+#     #           ([Select --fieldName TT --pdsLabel R1558V0N] >> [UnitConvert --unit kelvin]) + 
+#     #           ([Select --fieldName UU,VV --pdsLabel R1558V0N] >> [UnitConvert --unit kilometer_per_hour]) + 
+#     #           ([Select --fieldName GZ --pdsLabel R1558V0N] >> ([UnitConvert --unit foot] + [Zap --fieldName ZGZ --doNotFlagAsZapped]))
+#     #       ) >>  [UnitConvert --unit STD --ignoreMissing] >> [Zap --pdsLabel R1558V0N --doNotFlagAsZapped]
+#     #   ) + [Select --fieldName TT,UU,VV,GZ --pdsLabel R1558V0N --exclude]
+#     # ) >> 
+#     # [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+
+#     #write the result
+#     results_file = TMP_PATH + "test_unitconv_10.std"
+#     delete_file(results_file)
+#     #all_df['datyp']=5
+#     #all_df['nbits']=32
+#     StandardFileWriter(results_file, all_df).to_fst()
+
+#     # open and read comparison file
+#     file_to_compare = plugin_test_dir + "input_big_file2cmp.std"
+
+#     #compare results
+#     res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+#     delete_file(results_file)
+#     assert(res == True)
 
 
 def test_regtest_12(plugin_test_dir):
