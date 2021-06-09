@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
 import numpy as np
+from ast import literal_eval as make_tuple
 
 from .std_reader import load_data
 from .utils import initializer
@@ -81,8 +82,8 @@ class InterpolationHorizontalGrid(Plugin):
                 self.output_grid = define_grid(self.grtyp,grref,self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4,ax,ay,None)
                 self.ig1 = lat_df.iloc[0]['ip1']
                 self.ig2 = lat_df.iloc[0]['ip2']
-                self.ig3 = 0
-                self.ig4 = 0
+                self.ig3 = field_df.iloc[0]['ig3']
+                self.ig4 = field_df.iloc[0]['ig4']
 
             elif ('^>' in meta_df.nomvar.to_list()):
                 tictac_df = meta_df.query('nomvar=="^>"')
@@ -90,8 +91,8 @@ class InterpolationHorizontalGrid(Plugin):
                 self.output_grid = define_grid(self.grtyp,'',0,0,0,0,0,0,None,None,tictac_df.iloc[0]['d'])    
                 self.ig1 = tictac_df.iloc[0]['ip1']
                 self.ig2 = tictac_df.iloc[0]['ip2']
-                self.ig3 = 0
-                self.ig4 = 0
+                self.ig3 = field_df.iloc[0]['ig3']
+                self.ig4 = field_df.iloc[0]['ig4']
 
             else:
                 self.output_grid = define_grid(self.grtyp,'',self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4,None,None,None) 
@@ -173,8 +174,18 @@ class InterpolationHorizontalGrid(Plugin):
         for _,current_group in self.groups:
             # print(current_group[['nomvar','forecast_hour']])
             # print(grid)
-            # print(current_group[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
+            print('CURRENT_GROUP\n',current_group[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
             current_group = load_data(current_group)
+
+            hy_df = current_group.query("nomvar in ['HY']").reset_index(drop=True)
+            if not hy_df.empty:
+                no_mod.append(hy_df)
+
+            toctoc_df = current_group.query("nomvar in ['!!']").reset_index(drop=True)
+            # we can add toctoc from input grid
+            if not toctoc_df.empty:
+                results.append(toctoc_df)
+
             meta_df = current_group.query("nomvar in ['>>','^^','^>']").reset_index(drop=True)
             # print(meta_df[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
             vect_df = current_group.query("nomvar in ['UU','VV']").reset_index(drop=True)
@@ -209,9 +220,11 @@ class InterpolationHorizontalGrid(Plugin):
             input_grid = self.define_input_grid(grtyp,source_df,meta_df)
 
             in_params = rmn.ezgxprm(input_grid)
+            in_params.pop('id')
             out_params = rmn.ezgxprm(self.output_grid)
+            out_params.pop('id')
+
             if in_params == out_params:
-                # print('APPENDING\n',current_group)
                 no_mod.append(current_group)
                 continue
 
@@ -236,6 +249,7 @@ class InterpolationHorizontalGrid(Plugin):
                 # scalar except PT
                 others_int_df = others_df.copy(deep=True)
                 for i in others_df.index:
+                    # print(others_df.loc[i][['nomvar','ni','nj']])
                     arr = rmn.ezsint(self.output_grid, input_grid, others_df.at[i,'d'])
                     others_int_df.at[i,'d'] = arr
                 results.append(others_int_df)        
@@ -271,26 +285,32 @@ class InterpolationHorizontalGrid(Plugin):
         # res_df.loc['shape'] = myshape
         # result_specifications = {'ni':self.ni,'nj':self.nj,'ig1':self.ig1,'ig2':self.ig2,'ig3':self.ig3,'ig4':self.ig4,'interpolated':True}
         # for k,v in result_specifications.items():res_df[k]=v
-        res_df.drop(columns=['shape'],inplace=True)
-        res_df["shape"] = [(self.ni,self.nj)] * len(res_df)
-        res_df['ni'] = self.ni
-        res_df['nj'] = self.nj
-        res_df['grtyp'] = self.grtyp
-        # res_df['path'] = ''
-        res_df['interpolated'] = True
-        res_df['ig1'] = self.ig1
-        res_df['ig2'] = self.ig2
-        res_df['ig3'] = self.ig3
-        res_df['ig4'] = self.ig4
+        toctoc_res_df = res_df.query('nomvar == "!!"')
+        toctoc_res_df.loc[:,'ip1'] = self.ig1
+        toctoc_res_df.loc[:,'ip2'] = self.ig2
+
+        other_res_df = res_df.query('nomvar != "!!"')
+        # other_res_df.drop(columns=['shape'],inplace=True)
+        for i in other_res_df.index:
+            other_res_df.at[i,"shape"] = (self.ni,self.nj)
+
+        other_res_df.loc[:,'ni'] = self.ni
+        other_res_df.loc[:,'nj'] = self.nj
+        other_res_df.loc[:,'grtyp'] = self.grtyp
+        other_res_df.loc[:,'interpolated'] = True
+        other_res_df.loc[:,'ig1'] = self.ig1
+        other_res_df.loc[:,'ig2'] = self.ig2
+        other_res_df.loc[:,'ig3'] = self.ig3
+        other_res_df.loc[:,'ig4'] = self.ig4
         
         
         if not no_mod_df.empty:
-            res_df = pd.concat([res_df,no_mod_df],ignore_index=True)
+            other_res_df = pd.concat([other_res_df,no_mod_df],ignore_index=True)
             # print('RES_DF',res_df)
         # else:
         #     print('RES_DF EMPTY')
 
-        return res_df
+        return other_res_df
 
 
 
@@ -324,6 +344,7 @@ def define_grid(grtyp:str,grref:str,ni:int,nj:int,ig1:int,ig2:int,ig3:int,ig4:in
 
     elif grtyp == 'U':
         start_pos = 5
+        tictac = tictac.flatten()
         ni = int(tictac[start_pos])
         nj = int(tictac[start_pos+1])
         encoded_ig1 = tictac[start_pos+6]
@@ -337,8 +358,10 @@ def define_grid(grtyp:str,grref:str,ni:int,nj:int,ig1:int,ig2:int,ig3:int,ig4:in
         next_pos = position_ay + nj
         ax = tictac[position_ax:position_ay]
         ay = tictac[position_ay:next_pos]
+        # print(ax.shape)
+        # print(ay.shape)
         grid_params = {'grtyp':'Z','grref':'E','ni':ni,'nj':nj,'ig1':ig1,'ig2':ig2,'ig3':ig3,'ig4':ig4,'ay':ay,'ax':ax}
-
+        # print(grid_params,position_ax,position_ay)
         # Definition de la 1ere sous-grille
         sub_grid_id_1 = rmn.ezgdef_fmem(grid_params)
 
@@ -357,14 +380,18 @@ def define_grid(grtyp:str,grref:str,ni:int,nj:int,ig1:int,ig2:int,ig3:int,ig4:in
         next_pos = position_ay + nj
         ax = tictac[position_ax:position_ay]
         ay = tictac[position_ay:next_pos]
+        # print(ax.shape)
+        # print(ay.shape)
         grid_params = {'grtyp':'Z','grref':'E','ni':ni,'nj':nj,'ig1':ig1,'ig2':ig2,'ig3':ig3,'ig4':ig4,'ay':ay,'ax':ax}
+        # print(grid_params,position_ax,position_ay)
         # Definition de la 1ere sous-grille
         sub_grid_id_2 = rmn.ezgdef_fmem(grid_params)
 
         vercode = 1
         grtyp = 'U'
-        grref = 'F'
-        grid_id = rmn.ezgdef_supergrid(ni, nj, grtyp, grref, vercode, (sub_grid_id_1,sub_grid_id_2))        
+        grref = ''
+        # print('supergrid',ni, nj, grtyp, grref, vercode)
+        grid_id = rmn.ezgdef_supergrid(ni, 2*nj, grtyp, grref, vercode, (sub_grid_id_1,sub_grid_id_2))        
         # params = rmn.ezgxprm(grid_id)
         # print(f"Grid type={params['grtyp']}/{params['grref']} of size={params['ni']}, {params['nj']} - {params}")
 
