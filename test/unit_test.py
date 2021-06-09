@@ -14,10 +14,10 @@ pytestmark = [pytest.mark.unit, pytest.mark.unit_tests]
 def base_dataframe():
     arr = np.array([[-5.0]],dtype='float32')
     d = [
-        {'nomvar':'TT','unit':'celsius','unit_converted':False,'d':arr, 'path':None},
-        {'nomvar':'TT','unit':'fahrenheit','unit_converted':False,'d':arr, 'path':None},
-        {'nomvar':'TT','unit':'rankine','unit_converted':False,'d':arr, 'path':None},
-        {'nomvar':'TT','unit':'kelvin','unit_converted':False,'d':arr, 'path':None},
+        {'nomvar':'TT','unit':'celsius','unit_converted':False,'d':arr, 'path':None,'datev':123456},
+        {'nomvar':'TT','unit':'fahrenheit','unit_converted':False,'d':arr, 'path':None,'datev':123456},
+        {'nomvar':'TT','unit':'rankine','unit_converted':False,'d':arr, 'path':None,'datev':123456},
+        {'nomvar':'TT','unit':'kelvin','unit_converted':False,'d':arr, 'path':None,'datev':123456},
         ]
     df = pd.DataFrame(d)
     return df
