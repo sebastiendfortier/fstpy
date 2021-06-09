@@ -179,7 +179,7 @@ class StandardFileReader:
     #     return ds
 
  
-def load_data(df:pd.DataFrame) -> pd.DataFrame:
+def load_data(df:pd.DataFrame,clean:bool=False) -> pd.DataFrame:
     """Gets the associated data for every record in a dataframe
 
     :param df: dataframe to add arrays to
@@ -189,6 +189,8 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
     """
     path_groups = df.groupby(df.path)
     res_list = []
+    if clean:
+        df['clean'] = False
     for _,path_df in path_groups:
         if ('file_modification_time' in path_df.columns) and ((path_df.iloc[0]['file_modification_time'] is None) == False):
             compare_modification_times(path_df.iloc[0]['file_modification_time'], path_df.iloc[0]['path'],rmn.FST_RO, 'std_reader.py::load_data',StandardFileError)
@@ -201,6 +203,7 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
                 continue
             #call stored function with param, rmn.fstluk(key) 
             path_df.at[i,'d'] = read_record(path_df.at[i,'d'][0],path_df.at[i,'d'][1])
+            path_df.at[i,'clean'] = True if clean else False
             #path_df.at[i,'fstinl_params'] = None
             # path_df.at[i,'path'] = None
         res_list.append(path_df)
@@ -213,7 +216,7 @@ def load_data(df:pd.DataFrame) -> pd.DataFrame:
     res_df.reset_index(drop=True,inplace=True)
     return res_df    
 
-def unload_data(df:pd.DataFrame) -> pd.DataFrame:
+def unload_data(df:pd.DataFrame,only_marked:bool=False) -> pd.DataFrame:
     """Removes the loaded data for every record in a dataframe if it can be loaded from file
 
     :param df: dataframe to remove data from
@@ -221,9 +224,11 @@ def unload_data(df:pd.DataFrame) -> pd.DataFrame:
     :return: dataframe with arrays removed
     :rtype: pd.DataFrame
     """
+
     for i in df.index:
-        if isinstance(df.at[i,'d'],np.ndarray) and not(df.at[i,'key'] is None): 
+        if isinstance(df.at[i,'d'],np.ndarray) and not(df.at[i,'key'] is None) and ( df.at[i,'clean'] if only_marked else True): 
             df.at[i,'d'] = ('numpy',int(df.at[i,'key']))
+    df = df.drop(columns=['clean'],errors='ignore')        
     return df  
 
 
