@@ -26,8 +26,8 @@ readme:
 replace:
 	@$(ORG_DIR)/replace_modified_files.sh
 
-doc: 
-	make clean&&make insert_version&&make rst&&make readme&&make replace&&make html
+doc: rst readme insert_version
+	make --no-print-directory html
 
 .PHONY: help Makefile
 
