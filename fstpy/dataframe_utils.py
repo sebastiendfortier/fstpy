@@ -507,13 +507,20 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
         #logger.debug(missing[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3']].to_string(header=False))
     return success
 
-def calc_derr(a,b):
-    if (a == 0.) and (b != 0.):
-        return abs(a-b)/abs(b)
-    elif (b == 0.) and (a != 0.):
-        return abs(a-b)/abs(a)
-    else:
-        return 0.
+# def calc_derr(a,b):
+#     if (a == 0.) and (b != 0.):
+#         return abs(a-b)/abs(b)
+#     elif (b == 0.) and (a != 0.):
+#         return abs(a-b)/abs(a)
+#     else:
+#         return 0.
+
+def calc_derr(ar,br):
+#     print(ar,br,sep='\t')
+    if ar == 0:
+       return np.abs(1-(ar/br))
+    return np.abs(1-(br/ar))
+
 
 def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
     
@@ -524,9 +531,22 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame,e_max=0.0001,
         b = common.at[i, 'd_y'].flatten()
         diff.at[i, 'abs_diff'] = np.abs(a-b)
         
-        vcalc_derr = np.vectorize(calc_derr)
-        derr = vcalc_derr(a,b)
-        # derr = np.where(a == 0, np.abs(1-a/b), np.abs(1-b/a))
+        a1 = np.where((a==0) & (b==0),1,a)
+        b1 = np.where((a==0) & (b==0),1,b)
+
+        verror_rel = np.vectorize(calc_derr)
+        # derr0 = np.where(a==0,np.abs(1-a/b),np.abs(1-b/a))
+        # derr = np.where(a1==0,abs(1-(a1/b1)),abs(1-(b1/a1)))
+        derr = verror_rel(a1,b1)
+
+        # vcalc_derr = np.vectorize(calc_derr)
+        # derr = vcalc_derr(a,b)
+        # print(f'err_rel {derr}')
+
+        # derr1 = np.where(a == 0 and b != 0, np.abs(1-a/b), np.abs(1-b/a))
+        # print(f'err_rel0 {derr0}')
+        # print(f'err_rel1 {derr1}')
+        # print(f'err_rel2 {derr2}')
         # print(np.abs(derr1-derr),np.max(np.abs(derr1-derr)))
         # derr_sum=np.sum(derr)
         # print(derr_sum)
@@ -539,8 +559,8 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame,e_max=0.0001,
 
         sum_a2 = np.sum(a**2)
         sum_b2 = np.sum(b**2)     
-        print(np.mean(sum_a2) == np.var(a))   
-        print(np.mean(sum_b2) == np.var(b))   
+        # print(np.mean(sum_a2) == np.var(a))   
+        # print(np.mean(sum_b2) == np.var(b))   
         diff.at[i, 'var_a'] = np.var(a)
         diff.at[i, 'var_b'] = np.var(b)
         diff.at[i, 'moy_a'] = np.mean(a)
@@ -568,7 +588,7 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame,e_max=0.0001,
         if (not (-e_c_cor <= abs(diff.at[i, 'c_cor']-1.0) <= e_c_cor)) or (not (-e_max <= diff.at[i, 'e_rel_max'] <= e_max)) or (not (-e_moy <= diff.at[i, 'e_rel_moy']<=e_moy)):
             if not np.allclose(a,b):
                 diff.at[i, 'nomvar'] = '<' + diff.at[i, 'nomvar'] + '>'
-            # print('maximum absolute difference:%s'%np.max(np.abs(a-b)))
-            # print(np.abs(a-b))
-            success = False
+                # print('maximum absolute difference:%s'%np.max(np.abs(a-b)))
+                # print(np.abs(a-b))
+                success = False
     return success            
