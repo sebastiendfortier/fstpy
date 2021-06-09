@@ -274,6 +274,8 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
     #for each files in the df
     for _, rec_df in path_groups:
         path = rec_df.iloc[0]['path']
+        if path is None:
+            continue
         # file_modification_time = rec_df.iloc[0]['file_modification_time']
         # compare_modification_times(file_modification_time,path,rmn.FST_RO,caller,error_class)
         records = get_all_grid_metadata_fields_from_std_file(path)
