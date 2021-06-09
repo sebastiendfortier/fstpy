@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import sys
 import fstpy.all as fstpy
 import xarray as xr 
 import numpy as np
@@ -13,10 +14,9 @@ import metpy.calc as mpcalc
 def main():
     vv = get_dataframe_sorted_by_date()
 
-    lat_lon_df = fstpy.get_lat_lon(vv)
+    lat_lon_df = vv.query('nomvar in [">>","^^"]')
 
-    lat = get_latitude_data_array(lat_lon_df)
-        
+    lat = get_latitude_data_array(lat_lon_df)    
     lon = get_longitude_data_array(lat_lon_df)
 
     time, times = get_time_data_array(vv)
@@ -27,7 +27,8 @@ def main():
 
     # Compute weights and take weighted average over latitude dimension
     weights = np.cos(np.deg2rad(data.lat.values))
-    avg_data = (data * weights[None, :, None]).sum(dim='lat') / np.sum(weights)
+
+    avg_data = (data * weights[None, None, : ]).sum(dim='lat') / np.sum(weights)
 
     # Get times and make array of datetime objects
     vtimes = data.time.values.astype('datetime64[ms]').astype('O')
@@ -106,6 +107,7 @@ def get_vwnd_subset(times, vwnd):
     return data
 
 def get_vwnd_data_array(vv, time, lat, lon):
+
     vv_values = get_vv_values(vv)
 
     vwnd_attribs = {
@@ -137,13 +139,13 @@ def get_vwnd_data_array(vv, time, lat, lon):
     return vwnd
 
 def get_latitude_data_array(lat_lon_df):
-    lati = fstpy.select(lat_lon_df,'nomvar=="^^"').iloc[0]['d']
+    lati = lat_lon_df.query('nomvar=="^^"').iloc[0]['d']
     lati = lati.flatten()
     lat_arrtibs = {
             'units' :'degrees_north',
             'actual_range' :[ np.max(lati),np.min(lati)],
-            'long_name' :'Longitude',
-            'standard_name' :'longitude',
+            'long_name' :'Latitude',
+            'standard_name' :'latitude',
             'axis' :'Y',
             }
 
@@ -157,7 +159,8 @@ def get_latitude_data_array(lat_lon_df):
     return lat
 
 def get_longitude_data_array(lat_lon_df):
-    loni = fstpy.select(lat_lon_df,'nomvar==">>"').iloc[0]['d']
+    loni = lat_lon_df.query('nomvar==">>"').iloc[0]['d']
+    loni = loni.flatten()
     lon_arrtibs = {
             'units' :'degrees_east',
             'actual_range' :[ np.min(loni),np.max(loni)],    
@@ -176,12 +179,14 @@ def get_longitude_data_array(lat_lon_df):
     return lon
 
 def get_vv_values(vv):
-    vv_values = np.stack(vv['d'].to_list())
+    df = vv.query('nomvar=="VV"')
+    vv_values = np.stack(df['d'].to_list())
     return vv_values
 
 
 def get_time_data_array(vv):
-    times = np.array(vv['date_of_observation'].to_list())
+    df = vv.query('nomvar=="VV"')
+    times = np.array(df['date_of_observation'].to_list())
     delta_t = np.max(times)- np.min(times)
     time_arrtibs = {
             'long_name' :'Time',
@@ -203,11 +208,12 @@ def get_time_data_array(vv):
 
 
 def get_dataframe_sorted_by_date():
-    df = fstpy.StandardFileReader('/fs/homeu1/eccc/cmd/cmda/pbu000/hovmuller/p_levels/reg/VV_250hPa_RU_0.3d',load_data=True,query='nomvar=="VV"')()
+    df = fstpy.StandardFileReader('/fs/homeu1/eccc/cmd/cmda/pbu000/hovmuller/p_levels/reg/VV_250hPa_RU_0.3d',decode_metadata=True,load_data=True,query='nomvar=="VV"').to_pandas()
 
     vv = df.copy(deep=True)
 
     vv = vv.sort_values(by=['date_of_observation'])
+    
     return vv
 
 if __name__ == "__main__":
