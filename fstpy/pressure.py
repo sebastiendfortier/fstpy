@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import ctypes
+from fstpy.plugin import Plugin
 import math
 import sys
 
@@ -17,7 +18,7 @@ STANDARD_ATMOSPHERE = 1013.25
 class PressureError(Exception):
     pass
 
-class Pressure:
+class Pressure(Plugin):
     """creates a pressure field associated to a level for each identified vertical coordinate type
 
     :param df: input dataframe 
@@ -342,7 +343,7 @@ class Eta2Pressure:
         myvgd = vgdp.c_vgd_construct()
         # see https://wiki.cmc.ec.gc.ca/wiki/Vgrid/C_interface/Cvgd_new_gen for kind and version
         ptop = ctypes.pointer(ctypes.c_double(self.ptop))
-        status = vgdp.c_vgd_new_gen(myvgd, ETA_KIND, ETA_VERSION, self.levels, len(self.levels), None,None,ptop,None,None,0,0,None,None)
+        status = vgdp.c_vgd_new_gen(myvgd, ETA_KIND, ETA_VERSION, self.levels.astype('float32'), len(self.levels), None,None,ptop,None,None,0,0,None,None)
         if status:
             sys.stderr.write("Eta2Pressure - There was a problem creating the VGridDescriptor\n")
         self.myvgd = myvgd   
