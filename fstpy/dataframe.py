@@ -170,7 +170,7 @@ def add_decoded_date_column(df:pd.DataFrame,attr:str='dateo') ->pd.DataFrame:
     :return: either date_of_observation or date_of_validity column added to the dataframe
     :rtype: pd.DataFrame
     """
-    vconvert_rmndate_to_datetime = np.vectorize(convert_rmndate_to_datetime,otypes=['datetime64'])  
+    vconvert_rmndate_to_datetime = np.vectorize(convert_rmndate_to_datetime)#,otypes=['datetime64']  
     if attr == 'dateo':  
         df.loc[:,'date_of_observation'] = vconvert_rmndate_to_datetime(df['dateo'])
     else:    
@@ -188,7 +188,7 @@ def add_forecast_hour_column(df:pd.DataFrame) -> pd.DataFrame:
     """
     from .std_dec import get_forecast_hour
     # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
-    vcreate_forecast_hour = np.vectorize(get_forecast_hour,otypes=['timedelta64[ns]'])    
+    vcreate_forecast_hour = np.vectorize(get_forecast_hour)#,otypes=['timedelta64[ns]']
     df.loc[:,'forecast_hour'] = vcreate_forecast_hour(df['deet'],df['npas'])
     return df
 
@@ -328,7 +328,8 @@ def reorder_columns(df) -> pd.DataFrame:
     ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas','datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
     if df.empty:
         return df
-    all_columns = set(df.columns.to_list())    
+    all_columns = set(df.columns)        
+    # all_columns = set(df.columns.to_list())    
 
     extra_columns = all_columns.difference(set(ordered))
     if len(extra_columns) > 0:
@@ -340,10 +341,10 @@ def reorder_columns(df) -> pd.DataFrame:
 def sort_dataframe(df) -> pd.DataFrame:
     if df.empty:
         return df
-    if ('grid' in df.columns) and ('forecast_hour' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
-        df.sort_values(by=['grid','forecast_hour','nomvar','level'],ascending=False,inplace=True)
+    if ('grid' in df.columns) and ('datev' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
+        df.sort_values(by=['grid','datev','nomvar','level'],ascending=[True,True,True,False],inplace=True)
     else:     
-        df.sort_values(by=['nomvar'],ascending=False,inplace=True)
+        df.sort_values(by=['datev','nomvar'],ascending=[True,True],inplace=True)
     df.reset_index(drop=True,inplace=True)
     return df    
 
