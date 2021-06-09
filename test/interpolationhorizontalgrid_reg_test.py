@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from numpy.core.numeric import allclose
-from fstpy.test import Test
 from test import TEST_PATH, TMP_PATH
 
 import pytest
@@ -38,7 +37,6 @@ def test_regtest_1(plugin_test_dir):
     """Test #1 :   Interpolation with multiple different input grid"""
     # open and read source
 
-    b= Test(pd.DataFrame(dtype=object),1)
     source0 = plugin_test_dir + "input_big_fileSrc.std"
     src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
 
@@ -46,10 +44,10 @@ def test_regtest_1(plugin_test_dir):
     #compute Pressure
     df = InterpolationHorizontalGrid(src_df0,method='user',grtyp='N',ni=191,nj=141,param1=79.0,param2=117.0,param3=57150.0,param4=21.0,interpolation_type='bi-linear',extrapolation_type='maximum').compute()
     #[ReaderStd --ignoreExtended --input {sources[0]}] >>[Pressure --coordinateType ETA_COORDINATE --referenceField TT] >>[Zap --pdsLabel R1580V0N] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-    df['typvar'] = 'PI'
-    df['etiket'] = np.where(df.etiket == 'R1558V0N','R1558V0_N',df.etiket)
-    df['etiket'] = np.where(df.etiket == 'G0928V4N','G0928V4_N',df.etiket)
-    df['etiket'] = np.where(df.etiket == 'MXWIND','MXWIND__X',df.etiket)
+    df.loc[:,'typvar'] = 'PI'
+    df.loc[:,'etiket'] = np.where(df.etiket == 'R1558V0N','R1558V0_N',df.etiket)
+    df.loc[:,'etiket'] = np.where(df.etiket == 'G0928V4N','G0928V4_N',df.etiket)
+    df.loc[:,'etiket'] = np.where(df.etiket == 'MXWIND','MXWIND__X',df.etiket)
     # df['datyp'] = 5
     # df['nbits'] = 32
     #write the result
