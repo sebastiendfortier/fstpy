@@ -20,7 +20,7 @@ from .std_reader import StandardFileReader, load_data
 
 
 
-def fstcomp(file1:str, file2:str, columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
+def fstcomp(file1:str, file2:str, exclude_meta=True, columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001,allclose=False) -> bool:
     """Utility used to compare the contents of two RPN standard files (record by record).
 
     :param file1: path to file 1
@@ -49,7 +49,7 @@ def fstcomp(file1:str, file2:str, columns=['nomvar', 'etiket','ni', 'nj', 'nk', 
     df2 = StandardFileReader(file2,load_data=True).to_pandas()
     # print('df2',df2)
 
-    return fstcomp_df(df1, df2, columns, print_unmatched=True if verbose else False,e_max=e_max,e_moy=e_moy,e_c_cor=e_c_cor)
+    return fstcomp_df(df1, df2, exclude_meta, columns, print_unmatched=True if verbose else False,e_max=e_max,e_moy=e_moy,e_c_cor=e_c_cor,allclose=allclose)
 
 def voir(df:pd.DataFrame,style=False):
     """Displays the metadata of the supplied records in the rpn voir format"""
@@ -416,7 +416,7 @@ def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
     diff.drop(columns=['abs_diff'], inplace=True,errors='ignore')
     return diff
 
-def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar','etiket','ni', 'nj', 'nk', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
+def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar','etiket','ni', 'nj', 'nk', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001,allclose=False) -> bool:
     columns_to_keep = ['nomvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2',
        'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3',
        'ig4', 'datev', 'd']
@@ -464,8 +464,15 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     #create common fields
 
     common = pd.merge(df1, df2, how='inner', on=columns)
-    print(common['d_x'])
-    print(common['d_y'])
+    print(common[['nomvar','d_x']])
+    print(common[['nomvar','d_y']])
+    if allclose:
+        for i in common.index:
+            if not np.allclose(common.at[i,'d_x'],common.at[i,'d_x']):
+                sys.stderr.write(f'failed on {common.loc[i]}\n')
+                return False
+        return True        
+
     #Rows in df1 Which Are Not Available in df2
     common_with_1 = common.merge(df1, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
     #Rows in df2 Which Are Not Available in df1
@@ -504,6 +511,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     if len(missing.index):
         sys.stdout.write('missing df\n')
         sys.stdout.write('%s\n'%missing[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3']].to_string(header=False, formatters={'level': '{:,.6f}'.format}))
+        return False
         #logger.debug(missing[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3']].to_string(header=False))
     return success
 
