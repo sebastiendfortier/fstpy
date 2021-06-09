@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from test import TEST_PATH, TMP_PATH
 
 import pytest
