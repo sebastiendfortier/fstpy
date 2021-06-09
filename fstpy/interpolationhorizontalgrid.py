@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from fstpy.plugin import Plugin
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
@@ -10,14 +11,14 @@ from .utils import initializer
 class InterpolationHorizontalGridError(Exception):
     pass
 
-class InterpolationHorizontalGrid:
+class InterpolationHorizontalGrid(Plugin):
     methods = ['field','user']
     grid_types = ['A','B','G','L','N','S']
     extrapolation_types = ['nearest','linear','maximum','minimum','value','abort']
     interpolation_types = ['nearest','bi-linear','bi-cubic']
 
     @initializer
-    def __init__(self,df:pd.DataFrame, method:str, grtyp:str, ni:int, nj:int, param1:float, param2:float, param3:float, param4:float, interpolation_type:str, extrapolation_type:str, extrapolation_value:float=None, nomvar:str=None):
+    def __init__(self,df:pd.DataFrame, method:str, interpolation_type:str, extrapolation_type:str, grtyp:str=None, ni:int=None, nj:int=None, param1:float=None, param2:float=None, param3:float=None, param4:float=None, extrapolation_value:float=None, nomvar:str=None):
         self.validate_input()
 
     def validate_input(self):
@@ -25,12 +26,12 @@ class InterpolationHorizontalGrid:
             raise InterpolationHorizontalGridError('InterpolationHorizontalGrid - no data to process')
         self.validate_params()
 
-        without_meta_df = self.df.query("nomvar not in ['>>','^^','^>','!!','HY']")
-        self.groups = without_meta_df.groupby(by=['grid'])
-
-
         self.set_options()
         self.define_output_grid()
+
+        self.groups =  self.df.groupby(by=['grid'])
+
+
         # print(self.output_grid)
 
     def define_output_grid(self):
@@ -47,6 +48,10 @@ class InterpolationHorizontalGrid:
             if self.nomvar is None:
                 raise InterpolationHorizontalGridError('InterpolationHorizontalGrid - you must supply a nomvar with field defined method')    
             field_df = self.df.query(f'nomvar=="{self.nomvar}"')
+
+            if len(field_df.grid.unique()) > 1: 
+                raise InterpolationHorizontalGridError('InterpolationHorizontalGrid - reference field found for multiple grids')    
+            # print(field_df[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','grtyp']])
             grid = field_df.iloc[0]['grid']
             self.grtyp = field_df.iloc[0]['grtyp']
             self.ni = field_df.iloc[0]['ni']
@@ -55,12 +60,15 @@ class InterpolationHorizontalGrid:
             self.ig2 = field_df.iloc[0]['ig2']
             self.ig3 = field_df.iloc[0]['ig3']
             self.ig4 = field_df.iloc[0]['ig4']
-            meta_df = self.df.query(f"(nomvar in ['>>','^^','^>']) and (grid=={grid})").reset_index(drop=True)
+            meta_df = self.df.query(f"(nomvar in ['>>','^^','^>']) and (grid=='{grid}')").reset_index(drop=True)
+            
             # others_df = self.df.query("nomvar not in ['>>','^^','^>','!!','HY','UU','VV','PT']").reset_index(drop=True)
 
             if ('>>' in meta_df.nomvar.to_list()) and  ('^^' in meta_df.nomvar.to_list()):
                 lat_df = meta_df.query('nomvar==">>"')
+                lat_df = load_data(lat_df)
                 lon_df = meta_df.query('nomvar=="^^"')
+                lon_df = load_data(lon_df)
                 self.ni = lat_df.iloc[0]['ni']
                 self.nj = lon_df.iloc[0]['nj']
                 grref = lat_df.iloc[0]['grtyp']
@@ -70,13 +78,24 @@ class InterpolationHorizontalGrid:
                 self.ig2 = lat_df.iloc[0]['ig2']
                 self.ig3 = lat_df.iloc[0]['ig3']
                 self.ig4 = lat_df.iloc[0]['ig4']
-                self.output_grid = define_grid(self.grtyp,grref,self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4,ax,ay)
+                self.output_grid = define_grid(self.grtyp,grref,self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4,ax,ay,None)
+                self.ig1 = lat_df.iloc[0]['ip1']
+                self.ig2 = lat_df.iloc[0]['ip2']
+                self.ig3 = 0
+                self.ig4 = 0
+
             elif ('^>' in meta_df.nomvar.to_list()):
                 tictac_df = meta_df.query('nomvar=="^>"')
-                self.output_grid = define_grid('','',0,0,0,0,0,0,None,None,tictac_df.iloc[0]['d'])    
+                tictac_df = load_data(tictac_df)
+                self.output_grid = define_grid(self.grtyp,'',0,0,0,0,0,0,None,None,tictac_df.iloc[0]['d'])    
+                self.ig1 = tictac_df.iloc[0]['ip1']
+                self.ig2 = tictac_df.iloc[0]['ip2']
+                self.ig3 = 0
+                self.ig4 = 0
 
             else:
-                self.output_grid = define_grid(self.grtyp,'',self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4) 
+                self.output_grid = define_grid(self.grtyp,'',self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4,None,None,None) 
+ 
 
     def define_input_grid(self,grtyp,source_df,meta_df):
         ni = source_df.iloc[0]['ni']
@@ -104,13 +123,12 @@ class InterpolationHorizontalGrid:
             
         elif ('^>' in meta_df.nomvar.to_list()):
             tictac_df = meta_df.query('nomvar=="^>"')
-            input_grid = define_grid('','',0,0,0,0,0,0,None,None,tictac_df.iloc[0]['d'])    
+            input_grid = define_grid(grtyp,'',0,0,0,0,0,0,None,None,tictac_df.iloc[0]['d'])    
 
         else:
             input_grid = define_grid(grtyp,' ',ni,nj,ig1,ig2,ig3,ig4,None,None,None) 
 
         return input_grid        
-        
 
     def validate_params(self):
         if self.interpolation_type not in self.interpolation_types:
@@ -119,8 +137,9 @@ class InterpolationHorizontalGrid:
             raise InterpolationHorizontalGridError(f'InterpolationHorizontalGrid - extrapolation_type {self.extrapolation_type} not in {self.extrapolation_types}')
         if self.method not in self.methods:
             raise InterpolationHorizontalGridError(f'InterpolationHorizontalGrid - method {self.method} not in {self.methods}')
-        if self.grtyp not in self.grid_types:
-            raise InterpolationHorizontalGridError(f'InterpolationHorizontalGrid - method {self.grtyp} not in {self.grid_types}')    
+        if self.method == 'user':    
+            if self.grtyp not in self.grid_types:
+                raise InterpolationHorizontalGridError(f'InterpolationHorizontalGrid - grtyp {self.grtyp} not in {self.grid_types}')    
 
     def set_options(self):
         self.set_interpolation_type_options()
@@ -150,21 +169,19 @@ class InterpolationHorizontalGrid:
 
     def compute(self) -> pd.DataFrame:
         results = []
+        no_mod = []
         for _,current_group in self.groups:
-            grid = current_group.iloc[0]['grid']
-
             # print(current_group[['nomvar','forecast_hour']])
             # print(grid)
             # print(current_group[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
             current_group = load_data(current_group)
-            meta_df = self.df.query(f"(nomvar in ['>>','^^','^>']) and (grid == '{grid}')").reset_index(drop=True)
-            meta_df = load_data(meta_df)
+            meta_df = current_group.query("nomvar in ['>>','^^','^>']").reset_index(drop=True)
             # print(meta_df[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
             vect_df = current_group.query("nomvar in ['UU','VV']").reset_index(drop=True)
             uu_df = vect_df.query('nomvar=="UU"').reset_index(drop=True)
             vv_df = vect_df.query('nomvar=="VV"').reset_index(drop=True)
             # others_df = current_group.query("nomvar not in ['>>','^^','^>','!!','HY','UU','VV','PT']").reset_index(drop=True)
-            others_df = current_group.query("nomvar not in ['UU','VV','PT']").reset_index(drop=True)
+            others_df = current_group.query("nomvar not in ['UU','VV','PT','>>','^^','^>','!!','HY']").reset_index(drop=True)
             pt_df = current_group.query("nomvar=='PT'").reset_index(drop=True)
 
             # print(meta_df.iloc[0]['grid'] if not meta_df.empty else 0,vect_df.iloc[0]['grid'] if not vect_df.empty else 0,uu_df.iloc[0]['grid'] if not uu_df.empty else 0,vv_df.iloc[0]['grid'] if not vv_df.empty else 0,others_df.iloc[0]['grid'] if not others_df.empty else 0,pt_df.iloc[0]['grid'] if not pt_df.empty else 0)
@@ -188,8 +205,15 @@ class InterpolationHorizontalGrid:
             # print('vect_df\n',vect_df[['nomvar','etiket','ni','nj','nk','grtyp','ig1','ig2','ig3','ig4','grid']])
             # print('others\n',others_df[['nomvar','etiket','ni','nj','nk','grtyp','ig1','ig2','ig3','ig4','grid']])
             # print('pt_df\n',pt_df[['nomvar','etiket','ni','nj','nk','grtyp','ig1','ig2','ig3','ig4','grid']])
-            print(source_df[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
+            # print(source_df[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
             input_grid = self.define_input_grid(grtyp,source_df,meta_df)
+
+            in_params = rmn.ezgxprm(input_grid)
+            out_params = rmn.ezgxprm(self.output_grid)
+            if in_params == out_params:
+                # print('APPENDING\n',current_group)
+                no_mod.append(current_group)
+                continue
 
             self.create_grid_set(input_grid)
 
@@ -230,7 +254,17 @@ class InterpolationHorizontalGrid:
 
             # rmn.gdrls(input_grid)
             # rmn.gdrls(self.output_grid)
-        res_df = pd.concat(results,ignore_index=True)    
+        res_df = pd.concat(results,ignore_index=True)   
+
+        no_mod_df = pd.DataFrame(dtype=object)
+        # print('LEN NO_MOD\n',len(no_mod))
+        # print('NO_MOD\n',no_mod)
+        if len(no_mod): 
+            no_mod_df = pd.concat(no_mod,ignore_index=True)
+        #     print(no_mod_df)
+        # elif len(no_mod) == 1:
+        #     no_mod_df = no_mod[0]
+        #     print(no_mod_df)
 
         # myshape =  tuple((self.ni,self.nj))
         # res_df.loc['shape'] = None
@@ -241,13 +275,21 @@ class InterpolationHorizontalGrid:
         res_df["shape"] = [(self.ni,self.nj)] * len(res_df)
         res_df['ni'] = self.ni
         res_df['nj'] = self.nj
+        res_df['grtyp'] = self.grtyp
+        # res_df['path'] = ''
+        res_df['interpolated'] = True
         res_df['ig1'] = self.ig1
         res_df['ig2'] = self.ig2
         res_df['ig3'] = self.ig3
         res_df['ig4'] = self.ig4
-        res_df['grtyp'] = self.grtyp
-        res_df['path'] = None
-        res_df['interpolated'] = True
+        
+        
+        if not no_mod_df.empty:
+            res_df = pd.concat([res_df,no_mod_df],ignore_index=True)
+            # print('RES_DF',res_df)
+        # else:
+        #     print('RES_DF EMPTY')
+
         return res_df
 
 
