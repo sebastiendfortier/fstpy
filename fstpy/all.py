@@ -5,7 +5,7 @@ from .dataframe import (add_data_type_str_column, add_decoded_columns,
                         add_decoded_date_column, add_forecast_hour_column,
                         add_ip_info_columns, add_parsed_etiket_columns,
                         add_unit_and_description_columns)
-from .dataframe_utils import fstcomp, fststat, select, select_zap, voir, zap
+from .dataframe_utils import fstcomp, fststat, voir
 from .std_reader import StandardFileReader, load_data, unload_data
 from .std_writer import StandardFileWriter
 from .unit import unit_convert,unit_convert_array
