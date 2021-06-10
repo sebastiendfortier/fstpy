@@ -8,7 +8,7 @@ from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.utils import delete_file
 
-pytestmark = [pytest.mark.pressure_regtests, pytest.mark.regressions]
+pytestmark = [pytest.mark.pressure_regtests] #, pytest.mark.regressions
 
 @pytest.fixture
 def plugin_test_dir():

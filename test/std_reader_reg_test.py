@@ -155,14 +155,14 @@ def test_regtest_7(plugin_test_dir):
 #     results_file = TMP_PATH + "test_read_reg_8.std"
 #     delete_file(results_file)
 #     StandardFileWriter(results_file, src_df0).to_fst()
-
+#     print(results_file)
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "reference_file_test_8.std"
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
 #     delete_file(results_file)
-#     assert(res == True)
+#     assert(False == True)
 
 
 def test_regtest_9(plugin_test_dir):
