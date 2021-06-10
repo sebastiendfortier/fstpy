@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
 
-pytestmark = [pytest.mark.interpolation_regtests, pytest.mark.regressions]
+pytestmark = [pytest.mark.interpolation_regtests] #, pytest.mark.regressions
 
 @pytest.fixture
 def plugin_test_dir():
