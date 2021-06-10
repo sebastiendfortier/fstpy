@@ -78,7 +78,7 @@ class StandardFileWriter:
         else:
             df_list = np.array_split(self.df, math.ceil(len(self.df.index)/84)) #84 records per block
             for df in df_list:
-                df = load_data(df,clean=True) # partial load to keep memory usage low
+                df = load_data(df,clean=True,sort=self.sort) # partial load to keep memory usage low
                 file_id = rmn.fstopenall(self.filename,rmn.FST_RW)
                 for i in df.index:
                     #set_typvar(self.df,i)

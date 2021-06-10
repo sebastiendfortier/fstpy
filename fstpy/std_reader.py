@@ -186,6 +186,8 @@ def load_data(df:pd.DataFrame,clean:bool=False,sort=True) -> pd.DataFrame:
     :type df: pd.DataFrame
     :param clean: mark loaded data for removal by unload
     :type clean: bool
+    :param sort: sort data while loading
+    :type sort: bool
     :return: dataframe with filled arrays
     :rtype: pd.DataFrame
     """
