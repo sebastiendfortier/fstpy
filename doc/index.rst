@@ -43,6 +43,7 @@ Documentation
 * :doc:`std_dec`
 * :doc:`std_enc`
 * :doc:`pressure`
+* :doc:`interpolationhorizontalgrid`
 * :doc:`dataframe`
 * :doc:`dataframe_utils`
 * :doc:`unit`
@@ -59,6 +60,7 @@ Documentation
    std_dec
    std_enc
    pressure
+   interpolationhorizontalgrid
    dataframe
    dataframe_utils
    unit
