@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
 import numpy as np
-from ast import literal_eval as make_tuple
 
 from .std_reader import load_data
 from .utils import initializer
@@ -13,6 +12,35 @@ class InterpolationHorizontalGridError(Exception):
     pass
 
 class InterpolationHorizontalGrid(Plugin):
+    """Horizontal Interpolation of fields to a target grid
+
+    :param df: Input dataframe
+    :type df: pd.DataFrame
+    :param method: Manner in how the target grid is defined
+    :type method: str 'field','user'
+    :param interpolation_type: Type of interpolation 'nearest','bi-linear','bi-cubic'
+    :type interpolation_type: str
+    :param extrapolation_type: Type of extrapolation 'nearest','linear','maximum','minimum','value','abort'
+    :type extrapolation_type: str
+    :param grtyp: Type of target grid (see the reference: Grid types supported by RPN Standard Files) 'A','B','G','L','N','S', defaults to None
+    :type grtyp: str, optional
+    :param ni: X dimension of the target grid, defaults to None
+    :type ni: int, optional
+    :param nj: Y dimension of the target grid, defaults to None
+    :type nj: int, optional
+    :param param1: Projection parameter 1, defaults to None
+    :type param1: float, optional
+    :param param2: Projection parameter 2, defaults to None
+    :type param2: float, optional
+    :param param3: Projection parameter 3, defaults to None
+    :type param3: float, optional
+    :param param4: Projection parameter 4, defaults to None
+    :type param4: float, optional
+    :param extrapolation_value: value for extrapolation when type is value, defaults to None
+    :type extrapolation_value: float, optional
+    :param nomvar: Name of the field on the grid to which interpolate, defaults to None
+    :type nomvar: str, optional
+    """
     methods = ['field','user']
     grid_types = ['A','B','G','L','N','S']
     extrapolation_types = ['nearest','linear','maximum','minimum','value','abort']
@@ -26,110 +54,60 @@ class InterpolationHorizontalGrid(Plugin):
         if self.df.empty:
             raise InterpolationHorizontalGridError('InterpolationHorizontalGrid - no data to process')
         self.validate_params()
-
-        self.set_options()
+        set_interpolation_type_options(self.interpolation_type)
+        set_extrapolation_type_options(self.extrapolation_type,self.extrapolation_value)
         self.define_output_grid()
 
         self.groups =  self.df.groupby(by=['grid'])
 
 
-        # print(self.output_grid)
-
     def define_output_grid(self):
-        # print('defining output grid')
         if self.method == 'user':
+
             if self.grtyp in ['L','N','S']:
                 self.ig1,self.ig2,self.ig3,self.ig4 = rmn.cxgaig(self.grtyp, self.param1,self.param2,self.param3,self.param4)
-                
                 self.output_grid = define_grid(self.grtyp,'',self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4,None,None,None)
-                # print(self.output_grid)
             else:
                 self.output_grid = define_grid(self.grtyp,'',self.ni,self.nj,int(self.param1),int(self.param2),int(self.param3),int(self.param4),None,None,None)
-        else:
+
+        else: # method field defined
             if self.nomvar is None:
                 raise InterpolationHorizontalGridError('InterpolationHorizontalGrid - you must supply a nomvar with field defined method')    
+
             field_df = self.df.query(f'nomvar=="{self.nomvar}"')
 
+            #check for more than one definition for the field method
             if len(field_df.grid.unique()) > 1: 
-                raise InterpolationHorizontalGridError('InterpolationHorizontalGrid - reference field found for multiple grids')    
-            # print(field_df[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','grtyp']])
-            grid = field_df.iloc[0]['grid']
+                raise InterpolationHorizontalGridError('InterpolationHorizontalGrid - reference field found for multiple grids')  
+
+            # get grtyp from the field
             self.grtyp = field_df.iloc[0]['grtyp']
-            self.ni = field_df.iloc[0]['ni']
-            self.nj = field_df.iloc[0]['nj']
-            self.ig1 = field_df.iloc[0]['ig1']
-            self.ig2 = field_df.iloc[0]['ig2']
-            self.ig3 = field_df.iloc[0]['ig3']
-            self.ig4 = field_df.iloc[0]['ig4']
+
+            self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4 = set_grid_parameters(field_df)
+            
+            # get meta for this fields grid
+            grid = field_df.iloc[0]['grid']
             meta_df = self.df.query(f"(nomvar in ['>>','^^','^>']) and (grid=='{grid}')").reset_index(drop=True)
             
-            # others_df = self.df.query("nomvar not in ['>>','^^','^>','!!','HY','UU','VV','PT']").reset_index(drop=True)
+            # define grid from meta
+            if not meta_df.empty:
+                if ('>>' in meta_df.nomvar.to_list()) and  ('^^' in meta_df.nomvar.to_list()):
+                    self.ni,self.nj,grref, ax, ay,self.ig1,self.ig2,self.ig3,self.ig4 = get_grid_paramters_from_latlon_fields(meta_df)
+                    self.output_grid = define_grid(self.grtyp,grref,self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4,ax,ay,None)
+                    self.ig1,self.ig2,self.ig3,self.ig4 = set_output_column_values(meta_df,field_df) 
 
-            if ('>>' in meta_df.nomvar.to_list()) and  ('^^' in meta_df.nomvar.to_list()):
-                lat_df = meta_df.query('nomvar==">>"')
-                lat_df = load_data(lat_df)
-                lon_df = meta_df.query('nomvar=="^^"')
-                lon_df = load_data(lon_df)
-                self.ni = lat_df.iloc[0]['ni']
-                self.nj = lon_df.iloc[0]['nj']
-                grref = lat_df.iloc[0]['grtyp']
-                ax = lat_df.iloc[0]['d']
-                ay = lon_df.iloc[0]['d']
-                self.ig1 = lat_df.iloc[0]['ig1']
-                self.ig2 = lat_df.iloc[0]['ig2']
-                self.ig3 = lat_df.iloc[0]['ig3']
-                self.ig4 = lat_df.iloc[0]['ig4']
-                self.output_grid = define_grid(self.grtyp,grref,self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4,ax,ay,None)
-                self.ig1 = lat_df.iloc[0]['ip1']
-                self.ig2 = lat_df.iloc[0]['ip2']
-                self.ig3 = field_df.iloc[0]['ig3']
-                self.ig4 = field_df.iloc[0]['ig4']
+                elif ('^>' in meta_df.nomvar.to_list()):
+                    tictac_df = meta_df.query('nomvar=="^>"')
+                    tictac_df = load_data(tictac_df)
+                    self.output_grid = define_grid(self.grtyp,'',0,0,0,0,0,0,None,None,tictac_df.iloc[0]['d'])   
+                    self.ig1,self.ig2,self.ig3,self.ig4 = set_output_column_values(meta_df,field_df) 
 
-            elif ('^>' in meta_df.nomvar.to_list()):
-                tictac_df = meta_df.query('nomvar=="^>"')
-                tictac_df = load_data(tictac_df)
-                self.output_grid = define_grid(self.grtyp,'',0,0,0,0,0,0,None,None,tictac_df.iloc[0]['d'])    
-                self.ig1 = tictac_df.iloc[0]['ip1']
-                self.ig2 = tictac_df.iloc[0]['ip2']
-                self.ig3 = field_df.iloc[0]['ig3']
-                self.ig4 = field_df.iloc[0]['ig4']
 
+            # define grid from field
             else:
                 self.output_grid = define_grid(self.grtyp,'',self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4,None,None,None) 
+
  
-
-    def define_input_grid(self,grtyp,source_df,meta_df):
-        ni = source_df.iloc[0]['ni']
-        nj = source_df.iloc[0]['nj']
-        ig1 = source_df.iloc[0]['ig1']
-        ig2 = source_df.iloc[0]['ig2']
-        ig3 = source_df.iloc[0]['ig3']
-        ig4 = source_df.iloc[0]['ig4']
-        # print('define_input_grid\n',meta_df)
-        if ('>>' in meta_df.nomvar.to_list()) and  ('^^' in meta_df.nomvar.to_list()):
-            # print('found ^^ and >>')
-            lat_df = meta_df.query('nomvar==">>"')
-            lon_df = meta_df.query('nomvar=="^^"')
-            ni = lat_df.iloc[0]['ni']
-            nj = lon_df.iloc[0]['nj']
-            grref = lat_df.iloc[0]['grtyp']
-            ax = lat_df.iloc[0]['d']
-            ay = lon_df.iloc[0]['d']
-            ig1 = lat_df.iloc[0]['ig1']
-            ig2 = lat_df.iloc[0]['ig2']
-            ig3 = lat_df.iloc[0]['ig3']
-            ig4 = lat_df.iloc[0]['ig4']
-            # print(grtyp,ig1,ig2,ig3,ig3)
-            input_grid = define_grid(grtyp,grref,ni,nj,ig1,ig2,ig3,ig4,ax,ay,None)
-            
-        elif ('^>' in meta_df.nomvar.to_list()):
-            tictac_df = meta_df.query('nomvar=="^>"')
-            input_grid = define_grid(grtyp,'',0,0,0,0,0,0,None,None,tictac_df.iloc[0]['d'])    
-
-        else:
-            input_grid = define_grid(grtyp,' ',ni,nj,ig1,ig2,ig3,ig4,None,None,None) 
-
-        return input_grid        
 
     def validate_params(self):
         if self.interpolation_type not in self.interpolation_types:
@@ -142,176 +120,64 @@ class InterpolationHorizontalGrid(Plugin):
             if self.grtyp not in self.grid_types:
                 raise InterpolationHorizontalGridError(f'InterpolationHorizontalGrid - grtyp {self.grtyp} not in {self.grid_types}')    
 
-    def set_options(self):
-        self.set_interpolation_type_options()
-        self.set_extrapolation_type_options()
-
-    def set_extrapolation_type_options(self):
-        if self.extrapolation_type == 'value':
-            if self.extrapolation_value is None:
-                raise InterpolationHorizontalGridError(f'InterpolationHorizontalGrid - extrapolation_value {self.extrapolation_value} is not set')
-            rmn.ezsetval('EXTRAP_VALUE', self.extrapolation_value)
-            rmn.ezsetopt('EXTRAP_DEGREE', 'VALUE')
-        else:
-            # print( self.extrapolation_type.upper())
-            rmn.ezsetopt('EXTRAP_DEGREE', self.extrapolation_type.upper())
-
-    def set_interpolation_type_options(self):
-        if self.interpolation_type == 'nearest':
-            rmn.ezsetopt('INTERP_DEGREE', 'NEAREST')
-        elif self.interpolation_type == 'bi-linear':
-            rmn.ezsetopt('INTERP_DEGREE', 'LINEAR')    
-        elif self.interpolation_type == 'bi-cubic':
-            rmn.ezsetopt('INTERP_DEGREE', 'CUBIC')
-
-    def create_grid_set(self,input_grid):
-        _ = rmn.ezdefset(self.output_grid, input_grid)
-
-
     def compute(self) -> pd.DataFrame:
         results = []
         no_mod = []
         for _,current_group in self.groups:
-            # print(current_group[['nomvar','forecast_hour']])
-            # print(grid)
-            # print('CURRENT_GROUP\n',current_group[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
+
             current_group = load_data(current_group)
 
-            hy_df = current_group.query("nomvar in ['HY']").reset_index(drop=True)
-            if not hy_df.empty:
-                no_mod.append(hy_df)
+            keep_intact_hy_field(current_group, no_mod)
 
-            toctoc_df = current_group.query("nomvar in ['!!']").reset_index(drop=True)
-            # we can add toctoc from input grid
-            if not toctoc_df.empty:
-                results.append(toctoc_df)
+            keep_toctoc(current_group, results)
 
-            meta_df = current_group.query("nomvar in ['>>','^^','^>']").reset_index(drop=True)
-            # print(meta_df[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
             vect_df = current_group.query("nomvar in ['UU','VV']").reset_index(drop=True)
-            uu_df = vect_df.query('nomvar=="UU"').reset_index(drop=True)
-            vv_df = vect_df.query('nomvar=="VV"').reset_index(drop=True)
-            # others_df = current_group.query("nomvar not in ['>>','^^','^>','!!','HY','UU','VV','PT']").reset_index(drop=True)
+
             others_df = current_group.query("nomvar not in ['UU','VV','PT','>>','^^','^>','!!','HY']").reset_index(drop=True)
+
             pt_df = current_group.query("nomvar=='PT'").reset_index(drop=True)
 
-            # print(meta_df.iloc[0]['grid'] if not meta_df.empty else 0,vect_df.iloc[0]['grid'] if not vect_df.empty else 0,uu_df.iloc[0]['grid'] if not uu_df.empty else 0,vv_df.iloc[0]['grid'] if not vv_df.empty else 0,others_df.iloc[0]['grid'] if not others_df.empty else 0,pt_df.iloc[0]['grid'] if not pt_df.empty else 0)
-            if not vect_df.empty:
-                # print('selected UU and VV')
-                grtyp = vect_df.iloc[0]['grtyp']
-                source_df = vect_df
-            elif not others_df.empty:
-                # print('selected others')
-                grtyp = others_df.iloc[0]['grtyp']
-                source_df = others_df
-            elif not pt_df.empty:    
-                # print('selected PT')
-                grtyp = pt_df.iloc[0]['grtyp']
-                source_df = pt_df
-            else:
+            source_df, grtyp = select_input_grid_source_data(vect_df, others_df, pt_df)
+
+            if source_df.empty:
                 continue
-            # print('-----------------------------------------------------------\ncurrent_group')    
-            # print(f'input grid {grtyp}')
-            # print('meta_df\n',meta_df[['nomvar','etiket','ni','nj','nk','grtyp','ig1','ig2','ig3','ig4','grid']])
-            # print('vect_df\n',vect_df[['nomvar','etiket','ni','nj','nk','grtyp','ig1','ig2','ig3','ig4','grid']])
-            # print('others\n',others_df[['nomvar','etiket','ni','nj','nk','grtyp','ig1','ig2','ig3','ig4','grid']])
-            # print('pt_df\n',pt_df[['nomvar','etiket','ni','nj','nk','grtyp','ig1','ig2','ig3','ig4','grid']])
-            # print(source_df[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
-            input_grid = self.define_input_grid(grtyp,source_df,meta_df)
 
-            in_params = rmn.ezgxprm(input_grid)
-            in_params.pop('id')
-            out_params = rmn.ezgxprm(self.output_grid)
-            out_params.pop('id')
+            meta_df = current_group.query("nomvar in ['>>','^^','^>']").reset_index(drop=True)
+            input_grid = define_input_grid(grtyp,source_df,meta_df)
 
-            if in_params == out_params:
+            grids_are_equal = check_in_out_grid_equality(input_grid,self.output_grid)
+
+            if grids_are_equal:
                 no_mod.append(current_group)
                 continue
 
-            self.create_grid_set(input_grid)
+            create_grid_set(input_grid,self.output_grid)
 
-            if (not uu_df.empty) and (not vv_df.empty):
-                uu_int_df = uu_df.copy(deep=True)
-                vv_int_df = vv_df.copy(deep=True)
+            vectorial_interpolation(vect_df,results,input_grid,self.output_grid)
 
-                for i in uu_df.index:
-                    (uu, vv) = rmn.ezuvint(self.output_grid, input_grid, uu_df.at[i,'d'], vv_df.at[i,'d'])
-                    # print(vv_df.at[i,'d'].dtype)
-                    # print(vv.dtype)
-                    # print(uu_df.at[i,'d'].dtype)
-                    # print(uu.dtype)
-                    uu_int_df.at[i,'d'] = uu
-                    vv_int_df.at[i,'d'] = vv
-                results.append(uu_int_df)    
-                results.append(vv_int_df)    
+            scalar_interpolation(others_df,results,input_grid,self.output_grid)
 
-            if not others_df.empty:
-                # scalar except PT
-                others_int_df = others_df.copy(deep=True)
-                for i in others_df.index:
-                    # print(others_df.loc[i][['nomvar','ni','nj']])
-                    arr = rmn.ezsint(self.output_grid, input_grid, others_df.at[i,'d'])
-                    others_int_df.at[i,'d'] = arr
-                results.append(others_int_df)        
+            scalar_interpolation(pt_df,results,input_grid,self.output_grid)
 
-            if not pt_df.empty:        
-                # PT
-                pt_int_df = pt_df.copy(deep=True)    
-                # always for PT
-                rmn.ezsetopt('EXTRAP_DEGREE', 'NEAREST')
-                for i in pt_df.index:
-                    arr = rmn.ezsint(self.output_grid, input_grid, pt_df.at[i,'d'])
-                    pt_int_df.at[i,'d'] = arr
-                results.append(pt_int_df)            
-                # reset extrapolation options        
-                self.set_extrapolation_type_options()
 
-            # rmn.gdrls(input_grid)
-            # rmn.gdrls(self.output_grid)
-        res_df = pd.concat(results,ignore_index=True)   
+        res_df = pd.DataFrame(dtype=object)
+        if len(results):
+            res_df = pd.concat(results,ignore_index=True)   
 
         no_mod_df = pd.DataFrame(dtype=object)
-        # print('LEN NO_MOD\n',len(no_mod))
-        # print('NO_MOD\n',no_mod)
+
         if len(no_mod): 
             no_mod_df = pd.concat(no_mod,ignore_index=True)
-        #     print(no_mod_df)
-        # elif len(no_mod) == 1:
-        #     no_mod_df = no_mod[0]
-        #     print(no_mod_df)
 
-        # myshape =  tuple((self.ni,self.nj))
-        # res_df.loc['shape'] = None
-        # res_df.loc['shape'] = myshape
-        # result_specifications = {'ni':self.ni,'nj':self.nj,'ig1':self.ig1,'ig2':self.ig2,'ig3':self.ig3,'ig4':self.ig4,'interpolated':True}
-        # for k,v in result_specifications.items():res_df[k]=v
-        toctoc_res_df = res_df.query('nomvar == "!!"').copy(deep=True)
-        toctoc_res_df['ip1'] = self.ig1
-        toctoc_res_df['ip2'] = self.ig2
+        toctoc_res_df = set_new_grid_identifiers_for_toctoc(res_df,self.ig1,self.ig2)
 
+        other_res_df = set_new_grid_identifiers(res_df,self.grtyp,self.ni,self.nj,self.ig1,self.ig2,self.ig3,self.ig4)
         
-        # other_res_df.drop(columns=['shape'],inplace=True)
+        if not toctoc_res_df.empty:
+            other_res_df = pd.concat([other_res_df,toctoc_res_df],ignore_index=True)
 
-        # for i in other_res_df.index:
-        #     other_res_df.at[i,"shape"] = (self.ni,self.nj)
-        other_res_df = res_df.query('nomvar != "!!"').copy(deep=True)
-        shape_list = [(self.ni,self.nj) for _ in range(len(other_res_df.index))]
-        other_res_df["shape"] = shape_list
-        other_res_df['ni'] = self.ni
-        other_res_df['nj'] = self.nj
-        other_res_df['grtyp'] = self.grtyp
-        other_res_df['interpolated'] = True
-        other_res_df['ig1'] = self.ig1
-        other_res_df['ig2'] = self.ig2
-        other_res_df['ig3'] = self.ig3
-        other_res_df['ig4'] = self.ig4
-        
-        
         if not no_mod_df.empty:
             other_res_df = pd.concat([other_res_df,no_mod_df],ignore_index=True)
-            # print('RES_DF',res_df)
-        # else:
-        #     print('RES_DF EMPTY')
 
         return other_res_df
 
@@ -319,10 +185,180 @@ class InterpolationHorizontalGrid(Plugin):
 
 
 
+
 ###################################################################################  
 ###################################################################################  
+def set_extrapolation_type_options(extrapolation_type,extrapolation_value):
+    if extrapolation_type == 'value':
+        if extrapolation_value is None:
+            raise InterpolationHorizontalGridError(f'InterpolationHorizontalGrid - extrapolation_value {extrapolation_value} is not set')
+        rmn.ezsetval('EXTRAP_VALUE', extrapolation_value)
+        rmn.ezsetopt('EXTRAP_DEGREE', 'VALUE')
+    else:
+        # print( self.extrapolation_type.upper())
+        rmn.ezsetopt('EXTRAP_DEGREE', extrapolation_type.upper())
+
+def set_interpolation_type_options(interpolation_type):
+    if interpolation_type == 'nearest':
+        rmn.ezsetopt('INTERP_DEGREE', 'NEAREST')
+    elif interpolation_type == 'bi-linear':
+        rmn.ezsetopt('INTERP_DEGREE', 'LINEAR')    
+    elif interpolation_type == 'bi-cubic':
+        rmn.ezsetopt('INTERP_DEGREE', 'CUBIC')
+
+def scalar_interpolation(df,results,input_grid,output_grid):
+    if df.empty:
+        return
+    # scalar except PT
+    int_df = df.copy(deep=True)
+    
+    is_pt = False
+    if df.iloc[0]['nomvar'] == 'PT':
+        is_pt = True
+
+    # special case for PT
+    if is_pt:
+        # always for PT
+        extrap_degree = rmn.ezgetopt(rmn.EZ_OPT_EXTRAP_DEGREE, vtype=str)
+        rmn.ezsetopt('EXTRAP_DEGREE', 'NEAREST')    
+
+    for i in df.index:
+        arr = rmn.ezsint(output_grid, input_grid, df.at[i,'d'])
+        int_df.at[i,'d'] = arr
+    results.append(int_df)       
+    if is_pt:
+        # reset extrapolation options
+        rmn.ezsetopt('EXTRAP_DEGREE', extrap_degree)    
 
 
+
+def vectorial_interpolation(vect_df,results,input_grid,output_grid):
+    if vect_df.empty:
+        return
+    uu_df = vect_df.query('nomvar=="UU"').reset_index(drop=True)
+    vv_df = vect_df.query('nomvar=="VV"').reset_index(drop=True)
+
+    if (uu_df.empty) or (vv_df.empty):
+        return
+
+    uu_int_df = uu_df.copy(deep=True)
+    vv_int_df = vv_df.copy(deep=True)
+
+    for i in uu_df.index:
+        (uu, vv) = rmn.ezuvint(output_grid, input_grid, uu_df.at[i,'d'], vv_df.at[i,'d'])
+        uu_int_df.at[i,'d'] = uu
+        vv_int_df.at[i,'d'] = vv
+
+    results.append(uu_int_df)    
+    results.append(vv_int_df)    
+
+
+def create_grid_set(input_grid,output_grid):
+    rmn.ezdefset(output_grid, input_grid)
+
+def check_in_out_grid_equality(input_grid,output_grid):
+    in_params = rmn.ezgxprm(input_grid)
+    in_params.pop('id')
+    out_params = rmn.ezgxprm(output_grid)
+    out_params.pop('id')
+    return in_params == out_params
+
+def select_input_grid_source_data(vect_df, others_df, pt_df):
+    grtyp = ''
+    if not vect_df.empty:
+        grtyp = vect_df.iloc[0]['grtyp']
+        source_df = vect_df
+    elif not others_df.empty:
+        grtyp = others_df.iloc[0]['grtyp']
+        source_df = others_df
+    elif not pt_df.empty:    
+        grtyp = pt_df.iloc[0]['grtyp']
+        source_df = pt_df
+    else:
+        source_df = pd.DataFrame(dtype=object)
+    return source_df, grtyp
+
+def define_input_grid(grtyp,source_df,meta_df):
+    ni,nj,ig1,ig2,ig3,ig4 = set_grid_parameters(source_df)
+
+    if not meta_df.empty:
+        if ('>>' in meta_df.nomvar.to_list()) and  ('^^' in meta_df.nomvar.to_list()):
+            ni,nj,grref,ax,ay,ig1,ig2,ig3,ig4 = get_grid_paramters_from_latlon_fields(meta_df)
+            input_grid = define_grid(grtyp,grref,ni,nj,ig1,ig2,ig3,ig4,ax,ay,None)
+            
+        elif ('^>' in meta_df.nomvar.to_list()):
+            tictac_df = meta_df.query('nomvar=="^>"')
+            input_grid = define_grid(grtyp,'',0,0,0,0,0,0,None,None,tictac_df.iloc[0]['d'])    
+
+    else:
+        input_grid = define_grid(grtyp,' ',ni,nj,ig1,ig2,ig3,ig4,None,None,None) 
+
+    return input_grid       
+
+def keep_intact_hy_field(current_group, no_mod):
+    hy_df = current_group.query("nomvar in ['HY']").reset_index(drop=True)
+    if not hy_df.empty:
+        no_mod.append(hy_df)
+
+def keep_toctoc(current_group, results):
+    toctoc_df = current_group.query("nomvar in ['!!']").reset_index(drop=True)
+    # we can add toctoc from input grid
+    if not toctoc_df.empty:
+        results.append(toctoc_df)
+
+def get_grid_paramters_from_latlon_fields(meta_df):
+    lat_df = meta_df.query('nomvar==">>"')
+    lat_df = load_data(lat_df)
+    lon_df = meta_df.query('nomvar=="^^"')
+    lon_df = load_data(lon_df)
+    ni = lat_df.iloc[0]['ni']
+    nj = lon_df.iloc[0]['nj']
+    grref = lat_df.iloc[0]['grtyp']
+    ax = lat_df.iloc[0]['d']
+    ay = lon_df.iloc[0]['d']
+    ig1 = lat_df.iloc[0]['ig1']
+    ig2 = lat_df.iloc[0]['ig2']
+    ig3 = lat_df.iloc[0]['ig3']
+    ig4 = lat_df.iloc[0]['ig4']
+    return ni,nj,grref,ax,ay,ig1,ig2,ig3,ig4
+
+def set_grid_parameters(df):
+    ni = df.iloc[0]['ni']
+    nj = df.iloc[0]['nj']
+    ig1 = df.iloc[0]['ig1']
+    ig2 = df.iloc[0]['ig2']
+    ig3 = df.iloc[0]['ig3']
+    ig4 = df.iloc[0]['ig4']
+    return ni,nj,ig1,ig2,ig3,ig4
+
+def set_output_column_values(meta_df,field_df):
+    ig1 = meta_df.iloc[0]['ip1']
+    ig2 = meta_df.iloc[0]['ip2']
+    ig3 = field_df.iloc[0]['ig3']
+    ig4 = field_df.iloc[0]['ig4']
+    return ig1,ig2,ig3,ig4
+
+def set_new_grid_identifiers_for_toctoc(res_df,ig1,ig2):
+    toctoc_res_df = res_df.query('nomvar == "!!"').copy(deep=True)
+    toctoc_res_df['ip1'] = ig1
+    toctoc_res_df['ip2'] = ig2
+    return toctoc_res_df
+
+
+def set_new_grid_identifiers(res_df,grtyp,ni,nj,ig1,ig2,ig3,ig4):
+    other_res_df = res_df.query('nomvar != "!!"').copy(deep=True)
+    shape_list = [(ni,nj) for _ in range(len(other_res_df.index))]
+    other_res_df["shape"] = shape_list
+    other_res_df['ni'] = ni
+    other_res_df['nj'] = nj
+    other_res_df['grtyp'] = grtyp
+    other_res_df['interpolated'] = True
+    other_res_df['ig1'] = ig1
+    other_res_df['ig2'] = ig2
+    other_res_df['ig3'] = ig3
+    other_res_df['ig4'] = ig4
+    return other_res_df
+    
 def define_grid(grtyp:str,grref:str,ni:int,nj:int,ig1:int,ig2:int,ig3:int,ig4:int,ax:np.ndarray,ay:np.ndarray,tictac:np.ndarray) -> int:
     #longitude = X
     grid_types = ['A','B','E','G','L','N','S','U','X','Y','Z','#']
@@ -335,93 +371,58 @@ def define_grid(grtyp:str,grref:str,ni:int,nj:int,ig1:int,ig2:int,ig3:int,ig4:in
     if  grtyp in ['Y','Z','#']:
         
         grid_params = {'grtyp':grtyp,'grref':grref,'ni':int(ni),'nj':int(nj),'ay':ay,'ax':ax,'ig1':int(ig1),'ig2':int(ig2),'ig3':int(ig3),'ig4':int(ig4)}
-        # print(f"{grid_params['ni']}\t{grid_params['nj']}\t{grid_params['grtyp']}\t{grid_params['grref']}\t{grid_params['ig1']}\t{grid_params['ig2']}\t{grid_params['ig3']}\t{grid_params['ig4']}\t")
-        # grid_params = {'grtyp':grtyp,'grref':grref,'ni':int(ni),'nj':int(nj),'ay':ay,'ax':ax}
-        # print(grid_params)
-        # grid_params['ig1'],grid_params['ig2'],grid_params['ig3'],grid_params['ig4'] = rmn.cxgaig(grtyp, ig1,ig2,ig3,ig4)
-        # (int, int, str, str, int, int, int, int, _np.ndarray, _np.ndarray)
-        # print(type(grid_params['ni']),type(grid_params['nj']),type(grid_params['grtyp']),type(grid_params['grref']),type(grid_params['ig1']),type(grid_params['ig2']),type(grid_params['ig3']),type(grid_params['ig4']),type(grid_params['ax']),type(grid_params['ay']))
         grid_id = rmn.ezgdef_fmem(grid_params)
-        # params = rmn.ezgxprm(grid_id)
-        # print(f"Grid type={params['grtyp']}/{params['grref']} of size={params['ni']}, {params['nj']} - {params}")
 
     elif grtyp == 'U':
-        start_pos = 5
-        tictac = tictac.flatten()
-        ni = int(tictac[start_pos])
-        nj = int(tictac[start_pos+1])
-        encoded_ig1 = tictac[start_pos+6]
-        encoded_ig2 = tictac[start_pos+7]
-        encoded_ig3 = tictac[start_pos+8]
-        encoded_ig4 = tictac[start_pos+9]
-        position_ax = start_pos + 10
-        position_ay = position_ax + ni
-        sub_grid_ref = 'E'
-        ig1,ig2,ig3,ig4 = rmn.cxgaig(sub_grid_ref, encoded_ig1, encoded_ig2, encoded_ig3,encoded_ig4)
-        next_pos = position_ay + nj
-        ax = tictac[position_ax:position_ay]
-        ay = tictac[position_ay:next_pos]
-        # print(ax.shape)
-        # print(ay.shape)
-        grid_params = {'grtyp':'Z','grref':'E','ni':ni,'nj':nj,'ig1':ig1,'ig2':ig2,'ig3':ig3,'ig4':ig4,'ay':ay,'ax':ax}
-        # print(grid_params,position_ax,position_ay)
-        # Definition de la 1ere sous-grille
-        sub_grid_id_1 = rmn.ezgdef_fmem(grid_params)
-
-
-        start_pos = next_pos
-        ni = int(tictac[start_pos])
-        nj = int(tictac[start_pos+1])
-        encoded_ig1 = tictac[start_pos+6]
-        encoded_ig2 = tictac[start_pos+7]
-        encoded_ig3 = tictac[start_pos+8]
-        encoded_ig4 = tictac[start_pos+9]
-        position_ax = start_pos + 10
-        position_ay = position_ax + ni
-        sub_grid_ref = 'E'
-        ig1,ig2,ig3,ig4 = rmn.cxgaig(sub_grid_ref, encoded_ig1, encoded_ig2, encoded_ig3,encoded_ig4)
-        next_pos = position_ay + nj
-        ax = tictac[position_ax:position_ay]
-        ay = tictac[position_ay:next_pos]
-        # print(ax.shape)
-        # print(ay.shape)
-        grid_params = {'grtyp':'Z','grref':'E','ni':ni,'nj':nj,'ig1':ig1,'ig2':ig2,'ig3':ig3,'ig4':ig4,'ay':ay,'ax':ax}
-        # print(grid_params,position_ax,position_ay)
-        # Definition de la 1ere sous-grille
-        sub_grid_id_2 = rmn.ezgdef_fmem(grid_params)
+        ni, nj, sub_grid_id_1, sub_grid_id_2 = create_type_u_sub_grids(tictac, ni, nj, ig1, ig2, ig3, ig4, ax, ay)
 
         vercode = 1
         grtyp = 'U'
         grref = ''
-        # print('supergrid',ni, nj, grtyp, grref, vercode)
+
         grid_id = rmn.ezgdef_supergrid(ni, 2*nj, grtyp, grref, vercode, (sub_grid_id_1,sub_grid_id_2))        
-        # params = rmn.ezgxprm(grid_id)
-        # print(f"Grid type={params['grtyp']}/{params['grref']} of size={params['ni']}, {params['nj']} - {params}")
 
     else:
-        # grid_params = {'grtyp':'Z','grref':grtyp,'ni':int(ni),'nj':int(nj)}
-
-        # if isinstance(ig1,float):
-        #     grid_params = {'grtyp':'Z','grref':grtyp,'ni':int(ni),'nj':int(nj)}
-        #     grid_params['ig1'],grid_params['ig2'],grid_params['ig3'],grid_params['ig4'] = rmn.cxgaig(grtyp, ig1,ig2,ig3,ig4)
-        # else:
-
-        # grid_params = {'grtyp':'Z','grref':grtyp,'ni':int(ni),'nj':int(nj),'ig1':int(ig1),'ig2':int(ig2),'ig3':int(ig3),'ig4':int(ig4),'iunit':0}
         grid_params = {'grtyp':grtyp,'ni':int(ni),'nj':int(nj),'ig1':int(ig1),'ig2':int(ig2),'ig3':int(ig3),'ig4':int(ig4),'iunit':0}
-        # print(f"{grid_params['ni']}\t{grid_params['nj']}\t{grid_params['grtyp']}\t{grid_params['ig1']}\t{grid_params['ig2']}\t{grid_params['ig3']}\t{grid_params['ig4']}\t")
-        # grid_params['ig1'],grid_params['ig2'],grid_params['ig3'],grid_params['ig4'] = rmn.cxgaig(grtyp, ig1,ig2,ig3,ig4)
-        # print(grid_params)
-        # grid_params['ax'] = np.empty((ni,1), dtype=np.float32, order='F')
-        # grid_params['ay'] = np.empty((1,nj), dtype=np.float32, order='F')
-        # for i in range(ni): grid_params['ax'][i,0] = i#ig2+float(i)*ig1
-        # for j in range(nj): grid_params['ay'][0,j] = j#ig4+float(j)*ig3
-        # print(grid_params)
         grid_id = rmn.ezqkdef(grid_params)
-        # int gdid = c_ezqkdef((int)xAxisSize, (int)yAxisSize, &grtyp[0], ig1, ig2, ig3, ig4, 0);
-        # grid_id = rmn.ezgdef_fmem(grid_params)
-        # params = rmn.ezgxprm(grid_id)
-        # print(f"Grid type={params['grtyp']}/{params['grref']} of size={params['ni']}, {params['nj']} - {params}")
 
     return grid_id
+
+def create_type_u_sub_grids(tictac, ni, nj, ig1, ig2, ig3, ig4, ax, ay):
+    start_pos = 5
+    tictac = tictac.flatten()
+
+    ni, nj, ig1, ig2, ig3, ig4, ay, ax, next_pos = get_grid_parameters_from_tictac_offset(tictac, start_pos, ni, nj, ig1, ig2, ig3, ig4, ax, ay)
+
+    grid_params = {'grtyp':'Z','grref':'E','ni':ni,'nj':nj,'ig1':ig1,'ig2':ig2,'ig3':ig3,'ig4':ig4,'ay':ay,'ax':ax}
+
+    # Definition de la 1ere sous-grille
+    sub_grid_id_1 = rmn.ezgdef_fmem(grid_params)
+
+
+    start_pos = next_pos
+    ni, nj, ig1, ig2, ig3, ig4, ay, ax, _ = get_grid_parameters_from_tictac_offset(tictac, start_pos, ni, nj, ig1, ig2, ig3, ig4, ax, ay)
+
+    grid_params = {'grtyp':'Z','grref':'E','ni':ni,'nj':nj,'ig1':ig1,'ig2':ig2,'ig3':ig3,'ig4':ig4,'ay':ay,'ax':ax}
+
+    # Definition de la 1ere sous-grille
+    sub_grid_id_2 = rmn.ezgdef_fmem(grid_params)
+    return ni, nj, sub_grid_id_1, sub_grid_id_2
+
+def get_grid_parameters_from_tictac_offset(tictac, start_pos, ni, nj, ig1, ig2, ig3, ig4, ax, ay):
+    ni = int(tictac[start_pos])
+    nj = int(tictac[start_pos+1])
+    encoded_ig1 = tictac[start_pos+6]
+    encoded_ig2 = tictac[start_pos+7]
+    encoded_ig3 = tictac[start_pos+8]
+    encoded_ig4 = tictac[start_pos+9]
+    position_ax = start_pos + 10
+    position_ay = position_ax + ni
+    sub_grid_ref = 'E'
+    ig1,ig2,ig3,ig4 = rmn.cxgaig(sub_grid_ref, encoded_ig1, encoded_ig2, encoded_ig3,encoded_ig4)
+    next_pos = position_ay + nj
+    ax = tictac[position_ax:position_ay]
+    ay = tictac[position_ay:next_pos]
+    return ni, nj, ig1, ig2, ig3, ig4, ay, ax, next_pos
 
 
