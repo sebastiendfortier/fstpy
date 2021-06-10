@@ -44,7 +44,7 @@ class StandardFileWriter:
 
             if not self.update_meta_only:
                 self.meta_df = load_data(self.meta_df,clean=True)
-                self.df['clean'] = False
+                self.df.loc[:,'clean'] = False
 
             self.df = pd.concat([self.df, self.meta_df],ignore_index=True)
             self.df.drop_duplicates(subset=['grtyp','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True,keep='first')

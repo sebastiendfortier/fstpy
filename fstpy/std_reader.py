@@ -193,7 +193,7 @@ def load_data(df:pd.DataFrame,clean:bool=False,sort=True) -> pd.DataFrame:
     """
     # add the default flag
     if clean:
-        df['clean'] = False
+        df.loc[:'clean'] = False
 
     res_list = []
     path_groups = df.groupby(df.path)
