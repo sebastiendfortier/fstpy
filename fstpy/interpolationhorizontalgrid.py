@@ -174,7 +174,7 @@ class InterpolationHorizontalGrid(Plugin):
         for _,current_group in self.groups:
             # print(current_group[['nomvar','forecast_hour']])
             # print(grid)
-            print('CURRENT_GROUP\n',current_group[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
+            # print('CURRENT_GROUP\n',current_group[['nomvar','typvar','etiket','ni','nj','nk','ig1','ig2','ig3','ig4','date_of_validity']])
             current_group = load_data(current_group)
 
             hy_df = current_group.query("nomvar in ['HY']").reset_index(drop=True)
@@ -285,23 +285,26 @@ class InterpolationHorizontalGrid(Plugin):
         # res_df.loc['shape'] = myshape
         # result_specifications = {'ni':self.ni,'nj':self.nj,'ig1':self.ig1,'ig2':self.ig2,'ig3':self.ig3,'ig4':self.ig4,'interpolated':True}
         # for k,v in result_specifications.items():res_df[k]=v
-        toctoc_res_df = res_df.query('nomvar == "!!"')
-        toctoc_res_df.loc[:,'ip1'] = self.ig1
-        toctoc_res_df.loc[:,'ip2'] = self.ig2
+        toctoc_res_df = res_df.query('nomvar == "!!"').copy(deep=True)
+        toctoc_res_df['ip1'] = self.ig1
+        toctoc_res_df['ip2'] = self.ig2
 
-        other_res_df = res_df.query('nomvar != "!!"')
+        
         # other_res_df.drop(columns=['shape'],inplace=True)
-        for i in other_res_df.index:
-            other_res_df.at[i,"shape"] = (self.ni,self.nj)
 
-        other_res_df.loc[:,'ni'] = self.ni
-        other_res_df.loc[:,'nj'] = self.nj
-        other_res_df.loc[:,'grtyp'] = self.grtyp
-        other_res_df.loc[:,'interpolated'] = True
-        other_res_df.loc[:,'ig1'] = self.ig1
-        other_res_df.loc[:,'ig2'] = self.ig2
-        other_res_df.loc[:,'ig3'] = self.ig3
-        other_res_df.loc[:,'ig4'] = self.ig4
+        # for i in other_res_df.index:
+        #     other_res_df.at[i,"shape"] = (self.ni,self.nj)
+        other_res_df = res_df.query('nomvar != "!!"').copy(deep=True)
+        shape_list = [(self.ni,self.nj) for _ in range(len(other_res_df.index))]
+        other_res_df["shape"] = shape_list
+        other_res_df['ni'] = self.ni
+        other_res_df['nj'] = self.nj
+        other_res_df['grtyp'] = self.grtyp
+        other_res_df['interpolated'] = True
+        other_res_df['ig1'] = self.ig1
+        other_res_df['ig2'] = self.ig2
+        other_res_df['ig3'] = self.ig3
+        other_res_df['ig4'] = self.ig4
         
         
         if not no_mod_df.empty:
