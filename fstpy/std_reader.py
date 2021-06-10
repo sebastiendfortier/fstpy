@@ -179,23 +179,31 @@ class StandardFileReader:
     #     return ds
 
  
-def load_data(df:pd.DataFrame,clean:bool=False) -> pd.DataFrame:
+def load_data(df:pd.DataFrame,clean:bool=False,sort=True) -> pd.DataFrame:
     """Gets the associated data for every record in a dataframe
 
     :param df: dataframe to add arrays to
     :type df: pd.DataFrame
+    :param clean: mark loaded data for removal by unload
+    :type clean: bool
     :return: dataframe with filled arrays
     :rtype: pd.DataFrame
     """
-    path_groups = df.groupby(df.path)
-    res_list = []
+    # add the default flag
     if clean:
         df['clean'] = False
+
+    res_list = []
+    path_groups = df.groupby(df.path)
     for _,path_df in path_groups:
         if ('file_modification_time' in path_df.columns) and ((path_df.iloc[0]['file_modification_time'] is None) == False):
             compare_modification_times(path_df.iloc[0]['file_modification_time'], path_df.iloc[0]['path'],rmn.FST_RO, 'std_reader.py::load_data',StandardFileError)
+
         unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
-        path_df.sort_values(by=['key'],inplace=True)
+        # loads faster when keys are in sequence
+        if sort:
+            path_df.sort_values(by=['key'],inplace=True)
+
         for i in path_df.index:
             # if isinstance(path_df.at[i,'d'],dask_array_type):
             #     continue
@@ -208,11 +216,13 @@ def load_data(df:pd.DataFrame,clean:bool=False) -> pd.DataFrame:
             # path_df.at[i,'path'] = None
         res_list.append(path_df)
         rmn.fstcloseall(unit)
-    if len(res_list) >= 1:
+
+    if len(res_list):
         res_df = pd.concat(res_list,ignore_index=True)    
-    else:
-        res_df = df
-    res_df = sort_dataframe(res_df)
+
+    if sort:    
+        res_df = sort_dataframe(res_df)
+
     res_df.reset_index(drop=True,inplace=True)
     return res_df    
 
@@ -221,6 +231,8 @@ def unload_data(df:pd.DataFrame,only_marked:bool=False) -> pd.DataFrame:
 
     :param df: dataframe to remove data from
     :type df: pd.DataFrame
+    :param only_marked: unloads only marked o rows with clean column at True
+    :type only_marked: bool
     :return: dataframe with arrays removed
     :rtype: pd.DataFrame
     """
@@ -228,6 +240,7 @@ def unload_data(df:pd.DataFrame,only_marked:bool=False) -> pd.DataFrame:
     for i in df.index:
         if isinstance(df.at[i,'d'],np.ndarray) and not(df.at[i,'key'] is None) and ( df.at[i,'clean'] if only_marked else True): 
             df.at[i,'d'] = ('numpy',int(df.at[i,'key']))
+
     df = df.drop(columns=['clean'],errors='ignore')        
     return df  
 
