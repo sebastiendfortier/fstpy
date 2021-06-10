@@ -11,7 +11,7 @@ from fstpy.exceptions import UnitConversionError
 
 
 
-pytestmark = [pytest.mark.unit_regtests, pytest.mark.regressions]
+pytestmark = [pytest.mark.unit_regtests] #, pytest.mark.regressions
 
 
 @pytest.fixture
