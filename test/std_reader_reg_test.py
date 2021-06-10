@@ -141,28 +141,28 @@ def test_regtest_7(plugin_test_dir):
     assert(res == True)
 
 
-# def test_regtest_8(plugin_test_dir):
-#     """Test #8 : test_read_file_with_duplicated_grid"""
-#     # open and read source
-#     source0 = plugin_test_dir + "fstdWithDuplicatedGrid_fileSrc.std"
-#     src_df0 = StandardFileReader(source0).to_pandas()
+def test_regtest_8(plugin_test_dir):
+    """Test #8 : test_read_file_with_duplicated_grid"""
+    # open and read source
+    source0 = plugin_test_dir + "fstdWithDuplicatedGrid_fileSrc.std"
+    src_df0 = StandardFileReader(source0).to_pandas()
 
-#     #compute ReaderStd
-#     # df = ReaderStd(src_df0)
-#     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
+    #compute ReaderStd
+    # df = ReaderStd(src_df0)
+    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
-#     #write the result
-#     results_file = TMP_PATH + "test_read_reg_8.std"
-#     delete_file(results_file)
-#     StandardFileWriter(results_file, src_df0).to_fst()
+    #write the result
+    results_file = TMP_PATH + "test_read_reg_8.std"
+    delete_file(results_file)
+    StandardFileWriter(results_file, src_df0).to_fst()
+    print(results_file)
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "reference_file_test_8.std"
 
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "reference_file_test_8.std"
-
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     delete_file(results_file)
-#     assert(res == True)
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    delete_file(results_file)
+    assert(False == True)
 
 
 def test_regtest_9(plugin_test_dir):
