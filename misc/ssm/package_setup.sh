@@ -33,9 +33,13 @@ main(){
   warn_override_variables PYTHONPATH
 
 
-  [ -z "$PYTHONPATH" ] && export PYTHONPATH=${fstpy_base_path}/lib/packages || export PYTHONPATH=$PYTHONPATH:${fstpy_base_path}/lib/packages
+  [ -z "$PYTHONPATH" ] && export PYTHONPATH=${fstpy_base_path}/lib/packages || export PYTHONPATH=${fstpy_base_path}/lib/packages:$PYTHONPATH
 
-
+    python_base_path="$(cd "$(dirname ${sourced_file})/../../../../.."; pwd)"
+    requirements_file=${base_path}/share/requirements.txt
+    if [ -f $requirements_file ]; then
+        load_requirements ${python_base_path} ${requirements_file}
+    fi
   if $in_ssm ; then
       load_spooki_runtime_dependencies
       message "SUCCESS: Using fstpy from ${fstpy_base_path}"
@@ -86,8 +90,27 @@ load_spooki_runtime_dependencies(){
     message "Loading fstpy runtime dependencies ..."
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
+    print_and_do . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/python/pandas/1.1.5
     #print_and_do python3 -m pip install -r ${fstpy_base_path}/etc/profile.d/requirements.txt
     message "... done loading fstpy runtime dependencies."
+}
+
+# $1 : python_base_path
+# $2 : requirements file path
+load_requirements(){
+    while IFS= read -r line
+    do
+        if [[ $line != "" ]]; then
+            load_ssm ${1} ${line}
+        fi
+    done <"${2}"
+}
+
+# $1 : python_base_path
+# $2 : requirement, format is: package_name==version
+load_ssm(){
+    requirement_path=$(echo $2 | awk '{ gsub(/==/, "/" ); print; }')
+    . ssmuse-sh -d ${1}/${requirement_path}
 }
 
 main
