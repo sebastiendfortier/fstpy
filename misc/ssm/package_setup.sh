@@ -32,9 +32,9 @@ main(){
 
   warn_override_variables PYTHONPATH
 
-
+    CDIR=`pwd`
     cd $TMPDIR
-    if ! [ -d 'ssm_python']; then
+    if ! [ -d 'ssm_python' ]; then
         mkdir ssm_python
     fi 
     cd ssm_python     
@@ -42,12 +42,12 @@ main(){
     do
         ln -s $f
     done
-
+    cd $CDIR
     warn_override_variables PYTHONPATH
 
     SSM_PATH_PRESENT=$(echo $PYTHONPATH|grep ssm_python)
 
-    if ! [ -z $SSM_PATH_PRESENT ]; then
+    if [ -z $SSM_PATH_PRESENT ]; then
         [ -z "$PYTHONPATH" ] && export PYTHONPATH=${TMPDIR}/ssm_python || export PYTHONPATH=${TMPDIR}/ssm_python:$PYTHONPATH
     fi    
 
