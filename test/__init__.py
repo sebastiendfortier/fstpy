@@ -3,8 +3,7 @@ import os
 
 HOST_NUM = os.getenv("TRUE_HOST")[-1]
 USER = os.getenv("USER")
+SPOOKI_TMPDIR = os.getenv("SPOOKI_TMPDIR")
+TMPDIR = os.getenv("TMPDIR")
 TEST_PATH = "/fs/site%s/eccc/cmd/w/spst900/spooki/spooki_dir/pluginsRelatedStuff/"%HOST_NUM
-TMP_PATH = "/fs/site%s/eccc/cmd/w/%s/spooki_tmpdir/"%(HOST_NUM,USER)
-
-if USER == 'sgci800':
-    TMP_PATH = "/fs/site%s/eccc/cmd/s/%s/spooki_tmpdir/"%(HOST_NUM,USER)
+TMP_PATH = SPOOKI_TMPDIR if SPOOKI_TMPDIR else TMPDIR
