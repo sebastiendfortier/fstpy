@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from numpy.core.numeric import allclose
 from test import TEST_PATH, TMP_PATH
 
 import pytest

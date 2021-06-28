@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
 import numpy as np
-
+import sys
 from .std_reader import load_data
 from .utils import initializer
 
@@ -404,3 +404,86 @@ def get_grid_parameters_from_tictac_offset(tictac, start_pos, ni, nj, ig1, ig2, 
     return ni, nj, ig1, ig2, ig3, ig4, ay, ax, next_pos
 
 
+
+def find_index_of_lat_lon_not_in_grid(input_grid, grid_horizontal_dimension, grid_vertical_dimension, latitudes, longitudes):
+    # get X and Y position of all latitudes longitudes coordinate ( to later check if latlon are in the source grid )
+    # xy = {
+    #        'id' : grid id, same as input arg
+    #        'x'  : list of points x-coor (numpy.ndarray)
+    #        'y'  : list of points y-coor (numpy.ndarray)
+    #    }
+    coords = rmn.gdxyfll(input_grid, latitudes, longitudes)
+    # RpnFunctions::ezGetXYPositionFromLatLon(input_grid, x, y, latitudes, longitudes)
+
+    x_grid_lower_bound = 0.5
+    x_grid_upper_bound = grid_horizontal_dimension + 0.5
+    y_grid_lower_bound = 0.5
+    y_grid_upper_bound = grid_vertical_dimension + 0.5
+
+    #find index of latlon not in input grid limits
+    epsilon = 0.00002
+    indexes=[]
+    for i in range(len(latitudes)):
+        # need an epsilon
+        # ex: for the south pole ezscint can return something like 0.499987 instead of 0.5
+        if(    _lt_(coords['x'][i], x_grid_lower_bound, epsilon)
+            or _gt_(coords['x'][i], x_grid_upper_bound, epsilon)
+            or _lt_(coords['y'][i], y_grid_lower_bound, epsilon)
+            or _gt_(coords['y'][i], y_grid_upper_bound, epsilon)):
+
+            sys.stdout.write(f"latlon coordinate {latitudes[i]} , {longitudes[i]} outside input grid.\n")
+            sys.stdout.write(f"x_grid_lower_bound={x_grid_lower_bound} , x_grid_upper_bound={x_grid_upper_bound}, y_grid_lower_bound={y_grid_lower_bound}, y_grid_upper_bound={y_grid_upper_bound}\n")
+            sys.stdout.write(f"ezscint value for X is:{coords['x'][i]}\n")
+            sys.stdout.write(f"ezscint value for Y is:{coords['y'][i]}\n")
+            sys.stdout.write(f"epsilon:{epsilon}\n")
+            indexes.append(i)
+    return indexes        
+
+
+
+def do_extrapolation(interpolated_data, data_before_interpolation, indexes, extrapolation_type, extrapolation_value):
+    if extrapolation_type == "VALUE":
+        # replace value at latlon outside grid by a fixed value
+         for i in range(indexes):
+            interpolated_data[i] = extrapolation_value
+        
+    
+    elif extrapolation_type == "MAXIMUM":
+        min, max = find_min_max(data_before_interpolation)
+        max = max + (max - min) * 0.05
+
+        # replace value at latlon outside grid by the max value of the fields
+        for i in range(indexes):
+            interpolated_data[i] = max
+        
+    
+    elif extrapolation_type == "MINIMUM":
+        min, max = find_min_max(data_before_interpolation)
+        min = min - (max - min) * 0.05
+
+        # replace value at latlon outside grid by the min value of the fields
+        for i in range(indexes):
+            interpolated_data[i] = min
+    
+    elif extrapolation_type == "ABORT":
+        raise InterpolationHorizontalPointError("ABORTED AS REQUESTED BY THE USE OF THE 'extrapolation_type ABORT' OPTION.\n")
+    
+
+def find_min_max(array):
+    return np.min(array), np.max(array)
+
+
+def _eq_(value, threshold, epsilon=0.00001):
+    return (abs(value - threshold) <= epsilon)
+
+def _ge_(value, threshold, epsilon=0.00001):
+    return ((value > threshold) or _eq_(value, threshold, epsilon))
+
+def _lt_(value, threshold, epsilon=0.00001):
+    return (not _ge_(value, threshold, epsilon))
+
+def _le_(value, threshold, epsilon=0.00001):
+    return (value < threshold or _eq_(value, threshold, epsilon))
+
+def _gt_(value, threshold, epsilon=0.00001):
+    return (not _le_(value, threshold, epsilon))

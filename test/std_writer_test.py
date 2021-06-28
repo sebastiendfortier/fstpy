@@ -18,11 +18,11 @@ def tmp_file():
     return TMP_PATH + temp_name
 #filename:str, df:pd.DataFrame, add_meta_fields=True, overwrite=False, load_data=False
 
-def test_read_write_noload(input_file,tmp_file):
-    df = fstpy.StandardFileReader(input_file).to_pandas()
-    fstpy.StandardFileWriter(tmp_file,df).to_fst()
-    res = fstpy.fstcomp(input_file,tmp_file)
-    assert(res == True)
+# def test_read_write_noload(input_file,tmp_file):
+#     df = fstpy.StandardFileReader(input_file).to_pandas()
+#     fstpy.StandardFileWriter(tmp_file,df).to_fst()
+#     res = fstpy.fstcomp(input_file,tmp_file)
+#     assert(res == True)
 
 # def test_invalid_path(input_file):
 #     std_file = StandardFileReader(input_file,load_data=True)

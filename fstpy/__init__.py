@@ -93,6 +93,7 @@ KIND_DICT = {
 
 _const_prefix='/'.join(__file__.split('/')[0:-1])
 _csv_path = _const_prefix + '/csv/'
+_stationsfb = pd.read_csv(_csv_path + 'stationsfb.csv')
 _vctypes = pd.read_csv(_csv_path + 'verticalcoordinatetypes.csv')
 _stdvar = pd.read_csv(_csv_path + 'stdvar.csv')
 _units = pd.read_csv(_csv_path + 'units.csv'
@@ -114,6 +115,20 @@ _units = pd.read_csv(_csv_path + 'units.csv'
 _etikets = pd.read_csv(_csv_path + 'etiket.csv')
 _leveltypes = pd.read_csv(_csv_path + 'leveltype.csv')
 _thermoconstants = pd.read_csv(_csv_path + 'thermo_constants.csv')
+
+STATIONSFB = _stationsfb #: :meta hide-value:
+"""FB stations table
+
+:return: correspondance betweeen datyp and str version of datyp
+:rtype: pd.DataFrame
+:meta hide-value:
+>>> fstpy.VCTYPES
+    ip1_kind  toctoc     P0     E1     PT     HY     SF  vcode                vctype
+0          5    True   True  False  False  False  False   5002      HYBRID_STAGGERED
+1          5    True   True  False  False  False  False   5001                HYBRID
+2          5    True   True  False  False  False  False   5005           HYBRID_5005
+...
+"""
 
 VCTYPES = _vctypes #: :meta hide-value:
 """virtical coordinate type information table

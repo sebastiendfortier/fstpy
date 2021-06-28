@@ -44,6 +44,7 @@ Documentation
 * :doc:`std_enc`
 * :doc:`pressure`
 * :doc:`interpolationhorizontalgrid`
+* :doc:`interpolationhorizontalpoint`
 * :doc:`dataframe`
 * :doc:`dataframe_utils`
 * :doc:`unit`
@@ -61,6 +62,7 @@ Documentation
    std_enc
    pressure
    interpolationhorizontalgrid
+   interpolationhorizontalpoint
    dataframe
    dataframe_utils
    unit
@@ -80,7 +82,6 @@ Documentation
 
 **Misc**
 
-* :doc:`conda_howto`
 * :doc:`acknowledgements`
 * :doc:`LICENSE`
 
@@ -89,7 +90,6 @@ Documentation
    :hidden:
    :caption: Misc
 
-   conda_howto
    acknowledgements
    LICENSE
 
