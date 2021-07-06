@@ -122,11 +122,13 @@ STATIONSFB = _stationsfb #: :meta hide-value:
 :return: correspondance betweeen datyp and str version of datyp
 :rtype: pd.DataFrame
 :meta hide-value:
->>> fstpy.VCTYPES
-    ip1_kind  toctoc     P0     E1     PT     HY     SF  vcode                vctype
-0          5    True   True  False  False  False  False   5002      HYBRID_STAGGERED
-1          5    True   True  False  False  False  False   5001                HYBRID
-2          5    True   True  False  False  False  False   5005           HYBRID_5005
+>>> fstpy.STATIONSFB
+     StationIntlId StationAlphaId  CanRegCode                 StationName   Latitude   Longitude  StationElevation  TerrainElevation  FictiveStationFlag      SpookiStationKey ProductName
+0            71000           CYGW         2.0        'KUUJJUARAPIK A  QC'  55.453333  -78.200000              10.0              10.0                   0   71000CYGW5517N7745W        [FB]
+1            71000           CYAB         4.0         'ARCTIC BAY  NU CA'  73.000000  -85.053333              22.0              22.0                   0   71000CYAB7300N8502W        [FB]
+2            71000           CYSC         2.0         'SHERBROOKE  QC CA'  45.693333  -72.093333             241.0             241.0                   0   71000CYSC4526N7141W        [FB]
+3            71000           CYDL         6.0  'DEASE LAKE LWIS BC (AU5)'  58.666667 -130.053333               NaN             793.0                   0  71000CYDL5825N13002W        [FB]
+4            71000           CYLT         5.0      'ALERT AIRPORT  NT CA'  82.826667  -62.453333              31.0              31.0                   0   71000CYLT8231N6217W        [FB]
 ...
 """
 

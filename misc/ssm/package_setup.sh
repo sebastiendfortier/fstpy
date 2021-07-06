@@ -106,7 +106,6 @@ load_spooki_runtime_dependencies(){
     message "Loading fstpy runtime dependencies ..."
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
-    print_and_do . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/python/pandas/1.1.5
     #print_and_do python3 -m pip install -r ${base_path}/etc/profile.d/requirements.txt
     message "... done loading fstpy runtime dependencies."
 }
