@@ -12,7 +12,7 @@
       .. #currentmodule:: fstpy
       .. #autofuntion:: __init__  
 
-.. include:: intro.rst
+.. include:: intro.rst 
 
 
 Documentation
@@ -42,9 +42,6 @@ Documentation
 * :doc:`std_writer`
 * :doc:`std_dec`
 * :doc:`std_enc`
-* :doc:`pressure`
-* :doc:`interpolationhorizontalgrid`
-* :doc:`interpolationhorizontalpoint`
 * :doc:`dataframe`
 * :doc:`dataframe_utils`
 * :doc:`unit`
@@ -60,9 +57,6 @@ Documentation
    std_writer
    std_dec
    std_enc
-   pressure
-   interpolationhorizontalgrid
-   interpolationhorizontalpoint
    dataframe
    dataframe_utils
    unit
