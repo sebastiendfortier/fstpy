@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
-from test import TEST_PATH, TMP_PATH
+from manual_tests import TEST_PATH, TMP_PATH
 
-import pytest
+
 from fstpy.dataframe_utils import fstcomp
 from fstpy.pressure import Pressure
 from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.utils import delete_file
 
-pytestmark = [pytest.mark.pressure_regtests] #, pytest.mark.regressions
 
-@pytest.fixture
-def plugin_test_dir():
-    return TEST_PATH +"Pressure/testsFiles/"
+plugin_test_dir = TEST_PATH +"Pressure/testsFiles/"
 
 
 def write_result(results_file,df):
@@ -915,3 +912,42 @@ def test_regtest_36(plugin_test_dir):
 # #     assert(res == False)
 
 
+def main():
+    test_regtest_1()
+    test_regtest_2()
+    # test_regtest_3()
+    # test_regtest_4()
+    test_regtest_5()
+    test_regtest_6()
+    # test_regtest_7()
+    # test_regtest_8()
+    test_regtest_9()
+    test_regtest_10()
+    # test_regtest_11()
+    test_regtest_13()
+    test_regtest_14()
+    # test_regtest_15()
+    # test_regtest_16()
+    test_regtest_17()
+    test_regtest_18()
+    # test_regtest_19()
+    # test_regtest_20()
+    # test_regtest_21()
+    # test_regtest_22()
+    # test_regtest_23()
+    # test_regtest_24()
+    # test_regtest_25()
+    # test_regtest_26()
+    # test_regtest_27()
+    # test_regtest_18()
+    # test_regtest_29()
+    test_regtest_30()
+    # test_regtest_31()
+    # test_regtest_32()
+    test_regtest_33()
+    test_regtest_34()
+    test_regtest_35()
+    test_regtest_36()
+
+if __name__ == "__main__":
+    main()

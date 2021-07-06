@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from numpy.core.numeric import allclose
-from test import TEST_PATH, TMP_PATH
+from manual_tests import TEST_PATH, TMP_PATH
 
-import pytest
+
 from fstpy.dataframe_utils import fstcomp
 from fstpy.interpolationhorizontalgrid import InterpolationHorizontalGrid
 from fstpy.std_reader import StandardFileReader
@@ -12,11 +12,9 @@ import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
 
-pytestmark = [pytest.mark.interpolation_regtests] #, pytest.mark.regressions
 
-@pytest.fixture
-def plugin_test_dir():
-    return TEST_PATH +"InterpolationHorizontalGrid/testsFiles/"
+
+plugin_test_dir = TEST_PATH +"InterpolationHorizontalGrid/testsFiles/"
 
 def convip(df,nomvar='',style=rmn.CONVIP_ENCODE):
     def convertip(df,i):
@@ -33,7 +31,7 @@ def convip(df,nomvar='',style=rmn.CONVIP_ENCODE):
             convertip(df,i)
     return df        
 
-def test_regtest_1(plugin_test_dir):
+def test_regtest_1():
     """Test #1 :   Interpolation with multiple different input grid"""
     # open and read source
 
@@ -65,7 +63,7 @@ def test_regtest_1(plugin_test_dir):
     delete_file(results_file)
     assert(res == True)
 
-def test_regtest_2(plugin_test_dir):
+def test_regtest_2():
     """Test #2 :   Interpolation with scalar fields only"""
     # open and read source
     source0 = plugin_test_dir + "4panneaux_input4_fileSrc.std"
@@ -95,7 +93,7 @@ def test_regtest_2(plugin_test_dir):
     delete_file(results_file)
     assert(res == True)
 
-def test_regtest_3(plugin_test_dir):
+def test_regtest_3():
     """Test #3 :   Interpolation with vectorial fields only"""
     # open and read source
     source0 = plugin_test_dir + "inputUUVV.std"
@@ -125,7 +123,7 @@ def test_regtest_3(plugin_test_dir):
     delete_file(results_file)
     assert(res == True)    
 
-def test_regtest_5(plugin_test_dir):
+def test_regtest_5():
     """Test #5 :   Interpolation with FIELD_DEFINED"""
     # open and read source
     source0 = plugin_test_dir + "TTUUVVKTRT.std"
@@ -157,7 +155,7 @@ def test_regtest_5(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_6(plugin_test_dir):
+def test_regtest_6():
     """Test #6 :   Interpolation with FIELD_DEFINED, make sure HY follow"""
     # open and read source
     source0 = plugin_test_dir + "TT_RT_reghyb"
@@ -185,7 +183,7 @@ def test_regtest_6(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_7(plugin_test_dir):
+def test_regtest_7():
     """Test #7 :  Interpolation d'un champ scalaire (TT) d'une grille U vers une grille Z"""
     # open and read source
     source0 = plugin_test_dir + "2015072100_240_TTESUUVV_YinYang.std"
@@ -224,7 +222,7 @@ def test_regtest_7(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_8(plugin_test_dir):
+def test_regtest_8():
     """Test #8 :  Interpolation d'un champ scalaire (TT) d'une grille Z vers une grille U"""
     # open and read source
     source0 = plugin_test_dir + "2015072100_240_TTESUUVV_YinYang.std"
@@ -265,7 +263,7 @@ def test_regtest_8(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_9(plugin_test_dir):
+def test_regtest_9():
     """Test #9 :  Interpolation de champs vectoriels (UU,VV) d'une grille U vers une grille Z"""
     # open and read source
     source0 = plugin_test_dir + "2015072100_240_TTESUUVV_YinYang.std"
@@ -300,7 +298,7 @@ def test_regtest_9(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_10(plugin_test_dir):
+def test_regtest_10():
     """Test #10 :  Interpolation de champs vectoriels (UU,VV) d'une grille Z vers une grille U"""
     # open and read source
     source0 = plugin_test_dir + "2015072100_240_TTESUUVV_YinYang.std"
@@ -334,7 +332,7 @@ def test_regtest_10(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_11(plugin_test_dir):
+def test_regtest_11():
     """Test #11 :  Interpolation de champs vectoriels et scalaires d'une grille Z vers une grille U avec un fichier a interpoler contenant 2 toctocs."""
     # open and read source
     source0 = plugin_test_dir + "glbpres_TT_UU_VV.std"
@@ -371,7 +369,7 @@ def test_regtest_11(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_13(plugin_test_dir):
+def test_regtest_13():
     """Test #13 :   test extrapolation with negative value"""
     # open and read source
     source0 = plugin_test_dir + "TT_RT_reghyb"
@@ -398,5 +396,22 @@ def test_regtest_13(plugin_test_dir):
     res = fstcomp(results_file,file_to_compare,exclude_meta=False)
     delete_file(results_file)
     assert(res == True)
+
+def main():
+    test_regtest_1()
+    test_regtest_2()
+    test_regtest_3()
+    test_regtest_5()
+    test_regtest_6()
+    test_regtest_7()
+    test_regtest_8()
+    test_regtest_9()
+    test_regtest_10()
+    test_regtest_11()
+    test_regtest_13()
+
+
+if __name__ == "__main__":
+    main()
 
 

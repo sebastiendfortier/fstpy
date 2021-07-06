@@ -1,28 +1,20 @@
 # -*- coding: utf-8 -*-
-from numpy.lib.function_base import delete
-import pytest
-from rpnpy.librmn.all import FSTDError
-from test import TMP_PATH, TEST_PATH
+from manual_tests import TMP_PATH,TEST_PATH
 import tempfile
 import fstpy.all as fstpy
-pytestmark = [pytest.mark.std_writer, pytest.mark.unit_tests]
 
 
-@pytest.fixture
-def input_file():
-    return TEST_PATH + 'ReaderStd/testsFiles/source_data_5005.std'
 
-@pytest.fixture
-def tmp_file():
-    temp_name = next(tempfile._get_candidate_names())
-    return TMP_PATH + temp_name
+input_file = TEST_PATH + 'ReaderStd/testsFiles/source_data_5005.std'
+tmp_file =  TMP_PATH + next(tempfile._get_candidate_names())
+
 #filename:str, df:pd.DataFrame, add_meta_fields=True, overwrite=False, load_data=False
 
-# def test_read_write_noload(input_file,tmp_file):
-#     df = fstpy.StandardFileReader(input_file).to_pandas()
-#     fstpy.StandardFileWriter(tmp_file,df).to_fst()
-#     res = fstpy.fstcomp(input_file,tmp_file)
-#     assert(res == True)
+def test_read_write_noload():
+    df = fstpy.StandardFileReader(input_file).to_pandas()
+    fstpy.StandardFileWriter(tmp_file,df).to_fst()
+    res = fstpy.fstcomp(input_file,tmp_file)
+    assert(res == True)
 
 # def test_invalid_path(input_file):
 #     std_file = StandardFileReader(input_file,load_data=True)
@@ -270,3 +262,8 @@ def tmp_file():
 # #     assert status
     
 
+def main():
+    test_read_write_noload()
+
+if __name__ == "__main__":
+    main()

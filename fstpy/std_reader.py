@@ -193,7 +193,7 @@ def load_data(df:pd.DataFrame,clean:bool=False,sort=True) -> pd.DataFrame:
     """
     # add the default flag
     if clean:
-        df['clean'] = False
+        df.loc[:,'clean'] = False
 
     res_list = []
     path_groups = df.groupby(df.path)
@@ -204,7 +204,7 @@ def load_data(df:pd.DataFrame,clean:bool=False,sort=True) -> pd.DataFrame:
         unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
         # loads faster when keys are in sequence
         if sort:
-            path_df.sort_values(by=['key'],inplace=True)
+            path_df = path_df.sort_values(by=['key'])
 
         for i in path_df.index:
             # if isinstance(path_df.at[i,'d'],dask_array_type):

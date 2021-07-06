@@ -1,7 +1,4 @@
 #!/bin/bash
-. ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
-. activate fstpy_full
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 #echo ${DIR}
 cd ${DIR}

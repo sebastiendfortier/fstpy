@@ -43,7 +43,7 @@ a great variety of built-in plotting functions.
 
 Use the ssm package
 
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.0.1/
+    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.5/
 
 Use the git repository package: at your own risk ;)
 
@@ -66,7 +66,7 @@ ln -s ~sgci800/.conda/envs/fstpy_full
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.0.1/
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.5/
 ```
 
 ### Use fstpy
@@ -168,71 +168,6 @@ python -m pytest
 cd doc
 make clean    
 make doc
-```
-
-# Conda basics
-
-[conda
-reference](https://kiwidamien.github.io/save-the-environment-with-conda-and-how-to-let-others-run-your-programs.html)
-
-## get cmc conda
-
-``` bash
-. ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
-```
-
-## create an environment
-
-``` bash
-conda create --name fstpy_dev python=3.6
-```
-
-## activate an environment
-
-``` bash
-. activate fstpy_dev
-```
-
-## install stuff in the env
-
-``` bash
-conda install -c conda-forge sphinx-autodoc-typehints
-conda install -c conda-forge sphinx-gallery
-conda install -c conda-forge sphinx_rtd_theme
-conda install ipykernel
-conda install jupyterlab
-conda install numpy pandas dask xarray pytest
-conda install sphinx
-```
-
-## export env to file
-
-``` bash
-conda env export > fstpy_dev.yaml
-```
-
-## deactivate the env
-
-``` bash
-conda deactivate
-```
-
-## deleting the env
-
-``` bash
-conda env remove --name fstpy_dev
-```
-
-## list all envs
-
-``` bash
-conda info --envs
-```
-
-## recreate the env from yml specs
-
-``` bash
-conda env create --file fstpy_dev.yaml
 ```
 
 # Acknowledgements

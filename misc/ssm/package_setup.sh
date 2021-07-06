@@ -23,7 +23,7 @@ main(){
       real_file=$(readlink -f ${sourced_file})
   fi
 
-  fstpy_base_path="$(cd "$(dirname ${real_file})/../.."; pwd)"
+  base_path="$(cd "$(dirname ${real_file})/../.."; pwd)"
 
   if in_build_dir ; then
       message "ERROR: This script is only meant for the installed version of fstpy. "
@@ -32,13 +32,33 @@ main(){
 
   warn_override_variables PYTHONPATH
 
+    CDIR=`pwd`
+    cd $TMPDIR
+    if ! [ -d 'ssm_python' ]; then
+        mkdir ssm_python
+    fi 
+    cd ssm_python     
+    for f in ${base_path}/lib/packages/*; 
+    do
+        ln -s $f
+    done
+    cd $CDIR
+    warn_override_variables PYTHONPATH
 
-  [ -z "$PYTHONPATH" ] && export PYTHONPATH=${fstpy_base_path}/lib/packages || export PYTHONPATH=$PYTHONPATH:${fstpy_base_path}/lib/packages
+    SSM_PATH_PRESENT=$(echo $PYTHONPATH|grep ssm_python)
 
+    if [ -z $SSM_PATH_PRESENT ]; then
+        [ -z "$PYTHONPATH" ] && export PYTHONPATH=${TMPDIR}/ssm_python || export PYTHONPATH=${TMPDIR}/ssm_python:$PYTHONPATH
+    fi    
 
+    python_base_path="$(cd "$(dirname ${sourced_file})/../../../../.."; pwd)"
+    requirements_file=${base_path}/share/requirements.txt
+    if [ -f $requirements_file ]; then
+        load_requirements ${python_base_path} ${requirements_file}
+    fi
   if $in_ssm ; then
       load_spooki_runtime_dependencies
-      message "SUCCESS: Using fstpy from ${fstpy_base_path}"
+      message "SUCCESS: Using fstpy from ${base_path}"
   fi
 }
 
@@ -74,7 +94,7 @@ warn_override_variables(){
 # }
 
 in_build_dir(){
-    [ -e ${fstpy_base_path}/CMakeFiles ]
+    [ -e ${base_path}/CMakeFiles ]
 }
 
 print_and_do(){
@@ -86,8 +106,26 @@ load_spooki_runtime_dependencies(){
     message "Loading fstpy runtime dependencies ..."
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
-    #print_and_do python3 -m pip install -r ${fstpy_base_path}/etc/profile.d/requirements.txt
+    #print_and_do python3 -m pip install -r ${base_path}/etc/profile.d/requirements.txt
     message "... done loading fstpy runtime dependencies."
+}
+
+# $1 : python_base_path
+# $2 : requirements file path
+load_requirements(){
+    while IFS= read -r line
+    do
+        if [[ $line != "" ]]; then
+            load_ssm ${1} ${line}
+        fi
+    done <"${2}"
+}
+
+# $1 : python_base_path
+# $2 : requirement, format is: package_name==version
+load_ssm(){
+    requirement_path=$(echo $2 | awk '{ gsub(/==/, "/" ); print; }')
+    . ssmuse-sh -d ${1}/${requirement_path}
 }
 
 main

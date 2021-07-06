@@ -342,10 +342,10 @@ def sort_dataframe(df) -> pd.DataFrame:
     if df.empty:
         return df
     if ('grid' in df.columns) and ('datev' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
-        df.sort_values(by=['grid','datev','nomvar','level'],ascending=[True,True,True,False],inplace=True)
+        df = df.sort_values(by=['grid','datev','nomvar','level'],ascending=[True,True,True,False])
     else:     
-        df.sort_values(by=['datev','nomvar'],ascending=[True,True],inplace=True)
-    df.reset_index(drop=True,inplace=True)
+        df = df.sort_values(by=['datev','nomvar'],ascending=[True,True])
+    df = df.reset_index(drop=True)
     return df    
 
 def set_vertical_coordinate_type(df) -> pd.DataFrame:
