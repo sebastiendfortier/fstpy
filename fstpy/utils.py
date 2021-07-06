@@ -238,9 +238,15 @@ def ip_from_value_and_kind(value:float,kind:str) -> int:
         'H':10,
         'mp':21
     }
+
     pk =  rmn.listToFLOATIP((value, value, d[kind.strip()]))
-    (ip, _, _) = rmn.convertPKtoIP(pk,pk,pk)
+    
+    if kind.strip() == 'H':
+        (_, ip, _) =  rmn.convertPKtoIP(rmn.listToFLOATIP((value, value, d["m"])), pk, pk)
+    else:
+        (ip, _, _) = rmn.convertPKtoIP(pk,pk,pk)
     return ip
+
 
 def column_descriptions():
     """Prints the base attributes descriptions
