@@ -107,8 +107,9 @@ def identical_destination_and_record_path(record_path, filename):
     return record_path == filename
 
 def reshape_data_to_original_shape(df, i):
-    if df.at[i,'d'].shape != tuple(df.at[i,'shape']):
-        df.at[i,'d'] = df.at[i,'d'].reshape(df.at[i,'shape'])
+    if df.at[i,'nomvar'] not in ['>>','^^','^>','!!','HY','!!SF']:
+        if df.at[i,'d'].shape != tuple(df.at[i,'shape']):
+            df.at[i,'d'] = df.at[i,'d'].reshape(df.at[i,'shape'])
     return df
 
 # def change_etiket_if_a_plugin_name(df, i):

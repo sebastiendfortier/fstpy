@@ -20,14 +20,14 @@ from .std_reader import StandardFileReader, load_data
 
 
 
-def fstcomp(file1:str, file2:str, exclude_meta=True, columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001,allclose=False) -> bool:
+def fstcomp(file1:str, file2:str, exclude_meta=True, columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001,allclose=False) -> bool:
     """Utility used to compare the contents of two RPN standard files (record by record).
 
     :param file1: path to file 1
     :type file1: str
     :param file2: path to file 2
     :type file2: str
-    :param columns: columns to be considered, defaults to ['nomvar', 'ni', 'nj', 'nk', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
+    :param columns: columns to be considered, defaults to ['nomvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
     :type columns: list, optional
     :param verbose: if activated prints more information, defaults to False
     :type verbose: bool, optional
@@ -416,10 +416,11 @@ def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
     diff.drop(columns=['abs_diff'], inplace=True,errors='ignore')
     return diff
 
-def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar','etiket','ni', 'nj', 'nk', 'dateo', 'datev', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001,allclose=False) -> bool:
+def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=['nomvar','etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001,allclose=False) -> bool:
+
     columns_to_keep = ['nomvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2',
        'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3',
-       'ig4', 'datev', 'd']
+       'ig4', 'd']
     df1 = df1[columns_to_keep]   
     df2 = df2[columns_to_keep]   
     #print(df1.columns)
@@ -427,6 +428,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     df1 = df1.sort_values(by=columns)
     df2 = df2.sort_values(by=columns)
 
+    # print('allclose= ',allclose,'exclude_meta= ',exclude_meta)
     success = False
     pd.options.display.float_format = '{:0.6E}'.format
     # check if both df have records
@@ -442,6 +444,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     if exclude_meta:
         df1 = remove_meta_data_fields(df1)
         df2 = remove_meta_data_fields(df2)
+
     # print(df1.to_string())
     # print(df2.to_string())    
     # voir(df1)
@@ -463,6 +466,8 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
         return True
     #create common fields
 
+    print(df1[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']])
+    print(df2[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']])
     common = pd.merge(df1, df2, how='inner', on=columns)
     print(common[['nomvar','d_x']])
     print(common[['nomvar','d_y']])
@@ -478,7 +483,10 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
     #Rows in df2 Which Are Not Available in df1
     common_with_2 = common.merge(df2, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'right_only']
     missing = pd.concat([common_with_1, common_with_2],ignore_index=True)
-    missing = remove_meta_data_fields(missing)
+
+    if exclude_meta:
+        missing = remove_meta_data_fields(missing)
+
     if len(common.index) != 0:
         if len(common_with_1.index) != 0:
             if print_unmatched:
