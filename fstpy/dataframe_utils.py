@@ -445,6 +445,9 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=True, columns=
         df1 = remove_meta_data_fields(df1)
         df2 = remove_meta_data_fields(df2)
 
+    if len(df1.index) != len(df2.index):
+        sys.stderr.write(f'file 1 ({len(df1.index)}) and file 2 ({len(df2.index)}) dont have the same number of records\n')
+        return False
     # print(df1.to_string())
     # print(df2.to_string())    
     # voir(df1)
