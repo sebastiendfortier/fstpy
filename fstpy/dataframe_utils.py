@@ -84,9 +84,9 @@ def metadata_cleanup(df:pd.DataFrame,strict_toctoc=True) -> pd.DataFrame:
     hy_field_df = get_hy_field(df,hybrid_ips)
 
     pressure_ips = get_pressure_ips(not_meta_df)
-    eta_ips = get_eta_ips(not_meta_df)
+
     #get !!'s strict
-    toctoc_fields_df = get_toctoc_fields(df,hybrid_ips,sigma_ips,eta_ips,pressure_ips,strict_toctoc)
+    toctoc_fields_df = get_toctoc_fields(df,hybrid_ips,sigma_ips,pressure_ips,strict_toctoc)
 
     df = pd.concat([not_meta_df,grid_deformation_fields_df,p0_fields_df,pt_fields_df,hy_field_df,toctoc_fields_df],ignore_index=True)
 
@@ -645,25 +645,9 @@ def compute_fstcomp_stats(common: pd.DataFrame, diff: pd.DataFrame,e_max=0.0001,
         b1 = np.where((a==0) & (b==0),1,b)
 
         verror_rel = np.vectorize(calc_derr)
-        # derr0 = np.where(a==0,np.abs(1-a/b),np.abs(1-b/a))
-        # derr = np.where(a1==0,abs(1-(a1/b1)),abs(1-(b1/a1)))
+
         derr = verror_rel(a1,b1)
 
-        # vcalc_derr = np.vectorize(calc_derr)
-        # derr = vcalc_derr(a,b)
-        # print(f'err_rel {derr}')
-
-        # derr1 = np.where(a == 0 and b != 0, np.abs(1-a/b), np.abs(1-b/a))
-        # print(f'err_rel0 {derr0}')
-        # print(f'err_rel1 {derr1}')
-        # print(f'err_rel2 {derr2}')
-        # print(np.abs(derr1-derr),np.max(np.abs(derr1-derr)))
-        # derr_sum=np.sum(derr)
-        # print(derr_sum)
-        # if math.isnan(derr_sum):
-        #     diff.at[i, 'e_rel_max'] = 0.
-        #     diff.at[i, 'e_rel_moy'] = 0.
-        # else:    
         diff.at[i, 'e_rel_max'] = np.max(derr)
         diff.at[i, 'e_rel_moy'] = np.mean(derr)
 
@@ -748,9 +732,6 @@ def get_ips(df:pd.DataFrame,sigma=False,hybrid=False,eta=False,pressure=False) -
     if hybrid:        
         if 5 in kinds.keys():
             ip1_list.append(kinds[5])
-    if eta:        
-        if 1 in kinds.keys():
-            ip1_list.append(kinds[1])
     if pressure:        
         if 2 in kinds.keys():
             ip1_list.append(kinds[2])                    
@@ -767,20 +748,11 @@ def get_model_ips(df:pd.DataFrame) -> list:
     #     ip1_list.append(kinds[5])    
     # return ip1_list    
 
-def get_eta_ips(df:pd.DataFrame) -> list:
-    return get_ips(df,eta=True)
+def get_sigma_ips(df:pd.DataFrame) -> list:
+    return get_ips(df,sigma=True)
 
 def get_pressure_ips(df:pd.DataFrame) -> list:
     return get_ips(df,pressure=True)
-
-
-def get_sigma_ips(df:pd.DataFrame) -> list:
-    return get_ips(df,sigma=True)
-    # kinds = get_kinds_and_ip1(df)
-    # ip1_list = []
-    # if 1 in kinds.keys():
-    #     ip1_list.append(kinds[1])
-    # return ip1_list    
 
 def get_hybrid_ips(df:pd.DataFrame) -> list:
     return get_ips(df,hybrid=True)
@@ -823,7 +795,7 @@ def get_hybrid_ips(df:pd.DataFrame) -> list:
 # 1,True,True,False,False,False,False,1002,ETA
 # 1,True,True,False,False,False,False,1001,SIGMA
 
-def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,eta_ips:list,pressure_ips:list,strict=True):
+def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ips:list,strict=True):
 
     hybrid_fields_df = pd.DataFrame(dtype=object)
     # hybrid
@@ -843,15 +815,6 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,eta_ips:lis
     if not sigma_fields_df.empty:
         sigma_grids = sigma_fields_df.grid.unique()
 
-    # eta
-    eta_fields_df = pd.DataFrame(dtype=object)
-    if len(eta_ips):
-        eta_fields_df = df.query(f'ip1 in {eta_ips}').reset_index(drop=True)
-
-    eta_grids = []
-    if not eta_fields_df.empty:
-        eta_grids = eta_fields_df.grid.unique()
-
     # pressure
     pressure_fields_df = pd.DataFrame(dtype=object)
     if len(pressure_ips):
@@ -866,7 +829,6 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,eta_ips:lis
     grids = []
     grids.extend(hybrid_grids)
     grids.extend(sigma_grids)
-    grids.extend(eta_grids)
     grids.extend(pressure_grids)
     grids = set(grids)
 
