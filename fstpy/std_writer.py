@@ -7,6 +7,7 @@ import math
 import rpnpy.librmn.all as rmn
 
 from .dataframe import sort_dataframe
+from .dataframe_utils import metadata_cleanup
 from .exceptions import StandardFileWriterError
 from .logger_config import logger
 from .std_io import close_fst, get_grid_metadata_fields, open_fst
@@ -27,7 +28,7 @@ class StandardFileWriter:
     :type update_meta_only: bool, optional
     """
     @initializer
-    def __init__(self, filename:str, df:pd.DataFrame, update_meta_only=False, sort=True):
+    def __init__(self, filename:str, df:pd.DataFrame, update_meta_only=False, sort=True, no_meta=False):
 
         if self.df.empty:
             raise StandardFileWriterError('StandardFileWriter - no records to process')
@@ -37,8 +38,11 @@ class StandardFileWriter:
         """get the metadata fields if not already present and adds them to the dataframe. 
         If not in update only mode, loads the actual data. opens the file writes the dataframe and closes.
         """
-        
-        self.meta_df = get_grid_metadata_fields(self.df)
+        self.meta_df = pd.DataFrame(dtype=object)
+        if self.no_meta == False:
+            self.meta_df = get_grid_metadata_fields(self.df)
+        else:
+            self.df = self.df.query('nomvar not in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]').reset_index(drop=True)    
 
         if not self.meta_df.empty:
 
@@ -47,7 +51,11 @@ class StandardFileWriter:
                 self.df.loc[:,'clean'] = False
 
             self.df = pd.concat([self.df, self.meta_df],ignore_index=True)
-            self.df.drop_duplicates(subset=['grtyp','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True,keep='first')
+
+        self.df.drop_duplicates(subset=['grtyp','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True,keep='first')
+
+        self.df = metadata_cleanup(self.df)
+        
         self.df.reset_index(drop=True,inplace=True)        
 
         # if not self.update_meta_only:
@@ -61,7 +69,7 @@ class StandardFileWriter:
     def _write(self):
         logger.info('StandardFileWriter - writing to file %s', self.filename)  
 
-        self.df.drop_duplicates(subset=['grtyp','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True,keep='first')
+        self.df.drop_duplicates(subset=['grtyp','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True,keep='first')
 
         if self.sort:
             self.df = sort_dataframe(self.df)
@@ -71,12 +79,12 @@ class StandardFileWriter:
                 #set_typvar(self.df,i)
                 record_path = self.df.at[i,'path']
                 if identical_destination_and_record_path(record_path,self.filename):
-                    update_meta_data(self.df,i)
+                    update_records(self.df,i)
                 else:
                     logger.warning('StandardFileWriter - record path and output file are not identical, cannot update record meta data only')
     
         else:
-            df_list = np.array_split(self.df, math.ceil(len(self.df.index)/84)) #84 records per block
+            df_list = np.array_split(self.df, math.ceil(len(self.df.index)/256)) #256 records per block
             for df in df_list:
                 df = load_data(df,clean=True,sort=self.sort) # partial load to keep memory usage low
                 file_id = rmn.fstopenall(self.filename,rmn.FST_RW)
@@ -92,11 +100,15 @@ class StandardFileWriter:
 def write_dataframe_record_to_file(file_id,df,i):
     #df = change_etiket_if_a_plugin_name(df,i)
     df = reshape_data_to_original_shape(df,i)
+    if df.at[i,'nomvar'] == '!!':
+        print(df.loc[i]['d'])
+        rmn.fstecr(file_id, data=df.at[i,'d'], meta=df.loc[i].to_dict()) 
+        return
     rmn.fstecr(file_id, data=np.asfortranarray(df.at[i,'d']), meta=df.loc[i].to_dict()) 
     
  
 
-def update_meta_data(df, i):
+def update_records(df, i):
     d = df.loc[i].to_dict()
     key = d['key']
     del d['key']

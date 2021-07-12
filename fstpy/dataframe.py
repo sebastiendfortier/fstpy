@@ -103,15 +103,18 @@ def get_shape(ni,nj):
     
 
 def add_shape_column(df):
+    if 'shape' in df.columns:
+        return df
     vmake_shape = np.vectorize(get_shape,otypes=['object'])
     df.loc[:,'shape'] = vmake_shape(df['ni'],df['nj'])
     return df
 
 
 def add_data_column(df,array_container):
+    if 'd' in df.columns:
+        return df
     vcreate_data = np.vectorize(get_data_holder,otypes=['object']) 
-    if 'd' not in df.columns:
-        df.loc[:,'d']=None   
+    df.loc[:,'d']=None   
     df.loc[:,'d'] = vcreate_data(df['d'],df['key'],array_container)
     return df
 
@@ -137,12 +140,14 @@ def add_unit_and_description_columns(df:pd.DataFrame) ->pd.DataFrame:
     :return: dataframe with unit and description columns added
     :rtype: pd.DataFrame
     """
+
     vget_unit_and_description = np.vectorize(get_unit_and_description,otypes=['str','str'])  
     if 'unit' in df.columns:  
         sub_df = df.loc[df['unit'].isna()].copy()
         assign_unit_and_description(vget_unit_and_description, sub_df)
         df.loc[df['unit'].isna()] = sub_df
     else:
+        df.loc[:,'unit'] = None
         assign_unit_and_description(vget_unit_and_description, df)
     return df
 
