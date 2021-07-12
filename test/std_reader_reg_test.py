@@ -2,7 +2,7 @@
 from test import TEST_PATH, TMP_PATH
 
 import pytest
-from fstpy.dataframe_utils import fstcomp, select, select_zap, zap, select_with_meta
+from fstpy.dataframe_utils import fstcomp, select_with_meta
 from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.utils import delete_file
@@ -34,7 +34,7 @@ def test_regtest_2(plugin_test_dir):
 
 
     #compute ReaderStd
-    src_df0 = select(src_df0,'nomvar in ["UU","VV","T6"]')
+    src_df0 = select_with_meta(src_df0,["UU","VV","T6"])
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,T6] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
@@ -421,7 +421,8 @@ def test_regtest_19(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "mb_plus_hybrid_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
-    src_df0 = zap(src_df0,etiket='33K80___X')
+
+    src_df0['etiket'] = '33K80___X'
 
     #compute ReaderStd
     # df = ReaderStd(src_df0)
@@ -526,8 +527,8 @@ def test_regtest_23(plugin_test_dir):
     source0 = plugin_test_dir + "kt_ai_hybrid.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    src_df0 = select_zap(src_df0,'nomvar=="AI"',nomvar='PT')
+    src_df0.loc[src_df0.nomvar == 'AI','nomvar'] = 'PT'
+    # src_df0 = select_zap(src_df0,'nomvar=="AI"',nomvar='PT')
 
     #compute ReaderStd
     # df = ReaderStd(src_df0)
@@ -644,7 +645,7 @@ def test_regtest_29(plugin_test_dir):
 
     #compare results
     # toctoc is present in cmp file, disable strick meta
-    res = fstcomp(results_file,file_to_compare,exclude_meta=True,cmp_number_of_fields=False)
+    res = fstcomp(results_file,file_to_compare)
     delete_file(results_file)
     assert(res == True)
 

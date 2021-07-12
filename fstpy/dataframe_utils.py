@@ -53,7 +53,7 @@ def select_with_meta(df:pd.DataFrame,nomvar:list) -> pd.DataFrame:
 
     return selection_result_df
 
-def metadata_cleanup(df:pd.DataFrame) -> pd.DataFrame:
+def metadata_cleanup(df:pd.DataFrame,strict_toctoc=True) -> pd.DataFrame:
     """cleans the metadata from a dataframe according to rules
 
     :param df: dataframe to clean
@@ -73,15 +73,20 @@ def metadata_cleanup(df:pd.DataFrame) -> pd.DataFrame:
     # get P0's
     p0_fields_df = get_p0_fields(df,not_meta_df)
     
+    sigma_ips = get_sigma_ips(not_meta_df)
+
     #get PT's
-    pt_fields_df = get_pt_fields(df,not_meta_df)
+    pt_fields_df = get_pt_fields(df,not_meta_df,sigma_ips)
+
+    hybrid_ips = get_hybrid_ips(not_meta_df)
 
     #get HY
-    hybrid_ips, hy_field_df = get_hy_field_and_hybrid_ips(df,not_meta_df)
+    hy_field_df = get_hy_field(df,hybrid_ips)
 
+    pressure_ips = get_pressure_ips(not_meta_df)
+    eta_ips = get_eta_ips(not_meta_df)
     #get !!'s strict
-    toctoc_fields_df = get_toctoc_fields(df,hybrid_ips)
-
+    toctoc_fields_df = get_toctoc_fields(df,hybrid_ips,sigma_ips,eta_ips,pressure_ips,strict_toctoc)
 
     df = pd.concat([not_meta_df,grid_deformation_fields_df,p0_fields_df,pt_fields_df,hy_field_df,toctoc_fields_df],ignore_index=True)
 
@@ -734,7 +739,7 @@ def get_kinds_and_ip1(df:pd.DataFrame) -> dict:
     # print(kinds)    
     return kinds
 
-def get_ips(df:pd.DataFrame,sigma=False,hybrid=False) -> list:
+def get_ips(df:pd.DataFrame,sigma=False,hybrid=False,eta=False,pressure=False) -> list:
     kinds = get_kinds_and_ip1(df)
     ip1_list = []
     if sigma:
@@ -742,7 +747,13 @@ def get_ips(df:pd.DataFrame,sigma=False,hybrid=False) -> list:
             ip1_list.append(kinds[1])
     if hybrid:        
         if 5 in kinds.keys():
-            ip1_list.append(kinds[5])    
+            ip1_list.append(kinds[5])
+    if eta:        
+        if 1 in kinds.keys():
+            ip1_list.append(kinds[1])
+    if pressure:        
+        if 2 in kinds.keys():
+            ip1_list.append(kinds[2])                    
     return ip1_list  
 
 def get_model_ips(df:pd.DataFrame) -> list:
@@ -755,6 +766,13 @@ def get_model_ips(df:pd.DataFrame) -> list:
     # if 5 in kinds.keys():
     #     ip1_list.append(kinds[5])    
     # return ip1_list    
+
+def get_eta_ips(df:pd.DataFrame) -> list:
+    return get_ips(df,eta=True)
+
+def get_pressure_ips(df:pd.DataFrame) -> list:
+    return get_ips(df,pressure=True)
+
 
 def get_sigma_ips(df:pd.DataFrame) -> list:
     return get_ips(df,sigma=True)
@@ -800,19 +818,59 @@ def get_hybrid_ips(df:pd.DataFrame) -> list:
 #     return ip1_list  
 
 
+# toctoc without hybrid
+# 2,True,True,False,False,False,False,2001,PRESSURE
+# 1,True,True,False,False,False,False,1002,ETA
+# 1,True,True,False,False,False,False,1001,SIGMA
 
-def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,strict=True):
-    toctoc_fields_df = pd.DataFrame(dtype=object)
+def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,eta_ips:list,pressure_ips:list,strict=True):
+
     hybrid_fields_df = pd.DataFrame(dtype=object)
-
+    # hybrid
     if len(hybrid_ips):
         hybrid_fields_df = df.query(f'ip1 in {hybrid_ips}').reset_index(drop=True)
 
-    # print('hybrid_fields_df\n',hybrid_fields_df)
-    grids = []
+    hybrid_grids = []
     if not hybrid_fields_df.empty:
-        grids = hybrid_fields_df.grid.unique()
-    # print('grids\n',grids)
+        hybrid_grids = hybrid_fields_df.grid.unique()
+
+    # sigma
+    sigma_fields_df = pd.DataFrame(dtype=object)
+    if len(sigma_ips):
+        sigma_fields_df = df.query(f'ip1 in {sigma_ips}').reset_index(drop=True)
+
+    sigma_grids = []
+    if not sigma_fields_df.empty:
+        sigma_grids = sigma_fields_df.grid.unique()
+
+    # eta
+    eta_fields_df = pd.DataFrame(dtype=object)
+    if len(eta_ips):
+        eta_fields_df = df.query(f'ip1 in {eta_ips}').reset_index(drop=True)
+
+    eta_grids = []
+    if not eta_fields_df.empty:
+        eta_grids = eta_fields_df.grid.unique()
+
+    # pressure
+    pressure_fields_df = pd.DataFrame(dtype=object)
+    if len(pressure_ips):
+        pressure_fields_df = df.query(f'ip1 in {pressure_ips}').reset_index(drop=True)            
+
+    pressure_grids = []
+    if not pressure_fields_df.empty:
+        pressure_grids = pressure_fields_df.grid.unique()
+
+
+    #combine grids
+    grids = []
+    grids.extend(hybrid_grids)
+    grids.extend(sigma_grids)
+    grids.extend(eta_grids)
+    grids.extend(pressure_grids)
+    grids = set(grids)
+
+
     df_list = []
     for grid in grids:
         toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}")')
@@ -825,6 +883,7 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,strict=True):
         if toctoc:
             df_list.append(toctoc_df)
     # print('df_list\n',df_list)
+    toctoc_fields_df = pd.DataFrame(dtype=object)
     if len(df_list):
         toctoc_fields_df = pd.concat(df_list,ignore_index=True)
 
@@ -832,15 +891,14 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,strict=True):
 
     return toctoc_fields_df
 
-def get_hy_field_and_hybrid_ips(df:pd.DataFrame,not_meta_df:pd.DataFrame):
+def get_hy_field(df:pd.DataFrame,hybrid_ips:list):
     hy_field_df = pd.DataFrame(dtype=object)
-    hybrid_ips = get_hybrid_ips(not_meta_df)
     if len(hybrid_ips):
         hy_field_df = df.query(f'nomvar=="HY"').reset_index(drop=True)
 
     hy_field_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
 
-    return hybrid_ips, hy_field_df
+    return hy_field_df
     # if len(hybrid_ips):
     #     df.query(f'ip=="HY"').reset_index(drop=True)
 
@@ -895,9 +953,8 @@ def get_p0_fields(df:pd.DataFrame,not_meta_df:pd.DataFrame):
 
     return p0_fields_df  
 
-def get_pt_fields(df:pd.DataFrame,not_meta_df:pd.DataFrame):
+def get_pt_fields(df:pd.DataFrame,not_meta_df:pd.DataFrame,sigma_ips:list):
     pt_fields_df = pd.DataFrame(dtype=object)
-    sigma_ips = get_sigma_ips(not_meta_df)
     sigma_grids = set()
     for ip1 in sigma_ips:
         sigma_grids.add(not_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
