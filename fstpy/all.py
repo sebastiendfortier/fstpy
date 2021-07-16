@@ -8,5 +8,5 @@ from .dataframe import (add_data_type_str_column, add_decoded_columns,
 from .dataframe_utils import fstcomp, fststat, voir, metadata_cleanup, select_with_meta
 from .std_reader import StandardFileReader, load_data, unload_data
 from .std_writer import StandardFileWriter
-from .unit import unit_convert,unit_convert_array
+from .unit import unit_convert,unit_convert_array,get_converter
 from .utils import (create_1row_df_from_model, delete_file)

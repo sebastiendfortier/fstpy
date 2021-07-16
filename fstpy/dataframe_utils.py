@@ -10,8 +10,7 @@ import rpnpy.librmn.all as rmn
 import fstpy
 from fstpy import DATYP_DICT
 
-from .dataframe import (add_ip_info_columns, remove_from_df,
-                        reorder_columns, sort_dataframe)
+from .dataframe import (add_ip_info_columns, reorder_columns )
 from .exceptions import SelectError, StandardFileError
 from .logger_config import logger
 from .std_dec import convert_rmndate_to_datetime
@@ -65,30 +64,30 @@ def metadata_cleanup(df:pd.DataFrame,strict_toctoc=True) -> pd.DataFrame:
     if df.empty:
         return df
     
-    not_meta_df = df.query('nomvar not in  ["!!","P0","PT",">>","^^","^>","HY","!!SF"]').reset_index(drop=True)
-    # print(not_meta_df.grid)
+    no_meta_df = df.query('nomvar not in  ["!!","P0","PT",">>","^^","^>","HY","!!SF"]').reset_index(drop=True)
+    # print(no_meta_df.grid)
     # get deformation fields
-    grid_deformation_fields_df = get_grid_deformation_fileds(df,not_meta_df)        
+    grid_deformation_fields_df = get_grid_deformation_fileds(df,no_meta_df)        
 
     # get P0's
-    p0_fields_df = get_p0_fields(df,not_meta_df)
+    p0_fields_df = get_p0_fields(df,no_meta_df)
     
-    sigma_ips = get_sigma_ips(not_meta_df)
+    sigma_ips = get_sigma_ips(no_meta_df)
     
     #get PT's
-    pt_fields_df = get_pt_fields(df,not_meta_df,sigma_ips)
+    pt_fields_df = get_pt_fields(df,no_meta_df,sigma_ips)
 
-    hybrid_ips = get_hybrid_ips(not_meta_df)
+    hybrid_ips = get_hybrid_ips(no_meta_df)
 
     #get HY
     hy_field_df = get_hy_field(df,hybrid_ips)
 
-    pressure_ips = get_pressure_ips(not_meta_df)
-
+    pressure_ips = get_pressure_ips(no_meta_df)
+    # print('no_meta_df\n',no_meta_df[['nomvar','typvar','etiket','ip1', 'ip2', 'ip3', 'datev']].to_string())
     #get !!'s strict
     toctoc_fields_df = get_toctoc_fields(df,hybrid_ips,sigma_ips,pressure_ips,strict_toctoc)
-
-    df = pd.concat([not_meta_df,grid_deformation_fields_df,p0_fields_df,pt_fields_df,hy_field_df,toctoc_fields_df],ignore_index=True)
+    # print('cleaned toctoc\n',toctoc_fields_df)
+    df = pd.concat([no_meta_df,grid_deformation_fields_df,p0_fields_df,pt_fields_df,hy_field_df,toctoc_fields_df],ignore_index=True)
 
     return df
 
@@ -122,7 +121,7 @@ def fstcomp(file1:str, file2:str, exclude_meta=False, cmp_number_of_fields=True,
     df2 = StandardFileReader(file2).to_pandas()
     # print('df2',df2)
 
-    return fstcomp_df(df1, df2, exclude_meta, cmp_number_of_fields, columns, print_unmatched=True if verbose else False,e_max=e_max,e_moy=e_moy,e_c_cor=e_c_cor)
+    return fstcomp_df(df1, df2, exclude_meta, cmp_number_of_fields, columns, print_unmatched=verbose,e_max=e_max,e_moy=e_moy,e_c_cor=e_c_cor)
 
 def voir(df:pd.DataFrame,style=False):
     """Displays the metadata of the supplied records in the rpn voir format"""
@@ -502,8 +501,8 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
     #print(df2.columns)
     # df1 = df1.sort_values(by=columns)
     # df2 = df2.sort_values(by=columns)
-    df1.sort_values(by=columns,inplace=True)
-    df2.sort_values(by=columns,inplace=True)
+    df1 = df1.sort_values(by=columns)
+    df2 = df2.sort_values(by=columns)
 
     # print('allclose= ',allclose,'exclude_meta= ',exclude_meta)
     success = False
@@ -558,16 +557,16 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
     #     # logger.debug('B',df2[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())
     #     return True
     #create common fields
+    if print_unmatched:
+        print(df1[['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo']])
+        print(df2[['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo']])
+        print(df1[['ip1', 'ip2', 'ip3', 'deet', 'npas']])
+        print(df2[['ip1', 'ip2', 'ip3', 'deet', 'npas']])
+        print(df1[['grtyp', 'ig1', 'ig2', 'ig3', 'ig4']])
+        print(df2[['grtyp', 'ig1', 'ig2', 'ig3', 'ig4']])
 
-    print(df1[['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo']])
-    print(df2[['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo']])
-    print(df1[['ip1', 'ip2', 'ip3', 'deet', 'npas']])
-    print(df2[['ip1', 'ip2', 'ip3', 'deet', 'npas']])
-    print(df1[['grtyp', 'ig1', 'ig2', 'ig3', 'ig4']])
-    print(df2[['grtyp', 'ig1', 'ig2', 'ig3', 'ig4']])
     common = pd.merge(df1, df2, how='inner', on=columns)
  
-
     #Rows in df1 Which Are Not Available in df2
     common_with_1 = common.merge(df1, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
     #Rows in df2 Which Are Not Available in df1
@@ -640,7 +639,7 @@ def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_
     success = True
     
 
-    df_list = np.array_split(diff, math.ceil(len(diff.index)/100)) #256 records per block
+    df_list = np.array_split(diff, math.ceil(len(diff.index)/100)) 
     for df in df_list:
         iun1 = rmn.fstopenall(path1)
         for i in df.index:
@@ -650,11 +649,18 @@ def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_
         for i in df.index:
             df.at[i,'d_y'] = rmn.fstluk(int(df.at[i,'key_y']))['d']
         rmn.fstcloseall(iun2)   
+
         print('diff dx\n',df[['nomvar','d_x']])   
         print('diff dy\n',df[['nomvar','d_y']])
+        to_drop = []
         for i in df.index:
-            a = df.at[i, 'd_x'].flatten().astype('float64')
-            b = df.at[i, 'd_y'].flatten().astype('float64')
+            a = df.at[i, 'd_x'].astype('float64')
+            b = df.at[i, 'd_y'].astype('float64')
+            if np.allclose(a,b):
+                to_drop.append(i)
+                continue
+            # a = df.at[i, 'd_x'].flatten().astype('float64')
+            # b = df.at[i, 'd_y'].flatten().astype('float64')
 
             df.at[i, 'abs_diff'] = np.abs(a-b)
             
@@ -705,6 +711,7 @@ def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_
             # print('dataframe\n',df)  
         df['d_x']=None
         df['d_y']=None
+        df.drop(to_drop,inplace=True)
     diff = pd.concat(df_list,ignore_index=True)            
     return diff,success            
 
@@ -819,6 +826,8 @@ def get_hybrid_ips(df:pd.DataFrame) -> list:
 # 1,True,True,False,False,False,False,1001,SIGMA
 
 def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ips:list,strict=True):
+    # print('hybrid_ips:',hybrid_ips,'sigma_ips:',sigma_ips,'pressure_ips:',pressure_ips)
+    df_list = []
 
     hybrid_fields_df = pd.DataFrame(dtype=object)
     # hybrid
@@ -847,26 +856,23 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ip
     if not pressure_fields_df.empty:
         pressure_grids = pressure_fields_df.grid.unique()
 
-
-    #combine grids
-    grids = []
-    grids.extend(hybrid_grids)
-    grids.extend(sigma_grids)
-    grids.extend(pressure_grids)
-    grids = set(grids)
-
-
-    df_list = []
-    for grid in grids:
+    
+    for grid in hybrid_grids:
         toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}")')
-        # print('toctoc\n',toctoc)
         if not toctoc_df.empty:
-            toctoc = True
-        else:
-            toctoc = False
-        # toctoc, _, _, _, _, _, _ = fstpy.get_meta_fields_exists(grid)
-        if toctoc:
             df_list.append(toctoc_df)
+
+    for grid in sigma_grids:
+        toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}")')
+        if not toctoc_df.empty:
+            df_list.append(toctoc_df)
+
+    for grid in pressure_grids:
+        toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}")')
+        if not toctoc_df.empty:
+            df_list.append(toctoc_df)
+
+
     # print('df_list\n',df_list)
     toctoc_fields_df = pd.DataFrame(dtype=object)
     if len(df_list):
@@ -877,6 +883,7 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ip
     return toctoc_fields_df
 
 def get_hy_field(df:pd.DataFrame,hybrid_ips:list):
+
     hy_field_df = pd.DataFrame(dtype=object)
     if len(hybrid_ips):
         hy_field_df = df.query(f'nomvar=="HY"').reset_index(drop=True)
@@ -902,9 +909,9 @@ def get_hy_field(df:pd.DataFrame,hybrid_ips:list):
     #         int toctocVcode
     #         LEXICALCAST(mpds->second->getOtherInformation().ig1,toctocVcode)
     #         keep = hasPdsWithVcode(toctocVcode)
-def get_grid_deformation_fileds(df:pd.DataFrame,not_meta_df:pd.DataFrame):        
+def get_grid_deformation_fileds(df:pd.DataFrame,no_meta_df:pd.DataFrame):        
     grid_deformation_fields_df = pd.DataFrame(dtype=object)
-    all_grids = not_meta_df.grid.unique()
+    all_grids = no_meta_df.grid.unique()
 
     df_list = []
     for grid in all_grids:
@@ -919,12 +926,12 @@ def get_grid_deformation_fileds(df:pd.DataFrame,not_meta_df:pd.DataFrame):
 
     return grid_deformation_fields_df   
 
-def get_p0_fields(df:pd.DataFrame,not_meta_df:pd.DataFrame):
+def get_p0_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame):
     p0_fields_df = pd.DataFrame(dtype=object)
-    model_ips = get_model_ips(not_meta_df)
+    model_ips = get_model_ips(no_meta_df)
     model_grids = set()
     for ip1 in model_ips:
-        model_grids.add(not_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
+        model_grids.add(no_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
     
     df_list = []
     for grid in list(model_grids):
@@ -938,11 +945,11 @@ def get_p0_fields(df:pd.DataFrame,not_meta_df:pd.DataFrame):
 
     return p0_fields_df  
 
-def get_pt_fields(df:pd.DataFrame,not_meta_df:pd.DataFrame,sigma_ips:list):
+def get_pt_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,sigma_ips:list):
     pt_fields_df = pd.DataFrame(dtype=object)
     sigma_grids = set()
     for ip1 in sigma_ips:
-        sigma_grids.add(not_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
+        sigma_grids.add(no_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
     
     # print(sigma_grids)
     df_list = []

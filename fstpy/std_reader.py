@@ -179,7 +179,7 @@ class StandardFileReader:
     #     return ds
 
  
-def load_data(df:pd.DataFrame,clean:bool=False,sort=True) -> pd.DataFrame:
+def load_data(df:pd.DataFrame,clean:bool=False) -> pd.DataFrame:
     """Gets the associated data for every record in a dataframe
 
     :param df: dataframe to add arrays to
@@ -191,11 +191,15 @@ def load_data(df:pd.DataFrame,clean:bool=False,sort=True) -> pd.DataFrame:
     :return: dataframe with filled arrays
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     # add the default flag
     if clean:
         df.loc[:,'clean'] = False
 
-    res_list = []
+    df_list = []
+    no_path_df = df.loc[df.path.isna()]
+
     path_groups = df.groupby(df.path)
     for _,path_df in path_groups:
         if ('file_modification_time' in path_df.columns) and ((path_df.iloc[0]['file_modification_time'] is None) == False):
@@ -203,8 +207,8 @@ def load_data(df:pd.DataFrame,clean:bool=False,sort=True) -> pd.DataFrame:
 
         unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
         # loads faster when keys are in sequence
-        if sort:
-            path_df = path_df.sort_values(by=['key'])
+        # if sort:
+            # path_df = path_df.sort_values(by=['key'])
 
         for i in path_df.index:
             # if isinstance(path_df.at[i,'d'],dask_array_type):
@@ -216,19 +220,20 @@ def load_data(df:pd.DataFrame,clean:bool=False,sort=True) -> pd.DataFrame:
             path_df.at[i,'clean'] = True if clean else False
             #path_df.at[i,'fstinl_params'] = None
             # path_df.at[i,'path'] = None
-        res_list.append(path_df)
+        df_list.append(path_df)
         rmn.fstcloseall(unit)
 
 
-    if len(res_list):
-        res_df = pd.concat(res_list,ignore_index=True)    
+    if len(df_list):
+        if not no_path_df.empty:
+            df_list.append(no_path_df)
+        res_df = pd.concat(df_list,ignore_index=True)        
     else:
         res_df = df   
 
-    if sort:    
-        res_df = sort_dataframe(res_df)
-
-    res_df.reset_index(drop=True,inplace=True)
+    # if sort:    
+    #     res_df = sort_dataframe(res_df)
+    # print('load_data\n',res_df[['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1']])
     return res_df    
 
 def unload_data(df:pd.DataFrame,only_marked:bool=False) -> pd.DataFrame:

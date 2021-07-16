@@ -270,10 +270,11 @@ def get_lat_lon(df):
 def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
     
     path_groups = df.groupby(df.path)
-    meta_dfs = []
+    df_list = []
     #for each files in the df
     for _, rec_df in path_groups:
         path = rec_df.iloc[0]['path']
+
         if path is None:
             continue
         # file_modification_time = rec_df.iloc[0]['file_modification_time']
@@ -291,21 +292,20 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
             if vertical_descriptors:
                 #print('vertical_descriptors')
                 vertical_df = meta_df.query('(nomvar in ["!!", "HY", "!!SF", "E1"]) and (grid=="%s")'%this_grid)
-                meta_dfs.append(vertical_df)
+                df_list.append(vertical_df)
             if pressure:
                 #print('pressure')
                 pressure_df = meta_df.query('(nomvar in ["P0", "PT"]) and (grid=="%s")'%this_grid)
-                meta_dfs.append(pressure_df)
+                df_list.append(pressure_df)
             if latitude_and_longitude:
                 #print('lati and longi')
                 latlon_df = meta_df.query('(nomvar in ["^>", ">>", "^^"]) and (grid=="%s")'%this_grid)
                 #print(latlon_df)
-                meta_dfs.append(latlon_df)
+                df_list.append(latlon_df)
                 #print(latlon_df)
               
-    if len(meta_dfs):
-        result = pd.concat(meta_dfs,ignore_index=True)
-        result = result.reset_index(drop=True)
+    if len(df_list):
+        result = pd.concat(df_list,ignore_index=True)
         return result
     else:
         return pd.DataFrame(dtype=object)
