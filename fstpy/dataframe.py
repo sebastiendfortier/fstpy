@@ -311,7 +311,8 @@ def add_empty_columns(df, columns, init, dtype_str):
 
 def post_process_dataframe(df):
     if 'dltf' in df.columns:
-        df.query('dltf == 0',inplace=True)
+        df=df.loc[df.dltf==0]
+        # df.query('dltf == 0',inplace=True)
         df.drop(columns=['dltf'], inplace=True,errors='ignore')
     # if 'd' not in df.columns:
     #     df['d']=None
@@ -350,7 +351,7 @@ def sort_dataframe(df) -> pd.DataFrame:
         df = df.sort_values(by=['grid','datev','nomvar','level'],ascending=[True,True,True,False])
     else:     
         df = df.sort_values(by=['datev','nomvar'],ascending=[True,True])
-    df = df.reset_index(drop=True)
+    df = df
     return df    
 
 def set_vertical_coordinate_type(df) -> pd.DataFrame:
@@ -366,7 +367,8 @@ def set_vertical_coordinate_type(df) -> pd.DataFrame:
         ip1_kind_groups = grid.groupby(grid.ip1_kind)
         for _, ip1_kind_group in ip1_kind_groups:
             #these ip1_kinds are not defined
-            without_meta = ip1_kind_group.query('(ip1_kind not in [-1,3,6]) and (nomvar not in ["!!","HY","P0","PT",">>","^^","PN"])')
+            # without_meta = ip1_kind_group.query('(ip1_kind not in [-1,3,6]) and (nomvar not in ["!!","HY","P0","PT",">>","^^","PN"])')
+            without_meta = ip1_kind_group.loc[(~ip1_kind_group.ip1_kind.isin([-1,3,6])) & (~ip1_kind_group.nomvar.isin(["!!","HY","P0","PT",">>","^^","PN"]))]
             if not without_meta.empty:
                 #logger.debug(without_meta.iloc[0]['nomvar'])
                 ip1_kind = without_meta.iloc[0]['ip1_kind']
@@ -384,7 +386,8 @@ def set_vertical_coordinate_type(df) -> pd.DataFrame:
                 # print(VCTYPES)
                 # print(VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(5,False,True,False,False,False,False,-1)))
                 # print('\n(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
-                vctyte_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
+                # vctyte_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
+                vctyte_df = VCTYPES.loc[(VCTYPES.ip1_kind==ip1_kind) & (VCTYPES.toctoc==toctoc) & (VCTYPES.P0==p0) & (VCTYPES.E1==e1) & (VCTYPES.PT==pt) & (VCTYPES.HY==hy) & (VCTYPES.SF==sf) & (VCTYPES.vcode==this_vcode)]
                 # print(vctyte_df)
                 if not vctyte_df.empty:
                     if len(vctyte_df.index)>1:
@@ -393,11 +396,11 @@ def set_vertical_coordinate_type(df) -> pd.DataFrame:
             newdfs.append(ip1_kind_group)
 
     df = pd.concat(newdfs,ignore_index=True)
-    df.loc[df['nomvar'].isin([">>","^^","!!","P0","PT","HY","PN"]), "vctype"] = "UNKNOWN"
+    df.loc[df['nomvar'].isin([">>","^^","!!","P0","PT","HY","PN","!!SF"]), "vctype"] = "UNKNOWN"
     return df    
 
 def get_meta_fields_exists(grid):
-    toctoc = grid.query('nomvar=="!!"')
+    toctoc = grid.loc[grid.nomvar=="!!"]
     vcode = []
     if not toctoc.empty:
         for i in toctoc.index:
@@ -414,7 +417,7 @@ def get_meta_fields_exists(grid):
     return toctoc, p0, e1, pt, hy, sf, vcode
 
 def meta_exists(grid, nomvar) -> bool:
-    df = grid.query('nomvar=="%s"'%nomvar)
+    df = grid.loc[grid.nomvar==nomvar]
     return not df.empty
 
 def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove:pd.DataFrame) -> pd.DataFrame:

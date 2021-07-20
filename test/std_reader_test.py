@@ -76,7 +76,8 @@ def test_params_query_all(input_file):
     df = std_file.to_pandas()
 
     nomvars = {f"{n}" for n in df['nomvar']}
-    full_df = StandardFileReader(input_file).to_pandas().query("nomvar in %s"%list(nomvars))
+    full_df = StandardFileReader(input_file).to_pandas()
+    full_df = full_df.loc[full_df.nomvar.isin(list(nomvars))]
     
     assert df.columns.equals(full_df.columns)
     assert len(df.index) == len(full_df.index)

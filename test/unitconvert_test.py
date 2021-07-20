@@ -20,8 +20,8 @@ def plugin_test_dir():
 
 
 def windmodulus(df):
-    uu_df = df.query('nomvar=="UU"').reset_index(drop=True)
-    vv_df = df.query('nomvar=="VV"').reset_index(drop=True)
+    uu_df = df.loc[df.nomvar=="UU"].reset_index(drop=True)
+    vv_df = df.loc[df.nomvar=="VV"].reset_index(drop=True)
     uv_df = vv_df.copy(deep=True)
     uv_df.loc[:,'nomvar']='UV'
     for i in uv_df.index:
@@ -179,8 +179,8 @@ def test_regtest_6(plugin_test_dir):
     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
     src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
 
-    other_df = src_df0.query('nomvar!="TT"').reset_index(drop=True)
-    tt_df = src_df0.query('nomvar=="TT"').reset_index(drop=True)
+    other_df = src_df0.loc[src_df0.nomvar!="TT"]
+    tt_df = src_df0.loc[src_df0.nomvar=="TT"]
     #compute unit_convert
 
     tt_df = unit_convert(tt_df,'kelvin')
@@ -225,15 +225,15 @@ def test_regtest_7(plugin_test_dir):
     src_df0 = StandardFileReader(source0).to_pandas()
 
     # meta_df = src_df0.loc[src_df0.nomvar.isin(['!!','^^','>>'])]
-    tt_df = src_df0.query('(nomvar=="TT") and (etiket=="R1558V0N")').reset_index(drop=True)
+    tt_df = src_df0.loc[(src_df0.nomvar=="TT") & (src_df0.etiket=="R1558V0N")]
     #compute unit_convert
     tt_df = unit_convert(tt_df,'kelvin')
 
-    uuvv_df = src_df0.query('(nomvar in ["UU","VV"]) and (etiket=="R1558V0N")').reset_index(drop=True)
+    uuvv_df = src_df0.loc[(src_df0.nomvar.isin(["UU","VV"])) & (src_df0.etiket=="R1558V0N")]
     #compute unit_convert
     uuvv_df = unit_convert(uuvv_df,'kilometer_per_hour')
 
-    gz_df = src_df0.query('(nomvar=="GZ") and (etiket=="R1558V0N")').reset_index(drop=True)
+    gz_df = src_df0.loc[(src_df0.nomvar=="GZ") & (src_df0.etiket=="R1558V0N")]
     #compute unit_convert
     gz_df = unit_convert(gz_df,'foot')
 
@@ -242,7 +242,7 @@ def test_regtest_7(plugin_test_dir):
     all_df = unit_convert(all_df,standard_unit=True)
 
 
-    others_df = src_df0.query('(etiket!="R1558V0N")').reset_index(drop=True)
+    others_df = src_df0.loc[src_df0.etiket!="R1558V0N"]
 
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
     # (
@@ -279,8 +279,8 @@ def test_regtest_8(plugin_test_dir):
     source0 = plugin_test_dir + "TTES_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    es_df = src_df0.query('nomvar=="ES"').reset_index(drop=True)
-    tt_df = src_df0.query('nomvar=="TT"').reset_index(drop=True)
+    es_df = src_df0.loc[src_df0.nomvar=="ES"]
+    tt_df = src_df0.loc[src_df0.nomvar=="TT"]
 
     #compute unit_convert
     tt_df = unit_convert(tt_df,'kelvin')
@@ -319,8 +319,8 @@ def test_regtest_8(plugin_test_dir):
 #     source0 = plugin_test_dir + "TTES_fileSrc.std"
 #     src_df0 = StandardFileReader(source0).to_pandas()
 
-#     es_df = src_df0.query('nomvar=="ES"').reset_index(drop=True)
-#     tt_df = src_df0.query('nomvar=="TT"').reset_index(drop=True)
+#     es_df = src_df0.loc[src_df0.nomvar=="ES"]
+#     tt_df = src_df0.loc[src_df0.nomvar=="TT"]
 
 #     #compute unit_convert
 #     tt_df = unit_convert(tt_df,'kelvin')
@@ -362,13 +362,13 @@ def test_regtest_8(plugin_test_dir):
 #     source0 = plugin_test_dir + "input_big_fileSrc.std"
 #     src_df0 = StandardFileReader(source0).to_pandas()
 
-#     tt_df = src_df0.query('nomvar=="TT" and etiket=="R1558V0N"').reset_index(drop=True)
+#     tt_df = src_df0.loc[(src_df0.nomvar=="TT") & (src_df0.etiket=="R1558V0N")]
 #     tt_df = unit_convert(tt_df,'kelvin')
 
-#     uuvv_df = src_df0.query('nomvar in ["UU","VV"] and etiket=="R1558V0N"').reset_index(drop=True)
+#     uuvv_df = src_df0.loc[(src_df0.nomvar.isin(["UU","VV"])) & (src_df0.etiket=="R1558V0N"')]
 #     uuvv_df = unit_convert(uuvv_df,'kilometer_per_hour')
 
-#     gz_df = src_df0.query('nomvar=="GZ" and etiket=="R1558V0N"').reset_index(drop=True)
+#     gz_df = src_df0.query('nomvar=="GZ" and etiket=="R1558V0N"')
 #     gz_df2 = gz_df.copy(deep=True)
 
 #     gz_df = unit_convert(gz_df,'foot')
@@ -380,7 +380,7 @@ def test_regtest_8(plugin_test_dir):
 #     all_df = pd.concat([tt_df,uuvv_df,gz_df,gz_df2],ignore_index=True)
 #     all_df = unit_convert(all_df,standard_unit=True)
 
-#     others_df = src_df0.query('(etiket!="R1558V0N")').reset_index(drop=True)
+#     others_df = src_df0.loc[src_df0.etiket!="R1558V0N"]
 #     all_df = pd.concat([all_df,others_df],ignore_index=True)
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> 
 #     # (

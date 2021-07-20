@@ -36,7 +36,7 @@ def select_with_meta(df:pd.DataFrame,nomvar:list) -> pd.DataFrame:
         raise SelectError(f'nomvar is empty - nothing to select')
 
     for var in nomvar:
-        res_df = df.query(f'nomvar=="{var}"').reset_index(drop=True)
+        res_df = df.loc[df.nomvar==var]
         if res_df.empty:
             raise SelectError(f'missing {var} in dataframe')
         results.append(res_df)
@@ -64,7 +64,8 @@ def metadata_cleanup(df:pd.DataFrame,strict_toctoc=True) -> pd.DataFrame:
     if df.empty:
         return df
     
-    no_meta_df = df.query('nomvar not in  ["!!","P0","PT",">>","^^","^>","HY","!!SF"]').reset_index(drop=True)
+    # no_meta_df = df.query('nomvar not in  ["!!","P0","PT",">>","^^","^>","HY","!!SF"]')
+    no_meta_df = df.loc[~df.nomvar.isin(["!!","P0","PT",">>","^^","^>","HY","!!SF"])]
     # print(no_meta_df.grid)
     # get deformation fields
     grid_deformation_fields_df = get_grid_deformation_fileds(df,no_meta_df)        
@@ -491,13 +492,12 @@ def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
     diff.drop(columns=['abs_diff'], inplace=True,errors='ignore')
     return diff
 
-def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_number_of_fields=True, columns=['nomvar','etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], print_unmatched=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
+def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_number_of_fields=True, columns=['nomvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','grtyp','ig1','ig2','ig3','ig4'], print_unmatched=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
     path1 = df1.path.unique()[0]
     path2 = df2.path.unique()[0]
 
-    columns_to_keep = ['nomvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2',
-       'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3',
-       'ig4', 'd','key']
+    columns_to_keep = columns.copy()
+    columns_to_keep.extend(['d','key'])
     df1 = df1[columns_to_keep]   
     df2 = df2[columns_to_keep]   
     #print(df1.columns)
@@ -722,7 +722,7 @@ class SelectError(Exception):
     pass
 
 def select_meta(df:pd.DataFrame) -> pd.DataFrame:
-    meta_df = df.query('nomvar in ["!!","P0","PT",">>","^^","^>","HY","!!SF"]')
+    meta_df = df.loc[df.nomvar.isin(["!!","P0","PT",">>","^^","^>","HY","!!SF"])]
     return meta_df
 
 
@@ -840,7 +840,8 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ip
     hybrid_fields_df = pd.DataFrame(dtype=object)
     # hybrid
     if len(hybrid_ips):
-        hybrid_fields_df = df.query(f'ip1 in {hybrid_ips}').reset_index(drop=True)
+        # hybrid_fields_df = df.query(f'ip1 in {hybrid_ips}')
+        hybrid_fields_df = df.loc[df.ip1.isin(hybrid_ips)]
 
     hybrid_grids = []
     if not hybrid_fields_df.empty:
@@ -849,7 +850,8 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ip
     # sigma
     sigma_fields_df = pd.DataFrame(dtype=object)
     if len(sigma_ips):
-        sigma_fields_df = df.query(f'ip1 in {sigma_ips}').reset_index(drop=True)
+        # sigma_fields_df = df.query(f'ip1 in {sigma_ips}')
+        sigma_fields_df = df.loc[df.ip1.isin(sigma_ips)]
 
     sigma_grids = []
     if not sigma_fields_df.empty:
@@ -858,7 +860,8 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ip
     # pressure
     pressure_fields_df = pd.DataFrame(dtype=object)
     if len(pressure_ips):
-        pressure_fields_df = df.query(f'ip1 in {pressure_ips}').reset_index(drop=True)            
+        # pressure_fields_df = df.query(f'ip1 in {pressure_ips}')            
+        pressure_fields_df = df.loc[df.ip1.isin(pressure_ips)]
 
     pressure_grids = []
     if not pressure_fields_df.empty:
@@ -875,20 +878,23 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ip
     # vcode 21001 -> Hybrid heights levels on Charney-Philips grid, may be non SLEVE (reference field: ME) or SLEVE (reference fields: ME, MELS)
     # vcode 21002 -> Hybrid heights levels on Lorenz grid, may be non SLEVE (reference field: ME) or SLEVE (reference fields: ME, MELS) 
     for grid in hybrid_grids:
-        toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}") and (ig1 in [1003,5001,5002,5003,5004,5005,5100,5999,21001,21002])')
+        # toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}") and (ig1 in [1003,5001,5002,5003,5004,5005,5100,5999,21001,21002])')
+        toctoc_df = df.loc[(df.nomvar=="!!") & (df.grid==grid) & (df.ig1.isin([1003,5001,5002,5003,5004,5005,5100,5999,21001,21002]))]
         if not toctoc_df.empty:
             df_list.append(toctoc_df)
 
     # vcode 1001 -> Sigma levels
     # vcode 1002 -> Eta levels
     for grid in sigma_grids:
-        toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}") and (ig1 in [1001,1002])')
+        # toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}") and (ig1 in [1001,1002])')
+        toctoc_df = df.loc[(df.nomvar=="!!") & (df.grid==grid) & (df.ig1.isin([1001,1002]))]
         if not toctoc_df.empty:
             df_list.append(toctoc_df)
 
     # vcode 2001 -> Pressure levels
     for grid in pressure_grids:
-        toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}") and (ig1==2001)')
+        # toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}") and (ig1==2001)')
+        toctoc_df = df.loc[(df.nomvar=="!!") & (df.grid==grid) & (df.ig1==2001)]
         if not toctoc_df.empty:
             df_list.append(toctoc_df)
 
@@ -898,7 +904,7 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ip
     if len(df_list):
         toctoc_fields_df = pd.concat(df_list,ignore_index=True)
 
-    toctoc_fields_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
+    toctoc_fields_df = toctoc_fields_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'], ignore_index=True)
 
     return toctoc_fields_df
 
@@ -906,13 +912,14 @@ def get_hy_field(df:pd.DataFrame,hybrid_ips:list):
 
     hy_field_df = pd.DataFrame(dtype=object)
     if len(hybrid_ips):
-        hy_field_df = df.query(f'nomvar=="HY"').reset_index(drop=True)
+        # hy_field_df = df.query(f'nomvar=="HY"')
+        hy_field_df = df.loc[df.nomvar=="HY"]
 
-    hy_field_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
+    hy_field_df = hy_field_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'], ignore_index=True)
 
     return hy_field_df
     # if len(hybrid_ips):
-    #     df.query(f'ip=="HY"').reset_index(drop=True)
+    #     df.query(f'ip=="HY"')
 
     #     #par defaut
     #     else if ( mpds->second->getPdsName() == "!!")
@@ -935,9 +942,12 @@ def get_grid_deformation_fileds(df:pd.DataFrame,no_meta_df:pd.DataFrame):
 
     df_list = []
     for grid in all_grids:
-        df_list.append(df.query(f'(nomvar==">>") and (grid=="{grid}")').reset_index(drop=True))
-        df_list.append(df.query(f'(nomvar=="^^") and (grid=="{grid}")').reset_index(drop=True))
-        df_list.append(df.query(f'(nomvar=="^>") and (grid=="{grid}")').reset_index(drop=True))
+        # df_list.append(df.query(f'(nomvar==">>") and (grid=="{grid}")'))
+        # df_list.append(df.query(f'(nomvar=="^^") and (grid=="{grid}")'))
+        # df_list.append(df.query(f'(nomvar=="^>") and (grid=="{grid}")'))
+        df_list.append(df.loc[(df.nomvar==">>") & (df.grid==grid)])
+        df_list.append(df.loc[(df.nomvar=="^^") & (df.grid==grid)])
+        df_list.append(df.loc[(df.nomvar=="^>") & (df.grid==grid)])
 
     if len(df_list):
         grid_deformation_fields_df = pd.concat(df_list,ignore_index=True)
@@ -952,24 +962,28 @@ def get_p0_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,hybrid_ips:list,sigma_
     # print('sigma_ips',sigma_ips)
     hybrid_grids = set()
     for ip1 in hybrid_ips:
-        hybrid_grids.add(no_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
+        # hybrid_grids.add(no_meta_df.query(f'ip1=={ip1}').iloc[0]['grid'])
+        hybrid_grids.add(no_meta_df.loc[no_meta_df.ip1==ip1].iloc[0]['grid'])
     
     df_list = []
     for grid in hybrid_grids:
         # print(grid)
-        df_list.append(df.query(f'(nomvar=="P0") and (grid=="{grid}")').reset_index(drop=True))
+        # df_list.append(df.query(f'(nomvar=="P0") and (grid=="{grid}")'))
+        df_list.append(df.loc[(df.nomvar=="P0") & (df.grid==grid)])
 
     if len(df_list):
         p0_fields_df = pd.concat(df_list,ignore_index=True)
 
     sigma_grids = set()
     for ip1 in sigma_ips:
-        sigma_grids.add(no_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
+        # sigma_grids.add(no_meta_df.query(f'ip1=={ip1}').iloc[0]['grid'])
+        sigma_grids.add(no_meta_df.loc[no_meta_df.ip1==ip1].iloc[0]['grid'])
     
     df_list = []
     for grid in sigma_grids:
         # print(grid)
-        df_list.append(df.query(f'(nomvar=="P0") and (grid=="{grid}")').reset_index(drop=True))
+        # df_list.append(df.query(f'(nomvar=="P0") and (grid=="{grid}")'))
+        df_list.append(df.loc[(df.nomvar=="P0") & (df.grid==grid)])
 
     if len(df_list):
         p0_fields_df = pd.concat(df_list,ignore_index=True)    
@@ -983,13 +997,15 @@ def get_pt_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,sigma_ips:list):
 
     sigma_grids = set()
     for ip1 in sigma_ips:
-        sigma_grids.add(no_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
+        # sigma_grids.add(no_meta_df.query(f'ip1=={ip1}').iloc[0]['grid'])
+        sigma_grids.add(no_meta_df.loc[no_meta_df.ip1==ip1].iloc[0]['grid'])
     
     # print(sigma_grids)
     df_list = []
     for grid in list(sigma_grids):
         # print('checking for pt\n',df.query(f'(nomvar=="PT") and (grid=="{grid}")'))
-        df_list.append(df.query(f'(nomvar=="PT") and (grid=="{grid}")').reset_index(drop=True))
+        # df_list.append(df.query(f'(nomvar=="PT") and (grid=="{grid}")'))
+        df_list.append(df.loc[(df.nomvar=="PT") & (df.grid==grid)])
 
     if len(df_list):
         pt_fields_df = pd.concat(df_list,ignore_index=True)
