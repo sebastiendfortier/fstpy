@@ -23,9 +23,10 @@ class StandardFileWriter:
     :type filename: str
     :param df: dataframe to write
     :type df: pd.DataFrame
-    :param update_meta_only: if True and overwrite is True and dataframe inputfile is the same as the output file, 
-    only the metadata will be updated. The actual data will not be loaded or modified, defaults to False
-    :type update_meta_only: bool, optional
+    :param mode: If set to dump, no processing will be done on the dataframe before writing, data must be present in the dataframe. If set to update, path must be an existing file. Only the field metadata will be updated.
+    :type mode: str
+    :param no_meta: if true these fields ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"] will be removed from the dataframe    
+    :type no_meta: bool
     :param overwrite: if True and dataframe inputfile is the same as the output file, records will be added to the file, defaults to False
     :type overwrite: bool, optional
     """
@@ -58,7 +59,7 @@ class StandardFileWriter:
 
         # remove meta
         if self.no_meta:
-            self.df = self.df.query('nomvar not in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]').reset_index(drop=True)
+            self.df = self.df.loc[~self.df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"])].reset_index(drop=True)
        
 
         if self.mode == 'dump':
