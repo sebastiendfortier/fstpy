@@ -23,8 +23,8 @@ before_script:
   - . /fs/ssm/main/env/ordenv-boot-20201118.sh
   - export EC_ATOMIC_PROFILE_VERSION=1.12.0
   - . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
-  - . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
-  - . activate fstpy_full
+  - . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/python_packages/python3.6/all/2021.07
+  - . ssmuse-sh -d /fs/ssm/eccc/cmd/cmdw/PRIVATE/dev_python_packages/python3.6/all/2021.07
   # - .  "/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/etc/profile.d/conda.sh"
   # - export PATH="/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/bin:$PATH"
   # - export CONDA_PREFIX=/home/sbf000/.conda/envs/${CONDA_ENV}
@@ -35,14 +35,14 @@ run_unittest:
   stage: run_unittest 
   script:
     - cd test    
-    - python -m pytest -v -n 10 -m unit_tests 
+    - python3 -m pytest -v -m unit_tests 
     
 
 run_regtests:
   stage: run_regtests
   script:
     - cd test
-    - python -m pytest -v -m regressions
+    - python3 -m pytest -v -m regressions
 
 make_doc:
   stage: make_doc

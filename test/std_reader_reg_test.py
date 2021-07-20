@@ -2,13 +2,12 @@
 from test import TEST_PATH, TMP_PATH
 
 import pytest
-from fstpy.dataframe_utils import fstcomp, select, select_zap, zap
+from fstpy.dataframe_utils import fstcomp, select_with_meta
 from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.utils import delete_file
 from rpnpy.librmn.all import FSTDError
-import shutil
-import os
+
 pytestmark = [pytest.mark.std_reader_regtests, pytest.mark.regressions]
 
 
@@ -35,7 +34,7 @@ def test_regtest_2(plugin_test_dir):
 
 
     #compute ReaderStd
-    src_df0 = select(src_df0,'nomvar in ["UU","VV","T6"]')
+    src_df0 = select_with_meta(src_df0,["UU","VV","T6"])
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,T6] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
@@ -102,7 +101,8 @@ def test_regtest_6(plugin_test_dir):
 
 
     #compute ReaderStd
-    df = select(src_df0,'nomvar in ["UU","VV","TT"]')
+    # df = select(src_df0,'nomvar in ["UU","VV","TT"]')
+    df = select_with_meta(src_df0,["UU","VV","TT"])
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,TT] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
@@ -130,7 +130,7 @@ def test_regtest_7(plugin_test_dir):
     #write the result
     results_file = TMP_PATH + "test_read_reg_7.std"
     delete_file(results_file)
-    StandardFileWriter(results_file, src_df0).to_fst()
+    StandardFileWriter(results_file, src_df0,no_meta=True).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "input_big_noMeta_file2cmp.std"
@@ -168,7 +168,7 @@ def test_regtest_7(plugin_test_dir):
 def test_regtest_9(plugin_test_dir):
     """Test #9 : test_read_write_64bit"""
     # open and read source
-    source0 = plugin_test_dir + "tt_stg_fileSrc.std"
+    source0 = plugin_test_dir + "tt_stg_fileSrc.std+20210517"
     src_df0 = StandardFileReader(source0).to_pandas()
 
 
@@ -182,7 +182,7 @@ def test_regtest_9(plugin_test_dir):
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
-    file_to_compare = plugin_test_dir + "tt_stg_fileSrc.std"
+    file_to_compare = plugin_test_dir + "tt_stg_fileSrc.std+20210517"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -421,7 +421,8 @@ def test_regtest_19(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "mb_plus_hybrid_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
-    src_df0 = zap(src_df0,etiket='33K80___X')
+
+    src_df0['etiket'] = '33K80___X'
 
     #compute ReaderStd
     # df = ReaderStd(src_df0)
@@ -447,8 +448,10 @@ def test_regtest_20(plugin_test_dir):
     source0 = plugin_test_dir + "mb_plus_hybrid_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    src_df0 = select(src_df0,'nomvar=="FN"')
-    src_df0 = zap(src_df0,etiket='33K80___X')
+    src_df0 = select_with_meta(src_df0,['FN'])
+    src_df0.loc[:,'etiket'] = '33K80___X'
+
+    
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #[ReaderStd --input {sources[0]}] >> [Select --fieldName FN] >> [WriterStd --output {destination_path}]
@@ -473,19 +476,20 @@ def test_regtest_21(plugin_test_dir):
     source0 = plugin_test_dir + "mb_plus_hybrid_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    src_df0 = select(src_df0,'nomvar=="PR"')
+    src_df0 = select_with_meta(src_df0,['PR'])
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #[ReaderStd --input {sources[0]}] >> [Select --fieldName PR] >> [WriterStd --output {destination_path} --ignoreExtended]
 
-    src_df0 = zap(src_df0,etiket='K80')
+    src_df0.loc[:,'etiket'] = 'K80'
+
     #write the result
     results_file = TMP_PATH + "test_read_reg_21.std"
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
-    file_to_compare = plugin_test_dir + "read_write_hy3_file2cmp.std"
+    file_to_compare = plugin_test_dir + "read_write_hy3_file2cmp.std+20210517"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)
@@ -498,7 +502,6 @@ def test_regtest_22(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "pt_with_hybrid.std"
     src_df0 = StandardFileReader(source0).to_pandas()
-
 
     #compute ReaderStd
     # df = ReaderStd(src_df0)
@@ -524,7 +527,8 @@ def test_regtest_23(plugin_test_dir):
     source0 = plugin_test_dir + "kt_ai_hybrid.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    src_df0 = select_zap(src_df0,'nomvar=="AI"',nomvar='PT')
+    src_df0.loc[src_df0.nomvar == 'AI','nomvar'] = 'PT'
+    # src_df0 = select_zap(src_df0,'nomvar=="AI"',nomvar='PT')
 
     #compute ReaderStd
     # df = ReaderStd(src_df0)
@@ -615,7 +619,7 @@ def test_regtest_28(plugin_test_dir):
     file_to_compare = plugin_test_dir + "stdPlusstd_file2cmp.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare)
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
     assert(res == True)
 
@@ -637,9 +641,10 @@ def test_regtest_29(plugin_test_dir):
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
-    file_to_compare = plugin_test_dir + "resulttest_29.std"
+    file_to_compare = plugin_test_dir + "resulttest_29.std+20210712"
 
     #compare results
+    # toctoc is present in cmp file, disable strick meta
     res = fstcomp(results_file,file_to_compare)
     delete_file(results_file)
     assert(res == True)
@@ -654,6 +659,7 @@ def test_regtest_30(plugin_test_dir):
     for i in src_df0.index:
         src_df0.at[i,'etiket'] = ''.join(['E16_0_0_',src_df0.at[i,'etiket'][-4:]])
     
+    src_df0.loc[src_df0.nomvar.isin(['>>','^^']),'etiket'] = 'ER______X'
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #['[ReaderStd --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
@@ -707,7 +713,9 @@ def test_regtest_32(plugin_test_dir):
     source0 = plugin_test_dir + "ens_data_exclamation.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    src_df0 = select(src_df0,'nomvar=="WGEX"')
+    src_df0 = select_with_meta(src_df0,["WGEX"])
+
+    src_df0.loc[src_df0.nomvar.isin(['>>','^^']),'etiket'] = 'ER______X'
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #['[ReaderStd --input {sources[0]}] >>', '[Select --fieldName WGEX] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
@@ -732,7 +740,7 @@ def test_regtest_33(plugin_test_dir):
     source0 = plugin_test_dir + "resulttest_33.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
+    print(src_df0)
     #compute ReaderStd
     # src_df0 = ReaderStd(src_df0)
     #['[ReaderStd --input {sources[0]}]>>', '[WriterStd --output {destination_path}]']
