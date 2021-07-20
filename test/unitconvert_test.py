@@ -224,7 +224,7 @@ def test_regtest_7(plugin_test_dir):
     source0 = plugin_test_dir + "input_big_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
+    # meta_df = src_df0.loc[src_df0.nomvar.isin(['!!','^^','>>'])]
     tt_df = src_df0.query('(nomvar=="TT") and (etiket=="R1558V0N")').reset_index(drop=True)
     #compute unit_convert
     tt_df = unit_convert(tt_df,'kelvin')

@@ -14,8 +14,10 @@ def plugin_test_dir():
 ##### tester des nana a l'ecriture
 
 
-def test_regtest_1():
-    pass
+# def test_dump():
+#     pass
+# def test_regtest_1():
+    # pass
 #     """Test #1 : Tester l'option --output avec un path qui n'existe pas!"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"

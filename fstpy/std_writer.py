@@ -23,95 +23,113 @@ class StandardFileWriter:
     :type filename: str
     :param df: dataframe to write
     :type df: pd.DataFrame
-    :param update_meta_only: if True and dataframe inputfile is the same as the output file, 
+    :param update_meta_only: if True and overwrite is True and dataframe inputfile is the same as the output file, 
     only the metadata will be updated. The actual data will not be loaded or modified, defaults to False
     :type update_meta_only: bool, optional
+    :param overwrite: if True and dataframe inputfile is the same as the output file, records will be added to the file, defaults to False
+    :type overwrite: bool, optional
     """
+    modes = ['write','update','dump']
     @initializer
-    def __init__(self, filename:str, df:pd.DataFrame, update_meta_only=False, no_meta=False, rewrite=False):
+    def __init__(self, filename:str, df:pd.DataFrame, mode='write', no_meta=False, overwrite=False):
+        self.validate_input()
+        
+    def validate_input(self):   
         if self.df.empty:
             raise StandardFileWriterError('StandardFileWriter - no records to process')
 
+        if self.mode not in self.modes:
+            raise StandardFileWriterError(f'StandardFileWriter - mode must have one of these values {self.modes}, you entered {self.mode}')
+
         self.filename = os.path.abspath(self.filename)
-       
+        self.file_exists = os.path.exists(self.filename)
+
+        if self.file_exists and self.overwrite==False:
+            raise StandardFileWriterError('StandardFileWriter - file exists, use overwrite flag to avoid this error')
+
     def to_fst(self):
         """get the metadata fields if not already present and adds them to the dataframe. 
         If not in update only mode, loads the actual data. opens the file writes the dataframe and closes.
         """
-        self.meta_df = pd.DataFrame(dtype=object)
-        if self.no_meta == False:
-            self.meta_df = get_grid_metadata_fields(self.df)
+        for i in self.df.index:
+            if not isinstance(self.df.at[i,'d'],np.ndarray) and self.mode=='dump':
+                raise StandardFileWriterError(f'StandardFileWriter - all data must be loaded in dump mode - row[{i}] does not have its data loaded')
+
+
+        # remove meta
+        if self.no_meta:
+            self.df = self.df.query('nomvar not in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]').reset_index(drop=True)
+       
+
+        if self.mode == 'dump':
+            self._dump()
+        elif self.mode == 'update':
+            self._update()
         else:
-            self.df = self.df.query('nomvar not in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]').reset_index(drop=True)    
+            self._write()
 
-        if not self.meta_df.empty:
+    def _dump(self):
+        file_id = rmn.fstopenall(self.filename,rmn.FST_RW)
+        for i in self.df.index:
+            rmn.fstecr(file_id, data=np.asfortranarray(self.df.at[i,'d']), meta=self.df.loc[i].to_dict(),rewrite=False)
+        rmn.fstcloseall(file_id)
 
-            if not self.update_meta_only:
-                self.meta_df = load_data(self.meta_df,clean=True)
-                self.df.loc[:,'clean'] = False
+    def _update(self):
+        if not self.file_exists:
+            raise StandardFileWriterError('StandardFileWriter - file does not exist, cant update records')
 
-            self.df = pd.concat([self.df, self.meta_df],ignore_index=True)
+        path = self.path.unique()
+        if len(path) != 1:
+            raise StandardFileWriterError('StandardFileWriter - more than one path, cant update records')
 
-        # self.df.drop_duplicates(subset=['grtyp','nomvar','typvar','etiket','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True,keep='first')
+        if path[0] != self.filename:
+            raise StandardFileWriterError('StandardFileWriter - path in dataframe is different from destination file path, cant update records')
 
-        # print('before\n', self.df)
-        self.df = metadata_cleanup(self.df)
-        # print('after\n', self.df)
-
-        # self.df.reset_index(drop=True,inplace=True)        
-
-        # if not self.update_meta_only:
-        #     self.df = load_data(self.df)
-
-        # self.file_id, self.file_modification_time = open_fst(self.filename,rmn.FST_RW, 'StandardFileWriter', StandardFileWriterError)
-        self._write()
-        # close_fst(self.file_id,self.filename,'StandardFileWriter')
-
+        file_id = rmn.fstopenall(self.filename,rmn.FST_RW)
+        for i in self.df.index:
+            d = self.df.loc[i].to_dict()
+            key = d['key']
+            del d['key']
+            rmn.fst_edit_dir(int(key),dateo=int(d['dateo']),deet=int(d['deet']),npas=int(d['npas']),ni=int(d['ni']),nj=int(d['nj']),nk=int(d['nk']),datyp=int(d['datyp']),ip1=int(d['ip1']),ip2=int(d['ip2']),ip3=int(d['ip3']),typvar=d['typvar'],nomvar=d['nomvar'],etiket=d['etiket'],grtyp=d['grtyp'],ig1=int(d['ig1']),ig2=int(d['ig2']),ig3=int(d['ig3']),ig4=int(d['ig4']), keep_dateo=False)
+        rmn.fstcloseall(file_id)
 
     def _write(self):
-        logger.info('StandardFileWriter - writing to file %s', self.filename)  
-
+        if not self.no_meta:
+            meta_df = get_grid_metadata_fields(self.df)
+            self.df = pd.concat([self.df,meta_df],ignore_index=True)
+        self.df = metadata_cleanup(self.df)
         original_df_length = len(self.df.index)
         dropped_df = self.df.drop_duplicates(subset=['nomvar','typvar','etiket','ip1', 'ip2', 'ip3', 'datev'], ignore_index=True)
         dropped_df_length = len(dropped_df.index)
+        rewrite = True
 
         if original_df_length != dropped_df_length:
-            self.rewrite=True
+            rewrite=False
             sys.stderr.write('StandardFileWriter - duplicates found, activating rewrite')
 
-        # if self.sort:
-        #     self.df = sort_dataframe(self.df)
+        df_list = np.array_split(self.df, math.ceil(len(self.df.index)/256)) #256 records per block
 
-        if self.update_meta_only:
-            for i in self.df.index:
-                #set_typvar(self.df,i)
+        for df in df_list:
+            df = load_data(df,clean=True) # partial load to keep memory usage low
+
+            file_id = rmn.fstopenall(self.filename,rmn.FST_RW)
+            # print(df)
+            for i in df.index:
+                # if df.at[i,'nomvar']=='!!':
+                #     print(df.at[i,'d'].dtype,df.at[i,'ni'],df.at[i,'nj'],df.at[i,'nk'],df.at[i,'shape'],df.at[i,'d'].shape,df.at[i,'d'])
                 record_path = self.df.at[i,'path']
                 if identical_destination_and_record_path(record_path,self.filename):
-                    update_records(self.df,i)
-                else:
-                    logger.warning('StandardFileWriter - record path and output file are not identical, cannot update record meta data only')
-    
-        else:
-            df_list = np.array_split(self.df, math.ceil(len(self.df.index)/256)) #256 records per block
-            for df in df_list:
-                df = load_data(df,clean=True) # partial load to keep memory usage low
-                # if not df.query('nomvar=="!!"').empty:
-                #     print('writer\n',self.df.loc[df.nomvar=='!!'][['nomvar','ig1','ni','nj','shape']],self.df.loc[df.nomvar=='!!'][['d']].iloc[0]['d'].shape,self.df.loc[df.nomvar=='!!'][['d']].iloc[0]['d'].dtype)
-                file_id = rmn.fstopenall(self.filename,"STD+RND+NEW+R/W")
-                for i in df.index:
-                    #set_typvar(self.df,i)
-                    record_path = self.df.at[i,'path']
-                    if identical_destination_and_record_path(record_path,self.filename):
-                        logger.warning('StandardFileWriter - record path and output file are identical, adding  new records')
-                    write_dataframe_record_to_file(file_id,df,i,self.rewrite)     
-                df = unload_data(df,only_marked=True)    
-                rmn.fstcloseall(file_id)    
+                    logger.warning('StandardFileWriter - record path and output file are identical, adding  new records')
+                write_dataframe_record_to_file(file_id,df,i,rewrite)     
+            df = unload_data(df,only_marked=True)    
+            rmn.fstcloseall(file_id)    
 
 def write_dataframe_record_to_file(file_id,df,i,rewrite):
     #df = change_etiket_if_a_plugin_name(df,i)
     df = reshape_data_to_original_shape(df,i)
-    # print(df.loc[i].to_dict())
-    rmn.fstecr(file_id, data=np.asfortranarray(df.at[i,'d']), meta=df.loc[i].to_dict(), rewrite=rewrite) 
+    # if df.at[i,'nomvar']=='!!':
+    #     print(df.loc[i].to_dict(),rewrite)
+    rmn.fstecr(file_id, data=np.asfortranarray(df.at[i,'d']), meta=df.loc[i].to_dict(),rewrite=rewrite) 
     
  
 

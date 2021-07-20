@@ -6,7 +6,7 @@ import math
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
-
+import os
 import fstpy
 from fstpy import DATYP_DICT
 
@@ -69,15 +69,15 @@ def metadata_cleanup(df:pd.DataFrame,strict_toctoc=True) -> pd.DataFrame:
     # get deformation fields
     grid_deformation_fields_df = get_grid_deformation_fileds(df,no_meta_df)        
 
-    # get P0's
-    p0_fields_df = get_p0_fields(df,no_meta_df)
-    
     sigma_ips = get_sigma_ips(no_meta_df)
-    
-    #get PT's
-    pt_fields_df = get_pt_fields(df,no_meta_df,sigma_ips)
 
     hybrid_ips = get_hybrid_ips(no_meta_df)
+
+    # get P0's
+    p0_fields_df = get_p0_fields(df,no_meta_df,hybrid_ips,sigma_ips)
+        
+    #get PT's
+    pt_fields_df = get_pt_fields(df,no_meta_df,sigma_ips)
 
     #get HY
     hy_field_df = get_hy_field(df,hybrid_ips)
@@ -90,6 +90,9 @@ def metadata_cleanup(df:pd.DataFrame,strict_toctoc=True) -> pd.DataFrame:
     df = pd.concat([no_meta_df,grid_deformation_fields_df,p0_fields_df,pt_fields_df,hy_field_df,toctoc_fields_df],ignore_index=True)
 
     return df
+
+class FstCompError(Exception):
+    pass
 
 def fstcomp(file1:str, file2:str, exclude_meta=False, cmp_number_of_fields=True,columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
     """Utility used to compare the contents of two RPN standard files (record by record).
@@ -108,7 +111,7 @@ def fstcomp(file1:str, file2:str, exclude_meta=False, cmp_number_of_fields=True,
     """
     sys.stdout.write('fstcomp -A %s -B %s\n'%(file1,file2))
 
-    import os
+    
     if not os.path.exists(file1):
         sys.stderr.write('fstcomp - %s does not exist\n' % file1)
         raise StandardFileError('fstcomp - %s does not exist' % file1)
@@ -117,7 +120,7 @@ def fstcomp(file1:str, file2:str, exclude_meta=False, cmp_number_of_fields=True,
         raise StandardFileError('fstcomp - %s does not exist' % file2)    
     # open and read files
     df1 = StandardFileReader(file1).to_pandas()
-    # print('df1',df1)
+
     df2 = StandardFileReader(file2).to_pandas()
     # print('df2',df2)
 
@@ -592,7 +595,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
         sys.stderr.write('----------\n')
         if not df2.empty:
             sys.stderr.write('B %s\n'%df2[['nomvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].reset_index(drop=True).to_string())
-        raise StandardFileError('fstcomp - no common df to compare')
+        raise FstCompError('fstcomp - no common df to compare')
 
 
     # force free some memory
@@ -824,6 +827,11 @@ def get_hybrid_ips(df:pd.DataFrame) -> list:
 # 2,True,True,False,False,False,False,2001,PRESSURE
 # 1,True,True,False,False,False,False,1002,ETA
 # 1,True,True,False,False,False,False,1001,SIGMA
+    
+    
+    
+    # vcode 2001 -> Pressure levels
+    # vcode 4001 -> Heights with respect to surface level, may be in ocean
 
 def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ips:list,strict=True):
     # print('hybrid_ips:',hybrid_ips,'sigma_ips:',sigma_ips,'pressure_ips:',pressure_ips)
@@ -856,19 +864,31 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ip
     if not pressure_fields_df.empty:
         pressure_grids = pressure_fields_df.grid.unique()
 
-    
+    # vcode 1003 -> Hybrid normalized levels
+    # vcode 5001 -> Hybrid levels, unstaggered
+    # vcode 5002 -> Hybrid staggered levels, with extra thermo level at top
+    # vcode 5003 -> Like 5002 but tlift (not used much)
+    # vcode 5004 -> Hybrid staggered levels, no extra thermo level at top
+    # vcode 5005 -> Hybrid staggered levels, no extra thermo level at top, diag levels encoded as m AGL
+    # vcode 5100 -> Hybrid staggered SLEVE like coordinate
+    # vcode 5999 -> Hybrid unstaggered coordinate of unknown/other origin (like ECMWF)
+    # vcode 21001 -> Hybrid heights levels on Charney-Philips grid, may be non SLEVE (reference field: ME) or SLEVE (reference fields: ME, MELS)
+    # vcode 21002 -> Hybrid heights levels on Lorenz grid, may be non SLEVE (reference field: ME) or SLEVE (reference fields: ME, MELS) 
     for grid in hybrid_grids:
-        toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}")')
+        toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}") and (ig1 in [1003,5001,5002,5003,5004,5005,5100,5999,21001,21002])')
         if not toctoc_df.empty:
             df_list.append(toctoc_df)
 
+    # vcode 1001 -> Sigma levels
+    # vcode 1002 -> Eta levels
     for grid in sigma_grids:
-        toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}")')
+        toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}") and (ig1 in [1001,1002])')
         if not toctoc_df.empty:
             df_list.append(toctoc_df)
 
+    # vcode 2001 -> Pressure levels
     for grid in pressure_grids:
-        toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}")')
+        toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}") and (ig1==2001)')
         if not toctoc_df.empty:
             df_list.append(toctoc_df)
 
@@ -926,27 +946,41 @@ def get_grid_deformation_fileds(df:pd.DataFrame,no_meta_df:pd.DataFrame):
 
     return grid_deformation_fields_df   
 
-def get_p0_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame):
+def get_p0_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,hybrid_ips:list,sigma_ips:list):
     p0_fields_df = pd.DataFrame(dtype=object)
-    model_ips = get_model_ips(no_meta_df)
-    model_grids = set()
-    for ip1 in model_ips:
-        model_grids.add(no_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
+    # print('hybrid_ips',hybrid_ips)
+    # print('sigma_ips',sigma_ips)
+    hybrid_grids = set()
+    for ip1 in hybrid_ips:
+        hybrid_grids.add(no_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
     
     df_list = []
-    for grid in list(model_grids):
+    for grid in hybrid_grids:
         # print(grid)
         df_list.append(df.query(f'(nomvar=="P0") and (grid=="{grid}")').reset_index(drop=True))
 
     if len(df_list):
         p0_fields_df = pd.concat(df_list,ignore_index=True)
 
-    p0_fields_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
+    sigma_grids = set()
+    for ip1 in sigma_ips:
+        sigma_grids.add(no_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
+    
+    df_list = []
+    for grid in sigma_grids:
+        # print(grid)
+        df_list.append(df.query(f'(nomvar=="P0") and (grid=="{grid}")').reset_index(drop=True))
 
+    if len(df_list):
+        p0_fields_df = pd.concat(df_list,ignore_index=True)    
+
+    p0_fields_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
+    # print('p0_fields_df',p0_fields_df)
     return p0_fields_df  
 
 def get_pt_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,sigma_ips:list):
     pt_fields_df = pd.DataFrame(dtype=object)
+
     sigma_grids = set()
     for ip1 in sigma_ips:
         sigma_grids.add(no_meta_df.query(f'ip1=={ip1}').reset_index(drop=True).iloc[0]['grid'])
