@@ -53,7 +53,7 @@ def get_dataframe_from_file(file:str,query:str,array_container:str=None):
     df = add_grid_column(df)
 
 
-    hy_df = df.loc[df.nomvar== "HY"].reset_index(drop=True)
+    hy_df = df.loc[df.nomvar== "HY"]
 
     if (query is None) == False:
             
@@ -85,12 +85,12 @@ def get_header(file):
 def add_meta_to_query_results(df, sub_df, hy_df):
     # get metadata
     # meta_df = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1","PN"]')
-    meta_df = df.loc[df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1","PN"])].reset_index(drop=True)
+    meta_df = df.loc[df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1","PN"])]
     # print(meta_df.query('grid in %s'%list(sub_df.grid.unique())) )  
     # print(list(sub_df.grid.unique()))  
     # print(sub_df)  
     # subdfmeta = meta_df.query('grid in %s'%list(sub_df.grid.unique())) 
-    subdfmeta = meta_df.loc[meta_df.grid.isin(list(sub_df.grid.unique()))].reset_index(drop=True) 
+    subdfmeta = meta_df.loc[meta_df.grid.isin(list(sub_df.grid.unique()))] 
     # print(subdfmeta)  
 
     if (not sub_df.empty) and (not subdfmeta.empty):
@@ -114,7 +114,7 @@ def process_hy(hy_df, df):
         grids = [ x for x in list(df.grid.unique()) if x != 'None' ]
         if len(grids):
             grid = grids[0]
-            hy_df = df.loc[df.nomvar=="HY"].reset_index(drop=True)
+            hy_df = df.loc[df.nomvar=="HY"]
             hy_df.loc[:,'grid'] = grid
         #remove HY    
         df = df[df['grid']!= 'None']
@@ -217,14 +217,14 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     if  df.empty:
         raise StandardFileError('get_2d_lat_lon- no records to process')
     #remove record wich have X grid type
-    without_x_grid_df = df.loc[df.grtyp != "X"].reset_index(drop=True)
+    without_x_grid_df = df.loc[df.grtyp != "X"]
 
     latlon_df = get_lat_lon(df)
 
     if latlon_df.empty:
         raise StandardFileError('get_2d_lat_lon - while trying to find [">>","^^"] - no data to process') 
     
-    no_meta_df = without_x_grid_df.loc[~without_x_grid_df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"])].reset_index(drop=True)
+    no_meta_df = without_x_grid_df.loc[~without_x_grid_df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"])]
 
     latlons = []
     path_groups = no_meta_df.groupby(no_meta_df.path)
@@ -244,8 +244,8 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
                 continue
             
             grid = rmn.gdll(g)
-            tictic_df = latlon_df.loc[(latlon_df.nomvar=="^^") & (latlon_df.grid==row['grid'])].reset_index(drop=True)
-            tactac_df = latlon_df.loc[(latlon_df.nomvar==">>") & (latlon_df.grid==row['grid'])].reset_index(drop=True)
+            tictic_df = latlon_df.loc[(latlon_df.nomvar=="^^") & (latlon_df.grid==row['grid'])]
+            tactac_df = latlon_df.loc[(latlon_df.nomvar==">>") & (latlon_df.grid==row['grid'])]
             lat_df = create_1row_df_from_model(tictic_df)
             lat_df.loc[:,'nomvar'] = 'LA'
             lat_df.at[0,'d'] = grid['lat']
@@ -293,15 +293,15 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
             this_grid = grid_df.iloc[0]['grid']
             if vertical_descriptors:
                 #print('vertical_descriptors')
-                vertical_df = meta_df.loc[(meta_df.nomvar.isin(["!!", "HY", "!!SF", "E1"])) & (meta_df.grid==this_grid)].reset_index(drop=True)
+                vertical_df = meta_df.loc[(meta_df.nomvar.isin(["!!", "HY", "!!SF", "E1"])) & (meta_df.grid==this_grid)]
                 df_list.append(vertical_df)
             if pressure:
                 #print('pressure')
-                pressure_df = meta_df.loc[(meta_df.nomvar.isin(["P0", "PT"])) & (meta_df.grid==this_grid)].reset_index(drop=True)
+                pressure_df = meta_df.loc[(meta_df.nomvar.isin(["P0", "PT"])) & (meta_df.grid==this_grid)]
                 df_list.append(pressure_df)
             if latitude_and_longitude:
                 #print('lati and longi')
-                latlon_df = meta_df.loc[(meta_df.nomvar.isin(["^>", ">>", "^^"])) & (meta_df.grid==this_grid)].reset_index(drop=True)
+                latlon_df = meta_df.loc[(meta_df.nomvar.isin(["^>", ">>", "^^"])) & (meta_df.grid==this_grid)]
                 #print(latlon_df)
                 df_list.append(latlon_df)
                 #print(latlon_df)

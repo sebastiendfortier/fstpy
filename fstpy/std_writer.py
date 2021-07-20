@@ -59,7 +59,7 @@ class StandardFileWriter:
 
         # remove meta
         if self.no_meta:
-            self.df = self.df.loc[~self.df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"])].reset_index(drop=True)
+            self.df = self.df.loc[~self.df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"])]
        
 
         if self.mode == 'dump':

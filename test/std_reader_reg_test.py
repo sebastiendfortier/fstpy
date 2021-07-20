@@ -678,33 +678,38 @@ def test_regtest_30(plugin_test_dir):
     assert(res == True)
 
 
-# def test_regtest_31(plugin_test_dir):
-#     """Test #31 : test lecture fichiers contenant des masques"""
-#     # open and read source
-#     source0 = plugin_test_dir + "data_with_mask.std"
-#     src_df0 = StandardFileReader(source0).to_pandas()
-#     #print(src_df0[['nomvar','deet','npas']])
-#     # print(source0)
-    
-#     src_df0 = select(src_df0,'(dateo==442080800) and (deet==300) and (npas==288)') 
-#     # print(src_df0[['nomvar','ip2','deet','npas']])
-#     src_df0 = zap(src_df0,etiket='RU210RKFX')
-#     src_df0['ip2'] = 24
-#     #compute ReaderStd
-#     # df = ReaderStd(src_df0)
-#     #['[ReaderStd --input {sources[0]}] >> ', '[Select --forecastHour 24] >>', '[WriterStd --output {destination_path}]']
+def test_regtest_31(plugin_test_dir):
+    """Test #31 : test lecture fichiers contenant des masques"""
+    # open and read source
+    source0 = plugin_test_dir + "data_with_mask.std"
+    src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
+    #print(src_df0[['nomvar','deet','npas']])
+    # print(source0)
+    # print(src_df0[['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','grtyp','ig1','ig2','ig3','ig4']].to_string())
+    import datetime
+    src_df0 = src_df0.loc[src_df0.forecast_hour==datetime.timedelta(seconds=24*3600)]
+    # src_df0 = src_df0.loc[(src_df0.dateo==442080800) & (src_df0.deet==300) and (src_df0.npas==288)] 
+    # # print(src_df0[['nomvar','ip2','deet','npas']])
+    # src_df0.loc[:,'etiket']='RU210RKFX'
+    # src_df0['ip2'] = 24
+    #compute ReaderStd
+    # df = ReaderStd(src_df0)
+    #['[ReaderStd --input {sources[0]}] >> ', '[Select --forecastHour 24] >>', '[WriterStd --output {destination_path}]']
+    src_df0.loc[:,'etiket']='RU210RKFX'
+    src_df0.loc[:,'ip2'] = 24
+    # print(src_df0[['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','grtyp','ig1','ig2','ig3','ig4']].to_string())
+    #write the result
+    results_file = TMP_PATH + "test_read_reg_31.std"
+    delete_file(results_file)
+    StandardFileWriter(results_file, src_df0).to_fst()
 
-#     #write the result
-#     results_file = TMP_PATH + "test_read_reg_31.std"
-#     StandardFileWriter(results_file, src_df0).to_fst()
+    # open and read comparison file
+    file_to_compare = plugin_test_dir + "resulttest_31.std"
 
-#     # open and read comparison file
-#     file_to_compare = plugin_test_dir + "resulttest_31.std"
-
-#     #compare results
-#     res = fstcomp(results_file,file_to_compare)
-#     delete_file(results_file)
-#     assert(res == True)
+    #compare results
+    res = fstcomp(results_file,file_to_compare,columns=['nomvar', 'typvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'])
+    delete_file(results_file)
+    assert(res == True)
 
 
 def test_regtest_32(plugin_test_dir):
