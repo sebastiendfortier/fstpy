@@ -23,7 +23,9 @@ class StandardFileWriter:
     :type filename: str
     :param df: dataframe to write
     :type df: pd.DataFrame
-    :param mode: If set to dump, no processing will be done on the dataframe before writing, data must be present in the dataframe. If set to update, path must be an existing file. Only the field metadata will be updated.
+    :param mode: In 'dump' mode, no processing will be done on the dataframe before writing, data must be present in the dataframe. 
+    If set to 'update', path must be an existing file. Only the field metadata will be updated, the data itself will not be modified. 
+    In 'write' mode, the data will be loaded, metadata fields like '>>' will be added if not present default 'write'
     :type mode: str
     :param no_meta: if true these fields ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"] will be removed from the dataframe    
     :type no_meta: bool
@@ -49,7 +51,7 @@ class StandardFileWriter:
             raise StandardFileWriterError('StandardFileWriter - file exists, use overwrite flag to avoid this error')
 
     def to_fst(self):
-        """get the metadata fields if not already present and adds them to the dataframe. 
+        """in write mode,gets the metadata fields if not already present and adds them to the dataframe. 
         If not in update only mode, loads the actual data. opens the file writes the dataframe and closes.
         """
         for i in self.df.index:
