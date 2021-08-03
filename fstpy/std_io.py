@@ -31,9 +31,9 @@ def close_fst(file_id:int, file:str,caller_class:str):
 
 def parallel_get_dataframe_from_file(files, get_records_func, n_cores):
     # Step 1: Init multiprocessing.Pool()
-    pool = mp.Pool(n_cores)
-    df_list = pool.starmap(get_records_func, [file for file in files])
-    pool.close()    
+    with mp.Pool(processes=n_cores) as pool:
+        df_list = pool.starmap(get_records_func, [file for file in files])
+    
     df = pd.concat(df_list,ignore_index=True)
     return df
 
@@ -42,10 +42,9 @@ def add_grid_column(df):
     df['grid'] = vcreate_grid_identifier(df['nomvar'],df['ip1'],df['ip2'],df['ig1'],df['ig2'])
     return df
     
-def get_dataframe_from_file(file:str,query:str,array_container:str=None):
-    
+def get_dataframe_from_file(file: str, query: str, array_container: str = None):
     records = get_header(file)
-
+    
     df = pd.DataFrame(records)
     
     df = add_path_and_mod_time(file, df)
