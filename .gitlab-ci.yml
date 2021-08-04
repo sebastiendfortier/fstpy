@@ -69,8 +69,7 @@ install_doc:
 install_latest_doc:
   stage: install_doc
   only:
-      refs:
-        - master
+      - master
   script:
     - cd doc/_build/html
     - cdir=`pwd`
@@ -78,7 +77,6 @@ install_latest_doc:
     - mkdir -p ${latest_doc_install_dir}
     - cp -r ${cdir}/* ${latest_doc_install_dir}
     - echo "Installed in ${latest_doc_install_dir}"
-  
 
 
 ssm_package:
