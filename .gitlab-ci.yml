@@ -59,12 +59,15 @@ make_doc:
 install_doc:
   stage: install_doc
   script:
-    - cd doc/_build/html
-    - cdir=`pwd`
-    - cp -r ${cdir}/* ${doc_install_dir}
-    - echo "Installed in ${doc_install_dir}"
     - echo "CI_DEFAULT_BRANCH = ${CI_DEFAULT_BRANCH}"
     - echo "CI_COMMIT_BRANCH = ${CI_COMMIT_BRANCH}"
+    - echo "CI_BUILD_REF_NAME = ${CI_BUILD_REF_NAME}"
+    - echo "CI_PIPELINE_ID = ${CI_PIPELINE_ID}"
+    - cd doc/_build/html
+    - cdir=`pwd`
+    - mkdir -p ${doc_install_dir}
+    - cp -r ${cdir}/* ${doc_install_dir}
+    - echo "Installed in ${doc_install_dir}"
 
 ssm_package:
   stage: ssm_package
