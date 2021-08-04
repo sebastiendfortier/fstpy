@@ -5,7 +5,7 @@ DEFAULT_HOST_NUM = 3
 HOST_NUM = os.getenv("FSTPY_HOST_NUM", None)
 
 if HOST_NUM is not None:
-    HOST_NUM = int(DEFAULT_HOST_NUM)
+    HOST_NUM = int(HOST_NUM)
 else:
     HOST_NUM = os.getenv("TRUE_HOST")[-1]
     try:
