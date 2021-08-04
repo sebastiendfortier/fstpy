@@ -4,6 +4,8 @@ variables:
   ORD_SOUMET_CM: "20G"
   ORD_SOUMET_TMPFS: "10G"
   JOB_CPUS: "10"
+  doc_install_dir: "/home/spst900/public_html/fstpy/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}"
+  latest_doc_install_dir: "/home/spst900/public_html/fstpy/latest"
     
 
 stages:
@@ -59,8 +61,10 @@ install_doc:
   script:
     - cd doc/_build/html
     - cdir=`pwd`
-    - ssh sbf000@ppp3 'rm -rf /home/sbf000/public_html/fstpy/latest/*'
-    - ssh sbf000@ppp3 cp -r ${cdir}/* /home/sbf000/public_html/fstpy/latest/
+    - cp -r ${cdir}/* ${doc_install_dir}
+    - echo "Installed in ${doc_install_dir}"
+    - echo "CI_DEFAULT_BRANCH = ${CI_DEFAULT_BRANCH}"
+    - echo "CI_COMMIT_BRANCH = ${CI_COMMIT_BRANCH}"
 
 ssm_package:
   stage: ssm_package
