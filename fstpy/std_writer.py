@@ -54,6 +54,7 @@ class StandardFileWriter:
         """in write mode,gets the metadata fields if not already present and adds them to the dataframe. 
         If not in update only mode, loads the actual data. opens the file writes the dataframe and closes.
         """
+
         for i in self.df.index:
             if not isinstance(self.df.at[i,'d'],np.ndarray) and self.mode=='dump':
                 raise StandardFileWriterError(f'StandardFileWriter - all data must be loaded in dump mode - row[{i}] does not have its data loaded')
@@ -70,6 +71,7 @@ class StandardFileWriter:
             self._update()
         else:
             self._write()
+        
 
     def _dump(self):
         file_id = rmn.fstopenall(self.filename,rmn.FST_RW)
@@ -109,6 +111,7 @@ class StandardFileWriter:
         if original_df_length != dropped_df_length:
             rewrite=False
             sys.stderr.write('StandardFileWriter - duplicates found, activating rewrite')
+
 
         df_list = np.array_split(self.df, math.ceil(len(self.df.index)/256)) #256 records per block
 

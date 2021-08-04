@@ -54,6 +54,15 @@ Use the git repository package: at your own risk ;)
 ### Use pre-build developpement environment
 
 ``` bash
+# get rmn python library      
+. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
+# get fstpy ssm package
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.5/
+```
+
+### Use pre-build developpement environment
+
+``` bash
 # get conda if you don't already have it  
 . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
 # create a link to pre-built environment
@@ -150,6 +159,13 @@ git push origin my_change
 
 Then create a merge request on science's gitlab
 <https://gitlab.science.gc.ca/CMDS/fstpy/merge_requests>
+
+## Using setup.sh to setup your developpement environment
+
+``` bash
+# From the $project_root directory of the project
+source setup.sh
+```
 
 ## Testing
 
