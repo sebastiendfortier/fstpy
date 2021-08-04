@@ -65,7 +65,7 @@ install_doc:
     - mkdir -p ${doc_install_dir}
     - cp -r ${cdir}/* ${doc_install_dir}
     - echo "Installed in ${doc_install_dir}"
-    - echo "Visit http://web.science.gc.ca/~spst900/fstpy/${doc_install_dir}"
+    - echo "Visit http://web.science.gc.ca/~spst900/fstpy/${CI_BUILD_REF_NAME}"
 
 install_latest_doc:
   stage: install_doc
