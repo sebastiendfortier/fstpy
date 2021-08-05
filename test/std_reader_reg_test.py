@@ -24,7 +24,7 @@ def test_regtest_1(plugin_test_dir):
     source0 = plugin_test_dir + "UUVV5x5_fileSrc_.std"
     with pytest.raises(FSTDError):
         src_df0 = StandardFileReader(source0).to_pandas()
- 
+
 
 def test_regtest_2(plugin_test_dir):
     """Test #2 : Test avec un fichier qui possède un champ de type entier."""
@@ -198,7 +198,7 @@ def test_regtest_10(plugin_test_dir):
     source2 = plugin_test_dir + "windModulus_file2cmp.std"
     src_df0 = StandardFileReader([source0,source1,source2]).to_pandas()
 
-    
+
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #[ReaderStd --ignoreExtended --input {sources[0]} {sources[1]} {sources[2]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
@@ -451,7 +451,7 @@ def test_regtest_20(plugin_test_dir):
     src_df0 = select_with_meta(src_df0,['FN'])
     src_df0.loc[:,'etiket'] = '33K80___X'
 
-    
+
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #[ReaderStd --input {sources[0]}] >> [Select --fieldName FN] >> [WriterStd --output {destination_path}]
@@ -562,7 +562,7 @@ def test_regtest_23(plugin_test_dir):
 #     #write the result
 #     results_file = TMP_PATH + "test_read_reg_25.std"
 #     StandardFileWriter(results_file, src_df0).to_fst()
- 
+
 #     # open and read comparison file
 #     file_to_compare = plugin_test_dir + "2012121000_cancm3_m1_00_file2cmp.std"
 
@@ -605,7 +605,7 @@ def test_regtest_28(plugin_test_dir):
     source2 = plugin_test_dir + "windModulus_file2cmp.std"
     src_df0 = StandardFileReader([source0,source1,source2]).to_pandas()
 
-    
+
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #[ReaderStd --input {sources[0]} {sources[1]} {sources[2]} --ignoreExtended] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
@@ -655,10 +655,10 @@ def test_regtest_30(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "ensemble_members.std"
     src_df0 = StandardFileReader(source0).to_pandas()
-   
+
     for i in src_df0.index:
         src_df0.at[i,'etiket'] = ''.join(['E16_0_0_',src_df0.at[i,'etiket'][-4:]])
-    
+
     src_df0.loc[src_df0.nomvar.isin(['>>','^^']),'etiket'] = 'ER______X'
     #compute ReaderStd
     # df = ReaderStd(src_df0)
@@ -688,7 +688,7 @@ def test_regtest_31(plugin_test_dir):
     # print(src_df0[['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','grtyp','ig1','ig2','ig3','ig4']].to_string())
     import datetime
     src_df0 = src_df0.loc[src_df0.forecast_hour==datetime.timedelta(seconds=24*3600)]
-    # src_df0 = src_df0.loc[(src_df0.dateo==442080800) & (src_df0.deet==300) and (src_df0.npas==288)] 
+    # src_df0 = src_df0.loc[(src_df0.dateo==442080800) & (src_df0.deet==300) and (src_df0.npas==288)]
     # # print(src_df0[['nomvar','ip2','deet','npas']])
     # src_df0.loc[:,'etiket']='RU210RKFX'
     # src_df0['ip2'] = 24
@@ -701,7 +701,7 @@ def test_regtest_31(plugin_test_dir):
     #write the result
     results_file = TMP_PATH + "test_read_reg_31.std"
     delete_file(results_file)
-    StandardFileWriter(results_file, src_df0).to_fst()
+    StandardFileWriter(results_file, src_df0, rewrite=True).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "resulttest_31.std"
@@ -762,5 +762,3 @@ def test_regtest_33(plugin_test_dir):
     res = fstcomp(results_file,file_to_compare)
     delete_file(results_file)
     assert(res == True)
-
-
