@@ -4,6 +4,8 @@ variables:
   ORD_SOUMET_CM: "20G"
   ORD_SOUMET_TMPFS: "10G"
   JOB_CPUS: "10"
+  doc_install_dir: "/home/spst900/public_html/fstpy/${CI_BUILD_REF_NAME}"
+  latest_doc_install_dir: "/home/spst900/public_html/fstpy/latest"
     
 
 stages:
@@ -59,8 +61,25 @@ install_doc:
   script:
     - cd doc/_build/html
     - cdir=`pwd`
-    - ssh sbf000@ppp3 'rm -rf /home/sbf000/public_html/fstpy/latest/*'
-    - ssh sbf000@ppp3 cp -r ${cdir}/* /home/sbf000/public_html/fstpy/latest/
+    - rm -rf ${doc_install_dir}
+    - mkdir -p ${doc_install_dir}
+    - cp -r ${cdir}/* ${doc_install_dir}
+    - echo "Installed in ${doc_install_dir}"
+    - echo "Visit http://web.science.gc.ca/~spst900/fstpy/${CI_BUILD_REF_NAME}"
+
+install_latest_doc:
+  stage: install_doc
+  only:
+      - master
+  script:
+    - cd doc/_build/html
+    - cdir=`pwd`
+    - rm -rf ${latest_doc_install_dir}
+    - mkdir -p ${latest_doc_install_dir}
+    - cp -r ${cdir}/* ${latest_doc_install_dir}
+    - echo "Installed in ${latest_doc_install_dir}"
+    - echo "Visit http://web.science.gc.ca/~spst900/fstpy/latest"
+
 
 ssm_package:
   stage: ssm_package
