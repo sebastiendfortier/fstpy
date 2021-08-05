@@ -78,7 +78,7 @@ class StandardFileWriter:
         if not(self.rewrite is None):
             rewrite = self.rewrite
         else:
-            rewrite = False
+            rewrite = True
         file_id = rmn.fstopenall(self.filename,rmn.FST_RW)
         for i in self.df.index:
             rmn.fstecr(file_id, data=np.asfortranarray(self.df.at[i,'d']), meta=self.df.loc[i].to_dict(),rewrite=rewrite)
@@ -135,10 +135,10 @@ def set_rewrite(df):
     original_df_length = len(df.index)
     dropped_df = df.drop_duplicates(subset=['nomvar','typvar','etiket','ip1', 'ip2', 'ip3'], ignore_index=True)
     dropped_df_length = len(dropped_df.index)
-    rewrite = False
+    rewrite = True
 
     if original_df_length != dropped_df_length:
-        rewrite=True
+        rewrite=False
         sys.stderr.write('StandardFileWriter - duplicates found, activating rewrite\n')
     return rewrite
 
