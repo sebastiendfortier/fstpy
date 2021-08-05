@@ -19,7 +19,13 @@ def test_create_encoded_npas_and_ip2():
 
     ip2 = std_enc.create_encoded_ip1(fhour, rmn.KIND_HOURS)
 
-    assert std_enc.create_encoded_npas_and_ip2(dt, 300) == (npas, ip2)
+    npas_act, ip2_act = std_enc.create_encoded_npas_and_ip2(dt, 300) 
+
+    assert isinstance(npas_act, int)
+    
+    assert isinstance(ip2_act, int)
+
+    assert (npas_act, ip2_act) == (npas, ip2)
 
 
 def test_create_encoded_dateo():
