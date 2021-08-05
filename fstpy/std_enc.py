@@ -49,7 +49,7 @@ def create_encoded_npas_and_ip2(forecast_hour:datetime.timedelta,deet:int) -> tu
    #fhour = 21600
    #npas = hours/deet
    seconds = forecast_hour.total_seconds()
-   npas = seconds / deet
+   npas = int(seconds / deet)
    ip2 = seconds / 3600.
    ip2_code = create_encoded_ip1(ip2, rmn.KIND_HOURS)
    return npas, ip2_code
