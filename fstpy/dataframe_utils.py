@@ -46,7 +46,7 @@ def select_with_meta(df:pd.DataFrame,nomvar:list) -> pd.DataFrame:
     if not meta_df.empty:
         results.append(meta_df)
 
-    selection_result_df = pd.concat(results,ignore_index=True)   
+    selection_result_df = pd.concat(results,ignore_index=True)
 
     selection_result_df = metadata_cleanup(selection_result_df)
 
@@ -63,12 +63,12 @@ def metadata_cleanup(df:pd.DataFrame,strict_toctoc=True) -> pd.DataFrame:
 
     if df.empty:
         return df
-    
+
     # no_meta_df = df.query('nomvar not in  ["!!","P0","PT",">>","^^","^>","HY","!!SF"]')
     no_meta_df = df.loc[~df.nomvar.isin(["!!","P0","PT",">>","^^","^>","HY","!!SF"])]
     # print(no_meta_df.grid)
     # get deformation fields
-    grid_deformation_fields_df = get_grid_deformation_fileds(df,no_meta_df)        
+    grid_deformation_fields_df = get_grid_deformation_fileds(df,no_meta_df)
 
     sigma_ips = get_sigma_ips(no_meta_df)
 
@@ -76,7 +76,7 @@ def metadata_cleanup(df:pd.DataFrame,strict_toctoc=True) -> pd.DataFrame:
 
     # get P0's
     p0_fields_df = get_p0_fields(df,no_meta_df,hybrid_ips,sigma_ips)
-        
+
     #get PT's
     pt_fields_df = get_pt_fields(df,no_meta_df,sigma_ips)
 
@@ -112,13 +112,13 @@ def fstcomp(file1:str, file2:str, exclude_meta=False, cmp_number_of_fields=True,
     """
     sys.stdout.write('fstcomp -A %s -B %s\n'%(file1,file2))
 
-    
+
     if not os.path.exists(file1):
         sys.stderr.write('fstcomp - %s does not exist\n' % file1)
         raise StandardFileError('fstcomp - %s does not exist' % file1)
     if not os.path.exists(file2):
         sys.stderr.write('fstcomp - %s does not exist\n' % file2)
-        raise StandardFileError('fstcomp - %s does not exist' % file2)    
+        raise StandardFileError('fstcomp - %s does not exist' % file2)
     # open and read files
     df1 = StandardFileReader(file1).to_pandas()
 
@@ -130,8 +130,8 @@ def fstcomp(file1:str, file2:str, exclude_meta=False, cmp_number_of_fields=True,
 def voir(df:pd.DataFrame,style=False):
     """Displays the metadata of the supplied records in the rpn voir format"""
     if df.empty:
-        raise StandardFileError('voir - no records to process') 
-       
+        raise StandardFileError('voir - no records to process')
+
     to_print_df = df.copy()
     to_print_df['datyp'] = to_print_df['datyp'].map(DATYP_DICT)
     to_print_df['datev'] = to_print_df['datev'].apply(convert_rmndate_to_datetime)
@@ -141,14 +141,14 @@ def voir(df:pd.DataFrame,style=False):
     # df['level'] = None
     # df[' '] = None
     # for i in df.index:
-    #     df.at[i,'level']=res.loc[i][0] 
+    #     df.at[i,'level']=res.loc[i][0]
     #     df.at[i,' '] = res.loc[i][2]
 
     res_df = to_print_df.sort_values(by=['nomvar','level'],ascending=True)
 
     if style:
         res_df = res_df.drop(columns=['dateo','grid','run','implementation','ensemble_member','shape','key','d','path','file_modification_time','ip1_kind','ip2_dec','ip2_kind','ip2_pkind','ip3_dec','ip3_kind','ip3_pkind','date_of_observation','date_of_validity','forecast_hour','d','surface','follow_topography','ascending','interval'],errors='ignore')
-        res_df = reorder_columns(res_df,ordered=['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'datev', 'level',' ','ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'])        
+        res_df = reorder_columns(res_df,ordered=['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'datev', 'level',' ','ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'])
     else:
         res_df = res_df.drop(columns=['datev','grid','run','implementation','ensemble_member','shape','key','d','path','file_modification_time','ip1_kind','ip2_dec','ip2_kind','ip2_pkind','ip3_dec','ip3_kind','ip3_pkind','date_of_observation','date_of_validity','forecast_hour','d','surface','follow_topography','ascending','interval'],errors='ignore')
 
@@ -168,7 +168,7 @@ def voir(df:pd.DataFrame,style=False):
 #     :return: modified dataframe
 #     :rtype: pd.DataFrame
 #     """
-    
+
 #     if df.empty:
 #         raise StandardFileError('zap - no records to process')
 #     if validate_zap_keys:
@@ -203,7 +203,7 @@ def voir(df:pd.DataFrame,style=False):
 #         res_df.loc[:,k] = v
 #     # if mark:
 #     #     res_df.loc[:,'typvar'] = res_df['typvar'].str.cat([ 'Z' for x in res_df.index])
-#     res_df = sort_dataframe(res_df) 
+#     res_df = sort_dataframe(res_df)
 #     return res_df
 
 def fststat(df:pd.DataFrame) -> pd.DataFrame:
@@ -214,7 +214,7 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     :return: output dataframe with added 'mean','std','min_pos','min','max_pos','max' columns
     :rtype: pd.DataFrame
     """
-    
+
     sys.stdout.write('fststat\n')
     pd.options.display.float_format = '{:0.6E}'.format
     if df.empty:
@@ -226,17 +226,17 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     # df['level'] = None
     # df[' '] = None
     # for i in df.index:
-    #     df.at[i,'level']=res.loc[i][0] 
+    #     df.at[i,'level']=res.loc[i][0]
     #     df.at[i,' '] = res.loc[i][2]
 
     df.sort_values(by=['nomvar','level'],ascending=True,inplace=True)
 
     # if 'level' in df.columns:
     print(df[['nomvar','typvar','level',' ','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
-    # else:    
+    # else:
     #     print(res_df[['nomvar','typvar','ip1','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string())
     del df[' ']
-    return df    
+    return df
 
 # def select(df:pd.DataFrame, query_str:str, exclude:bool=False, no_fail=False, engine=None) -> pd.DataFrame:
 #     """Wrapper for pandas dataframe query function. Adds some checks to work with standard file dataframes
@@ -278,7 +278,7 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
 #         columns.remove('d')
 #         #columns.remove('fstinl_params')
 #         tmp_df = pd.concat([df, tmp_df],ignore_index=True).drop_duplicates(subset=columns,keep=False)
-#     tmp_df = sort_dataframe(tmp_df) 
+#     tmp_df = sort_dataframe(tmp_df)
 #     return tmp_df
 
 
@@ -308,7 +308,7 @@ def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
 
 
 
-    #df = df.reindex(columns = df.columns.tolist() + ['min','max','mean','std','min_pos','max_pos'])   
+    #df = df.reindex(columns = df.columns.tolist() + ['min','max','mean','std','min_pos','max_pos'])
 
 # min_delayed = [dask.delayed(np.nanmin)(df.at[i, 'd']) for i in df.index]
 # max_delayed = [dask.delayed(np.nanmax)(df.at[i, 'd']) for i in df.index]
@@ -336,7 +336,7 @@ def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
 #     #min_pos_delayed=[]
 #     argmax_delayed=[]
 #     #max_pos_delayed=[]
-#     for i in df.index:   
+#     for i in df.index:
 #         if isinstance(df.at[i, 'd'],np.ndarray):
 #             df.at[i, 'd'] = da.from_array(df.at[i, 'd'])
 #         min_delayed.append(dask.delayed(np.nanmin)(df.at[i, 'd']))
@@ -366,7 +366,7 @@ def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
 
 #     df.loc[:,'min_pos'] = df['min_pos1']
 #     df.loc[:,'max_pos'] = df['max_pos1']
-#     #df = fstpy.dataframe.sort_dataframe(df)    
+#     #df = fstpy.dataframe.sort_dataframe(df)
 #     return df
 
 def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
@@ -387,7 +387,7 @@ def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
         df.at[i,'min_pos'] = (min_pos[0] + 1, min_pos[1]+1)
         max_pos = np.unravel_index(np.argmax(df.at[i,'d']), (df.at[i,'ni'],df.at[i,'nj']))
         df.at[i,'max_pos'] = (max_pos[0] + 1, max_pos[1]+1)
-    #df = fstpy.dataframe.sort_dataframe(df)    
+    #df = fstpy.dataframe.sort_dataframe(df)
     return df
 
 # def create_load_data_info(df:pd.DataFrame) -> pd.DataFrame:
@@ -415,7 +415,7 @@ def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
 #         raise StandardFileError("zap - can't find modifiable key in available keys")
 
 # def zap_ip1(df:pd.DataFrame, ip1_value:int) -> pd.DataFrame:
-    
+
 #     sys.stdout.write('zap - changed ip1, triggers updating level and ip1_kind\n')
 #     df.loc[:,'ip1'] = ip1_value
 #     df = add_ip_info_columns(df)
@@ -498,8 +498,8 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
 
     columns_to_keep = columns.copy()
     columns_to_keep.extend(['d','key'])
-    df1 = df1[columns_to_keep]   
-    df2 = df2[columns_to_keep]   
+    df1 = df1[columns_to_keep]
+    df2 = df2[columns_to_keep]
     #print(df1.columns)
     #print(df2.columns)
     # df1 = df1.sort_values(by=columns)
@@ -508,7 +508,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
     df2 = df2.sort_values(by=columns)
 
     # print('allclose= ',allclose,'exclude_meta= ',exclude_meta)
-    success = False
+    success = True
     pd.options.display.float_format = '{:0.6E}'.format
     # check if both df have records
     if df1.empty or df2.empty:
@@ -538,9 +538,9 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
             sys.stderr.write(f'file 2 {vars2}\n')
             return False
     # print(df1.to_string())
-    # print(df2.to_string())    
+    # print(df2.to_string())
     # voir(df1)
-    # voir(df2)    
+    # voir(df2)
     # for i in df1.index:
     #     if df1.at[i,'d'].all() != df2.at[i,'d'].all():
     #         print(df1.at[i,'d'][:10],df2.at[i,'d'][:10])
@@ -548,12 +548,12 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
     #logger.debug('A',df1.loc[i])#[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']])
     #logger.debug('----------')
     #logger.debug('B',df2['d'][:100].to_string())
-    #logger.debug('B',df2.loc[i])#[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']])    
+    #logger.debug('B',df2.loc[i])#[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']])
     # check if they are exactly the same
     # if df1.equals(df2):
     #     if exclude_meta:
     #         print('files are identical - excluding meta data fields')
-    #     else:    
+    #     else:
     #         print('files are identical')
     #     # logger.debug('A',df1[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())
     #     # logger.debug('----------')
@@ -569,7 +569,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
         print(df2[['grtyp', 'ig1', 'ig2', 'ig3', 'ig4']])
 
     common = pd.merge(df1, df2, how='inner', on=columns)
- 
+
     #Rows in df1 Which Are Not Available in df2
     common_with_1 = common.merge(df1, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
     #Rows in df2 Which Are Not Available in df1
@@ -607,9 +607,9 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
     # diff = common.copy()
     #voir(diff)
     diff = add_fstcomp_columns(diff)
-    
+
     diff,success = compute_fstcomp_stats(diff,path1,path2,e_max,e_moy,e_c_cor)
-    
+
     diff = del_fstcomp_columns(diff)
 
     # diff.sort_values(by=['nomvar','etiket','ip1'],inplace=True)
@@ -631,18 +631,19 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
 #     else:
 #         return 0.
 
-def calc_derr(ar,br):
-#     print(ar,br,sep='\t')
-    if ar == 0:
-       return np.abs(1-(ar/br))
-    return np.abs(1-(br/ar))
+# def calc_derr(ar,br):
+#     # np.where(ar == 0,abs(1-(ar/br)),abs(1-(br/ar)))
+# #     print(ar,br,sep='\t')
+#     if ar == 0:
+#        return np.abs(1-(ar/br))
+#     return np.abs(1-(br/ar))
 
 
 def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
     success = True
-    
 
-    df_list = np.array_split(diff, math.ceil(len(diff.index)/100)) 
+
+    df_list = np.array_split(diff, math.ceil(len(diff.index)/100))
     for df in df_list:
         iun1 = rmn.fstopenall(path1)
         for i in df.index:
@@ -651,9 +652,9 @@ def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_
         iun2 = rmn.fstopenall(path2)
         for i in df.index:
             df.at[i,'d_y'] = rmn.fstluk(int(df.at[i,'key_y']))['d']
-        rmn.fstcloseall(iun2)   
+        rmn.fstcloseall(iun2)
 
-        print('diff dx\n',df[['nomvar','d_x']])   
+        print('diff dx\n',df[['nomvar','d_x']])
         print('diff dy\n',df[['nomvar','d_y']])
         to_drop = []
         for i in df.index:
@@ -666,26 +667,29 @@ def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_
             # b = df.at[i, 'd_y'].flatten().astype('float64')
 
             df.at[i, 'abs_diff'] = np.abs(a-b)
-            
-            a1 = np.where((a==0) & (b==0),1,a)
-            b1 = np.where((a==0) & (b==0),1,b)
 
-            verror_rel = np.vectorize(calc_derr)
+            # verror_rel = np.vectorize(calc_derr)
 
-            derr = verror_rel(a1,b1)
+            # derr = verror_rel(a1,b1)
+            # np.abs(1-(a/b)), np.where((b == 0) & (a != 0), np.abs(1-(b/a)), 0))
+            derr = np.full_like(a,0)
+            derr = np.where(a!=0,np.abs(1-(b/a)),np.where(b!=0,np.abs(1-(a/b)),derr))
+
+
+            # derr = np.where(derr==1,0,derr)
 
             df.at[i, 'e_rel_max'] = np.max(derr)
             df.at[i, 'e_rel_moy'] = np.mean(derr)
 
             sum_a2 = np.sum(a**2)
-            sum_b2 = np.sum(b**2)     
-            # print(np.mean(sum_a2) == np.var(a))   
-            # print(np.mean(sum_b2) == np.var(b))   
+            sum_b2 = np.sum(b**2)
+            # print(np.mean(sum_a2) == np.var(a))
+            # print(np.mean(sum_b2) == np.var(b))
             df.at[i, 'var_a'] = np.var(a)
             df.at[i, 'var_b'] = np.var(b)
             df.at[i, 'moy_a'] = np.mean(a)
             df.at[i, 'moy_b'] = np.mean(b)
-            
+
             c_cor = np.sum(a*b)
             if sum_a2*sum_b2 != 0:
                 c_cor = c_cor/np.sqrt(sum_a2*sum_b2)
@@ -695,28 +699,28 @@ def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_
                 c_cor = np.sqrt(df.at[i, 'var_b'])
             else:
                 c_cor = np.sqrt(df.at[i, 'var_a'])
-            df.at[i, 'c_cor'] = c_cor 
+            df.at[i, 'c_cor'] = c_cor
             # df.at[i, 'c_cor'] = np.correlate(a,b)[0]
             df.at[i, 'bias']=(df.at[i, 'moy_b']-df.at[i, 'moy_a'])
             df.at[i, 'e_max'] = np.max(df.at[i, 'abs_diff'])
             df.at[i, 'e_moy'] = np.mean(df.at[i, 'abs_diff'])
-            
+
             # nbdiff = np.count_nonzero(a!=b)
             # df.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
             # print(df.at[i, 'c_cor'],1.0,1.0+1e-07,1-1e-07,math.isclose(df.at[i, 'c_cor'],1.0,rel_tol=1e-07))
-            
+
             if (not (-e_c_cor <= abs(df.at[i, 'c_cor']-1.0) <= e_c_cor)) or (not (-e_max <= df.at[i, 'e_rel_max'] <= e_max)) or (not (-e_moy <= df.at[i, 'e_rel_moy']<=e_moy)):
                 if not np.allclose(a,b):
                     df.at[i, 'nomvar'] = '<' + df.at[i, 'nomvar'] + '>'
                     # print('maximum absolute difference:%s'%np.max(np.abs(a-b)))
                     # print(np.abs(a-b))
                     success = False
-            # print('dataframe\n',df)  
+            # print('dataframe\n',df)
         df['d_x']=None
         df['d_y']=None
         df.drop(to_drop,inplace=True)
-    diff = pd.concat(df_list,ignore_index=True)            
-    return diff,success            
+    diff = pd.concat(df_list,ignore_index=True)
+    return diff,success
 
 class SelectError(Exception):
     pass
@@ -748,11 +752,13 @@ def get_kinds_and_ip1(df:pd.DataFrame) -> dict:
     ip1s = df.ip1.unique()
     kinds = {}
     for ip1 in ip1s:
+        if math.isnan(ip1):
+            continue
         (_, kind) = rmn.convertIp(rmn.CONVIP_DECODE, int(ip1))
         if kind not in kinds.keys():
             kinds[kind] = []
-        kinds[kind].append(ip1)    
-    
+        kinds[kind].append(ip1)
+
     return kinds
 
 def get_ips(df:pd.DataFrame,sigma=False,hybrid=False,pressure=False) -> list:
@@ -762,13 +768,13 @@ def get_ips(df:pd.DataFrame,sigma=False,hybrid=False,pressure=False) -> list:
     if sigma:
         if 1 in kinds.keys():
             ip1_list.extend(kinds[1])
-    if hybrid:        
+    if hybrid:
         if 5 in kinds.keys():
             ip1_list.extend(kinds[5])
-    if pressure:        
+    if pressure:
         if 2 in kinds.keys():
-            ip1_list.extend(kinds[2])                    
-    return ip1_list  
+            ip1_list.extend(kinds[2])
+    return ip1_list
 
 def get_model_ips(df:pd.DataFrame) -> list:
     return get_ips(df,sigma=True,hybrid=True)
@@ -778,8 +784,8 @@ def get_model_ips(df:pd.DataFrame) -> list:
     # if 1 in kinds.keys():
     #     ip1_list.append(kinds[1])
     # if 5 in kinds.keys():
-    #     ip1_list.append(kinds[5])    
-    # return ip1_list    
+    #     ip1_list.append(kinds[5])
+    # return ip1_list
 
 def get_sigma_ips(df:pd.DataFrame) -> list:
     return get_ips(df,sigma=True)
@@ -793,7 +799,7 @@ def get_hybrid_ips(df:pd.DataFrame) -> list:
     # ip1_list = []
     # if 5 in kinds.keys():
     #     ip1_list.append(kinds[5])
-    # return ip1_list    
+    # return ip1_list
 
 # def get_model_ips(df:pd.DataFrame) -> list:
 #     ip1s = df.ip1.unique()
@@ -802,7 +808,7 @@ def get_hybrid_ips(df:pd.DataFrame) -> list:
 #         (_, kind) = rmn.convertIp(rmn.CONVIP_DECODE, int(ip1))
 #         if (kind == 1) or (kind == 5):
 #             ip1_list.append(ip1)
-#     return ip1_list    
+#     return ip1_list
 
 # def get_sigma_ips(df:pd.DataFrame) -> list:
 #     ip1s = df.ip1.unique()
@@ -811,7 +817,7 @@ def get_hybrid_ips(df:pd.DataFrame) -> list:
 #         (_, kind) = rmn.convertIp(rmn.CONVIP_DECODE, int(ip1))
 #         if (kind == 1):
 #             ip1_list.append(ip1)
-#     return ip1_list  
+#     return ip1_list
 
 # def get_hybrid_ips(df:pd.DataFrame) -> list:
 #     ip1s = df.ip1.unique()
@@ -820,16 +826,16 @@ def get_hybrid_ips(df:pd.DataFrame) -> list:
 #         (_, kind) = rmn.convertIp(rmn.CONVIP_DECODE, int(ip1))
 #         if (kind == 5):
 #             ip1_list.append(ip1)
-#     return ip1_list  
+#     return ip1_list
 
 
 # toctoc without hybrid
 # 2,True,True,False,False,False,False,2001,PRESSURE
 # 1,True,True,False,False,False,False,1002,ETA
 # 1,True,True,False,False,False,False,1001,SIGMA
-    
-    
-    
+
+
+
     # vcode 2001 -> Pressure levels
     # vcode 4001 -> Heights with respect to surface level, may be in ocean
 
@@ -860,7 +866,7 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ip
     # pressure
     pressure_fields_df = pd.DataFrame(dtype=object)
     if len(pressure_ips):
-        # pressure_fields_df = df.query(f'ip1 in {pressure_ips}')            
+        # pressure_fields_df = df.query(f'ip1 in {pressure_ips}')
         pressure_fields_df = df.loc[df.ip1.isin(pressure_ips)]
 
     pressure_grids = []
@@ -876,7 +882,7 @@ def get_toctoc_fields(df:pd.DataFrame,hybrid_ips:list,sigma_ips:list,pressure_ip
     # vcode 5100 -> Hybrid staggered SLEVE like coordinate
     # vcode 5999 -> Hybrid unstaggered coordinate of unknown/other origin (like ECMWF)
     # vcode 21001 -> Hybrid heights levels on Charney-Philips grid, may be non SLEVE (reference field: ME) or SLEVE (reference fields: ME, MELS)
-    # vcode 21002 -> Hybrid heights levels on Lorenz grid, may be non SLEVE (reference field: ME) or SLEVE (reference fields: ME, MELS) 
+    # vcode 21002 -> Hybrid heights levels on Lorenz grid, may be non SLEVE (reference field: ME) or SLEVE (reference fields: ME, MELS)
     for grid in hybrid_grids:
         # toctoc_df = df.query(f'(nomvar=="!!") and (grid=="{grid}") and (ig1 in [1003,5001,5002,5003,5004,5005,5100,5999,21001,21002])')
         toctoc_df = df.loc[(df.nomvar=="!!") & (df.grid==grid) & (df.ig1.isin([1003,5001,5002,5003,5004,5005,5100,5999,21001,21002]))]
@@ -923,20 +929,20 @@ def get_hy_field(df:pd.DataFrame,hybrid_ips:list):
 
     #     #par defaut
     #     else if ( mpds->second->getPdsName() == "!!")
-        
+
     #         # only keep !! if we have at least one pds with a vcode equal to the ig1 value of the !!
     #         int toctocVcode
     #         LEXICALCAST(mpds->second->getOtherInformation().ig1,toctocVcode)
     #         keep = hasPdsWithVcode(toctocVcode)
-        
+
     #     # active par variable globale
     #     else if ( mpds->second->getPdsName() == "!!")
-        
+
     #         # only keep !! if we have at least one pds with a vcode equal to the ig1 value of the !!
     #         int toctocVcode
     #         LEXICALCAST(mpds->second->getOtherInformation().ig1,toctocVcode)
     #         keep = hasPdsWithVcode(toctocVcode)
-def get_grid_deformation_fileds(df:pd.DataFrame,no_meta_df:pd.DataFrame):        
+def get_grid_deformation_fileds(df:pd.DataFrame,no_meta_df:pd.DataFrame):
     grid_deformation_fields_df = pd.DataFrame(dtype=object)
     all_grids = no_meta_df.grid.unique()
 
@@ -954,7 +960,7 @@ def get_grid_deformation_fileds(df:pd.DataFrame,no_meta_df:pd.DataFrame):
 
     grid_deformation_fields_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
 
-    return grid_deformation_fields_df   
+    return grid_deformation_fields_df
 
 def get_p0_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,hybrid_ips:list,sigma_ips:list):
     p0_fields_df = pd.DataFrame(dtype=object)
@@ -964,7 +970,7 @@ def get_p0_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,hybrid_ips:list,sigma_
     for ip1 in hybrid_ips:
         # hybrid_grids.add(no_meta_df.query(f'ip1=={ip1}').iloc[0]['grid'])
         hybrid_grids.add(no_meta_df.loc[no_meta_df.ip1==ip1].iloc[0]['grid'])
-    
+
     df_list = []
     for grid in hybrid_grids:
         # print(grid)
@@ -978,7 +984,7 @@ def get_p0_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,hybrid_ips:list,sigma_
     for ip1 in sigma_ips:
         # sigma_grids.add(no_meta_df.query(f'ip1=={ip1}').iloc[0]['grid'])
         sigma_grids.add(no_meta_df.loc[no_meta_df.ip1==ip1].iloc[0]['grid'])
-    
+
     df_list = []
     for grid in sigma_grids:
         # print(grid)
@@ -986,11 +992,11 @@ def get_p0_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,hybrid_ips:list,sigma_
         df_list.append(df.loc[(df.nomvar=="P0") & (df.grid==grid)])
 
     if len(df_list):
-        p0_fields_df = pd.concat(df_list,ignore_index=True)    
+        p0_fields_df = pd.concat(df_list,ignore_index=True)
 
     p0_fields_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
     # print('p0_fields_df',p0_fields_df)
-    return p0_fields_df  
+    return p0_fields_df
 
 def get_pt_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,sigma_ips:list):
     pt_fields_df = pd.DataFrame(dtype=object)
@@ -999,7 +1005,7 @@ def get_pt_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,sigma_ips:list):
     for ip1 in sigma_ips:
         # sigma_grids.add(no_meta_df.query(f'ip1=={ip1}').iloc[0]['grid'])
         sigma_grids.add(no_meta_df.loc[no_meta_df.ip1==ip1].iloc[0]['grid'])
-    
+
     # print(sigma_grids)
     df_list = []
     for grid in list(sigma_grids):
@@ -1012,4 +1018,4 @@ def get_pt_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,sigma_ips:list):
 
     pt_fields_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
 
-    return pt_fields_df    
+    return pt_fields_df

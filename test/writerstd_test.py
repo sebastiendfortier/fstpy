@@ -11,7 +11,7 @@ def plugin_test_dir():
     return TEST_PATH +"WriterStd/testsFiles/"
 
 ##### ajouter un test
-##### tester des nana a l'ecriture
+##### tester des nans a l'ecriture
 
 
 # def test_dump():

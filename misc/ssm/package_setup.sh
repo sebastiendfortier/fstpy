@@ -36,20 +36,21 @@ main(){
     cd $TMPDIR
     if ! [ -d 'ssm_python' ]; then
         mkdir ssm_python
-    fi 
-    cd ssm_python     
-    for f in ${base_path}/lib/packages/*; 
+    fi
+    cd ssm_python
+    for f in ${base_path}/lib/packages/*;
     do
-        ln -s $f
+        ln -sf $f
     done
     cd $CDIR
     warn_override_variables PYTHONPATH
 
-    SSM_PATH_PRESENT=$(echo $PYTHONPATH|grep ssm_python)
+    SSM_PATH_PRESENT=$(echo $PYTHONPATH|grep ssm_python || test $? = 1;)
+
 
     if [ -z $SSM_PATH_PRESENT ]; then
         [ -z "$PYTHONPATH" ] && export PYTHONPATH=${TMPDIR}/ssm_python || export PYTHONPATH=${TMPDIR}/ssm_python:$PYTHONPATH
-    fi    
+    fi
 
     python_base_path="$(cd "$(dirname ${sourced_file})/../../../../.."; pwd)"
     requirements_file=${base_path}/share/requirements.txt
@@ -63,7 +64,7 @@ main(){
 }
 
 message(){
-   echo $(tput setaf 3)${sourced_file}: $@$(tput sgr 0) >&2
+   echo $(tput -T xterm setaf 3)${sourced_file}: $@$(tput -T xterm sgr 0) >&2
    true
 }
 
@@ -106,6 +107,8 @@ load_spooki_runtime_dependencies(){
     message "Loading fstpy runtime dependencies ..."
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
+    echo 'if you dont have pandas >= 1.0.0, use the folowwing package'
+    echo '. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/python_packages/python3.6/all/2021.07'
     #print_and_do python3 -m pip install -r ${base_path}/etc/profile.d/requirements.txt
     message "... done loading fstpy runtime dependencies."
 }

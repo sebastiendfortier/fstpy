@@ -48,6 +48,12 @@
   #+END_SRC  
   Then create a merge request on science's gitlab [[https://gitlab.science.gc.ca/CMDS/fstpy/merge_requests]]
 
+** Using setup.sh to setup your developpement environment
+  #+BEGIN_SRC sh
+  # From the $project_root directory of the project
+  source setup.sh
+  #+END_SRC  
+
 ** Testing
   #+BEGIN_SRC sh
     # From the $project_root/test directory of the project
