@@ -2,6 +2,7 @@
 import datetime
 
 import rpnpy.librmn.all as rmn
+from rpnpy.rpndate import RPNDate
 
 from fstpy import DATYP_DICT
 
@@ -31,7 +32,8 @@ def create_encoded_dateo(date_of_observation:datetime.datetime) -> int:
    :return: dateo as a RMNDate int 
    :rtype: int
    """
-   return date_of_observation
+   
+   return RPNDate(date_of_observation, dt=0, nstep=0).dateo
 
 def create_encoded_npas_and_ip2(forecast_hour:datetime.timedelta,deet:int) -> tuple:
    """Creates npas and ip2 from the forecast_hour and deet attributes
@@ -46,10 +48,11 @@ def create_encoded_npas_and_ip2(forecast_hour:datetime.timedelta,deet:int) -> tu
    #ip2 = 6, deet = 300, np = 72
    #fhour = 21600
    #npas = hours/deet
-   seconds = forecast_hour.seconds
-   npas = seconds/deet
-   ip2 = seconds/3600.
-   return npas,ip2
+   seconds = forecast_hour.total_seconds()
+   npas = seconds / deet
+   ip2 = seconds / 3600.
+   ip2_code = create_encoded_ip1(ip2, rmn.KIND_HOURS)
+   return npas, ip2_code
 
 def create_encoded_ip1(level:float,ip1_kind:int) -> int:
    """returns an ecoded ip1 from level and kind
