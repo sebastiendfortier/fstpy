@@ -668,16 +668,15 @@ def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_
 
             df.at[i, 'abs_diff'] = np.abs(a-b)
 
-            # a1 = np.where((a==0) & (b==0),1e-16,a)
-            # b1 = np.where((a==0) & (b==0),1e-16,b)
-
             # verror_rel = np.vectorize(calc_derr)
 
             # derr = verror_rel(a1,b1)
-            derr = np.where(a == 0,abs(1-(a/b)),abs(1-(b/a)))
+            # np.abs(1-(a/b)), np.where((b == 0) & (a != 0), np.abs(1-(b/a)), 0))
+            derr = np.full_like(a,0)
+            derr = np.where(a!=0,np.abs(1-(b/a)),np.where(b!=0,np.abs(1-(a/b)),derr))
+
 
             # derr = np.where(derr==1,0,derr)
-
 
             df.at[i, 'e_rel_max'] = np.max(derr)
             df.at[i, 'e_rel_moy'] = np.mean(derr)
