@@ -17,15 +17,22 @@ def test_create_encoded_npas_and_ip2():
 
     assert npas * deet == dt.total_seconds()
 
-    ip2 = std_enc.create_encoded_ip1(fhour, rmn.KIND_HOURS)
+    ip2 = std_enc.create_encoded_ip2(fhour, rmn.KIND_HOURS)
 
-    npas_act, ip2_act = std_enc.create_encoded_npas_and_ip2(dt, 300) 
+    npas_act, ip2_act = std_enc.create_encoded_npas_and_ip2(dt, deet) 
 
     assert isinstance(npas_act, int)
     
     assert isinstance(ip2_act, int)
 
     assert (npas_act, ip2_act) == (npas, ip2)
+
+    # check big fh
+    
+    for h in range(300):
+        dt = timedelta(hours=h)
+        ip2 = std_enc.create_encoded_ip2(h, rmn.KIND_HOURS)
+        assert std_enc.create_encoded_npas_and_ip2(dt, deet)== (dt.total_seconds() / deet, ip2)
 
 
 def test_create_encoded_dateo():

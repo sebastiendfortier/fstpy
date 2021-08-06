@@ -51,7 +51,7 @@ def create_encoded_npas_and_ip2(forecast_hour:datetime.timedelta,deet:int) -> tu
    seconds = forecast_hour.total_seconds()
    npas = int(seconds / deet)
    ip2 = seconds / 3600.
-   ip2_code = create_encoded_ip1(ip2, rmn.KIND_HOURS)
+   ip2_code = create_encoded_ip2(ip2, rmn.KIND_HOURS)
    return npas, ip2_code
 
 def create_encoded_ip1(level:float,ip1_kind:int) -> int:
@@ -64,7 +64,23 @@ def create_encoded_ip1(level:float,ip1_kind:int) -> int:
    :return: encoded ip1
    :rtype: int
    """
-   return rmn.ip1_all(level,ip1_kind)
+   rp1 = rmn.FLOAT_IP(level, level, ip1_kind)
+   rp2 = rmn.FLOAT_IP(0, 0, rmn.KIND_ARBITRARY)
+   return rmn.EncodeIp(rp1, rp2, rp1)[0]
+
+def create_encoded_ip2(level:float, ip2_kind:int) -> int:
+   """returns an ecoded ip1 from level and kind
+
+   :param level: level value
+   :type level: float
+   :param ip2_kind: kind value as int
+   :type ip3_kind: int
+   :return: encoded ip2
+   :rtype: int
+   """
+   rp1 = rmn.FLOAT_IP(0, 0, rmn.KIND_ARBITRARY)
+   rp2 = rmn.FLOAT_IP(level, level, ip2_kind)
+   return rmn.EncodeIp(rp1, rp2, rp1)[1]
 
 def create_encoded_ips(level:float,ip1_kind:int,ip2_dec:float,ip2_kind:int,ip3_dec:float,ip3_kind:int)-> tuple:
    """Returns encoded ip1,ip2 and ip3 from values and kinds
