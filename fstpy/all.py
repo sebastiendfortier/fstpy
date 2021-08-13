@@ -1,5 +1,5 @@
 from fstpy.std_io import get_2d_lat_lon
-from fstpy import ETIKETS, LEVELTYPES, STDVAR, THERMO_CONSTANTS, UNITS, VCTYPES, STATIONSFB
+from fstpy import LEVELTYPES, STDVAR, THERMO_CONSTANTS, UNITS, VCTYPES, STATIONSFB
 
 from .dataframe import (add_data_type_str_column, add_decoded_columns,
                         add_decoded_date_column, add_forecast_hour_column,

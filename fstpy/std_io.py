@@ -16,7 +16,7 @@ from fstpy.extra import get_std_file_header
 from .exceptions import StandardFileError, StandardFileReaderError
 from .logger_config import logger
 from .std_dec import get_grid_identifier
-from .utils import create_1row_df_from_model
+
 
 
 def open_fst(path:str, mode:str, caller_class:str, error_class:Exception):
@@ -33,29 +33,29 @@ def parallel_get_dataframe_from_file(files, get_records_func, n_cores):
     # Step 1: Init multiprocessing.Pool()
     with mp.Pool(processes=n_cores) as pool:
         df_list = pool.starmap(get_records_func, [file for file in files])
-    
+
     df = pd.concat(df_list,ignore_index=True)
     return df
 
 def add_grid_column(df):
-    vcreate_grid_identifier = np.vectorize(get_grid_identifier,otypes=['str'])    
+    vcreate_grid_identifier = np.vectorize(get_grid_identifier,otypes=['str'])
     df['grid'] = vcreate_grid_identifier(df['nomvar'],df['ip1'],df['ip2'],df['ig1'],df['ig2'])
     return df
-    
+
 def get_dataframe_from_file(file: str, query: str, array_container: str = None):
     records = get_header(file)
-    
+
     df = pd.DataFrame(records)
-    
+
     df = add_path_and_mod_time(file, df)
-    
+
     df = add_grid_column(df)
 
 
     hy_df = df.loc[df.nomvar== "HY"]
 
     if (query is None) == False:
-            
+
         sub_df = df.query(query)
 
         # get metadata
@@ -65,7 +65,7 @@ def get_dataframe_from_file(file: str, query: str, array_container: str = None):
     # check HY count
     df = process_hy(hy_df, df)
     df = df[df.dltf==0]
-    return df   
+    return df
 
 def add_path_and_mod_time(file, df):
     f_mod_time = get_file_modification_time(file,rmn.FST_RO,'add_path_and_mod_time',StandardFileReaderError)
@@ -85,19 +85,19 @@ def add_meta_to_query_results(df, sub_df, hy_df):
     # get metadata
     # meta_df = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1","PN"]')
     meta_df = df.loc[df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1","PN"])]
-    # print(meta_df.query('grid in %s'%list(sub_df.grid.unique())) )  
-    # print(list(sub_df.grid.unique()))  
-    # print(sub_df)  
-    # subdfmeta = meta_df.query('grid in %s'%list(sub_df.grid.unique())) 
-    subdfmeta = meta_df.loc[meta_df.grid.isin(list(sub_df.grid.unique()))] 
-    # print(subdfmeta)  
+    # print(meta_df.query('grid in %s'%list(sub_df.grid.unique())) )
+    # print(list(sub_df.grid.unique()))
+    # print(sub_df)
+    # subdfmeta = meta_df.query('grid in %s'%list(sub_df.grid.unique()))
+    subdfmeta = meta_df.loc[meta_df.grid.isin(list(sub_df.grid.unique()))]
+    # print(subdfmeta)
 
     if (not sub_df.empty) and (not subdfmeta.empty):
         df = pd.concat([sub_df,subdfmeta],ignore_index=True)
-    elif (not sub_df.empty) and (subdfmeta.empty):    
+    elif (not sub_df.empty) and (subdfmeta.empty):
         df = sub_df
     elif sub_df.empty:
-        df = sub_df   
+        df = sub_df
 
     if (not df.empty) and (not hy_df.empty):
         df = pd.concat([df,hy_df],ignore_index=True)
@@ -115,7 +115,7 @@ def process_hy(hy_df, df):
             grid = grids[0]
             hy_df = df.loc[df.nomvar=="HY"]
             hy_df.loc[:,'grid'] = grid
-        #remove HY    
+        #remove HY
         df = df[df['grid']!= 'None']
         df = pd.concat([df,hy_df],ignore_index=True)
     return df
@@ -155,12 +155,12 @@ def get_dataframe_from_file_and_load(file:str,query:str,array_container:str):
         if array_container == 'numpy':
             df = add_numpy_data_column(df)
         else:
-            df = add_dask_data_column(df)    
+            df = add_dask_data_column(df)
     # df['d'] = None
     # for i in df.index:
     #     df.at[i,'d'] = rmn.fstluk(int(df.at[i,'key']))['d']
 
-    rmn.fstcloseall(unit)    
+    rmn.fstcloseall(unit)
     return df
 
 # written by Micheal Neish creator of fstd2nc
@@ -184,11 +184,11 @@ def get_file_modification_time(path:str,mode:str,caller_class,exception_class):
         return datetime.datetime.now()
     if (mode == rmn.FST_RO) and (not maybeFST(path)):
         raise exception_class(caller_class + 'not an fst standard file!')
-   
+
     file_modification_time = time.ctime(os.path.getmtime(path))
     file_modification_time = datetime.datetime.strptime(file_modification_time, "%a %b %d %H:%M:%S %Y")
 
-    return file_modification_time    
+    return file_modification_time
 
 def read_record(array_container,key):
     if array_container == 'dask.array':
@@ -204,9 +204,9 @@ def strip_string_values(record):
 def remove_extra_keys(record):
     for k in ['swa','dltf','ubc','lng','xtra1','xtra2','xtra3']:
         record.pop(k,None)
-    
+
 def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
-  
+
     """get_2d_lat_lon Gets the latitudes and longitudes as 2d arrays associated with the supplied grids
 
     :return: a pandas Dataframe object containing the lat and lon meta data of the grids
@@ -215,14 +215,15 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
     """
     if  df.empty:
         raise StandardFileError('get_2d_lat_lon- no records to process')
+
     #remove record wich have X grid type
     without_x_grid_df = df.loc[df.grtyp != "X"]
 
     latlon_df = get_lat_lon(df)
 
     if latlon_df.empty:
-        raise StandardFileError('get_2d_lat_lon - while trying to find [">>","^^"] - no data to process') 
-    
+        raise StandardFileError('get_2d_lat_lon - while trying to find [">>","^^"] - no data to process')
+
     no_meta_df = without_x_grid_df.loc[~without_x_grid_df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"])]
 
     latlons = []
@@ -241,35 +242,41 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
             except Exception:
                 logger.warning('get_2d_lat_lon - no lat lon for this record')
                 continue
-            
+
             grid = rmn.gdll(g)
-            tictic_df = latlon_df.loc[(latlon_df.nomvar=="^^") & (latlon_df.grid==row['grid'])]
-            tactac_df = latlon_df.loc[(latlon_df.nomvar==">>") & (latlon_df.grid==row['grid'])]
-            lat_df = create_1row_df_from_model(tictic_df)
-            lat_df.loc[:,'nomvar'] = 'LA'
-            lat_df.at[0,'d'] = grid['lat']
-            lat_df.at[0,'ni'] = grid['lat'].shape[0]
-            lat_df.at[0,'nj'] = grid['lat'].shape[1]
-            lat_df.at[0,'shape'] = grid['lat'].shape
-            lon_df = create_1row_df_from_model(tactac_df)
-            lon_df.loc[:,'nomvar'] = 'LO'
-            lon_df.at[0,'d'] = grid['lon']
-            lon_df.at[0,'ni'] = grid['lon'].shape[0]
-            lon_df.at[0,'nj'] = grid['lon'].shape[1]
-            lon_df.at[0,'shape'] = grid['lon'].shape
-            latlons.append(lat_df)
-            latlons.append(lon_df)
+
+            tictic_df = latlon_df.loc[(latlon_df.nomvar=="^^") & (latlon_df.grid==row['grid'])].reset_index(drop=True)
+            tactac_df = latlon_df.loc[(latlon_df.nomvar==">>") & (latlon_df.grid==row['grid'])].reset_index(drop=True)
+            # lat_df = create_1row_df_from_model(tictic_df)
+
+            tictic_df.at[0,'nomvar'] = 'LA'
+            tictic_df.at[0,'d'] = grid['lat']
+            tictic_df.at[0,'ni'] = grid['lat'].shape[0]
+            tictic_df.at[0,'nj'] = grid['lat'].shape[1]
+            tictic_df.at[0,'shape'] = grid['lat'].shape
+            tictic_df.at[0,'file_modification_time'] = None
+            # lon_df = create_1row_df_from_model(tactac_df)
+
+            tactac_df.at[0,'nomvar'] = 'LO'
+            tactac_df.at[0,'d'] = grid['lon']
+            tactac_df.at[0,'ni'] = grid['lon'].shape[0]
+            tactac_df.at[0,'nj'] = grid['lon'].shape[1]
+            tactac_df.at[0,'shape'] = grid['lon'].shape
+            tactac_df.at[0,'file_modification_time'] = None
+
+            latlons.append(tictic_df)
+            latlons.append(tactac_df)
 
         rmn.fstcloseall(file_id)
-    latlon = pd.concat(latlons,ignore_index=True)
-    latlon.reset_index(inplace=True,drop=True)
-    return latlon
+    latlon_df = pd.concat(latlons,ignore_index=True)
+    # print(latlon_df[['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3']])
+    return latlon_df
 
 def get_lat_lon(df):
     return get_grid_metadata_fields(df,pressure=False, vertical_descriptors=False)
 
 def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
-    
+
     path_groups = df.groupby(df.path)
     df_list = []
     #for each files in the df
@@ -304,7 +311,7 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
                 #print(latlon_df)
                 df_list.append(latlon_df)
                 #print(latlon_df)
-              
+
     if len(df_list):
         result = pd.concat(df_list,ignore_index=True)
         return result
@@ -312,7 +319,7 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
         return pd.DataFrame(dtype=object)
 
 def get_all_grid_metadata_fields_from_std_file(path):
-        
+
     unit = rmn.fstopenall(path)
     lat_keys = rmn.fstinl(unit,nomvar='^^')
     lon_keys = rmn.fstinl(unit,nomvar='>>')
@@ -339,7 +346,7 @@ def get_all_grid_metadata_fields_from_std_file(path):
         record['path'] = path
         record['file_modification_time'] = get_file_modification_time(path,rmn.FST_RO,'get_all_meta_data_fields_from_std_file',StandardFileError)
         records.append(record)
-    rmn.fstcloseall(unit)  
+    rmn.fstcloseall(unit)
     return records
 
 
@@ -351,20 +358,20 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
         raise error_class(caller + ' - original file has been modified since the start of the operation, keys might be invalid - exiting!')
 
 
-    
+
 #df_file_modification_time = df.iloc[0]['file_modification_time']
 
-    
+
 # def get_all_record_keys(file_id, query):
 #     if (query is None) == False:
 #         keys = rmn.fstinl(file_id,**query)
 #     else:
 #         keys = rmn.fstinl(file_id)
-#     return keys  
+#     return keys
 
 # def get_records(keys,load_data):
 #     # from .std_dec import get_grid_identifier,decode_metadata
-#     records = []    
+#     records = []
 #     if load_data:
 #         for k in keys:
 #             record = rmn.fstprm(k)
@@ -385,7 +392,7 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
 #             #     record['stacked'] = False
 #             #     record.update(decode_metadata(record['nomvar'],record['etiket'],record['dateo'],record['datev'],record['deet'],record['npas'],record['datyp'],record['ip1'],record['ip2'],record['ip3']))
 #             records.append(record)
-#     else:    
+#     else:
 #         for k in keys:
 #             record = rmn.fstprm(k)
 #             if record['dltf'] == 1:
@@ -406,7 +413,7 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
 #             #         return da.from_array(rmn.fstluk(key)['d'])
 #             #     elif array_container == 'numpy':
 #             #         return rmn.fstluk(key)['d']
-            
+
 #             # record['d'] = (read_record,array_container,key)
 
 #             # #del record['key'] #i don't know if we need
@@ -421,15 +428,15 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
 
 #             records.append(record)
 
-#         # if decode:    
+#         # if decode:
 #         #     records = parallelize_records(records,massage_and_decode_record)
 #         #     # for i in range(len(records)):
 #         #     #     records[i] = massage_and_decode_record(records[i])
 #         # else:
-#         #     records = parallelize_records(records,massage_record)        
+#         #     records = parallelize_records(records,massage_record)
 #             # for i in range(len(records)):
 #             #     records[i] = massage_record(records[i])
-#     return records   
+#     return records
 
 
     # if dateo == 0:
@@ -454,5 +461,3 @@ def compare_modification_times(df_file_modification_time, path:str,mode:str, cal
 
 # def convert_rmnkind_to_string(ip1_kind):
 #     return constants.KIND_DICT[int(ip1_kind)]
-
-  

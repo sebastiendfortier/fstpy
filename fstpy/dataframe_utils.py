@@ -9,7 +9,7 @@ import rpnpy.librmn.all as rmn
 import os
 import fstpy
 from fstpy import DATYP_DICT
-
+from .fstcompstats import fstcompstats
 from .dataframe import (add_ip_info_columns, reorder_columns )
 from .exceptions import SelectError, StandardFileError
 from .logger_config import logger
@@ -638,10 +638,10 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
 #        return np.abs(1-(ar/br))
 #     return np.abs(1-(br/ar))
 
+# ligne 441
 
 def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
     success = True
-
 
     df_list = np.array_split(diff, math.ceil(len(diff.index)/100))
     for df in df_list:
@@ -658,63 +658,81 @@ def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_
         print('diff dy\n',df[['nomvar','d_y']])
         to_drop = []
         for i in df.index:
-            a = df.at[i, 'd_x'].astype('float64')
-            b = df.at[i, 'd_y'].astype('float64')
+            # a = df.at[i, 'd_x'].astype('float64')
+            # b = df.at[i, 'd_y'].astype('float64')
+            a = np.array(df.at[i, 'd_x'].ravel(),dtype=np.float32,order='F')
+            b = np.array(df.at[i, 'd_y'].ravel(),dtype=np.float32,order='F')
             if np.allclose(a,b):
                 to_drop.append(i)
                 continue
+            # e_rel_max = 0.
+            # e_rel_moy = 0.
+            # var_a = 0.
+            # var_b = 0.
+            # c_cor = 0.
+            # moy_a = 0.
+            # moy_b = 0.
+            # bias = 0.
+            # e_max = 0.
+            # e_moy = 0.
+
+            n = a.size
+            # fstcompstats(a,b,n,errrelmax,errrelmoy,vara,varb,ccor,moya,moyb,bias,errmax,errmoy)
+            df.at[i, 'e_rel_max'], df.at[i, 'e_rel_moy'], df.at[i, 'var_a'], df.at[i, 'var_b'], df.at[i, 'c_cor'], df.at[i, 'moy_a'], df.at[i, 'moy_b'], df.at[i, 'bias'], df.at[i, 'e_max'], df.at[i, 'e_moy'] = fstcompstats(a=a, b=b, n=n)#, errrelmax=e_rel_max, errrelmoy=e_rel_moy, vara=var_a, varb=var_b, ccor=c_cor, moya=moy_a, moyb=moy_b, bias=bias, errmax=e_max, errmoy=e_moy)
+            # print(e_rel_max, e_rel_moy, var_a, var_b, c_cor, moy_a, moy_b, bias, e_max, e_moy)
+            # print(r)
             # a = df.at[i, 'd_x'].flatten().astype('float64')
             # b = df.at[i, 'd_y'].flatten().astype('float64')
 
-            df.at[i, 'abs_diff'] = np.abs(a-b)
+            # df.at[i, 'abs_diff'] = np.abs(a-b)
 
-            # verror_rel = np.vectorize(calc_derr)
+            # # verror_rel = np.vectorize(calc_derr)
 
-            # derr = verror_rel(a1,b1)
-            # np.abs(1-(a/b)), np.where((b == 0) & (a != 0), np.abs(1-(b/a)), 0))
-            derr = np.full_like(a,0)
-            derr = np.where(a!=0,np.abs(1-(b/a)),np.where(b!=0,np.abs(1-(a/b)),derr))
+            # # derr = verror_rel(a1,b1)
+            # # np.abs(1-(a/b)), np.where((b == 0) & (a != 0), np.abs(1-(b/a)), 0))
+            # derr = np.full_like(a,0)
+            # derr = np.where(a!=0,np.abs(1-(b/a)),np.where(b!=0,np.abs(1-(a/b)),derr))
 
 
-            # derr = np.where(derr==1,0,derr)
+            # # derr = np.where(derr==1,0,derr)
 
-            df.at[i, 'e_rel_max'] = np.max(derr)
-            df.at[i, 'e_rel_moy'] = np.mean(derr)
+            # df.at[i, 'e_rel_max'] = np.max(derr)
+            # df.at[i, 'e_rel_moy'] = np.mean(derr)
 
-            sum_a2 = np.sum(a**2)
-            sum_b2 = np.sum(b**2)
-            # print(np.mean(sum_a2) == np.var(a))
-            # print(np.mean(sum_b2) == np.var(b))
-            df.at[i, 'var_a'] = np.var(a)
-            df.at[i, 'var_b'] = np.var(b)
-            df.at[i, 'moy_a'] = np.mean(a)
-            df.at[i, 'moy_b'] = np.mean(b)
+            # sum_a2 = np.sum(a**2)
+            # sum_b2 = np.sum(b**2)
+            # # print(np.mean(sum_a2) == np.var(a))
+            # # print(np.mean(sum_b2) == np.var(b))
+            # df.at[i, 'var_a'] = np.var(a)
+            # df.at[i, 'var_b'] = np.var(b)
+            # df.at[i, 'moy_a'] = np.mean(a)
+            # df.at[i, 'moy_b'] = np.mean(b)
 
-            c_cor = np.sum(a*b)
-            if sum_a2*sum_b2 != 0:
-                c_cor = c_cor/np.sqrt(sum_a2*sum_b2)
-            elif (sum_a2==0) and (sum_b2==0):
-                c_cor = 1.0
-            elif sum_a2 == 0:
-                c_cor = np.sqrt(df.at[i, 'var_b'])
-            else:
-                c_cor = np.sqrt(df.at[i, 'var_a'])
-            df.at[i, 'c_cor'] = c_cor
-            # df.at[i, 'c_cor'] = np.correlate(a,b)[0]
-            df.at[i, 'bias']=(df.at[i, 'moy_b']-df.at[i, 'moy_a'])
-            df.at[i, 'e_max'] = np.max(df.at[i, 'abs_diff'])
-            df.at[i, 'e_moy'] = np.mean(df.at[i, 'abs_diff'])
+            # c_cor = np.sum(a*b)
+            # if sum_a2*sum_b2 != 0:
+            #     c_cor = c_cor/np.sqrt(sum_a2*sum_b2)
+            # elif (sum_a2==0) and (sum_b2==0):
+            #     c_cor = 1.0
+            # elif sum_a2 == 0:
+            #     c_cor = np.sqrt(df.at[i, 'var_b'])
+            # else:
+            #     c_cor = np.sqrt(df.at[i, 'var_a'])
+            # df.at[i, 'c_cor'] = c_cor
+            # # df.at[i, 'c_cor'] = np.correlate(a,b)[0]
+            # df.at[i, 'bias']=(df.at[i, 'moy_b']-df.at[i, 'moy_a'])
+            # df.at[i, 'e_max'] = np.max(df.at[i, 'abs_diff'])
+            # df.at[i, 'e_moy'] = np.mean(df.at[i, 'abs_diff'])
 
-            # nbdiff = np.count_nonzero(a!=b)
-            # df.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
-            # print(df.at[i, 'c_cor'],1.0,1.0+1e-07,1-1e-07,math.isclose(df.at[i, 'c_cor'],1.0,rel_tol=1e-07))
+            # print(df.at[i, 'e_rel_max'], df.at[i, 'e_rel_moy'], df.at[i, 'var_a'], df.at[i, 'var_b'], df.at[i, 'c_cor'], df.at[i, 'moy_a'], df.at[i, 'moy_b'], df.at[i, 'bias'], df.at[i, 'e_max'], df.at[i, 'e_moy'])
+            # # nbdiff = np.count_nonzero(a!=b)
+            # # df.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
+            # # print(df.at[i, 'c_cor'],1.0,1.0+1e-07,1-1e-07,math.isclose(df.at[i, 'c_cor'],1.0,rel_tol=1e-07))
 
             if (not (-e_c_cor <= abs(df.at[i, 'c_cor']-1.0) <= e_c_cor)) or (not (-e_max <= df.at[i, 'e_rel_max'] <= e_max)) or (not (-e_moy <= df.at[i, 'e_rel_moy']<=e_moy)):
-                if not np.allclose(a,b):
-                    df.at[i, 'nomvar'] = '<' + df.at[i, 'nomvar'] + '>'
-                    # print('maximum absolute difference:%s'%np.max(np.abs(a-b)))
-                    # print(np.abs(a-b))
-                    success = False
+                df.at[i, 'nomvar'] = '<' + df.at[i, 'nomvar'] + '>'
+                # print('maximum absolute difference:%s'%np.max(np.abs(a-b)))
+                # print(np.abs(a-b))
+                success = False
             # print('dataframe\n',df)
         df['d_x']=None
         df['d_y']=None
