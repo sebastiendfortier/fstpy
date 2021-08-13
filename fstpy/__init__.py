@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import pandas as pd
+from .fstcompstats import fstcompstats
 # __version__ = '1.0.1'
 
 error = 0
@@ -11,7 +12,7 @@ try:
     import rpnpy.librmn.all as rmn
 except ImportError:
     sys.stdout.write('rpnpy.librmn.all is required')
-    error=1    
+    error=1
 
 # try:
 #     import pandas as pd
@@ -20,12 +21,12 @@ except ImportError:
 #     error=1
 
 # if pd.__version__ < '1.1.5':
-#     sys.stdout.write('pandas>=1.1.5 is required')  
+#     sys.stdout.write('pandas>=1.1.5 is required')
 #     error=1
 
 if error == 1:
     sys.exit('Requirements not met')
-    
+
 # https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.1/rpnpy/librmn/fstd98#fstopt
 rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
 
@@ -46,7 +47,7 @@ rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
 
 #'/fs/site3/eccc/ops/cmod/prod/hubs/suites/ops/rdps_20191231/r1/gridpt/prog/hyb/2021021012_*'
 
-    
+
 
 
 DATYP_DICT = {
@@ -189,28 +190,28 @@ UNITS = _units #: :meta hide-value:
 
 [158 rows x 12 columns]
 """
-ETIKETS = _etikets #: :meta hide-value:
-"""Etikets table
+# ETIKETS = _etikets #: :meta hide-value:
+# """Etikets table
 
-:return: dataframe
-:rtype: pd.DataFrame
-:meta hide-value:
->>> fstpy.ETIKETS
-                plugin_name   etiket
-0             AbsoluteValue   ABSVAL
-1        AddElementsByPoint   ADDEPT
-2     AddElementsVertically   ADDEVY
-3             AddToElements   ADDTOE
-4                AirDensity   AIRDEN
-..                      ...      ...
-81          WindDeformation  WINDDEF
-82              WindModulus   WNDMOD
-83  WindModulusAndDirection   WNDMAD
-84       WindTurbulenceDVSI   WNDVSI
-85        WindVerticalShear   WNDVSH
+# :return: dataframe
+# :rtype: pd.DataFrame
+# :meta hide-value:
+# >>> fstpy.ETIKETS
+#                 plugin_name   etiket
+# 0             AbsoluteValue   ABSVAL
+# 1        AddElementsByPoint   ADDEPT
+# 2     AddElementsVertically   ADDEVY
+# 3             AddToElements   ADDTOE
+# 4                AirDensity   AIRDEN
+# ..                      ...      ...
+# 81          WindDeformation  WINDDEF
+# 82              WindModulus   WNDMOD
+# 83  WindModulusAndDirection   WNDMAD
+# 84       WindTurbulenceDVSI   WNDVSI
+# 85        WindVerticalShear   WNDVSH
 
-[86 rows x 2 columns]
-"""
+# [86 rows x 2 columns]
+# """
 LEVELTYPES = _leveltypes #: :meta hide-value:
 """Level type table
 
@@ -230,7 +231,7 @@ LEVELTYPES = _leveltypes #: :meta hide-value:
 8               INDEX    13                  0   np.nan
 9              NUMBER   100                  0   np.nan
 """
-THERMO_CONSTANTS = _thermoconstants 
+THERMO_CONSTANTS = _thermoconstants
 """Thermodynamic constants table
 
 :return: dataframe
@@ -272,6 +273,3 @@ def get_constant_by_name(name:str) -> pd.Series:
 
 def get_column_value_from_row(row, column):
     return row[column].values[0]
-    
-
-

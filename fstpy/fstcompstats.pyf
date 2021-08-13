@@ -1,0 +1,25 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module fstcompstats ! in
+    interface  ! in :fstcompstats
+        subroutine fstcompstats(a,b,n,errrelmax,errrelmoy,vara,varb,ccor,moya,moyb,bias,errmax,errmoy) ! in :fstcompstats:fstcompstats.f90
+            real dimension(n),intent(in) :: a
+            real dimension(n),intent(in),depend(n) :: b
+            integer, optional,intent(in),check(len(a)>=n),depend(a) :: n=len(a)
+            real*8 intent(out) :: errrelmax
+            real*8 intent(out) :: errrelmoy
+            real*8 intent(out) :: vara
+            real*8 intent(out) :: varb
+            real*8 intent(out) :: ccor
+            real*8 intent(out) :: moya
+            real*8 intent(out) :: moyb
+            real*8 intent(out) :: bias
+            real*8 intent(out) :: errmax
+            real*8 intent(out) :: errmoy
+        end subroutine fstcompstats
+    end interface
+end python module fstcompstats
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
