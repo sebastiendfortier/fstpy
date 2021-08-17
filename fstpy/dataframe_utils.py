@@ -962,22 +962,42 @@ def get_hy_field(df:pd.DataFrame,hybrid_ips:list):
     #         keep = hasPdsWithVcode(toctocVcode)
 def get_grid_deformation_fileds(df:pd.DataFrame,no_meta_df:pd.DataFrame):
     grid_deformation_fields_df = pd.DataFrame(dtype=object)
-    all_grids = no_meta_df.grid.unique()
+
+    groups = no_meta_df.groupby(['grid','deet','npas'])
 
     df_list = []
-    for grid in all_grids:
-        # df_list.append(df.query(f'(nomvar==">>") and (grid=="{grid}")'))
-        # df_list.append(df.query(f'(nomvar=="^^") and (grid=="{grid}")'))
-        # df_list.append(df.query(f'(nomvar=="^>") and (grid=="{grid}")'))
-        df_list.append(df.loc[(df.nomvar==">>") & (df.grid==grid)])
-        df_list.append(df.loc[(df.nomvar=="^^") & (df.grid==grid)])
-        df_list.append(df.loc[(df.nomvar=="^>") & (df.grid==grid)])
+    hasDate = False
+    for _,group in groups:
+        grid = group.grid.unique()[0]
+
+        lat_df = df.loc[(df.nomvar=="^^") & (df.grid==grid)]
+        lon_df = df.loc[(df.nomvar==">>") & (df.grid==grid)]
+        tictac_df = df.loc[(df.nomvar=="^>") & (df.grid==grid)]
+
+        if not lat_df.empty:
+            hasDate = ((lat_df.deet.unique()[0]!=0) and (lat_df.npas.unique()[0]!=0))
+        if not lon_df.empty:
+            hasDate = ((lon_df.deet.unique()[0]!=0) and (lon_df.npas.unique()[0]!=0))
+        if not tictac_df.empty:
+            hasDate = ((tictac_df.deet.unique()[0]!=0) and (tictac_df.npas.unique()[0]!=0))
+
+        if hasDate:
+            deet = group.deet.unique()[0]
+            npas = group.npas.unique()[0]
+            df_list.append(df.loc[(df.nomvar==">>") & (df.grid==grid) & (df.deet==deet) & (df.npas==npas)])
+            df_list.append(df.loc[(df.nomvar=="^^") & (df.grid==grid) & (df.deet==deet) & (df.npas==npas)])
+            df_list.append(df.loc[(df.nomvar=="^>") & (df.grid==grid) & (df.deet==deet) & (df.npas==npas)])
+        else:
+            df_list.append(lat_df)
+            df_list.append(lon_df)
+            df_list.append(tictac_df)
 
     if len(df_list):
         grid_deformation_fields_df = pd.concat(df_list,ignore_index=True)
-
-    grid_deformation_fields_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet', 'npas','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'],inplace=True, ignore_index=True)
-
+    if hasDate:
+        grid_deformation_fields_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datyp','deet','npas','dateo','datev'],inplace=True, ignore_index=True)
+    else:
+        grid_deformation_fields_df.drop_duplicates(subset=['grtyp','nomvar','typvar','ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3','nbits' , 'ig1', 'ig2', 'ig3', 'ig4', 'datyp'],inplace=True, ignore_index=True)
     return grid_deformation_fields_df
 
 def get_p0_fields(df:pd.DataFrame,no_meta_df:pd.DataFrame,hybrid_ips:list,sigma_ips:list):

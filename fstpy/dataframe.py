@@ -6,7 +6,7 @@ import pandas as pd
 
 from .exceptions import StandardFileError
 from .logger_config import logger
-from .std_dec import (convert_rmndate_to_datetime, 
+from .std_dec import (convert_rmndate_to_datetime,
                       get_parsed_etiket, get_unit_and_description)
 
 
@@ -22,7 +22,7 @@ def parse_typvar(typvar:str):
     missing_data = False
     ensemble_extra_info = False
     if len(typvar) == 2:
-        typvar2 = typvar[1]   
+        typvar2 = typvar[1]
         if (typvar2 == 'M'):
             # Il n'y a pas de façon de savoir quelle modif a ete faite
             multiple_modifications = True
@@ -41,7 +41,7 @@ def parse_typvar(typvar:str):
         elif (typvar2 == '!'):
             ensemble_extra_info = True
     return multiple_modifications,zapped,filtered,interpolated,unit_converted,bounded,missing_data,ensemble_extra_info
-    
+
 def add_flag_values(df:pd.DataFrame) -> pd.DataFrame:
     """adds the correct flag values derived from parsing the typvar
 
@@ -51,17 +51,17 @@ def add_flag_values(df:pd.DataFrame) -> pd.DataFrame:
     :rtype: pd.DataFrame
     """
     # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
-    vparse_typvar = np.vectorize(parse_typvar,otypes=['bool','bool','bool','bool','bool','bool','bool','bool'])    
+    vparse_typvar = np.vectorize(parse_typvar,otypes=['bool','bool','bool','bool','bool','bool','bool','bool'])
     df.loc[:,'multiple_modifications'],df.loc[:,'zapped'],df.loc[:,'filtered'],df.loc[:,'interpolated'],df.loc[:,'unit_converted'],df.loc[:,'bounded'],df.loc[:,'missing_data'],df.loc[:,'ensemble_extra_info'] = vparse_typvar(df['typvar'])
     return df
 
 
 def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:str='numpy') -> pd.DataFrame:
-    """Adds basic and decoded columns to the dataframe. 
+    """Adds basic and decoded columns to the dataframe.
 
     :param df: input dataframe
     :type df: pd.DataFrame
-    :param decode_metadata: if true, decodes attributes specified in attributes_to_decode list 
+    :param decode_metadata: if true, decodes attributes specified in attributes_to_decode list
     :type decode_metadata: bool
     :param array_container: array container, defaults to 'numpy'
     :type array_container: str, optional
@@ -70,16 +70,16 @@ def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:st
     :rtype: pd.DataFrame
     """
     df = post_process_dataframe(df)
-    
+
     df = add_composite_columns(df,decode_metadata,array_container)
-    # df = parallel_add_composite_columns_tr(df,decode_metadata,array_container,attributes_to_decode,n_cores=min(mp.cpu_count(),len(df.index),1))   
-    
+    # df = parallel_add_composite_columns_tr(df,decode_metadata,array_container,attributes_to_decode,n_cores=min(mp.cpu_count(),len(df.index),1))
+
     return df
 
 def clean_dataframe(df):
     # df = convert_df_dtypes(df,decode_metadata,attributes_to_decode)
 
-    df = reorder_columns(df)  
+    df = reorder_columns(df)
 
     df = sort_dataframe(df)
 
@@ -100,7 +100,7 @@ def get_data_holder(d,key:int,array_container:str):
 
 def get_shape(ni,nj):
     return (ni,nj)
-    
+
 
 def add_shape_column(df):
     if 'shape' in df.columns:
@@ -113,8 +113,8 @@ def add_shape_column(df):
 def add_data_column(df,array_container):
     if 'd' in df.columns:
         return df
-    vcreate_data = np.vectorize(get_data_holder,otypes=['object']) 
-    df.loc[:,'d']=None   
+    vcreate_data = np.vectorize(get_data_holder,otypes=['object'])
+    df.loc[:,'d']=None
     df.loc[:,'d'] = vcreate_data(df['d'],df['key'],array_container)
     return df
 
@@ -128,7 +128,7 @@ def add_parsed_etiket_columns(df:pd.DataFrame) ->pd.DataFrame:
     :rtype: pd.DataFrame
     """
     # df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = get_parsed_etiket(df.at[i,'etiket'])
-    vparse_etiket = np.vectorize(get_parsed_etiket,otypes=['str','str','str','str'])    
+    vparse_etiket = np.vectorize(get_parsed_etiket,otypes=['str','str','str','str'])
     df.loc[:,'label'],df.loc[:,'run'],df.loc[:,'implementation'],df.loc[:,'ensemble_member'] = vparse_etiket(df['etiket'])
     return df
 
@@ -141,8 +141,8 @@ def add_unit_and_description_columns(df:pd.DataFrame) ->pd.DataFrame:
     :rtype: pd.DataFrame
     """
 
-    vget_unit_and_description = np.vectorize(get_unit_and_description,otypes=['str','str'])  
-    if 'unit' in df.columns:  
+    vget_unit_and_description = np.vectorize(get_unit_and_description,otypes=['str','str'])
+    if 'unit' in df.columns:
         sub_df = df.loc[df['unit'].isna()].copy()
         assign_unit_and_description(vget_unit_and_description, sub_df)
         df.loc[df['unit'].isna()] = sub_df
@@ -175,10 +175,10 @@ def add_decoded_date_column(df:pd.DataFrame,attr:str='dateo') ->pd.DataFrame:
     :return: either date_of_observation or date_of_validity column added to the dataframe
     :rtype: pd.DataFrame
     """
-    vconvert_rmndate_to_datetime = np.vectorize(convert_rmndate_to_datetime)#,otypes=['datetime64']  
-    if attr == 'dateo':  
+    vconvert_rmndate_to_datetime = np.vectorize(convert_rmndate_to_datetime)#,otypes=['datetime64']
+    if attr == 'dateo':
         df.loc[:,'date_of_observation'] = vconvert_rmndate_to_datetime(df['dateo'])
-    else:    
+    else:
         df.loc[:,'date_of_validity'] = vconvert_rmndate_to_datetime(df['datev'])
     return df
 
@@ -208,7 +208,7 @@ def add_forecast_hour_column(df:pd.DataFrame) -> pd.DataFrame:
 #     :rtype: pd.DataFrame
 #     """
 #     from .std_dec import decode_ip2
-#     vdecode_ip2 = np.vectorize(decode_ip2,otypes=['float32','int32','str'])  
+#     vdecode_ip2 = np.vectorize(decode_ip2,otypes=['float32','int32','str'])
 #     df.loc[:,'ip2_dec'],df.loc[:,'ip2_kind'],df.loc[:,'ip2_pkind'] = vdecode_ip2(df['ip2'])
 #     return df
 
@@ -221,8 +221,8 @@ def add_forecast_hour_column(df:pd.DataFrame) -> pd.DataFrame:
 #     :rtype: pd.DataFrame
 #     """
 #     from .std_dec import decode_ip3
-#     vdecode_ip3 = np.vectorize(decode_ip3,otypes=['float32','int32','str'])  
-#     df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'] = vdecode_ip3(df['ip3'])    
+#     vdecode_ip3 = np.vectorize(decode_ip3,otypes=['float32','int32','str'])
+#     df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'] = vdecode_ip3(df['ip3'])
 #     return df
 
 def add_data_type_str_column(df:pd.DataFrame) -> pd.DataFrame:
@@ -234,13 +234,13 @@ def add_data_type_str_column(df:pd.DataFrame) -> pd.DataFrame:
     :rtype: pd.DataFrame
     """
     from .std_dec import get_data_type_str
-    vcreate_data_type_str = np.vectorize(get_data_type_str,otypes=['str'])  
-    df.loc[:,'data_type_str'] = vcreate_data_type_str(df['datyp'])    
+    vcreate_data_type_str = np.vectorize(get_data_type_str,otypes=['str'])
+    df.loc[:,'data_type_str'] = vcreate_data_type_str(df['datyp'])
     return df
 
 
 def add_ip_info_columns(df:pd.DataFrame) -> pd.DataFrame:
-    """adds all relevant level info from the ip1 column values 
+    """adds all relevant level info from the ip1 column values
 
     :param df: dataframe
     :type df: pd.DataFrame
@@ -248,66 +248,66 @@ def add_ip_info_columns(df:pd.DataFrame) -> pd.DataFrame:
     :rtype: pd.DataFrame
     """
     from .std_dec import get_ip_info
-    vcreate_ip_info = np.vectorize(get_ip_info,otypes=['float32','int32','str','float32','int32','str','float32','int32','str','bool','bool','bool','object'])  
-    df.loc[:,'level'],df.loc[:,'ip1_kind'],df.loc[:,'ip1_pkind'],df.loc[:,'ip2_dec'],df.loc[:,'ip2_kind'],df.loc[:,'ip2_pkind'],df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'],df.loc[:,'surface'],df.loc[:,'follow_topography'],df.loc[:,'ascending'],df.loc[:,'interval'] = vcreate_ip_info(df['ip1'],df['ip2'],df['ip3'])    
+    vcreate_ip_info = np.vectorize(get_ip_info,otypes=['float32','int32','str','float32','int32','str','float32','int32','str','bool','bool','bool','object'])
+    df.loc[:,'level'],df.loc[:,'ip1_kind'],df.loc[:,'ip1_pkind'],df.loc[:,'ip2_dec'],df.loc[:,'ip2_kind'],df.loc[:,'ip2_pkind'],df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'],df.loc[:,'surface'],df.loc[:,'follow_topography'],df.loc[:,'ascending'],df.loc[:,'interval'] = vcreate_ip_info(df['ip1'],df['ip2'],df['ip3'])
     return df
 
 def add_composite_columns(df,decode,array_container, attributes_to_decode=['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']):
-    
+
     df = add_data_column(df,array_container)
     # df = add_grid_column(df)
     df = add_shape_column(df)
-    
+
     if decode:
-        if 'etiket' in attributes_to_decode:    
+        if 'etiket' in attributes_to_decode:
             df = add_parsed_etiket_columns(df)
 
         if 'unit' in attributes_to_decode:
             df = add_unit_and_description_columns(df)
 
-        if 'dateo' in attributes_to_decode:    
+        if 'dateo' in attributes_to_decode:
             df = add_decoded_date_column(df,'dateo')
 
         if 'datev' in attributes_to_decode:
-            df = add_decoded_date_column(df,'datev')  
+            df = add_decoded_date_column(df,'datev')
 
         if 'forecast_hour' in attributes_to_decode:
-            df = add_forecast_hour_column(df) 
+            df = add_forecast_hour_column(df)
 
-        if 'datyp' in attributes_to_decode:    
-            df = add_data_type_str_column(df)   
+        if 'datyp' in attributes_to_decode:
+            df = add_data_type_str_column(df)
 
-        if ('ip_info' in  attributes_to_decode): 
-            df = add_ip_info_columns(df)                
+        if ('ip_info' in  attributes_to_decode):
+            df = add_ip_info_columns(df)
 
         if 'flags' in attributes_to_decode:
             # df = add_flags_columns(df)
             df = add_flag_values(df)
 
-  
+
 
     if decode and ('ip_info' in attributes_to_decode):
-        df = set_vertical_coordinate_type(df)    
+        df = set_vertical_coordinate_type(df)
     return df
 
 # def add_unit_column(df):
 #     if 'unit' not in df.columns:
 #         df.loc[:,'unit'] = None
-#     if 'unit_converted' not in df.columns:    
+#     if 'unit_converted' not in df.columns:
 #         df.loc[:,'unit_converted'] = None
 #     if 'description' not  in df.columns:
-#         df.loc[:,'description'] = None  
-          
+#         df.loc[:,'description'] = None
+
 #     for i in df.index:
 #         df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
-#     return df    
-    
+#     return df
+
 def add_empty_columns(df, columns, init, dtype_str):
     for col in columns:
         if col not in df.columns:
             df.insert(len(df.columns),col,init)
             df = df.astype({col:dtype_str})
-    return df         
+    return df
 
 def post_process_dataframe(df):
     if 'dltf' in df.columns:
@@ -316,43 +316,43 @@ def post_process_dataframe(df):
         df.drop(columns=['dltf'], inplace=True,errors='ignore')
     # if 'd' not in df.columns:
     #     df['d']=None
-        
+
     return df
 
 # def convert_df_dtypes(df,decoded,attributes_to_decode=['ip1','ip2','ip3']):
 #     if not df.empty:
-#         if decoded:    
+#         if decoded:
 #             if ('ip1' in attributes_to_decode) and ('level' in df.columns) and ('ip1_kind' in df.columns):
 #                 df = df.astype({'level':'float32','ip1_kind':'int32'})
-#             if ('ip2' in attributes_to_decode) and ('ip2_dec' in df.columns) and ('ip2_kind' in df.columns):    
+#             if ('ip2' in attributes_to_decode) and ('ip2_dec' in df.columns) and ('ip2_kind' in df.columns):
 #                 df = df.astype({'ip2_dec':'float32','ip2_kind':'int32'})
-#             if ('ip3' in attributes_to_decode) and ('ip3_dec' in df.columns) and ('ip3_kind' in df.columns):    
+#             if ('ip3' in attributes_to_decode) and ('ip3_dec' in df.columns) and ('ip3_kind' in df.columns):
 #                 df = df.astype({'ip3_dec':'float32','ip3_kind':'int32'})
-#     return df      
+#     return df
 
 def reorder_columns(df) -> pd.DataFrame:
     ordered = ['nomvar','typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas','datyp', 'nbits' , 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
     if df.empty:
         return df
-    all_columns = set(df.columns)        
-    # all_columns = set(df.columns.to_list())    
+    all_columns = set(df.columns)
+    # all_columns = set(df.columns.to_list())
 
     extra_columns = all_columns.difference(set(ordered))
     if len(extra_columns) > 0:
-        ordered.extend(list(extra_columns)) 
+        ordered.extend(list(extra_columns))
 
-    df = df[ordered]    
-    return df    
+    df = df[ordered]
+    return df
 
 def sort_dataframe(df) -> pd.DataFrame:
     if df.empty:
         return df
-    if ('grid' in df.columns) and ('datev' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns): 
+    if ('grid' in df.columns) and ('datev' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns):
         df = df.sort_values(by=['grid','datev','nomvar','level'],ascending=[True,True,True,False])
-    else:     
+    else:
         df = df.sort_values(by=['datev','nomvar'],ascending=[True,True])
     df = df
-    return df    
+    return df
 
 def set_vertical_coordinate_type(df) -> pd.DataFrame:
     from fstpy import VCTYPES
@@ -397,7 +397,7 @@ def set_vertical_coordinate_type(df) -> pd.DataFrame:
 
     df = pd.concat(newdfs,ignore_index=True)
     df.loc[df['nomvar'].isin([">>","^^","!!","P0","PT","HY","PN","!!SF"]), "vctype"] = "UNKNOWN"
-    return df    
+    return df
 
 def get_meta_fields_exists(grid):
     toctoc = grid.loc[grid.nomvar=="!!"]
@@ -421,7 +421,7 @@ def meta_exists(grid, nomvar) -> bool:
     return not df.empty
 
 def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove:pd.DataFrame) -> pd.DataFrame:
-    """Removes a dataframe from another. 
+    """Removes a dataframe from another.
     As an example, if you selected a variable from a dataframe and want to remove it from the original dataframe.
 
     :param df_to_remove_from: original dataframe we want to modify
@@ -436,13 +436,13 @@ def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove:pd.DataFrame) ->
     #columns.remove('fstinl_params')
     tmp_df = pd.concat([df_to_remove_from, df_to_remove],ignore_index=True).drop_duplicates(subset=columns,keep=False)
     tmp_df = sort_dataframe(tmp_df)
-    tmp_df.reset_index(inplace=True,drop=True) 
+    tmp_df.reset_index(inplace=True,drop=True)
     return tmp_df
 
 # def get_intersecting_levels(df:pd.DataFrame, nomvars:list) -> pd.DataFrame:
 #     """Gets the records of all intersecting levels for nomvars in list.
-#     if TT,UU and VV are in the list, the output dataframe will contain all 3 
-#     varaibles at all the intersectiong levels between the 3 variables 
+#     if TT,UU and VV are in the list, the output dataframe will contain all 3
+#     varaibles at all the intersectiong levels between the 3 variables
 
 #     :param df: input dataframe
 #     :type df: pd.DataFrame
@@ -473,7 +473,7 @@ def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove:pd.DataFrame) ->
 #     if query_res.empty:
 #         logger.error('get_intersecting_levels - no intersecting levels found')
 #         return pd.DataFrame(dtype='object')
-#     return query_res    
+#     return query_res
 
 def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attributes_to_decode,n_cores):
     dataframes = []
@@ -511,26 +511,26 @@ def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attr
 #     close_fst(file_id,path,'StandardFileReader')
 #     df['file_modification_time'] = file_modification_time
 #     df['path'] = path
-#     return df            
+#     return df
 
 # def read_and_fill_dataframe(file_id,load_data,subset,decode_metadata) ->pd.DataFrame:
-#     """reads the meta data of an fst file and puts it into a pandas dataframe  
+#     """reads the meta data of an fst file and puts it into a pandas dataframe
 
-#     :return: dataframe of records in file  
-#     :rtype: pd.DataFrame  
+#     :return: dataframe of records in file
+#     :rtype: pd.DataFrame
 #     """
 #     #get the basic rmnlib dataframe
 #     df = get_all_records_from_file_and_format(file_id,load_data,subset)
 
 #     df = convert_df_dtypes(df,decode_metadata)
 
-#     df = reorder_columns(df)  
+#     df = reorder_columns(df)
 
 #     df = sort_dataframe(df)
 #     return df
 
 # def get_all_records_from_file_and_format(file_id,load_data,subset):
-    
+
 #     keys = get_all_record_keys(file_id, subset)
 
 #     records = get_records(keys,load_data)
@@ -538,9 +538,9 @@ def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attr
 #     #create a dataframe correspondinf to the fst file
 #     df = pd.DataFrame(records)
 
-    
 
-    # return df    
+
+    # return df
 # def resize_data(df:pd.DataFrame, dim1:int,dim2:int) -> pd.DataFrame:
 #     from .std_reader import load_data
 #     df = load_data(df)
@@ -549,7 +549,7 @@ def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attr
 #         df.at[i,'shape']  = df.at[i,'d'].shape
 #         df.at[i,'ni'] = df.at[i,'shape'][0]
 #         df.at[i,'nj'] = df.at[i,'shape'][1]
-#     df = sort_dataframe(df)    
+#     df = sort_dataframe(df)
 #     return df
 
 
@@ -566,7 +566,7 @@ def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attr
 
 # def remove_data_fields(df: pd.DataFrame) -> pd.DataFrame:
 #     df = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]')
-#     return df    
+#     return df
 
 # def add_extra_cols(df):
 #     df = add_empty_columns(df, ['ip1_kind'], 0, 'int32')
@@ -575,13 +575,13 @@ def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attr
 #     df = add_empty_columns(df, ['date_of_observation','date_of_validity','forecast_hour'],None,'datetime64')
 #     df = add_empty_columns(df, ['vctype','ip1_pkind','data_type_str','grid','run','implementation','ensemble_member','label','unit'],'','O')
 #     df = fill_columns(df)
-#     return df   
+#     return df
 
 # def add_empty_columns(df, columns, init, dtype_str):
 #     for col in columns:
 #         df.insert(len(df.columns),col,init)
 #         df = df.astype({col:dtype_str})
-#     return df       
+#     return df
 
 # def fill_columns(df:pd.DataFrame):
 #     """fill_columns adds columns that are'nt in the fst file
@@ -627,11 +627,11 @@ def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attr
 #     # level = level_ip1_kind[0]
 #     df.at[i,'ip1_kind'] = int(ip1_kind)
 #     df.at[i,'level'] = level #float("%.6f"%-1) if df.at[i,'ip1_kind'] == -1 else float("%.6f"%level)
-#     return df    
+#     return df
 
 # def strip_string_columns(df):
 #     if ('etiket' in df.columns) and ('nomvar' in df.columns) and ('typvar' in df.columns):
 #         df['etiket'] = df['etiket'].str.strip()
 #         df['nomvar'] = df['nomvar'].str.strip()
 #         df['typvar'] = df['typvar'].str.strip()
-#     return df    
+#     return df
