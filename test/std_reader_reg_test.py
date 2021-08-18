@@ -10,15 +10,11 @@ from rpnpy.librmn.all import FSTDError
 
 pytestmark = [pytest.mark.std_reader_regtests, pytest.mark.regressions]
 
-
-
-
-
 @pytest.fixture
 def plugin_test_dir():
     return TEST_PATH +"ReaderStd/testsFiles/"
 
-def test_regtest_1(plugin_test_dir):
+def test_1(plugin_test_dir):
     """Test #1 : Test l'option --input avec un fichier qui n'existe pas!"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_fileSrc_.std"
@@ -26,8 +22,8 @@ def test_regtest_1(plugin_test_dir):
         src_df0 = StandardFileReader(source0).to_pandas()
 
 
-def test_regtest_2(plugin_test_dir):
-    """Test #2 : Test avec un fichier qui possède un champ de type entier."""
+def test_2(plugin_test_dir):
+    """Test #2 : Test avec un fichier qui possede un champ de type entier."""
     # open and read source
     source0 = plugin_test_dir + "regdiag_2012061300_012_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -51,8 +47,8 @@ def test_regtest_2(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_3(plugin_test_dir):
-    """Test #3 : test_read_write_small"""
+def test_3(plugin_test_dir):
+    """Test #3 : Test read write small"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -71,8 +67,8 @@ def test_regtest_3(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_5(plugin_test_dir):
-    """Test #5 : test_read_write_big"""
+def test_5(plugin_test_dir):
+    """Test #5 : Test read write big"""
     # open and read source
     source0 = plugin_test_dir + "input_big_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -93,8 +89,8 @@ def test_regtest_5(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_6(plugin_test_dir):
-    """Test #6 : test_read_write_sigma12000_pressure"""
+def test_6(plugin_test_dir):
+    """Test #6 : Test read write sigma12000 pressure"""
     # open and read source
     source0 = plugin_test_dir + "input_model"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -119,8 +115,8 @@ def test_regtest_6(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_7(plugin_test_dir):
-    """Test #7 : test_read_write_big_noMetadata"""
+def test_7(plugin_test_dir):
+    """Test #7 : Test read write big noMetadata"""
     # open and read source
     source0 = plugin_test_dir + "input_big_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -141,8 +137,8 @@ def test_regtest_7(plugin_test_dir):
     assert(res == True)
 
 
-# def test_regtest_8(plugin_test_dir):
-#     """Test #8 : test_read_file_with_duplicated_grid"""
+# def test_8(plugin_test_dir):
+#     """Test #8 : Test read file with duplicated grid"""
 #     # open and read source
 #     source0 = plugin_test_dir + "fstdWithDuplicatedGrid_fileSrc.std"
 #     src_df0 = StandardFileReader(source0).to_pandas()
@@ -165,8 +161,8 @@ def test_regtest_7(plugin_test_dir):
 #     assert(False == True)
 
 
-def test_regtest_9(plugin_test_dir):
-    """Test #9 : test_read_write_64bit"""
+def test_9(plugin_test_dir):
+    """Test #9 : Test read write 64bit"""
     # open and read source
     source0 = plugin_test_dir + "tt_stg_fileSrc.std+20210517"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -190,8 +186,8 @@ def test_regtest_9(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_10(plugin_test_dir):
-    """Test #10 : test_read_3_file"""
+def test_10(plugin_test_dir):
+    """Test #10 : Test read 3 file"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
     source1 = plugin_test_dir + "windChill_file2cmp.std"
@@ -217,8 +213,8 @@ def test_regtest_10(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_11(plugin_test_dir):
-    """Test #11 : test_read_write_ip3"""
+def test_11(plugin_test_dir):
+    """Test #11 : Test read write ip3"""
     # open and read source
     source0 = plugin_test_dir + "ip3.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -242,8 +238,8 @@ def test_regtest_11(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_12(plugin_test_dir):
-    """Test #12 : test_read_write_ip1_mb_newstyle"""
+def test_12(plugin_test_dir):
+    """Test #12 : Test read write ip1 mb newstyle"""
     # open and read source
     source0 = plugin_test_dir + "UUVV93423264_hyb_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -267,8 +263,8 @@ def test_regtest_12(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_13(plugin_test_dir):
-    """Test #13 : test for file containing 2 HY"""
+def test_13(plugin_test_dir):
+    """Test #13 : Test for file containing 2 HY"""
     # open and read source
     source0 = plugin_test_dir + "2hy.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -291,8 +287,8 @@ def test_regtest_13(plugin_test_dir):
     # assert(res == False)
 
 
-def test_regtest_14(plugin_test_dir):
-    """Test #14 : test reading fields with typvar == PZ"""
+def test_14(plugin_test_dir):
+    """Test #14 : Test reading fields with typvar == PZ"""
     # open and read source
     source0 = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PZ.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -316,8 +312,8 @@ def test_regtest_14(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_15(plugin_test_dir):
-    """Test #15 : test reading fields with typvar == PU"""
+def test_15(plugin_test_dir):
+    """Test #15 : Test reading fields with typvar == PU"""
     # open and read source
     source0 = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PU.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -341,8 +337,8 @@ def test_regtest_15(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_16(plugin_test_dir):
-    """Test #16 : test reading fields with typvar == PI"""
+def test_16(plugin_test_dir):
+    """Test #16 : Test reading fields with typvar == PI"""
     # open and read source
     source0 = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PI.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -366,8 +362,8 @@ def test_regtest_16(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_17(plugin_test_dir):
-    """Test #17 : test reading fields with typvar == PF"""
+def test_17(plugin_test_dir):
+    """Test #17 : Test reading fields with typvar == PF"""
     # open and read source
     source0 = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PF.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -391,8 +387,8 @@ def test_regtest_17(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_18(plugin_test_dir):
-    """Test #18 : test reading fields with typvar == PM"""
+def test_18(plugin_test_dir):
+    """Test #18 : Test reading fields with typvar == PM"""
     # open and read source
     source0 = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PM.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -416,8 +412,8 @@ def test_regtest_18(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_19(plugin_test_dir):
-    """Test #19 : test if HY is put in memory and written back when we have a grid with two kinds of level, one of them being hybrid"""
+def test_19(plugin_test_dir):
+    """Test #19 : Test if HY is put in memory and written back when we have a grid with two kinds of level, one of them being hybrid"""
     # open and read source
     source0 = plugin_test_dir + "mb_plus_hybrid_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -442,8 +438,8 @@ def test_regtest_19(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_20(plugin_test_dir):
-    """Test #20 : test if HY is put in memory and written back when we have a grid with hybrid level"""
+def test_20(plugin_test_dir):
+    """Test #20 : Test if HY is put in memory and written back when we have a grid with hybrid level"""
     # open and read source
     source0 = plugin_test_dir + "mb_plus_hybrid_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -470,8 +466,8 @@ def test_regtest_20(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_21(plugin_test_dir):
-    """Test #21 : test that the HY is NOT written back when the final grid don't have a hybrid level"""
+def test_21(plugin_test_dir):
+    """Test #21 : Test that the HY is NOT written back when the final grid don't have a hybrid level"""
     # open and read source
     source0 = plugin_test_dir + "mb_plus_hybrid_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -497,8 +493,8 @@ def test_regtest_21(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_22(plugin_test_dir):
-    """Test #22 : test that PT is NOT read by the reader when the level type of the fields on the grid is not sigma"""
+def test_22(plugin_test_dir):
+    """Test #22 : Test that PT is NOT read by the reader when the level type of the fields on the grid is not sigma"""
     # open and read source
     source0 = plugin_test_dir + "pt_with_hybrid.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -521,8 +517,8 @@ def test_regtest_22(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_23(plugin_test_dir):
-    """Test #23 : test that PT is NOT written back when there is a PT field created in memory and the level type of the fields on the grid is not sigma"""
+def test_23(plugin_test_dir):
+    """Test #23 : Test that PT is NOT written back when there is a PT field created in memory and the level type of the fields on the grid is not sigma"""
     # open and read source
     source0 = plugin_test_dir + "kt_ai_hybrid.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -548,7 +544,7 @@ def test_regtest_23(plugin_test_dir):
     assert(res == True)
 
 
-# def test_regtest_25(plugin_test_dir):
+# def test_25(plugin_test_dir):
 #     """!!!! I dont get this test !!!! Test #25 : Test la lecture avec ip2 != deet * npas"""
 #     # open and read source
 #     source0 = plugin_test_dir + "2012121000_cancm3_m1_00_fileSrc.std"
@@ -572,7 +568,7 @@ def test_regtest_23(plugin_test_dir):
 #     assert(res == True)
 
 
-def test_regtest_26(plugin_test_dir):
+def test_26(plugin_test_dir):
     """Test #26 : Test la lecture d'un fichier pilot """
     # open and read source
     source0 = plugin_test_dir + "2015040800_030_piloteta"
@@ -597,8 +593,8 @@ def test_regtest_26(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_28(plugin_test_dir):
-    """Test #28 : test lecture fichiers contenant caracteres speciaux ET parametre --input n'est pas le dernier"""
+def test_28(plugin_test_dir):
+    """Test #28 : Test lecture fichiers contenant caracteres speciaux ET parametre --input n'est pas le dernier"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_+fileSrc.std"
     source1 = plugin_test_dir + "wind+Chill_file2cmp.std"
@@ -624,8 +620,8 @@ def test_regtest_28(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_29(plugin_test_dir):
-    """Test #29 : test lecture fichiers contenant des champs de donnees manquantes"""
+def test_29(plugin_test_dir):
+    """Test #29 : Test lecture fichiers contenant des champs de donnees manquantes"""
     # open and read source
     source0 = plugin_test_dir + "missingData.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -650,8 +646,8 @@ def test_regtest_29(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_30(plugin_test_dir):
-    """Test #30 : test lecture fichiers contenant des membres d'ensemble differents"""
+def test_30(plugin_test_dir):
+    """Test #30 : Test lecture fichiers contenant des membres d'ensemble differents"""
     # open and read source
     source0 = plugin_test_dir + "ensemble_members.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -678,8 +674,8 @@ def test_regtest_30(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_31(plugin_test_dir):
-    """Test #31 : test lecture fichiers contenant des masques"""
+def test_31(plugin_test_dir):
+    """Test #31 : Test lecture fichiers contenant des masques"""
     # open and read source
     source0 = plugin_test_dir + "data_with_mask.std"
     src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
@@ -712,8 +708,8 @@ def test_regtest_31(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_32(plugin_test_dir):
-    """Test #32 : test lecture fichiers contenant des membres d'ensemble differents"""
+def test_32(plugin_test_dir):
+    """Test #32 : Test lecture fichiers contenant des membres d'ensemble differents"""
     # open and read source
     source0 = plugin_test_dir + "ens_data_exclamation.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -739,8 +735,8 @@ def test_regtest_32(plugin_test_dir):
     assert(res == True)
 
 
-def test_regtest_33(plugin_test_dir):
-    """Test #33 : test lecture fichiers contenant la coordonnee 5005"""
+def test_33(plugin_test_dir):
+    """Test #33 : Test lecture fichiers contenant la coordonnee 5005"""
     # open and read source
     source0 = plugin_test_dir + "resulttest_33.std"
     src_df0 = StandardFileReader(source0).to_pandas()

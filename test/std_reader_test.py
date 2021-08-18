@@ -12,73 +12,82 @@ def input_file():
     return TEST_PATH + '/ReaderStd/testsFiles/source_data_5005.std'
 
 
-def test_open(input_file):
+def test_1(input_file):
+    """Test #1 : Test open a file"""
     std_file = StandardFileReader(input_file)
-    assert type(std_file) == StandardFileReader   
+    assert type(std_file) == StandardFileReader
     assert std_file.meta_data == StandardFileReader.meta_data
 
 
-def test_params_decode_metadata_false(input_file):
+def test_2(input_file):
+    """Test #2 : Test decode_metadata=False"""
     std_file = StandardFileReader(input_file,decode_metadata=False)
     df = std_file.to_pandas()
     assert len(df.index) == 1874
     assert len(df.columns) == 26
 
-def test_params_decode_metadata_True(input_file):
+def test_3(input_file):
+    """Test #3 : Test decode_metadata=True"""
     std_file = StandardFileReader(input_file,decode_metadata=True)
     df = std_file.to_pandas()
     assert len(df.index) == 1874
     assert len(df.columns) == 58
 
-def test_params_decode_metadata_false_load_data(input_file):
+def test_4(input_file):
+    """Test #4 : Test load_data=True,decode_metadata=False"""
     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,query='nomvar=="UU"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
     assert len(df.columns) == 26
-    assert 'd' in df.columns 
+    assert 'd' in df.columns
     assert not df['d'].isnull().all()
 
-def test_params_decode_metadata_true_load_data(input_file):
+def test_5(input_file):
+    """Test #5 : Test load_data=True,decode_metadata=True"""
     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=True,query='nomvar=="UU"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
     assert len(df.columns) == 58
-    assert 'd' in df.columns 
+    assert 'd' in df.columns
     assert not df['d'].isnull().all()
 
-def test_params_load_data_true(input_file):
+def test_6(input_file):
+    """Test #6 : Test load_data=True"""
     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="UU"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
-    assert len(df.columns) == 26   
-    assert 'd' in df.columns 
+    assert len(df.columns) == 26
+    assert 'd' in df.columns
     assert not df['d'].isnull().all()
 
 
-def test_params_query(input_file):
+def test_7(input_file):
+    """Test #7 : Test query='nomvar=='TT'"""
     std_file = StandardFileReader(input_file,query='nomvar=="TT"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
-    assert len(df.columns) == 26   
+    assert len(df.columns) == 26
 
 
-def test_params_load_data_true_query(input_file):
+def test_8(input_file):
+    """Test #8 : Test load_data=True,query='nomvar=='TT'"""
     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="TT"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
-    assert len(df.columns) == 26   
-    assert 'd' in df.columns 
+    assert len(df.columns) == 26
+    assert 'd' in df.columns
     assert not df['d'].isnull().all()
 
 
-def test_params_query_all(input_file):
+def test_9(input_file):
+    """Test #9 : Test query all and reasssemble"""
     std_file = StandardFileReader(input_file)
     df = std_file.to_pandas()
 
     nomvars = {f"{n}" for n in df['nomvar']}
     full_df = StandardFileReader(input_file).to_pandas()
     full_df = full_df.loc[full_df.nomvar.isin(list(nomvars))]
-    
+
     assert df.columns.equals(full_df.columns)
     assert len(df.index) == len(full_df.index)
 
@@ -103,4 +112,3 @@ def test_params_query_all(input_file):
     assert full_df.grtyp.all() == df.grtyp.all()
     assert full_df.datyp.all() == df.datyp.all()
     assert full_df.nbits.all() == df.nbits.all()
-
