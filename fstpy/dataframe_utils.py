@@ -975,11 +975,11 @@ def get_grid_deformation_fileds(df:pd.DataFrame,no_meta_df:pd.DataFrame):
         tictac_df = df.loc[(df.nomvar=="^>") & (df.grid==grid)]
 
         if not lat_df.empty:
-            hasDate = ((lat_df.deet.unique()[0]!=0) and (lat_df.npas.unique()[0]!=0))
+            hasDate = ((lat_df.deet.unique()[0]!=0))
         if not lon_df.empty:
-            hasDate = ((lon_df.deet.unique()[0]!=0) and (lon_df.npas.unique()[0]!=0))
+            hasDate = ((lon_df.deet.unique()[0]!=0))
         if not tictac_df.empty:
-            hasDate = ((tictac_df.deet.unique()[0]!=0) and (tictac_df.npas.unique()[0]!=0))
+            hasDate = ((tictac_df.deet.unique()[0]!=0))
 
         if hasDate:
             deet = group.deet.unique()[0]
