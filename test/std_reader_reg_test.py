@@ -23,7 +23,7 @@ def test_1(plugin_test_dir):
 
 
 def test_2(plugin_test_dir):
-    """Test #2 : Test avec un fichier qui possède un champ de type entier."""
+    """Test #2 : Test avec un fichier qui possede un champ de type entier."""
     # open and read source
     source0 = plugin_test_dir + "regdiag_2012061300_012_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
