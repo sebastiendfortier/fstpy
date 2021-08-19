@@ -4,8 +4,6 @@ import concurrent.futures
 import numpy as np
 import pandas as pd
 
-from .exceptions import StandardFileError
-from .logger_config import logger
 from .std_dec import (convert_rmndate_to_datetime,
                       get_parsed_etiket, get_unit_and_description)
 

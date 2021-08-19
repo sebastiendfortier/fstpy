@@ -13,28 +13,28 @@ def input_file():
 
 
 def test_1(input_file):
-    """Test #1 : Test open a file"""
+    """Test open a file"""
     std_file = StandardFileReader(input_file)
     assert type(std_file) == StandardFileReader
     assert std_file.meta_data == StandardFileReader.meta_data
 
 
 def test_2(input_file):
-    """Test #2 : Test decode_metadata=False"""
+    """Test decode_metadata=False"""
     std_file = StandardFileReader(input_file,decode_metadata=False)
     df = std_file.to_pandas()
     assert len(df.index) == 1874
     assert len(df.columns) == 26
 
 def test_3(input_file):
-    """Test #3 : Test decode_metadata=True"""
+    """Test decode_metadata=True"""
     std_file = StandardFileReader(input_file,decode_metadata=True)
     df = std_file.to_pandas()
     assert len(df.index) == 1874
     assert len(df.columns) == 58
 
 def test_4(input_file):
-    """Test #4 : Test load_data=True,decode_metadata=False"""
+    """Test load_data=True,decode_metadata=False"""
     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,query='nomvar=="UU"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
@@ -43,7 +43,7 @@ def test_4(input_file):
     assert not df['d'].isnull().all()
 
 def test_5(input_file):
-    """Test #5 : Test load_data=True,decode_metadata=True"""
+    """Test load_data=True,decode_metadata=True"""
     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=True,query='nomvar=="UU"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
@@ -52,7 +52,7 @@ def test_5(input_file):
     assert not df['d'].isnull().all()
 
 def test_6(input_file):
-    """Test #6 : Test load_data=True"""
+    """Test load_data=True"""
     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="UU"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
@@ -62,7 +62,7 @@ def test_6(input_file):
 
 
 def test_7(input_file):
-    """Test #7 : Test query='nomvar=='TT'"""
+    """Test query='nomvar=='TT'"""
     std_file = StandardFileReader(input_file,query='nomvar=="TT"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
@@ -70,7 +70,7 @@ def test_7(input_file):
 
 
 def test_8(input_file):
-    """Test #8 : Test load_data=True,query='nomvar=='TT'"""
+    """Test load_data=True,query='nomvar=='TT'"""
     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="TT"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
@@ -80,7 +80,7 @@ def test_8(input_file):
 
 
 def test_9(input_file):
-    """Test #9 : Test query all and reasssemble"""
+    """Test query all and reasssemble"""
     std_file = StandardFileReader(input_file)
     df = std_file.to_pandas()
 
