@@ -95,7 +95,7 @@ def metadata_cleanup(df:pd.DataFrame,strict_toctoc=True) -> pd.DataFrame:
 class FstCompError(Exception):
     pass
 
-def fstcomp(file1:str, file2:str, exclude_meta=False, cmp_number_of_fields=True,columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
+def fstcomp(file1:str, file2:str, exclude_meta=False, cmp_number_of_fields=True,columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_c_cor=0.00001) -> bool:
     """Utility used to compare the contents of two RPN standard files (record by record).
 
     :param file1: path to file 1
@@ -125,7 +125,7 @@ def fstcomp(file1:str, file2:str, exclude_meta=False, cmp_number_of_fields=True,
     df2 = StandardFileReader(file2).to_pandas()
     # print('df2',df2)
 
-    return fstcomp_df(df1, df2, exclude_meta, cmp_number_of_fields, columns, print_unmatched=verbose,e_max=e_max,e_moy=e_moy,e_c_cor=e_c_cor)
+    return fstcomp_df(df1, df2, exclude_meta, cmp_number_of_fields, columns, print_unmatched=verbose,e_max=e_max,e_c_cor=e_c_cor)
 
 def voir(df:pd.DataFrame,style=False):
     """Displays the metadata of the supplied records in the rpn voir format"""
@@ -492,7 +492,7 @@ def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
     diff.drop(columns=['abs_diff'], inplace=True,errors='ignore')
     return diff
 
-def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_number_of_fields=True, columns=['nomvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','grtyp','ig1','ig2','ig3','ig4'], print_unmatched=False,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
+def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_number_of_fields=True, columns=['nomvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','grtyp','ig1','ig2','ig3','ig4'], print_unmatched=False,e_max=0.0001,e_c_cor=0.00001) -> bool:
     path1 = df1.path.unique()[0]
     path2 = df2.path.unique()[0]
 
@@ -608,7 +608,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
     #voir(diff)
     diff = add_fstcomp_columns(diff)
 
-    diff,success = compute_fstcomp_stats(diff,path1,path2,e_max,e_moy,e_c_cor)
+    diff,success = compute_fstcomp_stats(diff,path1,path2,e_max,e_c_cor)
 
     diff = del_fstcomp_columns(diff)
 
@@ -640,7 +640,7 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
 
 # ligne 441
 
-def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_moy=0.0001,e_c_cor=0.00001) -> bool:
+def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_c_cor=0.00001) -> bool:
     success = True
 
     df_list = np.array_split(diff, math.ceil(len(diff.index)/100))
@@ -728,7 +728,24 @@ def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_
             # # df.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
             # # print(df.at[i, 'c_cor'],1.0,1.0+1e-07,1-1e-07,math.isclose(df.at[i, 'c_cor'],1.0,rel_tol=1e-07))
 
-            if (not (-e_c_cor <= abs(df.at[i, 'c_cor']-1.0) <= e_c_cor)) or (not (-e_max <= df.at[i, 'e_rel_max'] <= e_max)) or (not (-e_moy <= df.at[i, 'e_rel_moy']<=e_moy)):
+            # if ((mod(datypa,128) != 1) and (mod(datypa,128) != 6)):
+            #     PACK_ERR2 = 0
+            # else:
+            #     PACK_ERR2 = PACK_ERR
+
+            # ERR_UNIT = (MAX_A - MIN_A) / (2.0 ** NBITS)
+
+            # if ((df.at[i, 'e_rel_max'] > e_max) and (PACK_ERR!=0)):
+            #     # found err true
+            #     pass
+
+            # if (PACK_ERR > 0) and (df.at[i, 'e_max'] > (PACK_ERR*ERR_UNIT*1.001)):
+            #     # found err true
+            #      pass
+
+
+
+            if (not (-e_c_cor <= abs(df.at[i, 'c_cor']-1.0) <= e_c_cor)) or (not (-e_max <= df.at[i, 'e_max'] <= e_max)):
                 df.at[i, 'nomvar'] = '<' + df.at[i, 'nomvar'] + '>'
                 # print('maximum absolute difference:%s'%np.max(np.abs(a-b)))
                 # print(np.abs(a-b))

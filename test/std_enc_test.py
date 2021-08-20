@@ -4,7 +4,7 @@ from fstpy import std_enc
 from rpnpy.librmn import all as rmn
 
 def test_1():
-    """Test #1 : Test creation of encoded npas and ip2"""
+    """Test creation of encoded npas and ip2"""
     # test creation of encoded npas and ip2
     #ip2 = 6, deet = 300, np = 72
     #fhour = 21600
@@ -37,7 +37,7 @@ def test_1():
 
 
 def test_2():
-    """Test #2 : Test dateo encoding"""
+    """Test dateo encoding"""
     # test dateo encoding
     t = datetime.now()
     t_enc = std_enc.create_encoded_dateo(t)

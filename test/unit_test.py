@@ -14,17 +14,17 @@ pytestmark = [pytest.mark.unit, pytest.mark.unit_tests]
 def base_dataframe():
     arr = np.array([[-5.0]],dtype='float32')
     d = [
-        {'nomvar':'TT','unit':'celsius','unit_converted':False,'d':arr, 'path':None,'datev':123456},
-        {'nomvar':'TT','unit':'fahrenheit','unit_converted':False,'d':arr, 'path':None,'datev':123456},
-        {'nomvar':'TT','unit':'rankine','unit_converted':False,'d':arr, 'path':None,'datev':123456},
-        {'nomvar':'TT','unit':'kelvin','unit_converted':False,'d':arr, 'path':None,'datev':123456},
+        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'celsius','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0], 'path':None,'datev':123456},
+        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'fahrenheit','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0], 'path':None,'datev':123456},
+        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'rankine','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0], 'path':None,'datev':123456},
+        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'kelvin','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0], 'path':None,'datev':123456},
         ]
     df = pd.DataFrame(d)
     return df
 
 
 def test_1(base_dataframe):
-    """Test #1 : Test kelvin conversion"""
+    """Test kelvin conversion"""
     res_df = unit_convert(base_dataframe,'kelvin')
     assert res_df['unit'].all() == 'kelvin'
     assert res_df.iloc[0]['unit_converted'] == True
@@ -37,7 +37,7 @@ def test_1(base_dataframe):
     assert math.isclose(res_df.iloc[3]['d'][0][0],-5.0,abs_tol=0.001)
 
 def test_2(base_dataframe):
-    """Test #2 : Test celsius conversion"""
+    """Test celsius conversion"""
     res_df = unit_convert(base_dataframe,'celsius')
     assert res_df['unit'].all() == 'celsius'
     assert res_df.iloc[0]['unit_converted'] == False
@@ -50,7 +50,7 @@ def test_2(base_dataframe):
     assert math.isclose(res_df.iloc[3]['d'][0][0],-278.15,abs_tol=0.001)
 
 def test_3(base_dataframe):
-    """Test #3 : Test fahrenheit conversion"""
+    """Test fahrenheit conversion"""
     res_df = unit_convert(base_dataframe,'fahrenheit')
     assert res_df['unit'].all() == 'fahrenheit'
     assert res_df.iloc[0]['unit_converted'] == True
@@ -63,7 +63,7 @@ def test_3(base_dataframe):
     assert math.isclose(res_df.iloc[3]['d'][0][0],-468.67,abs_tol=0.001)
 
 def test_4(base_dataframe):
-    """Test #4 : Test rankine conversion"""
+    """Test rankine conversion"""
     res_df = unit_convert(base_dataframe,'rankine')
     assert res_df['unit'].all() == 'rankine'
     assert res_df.iloc[0]['unit_converted'] == True
@@ -76,14 +76,14 @@ def test_4(base_dataframe):
     assert math.isclose(res_df.iloc[3]['d'][0][0],-9,abs_tol=0.001)
 
 def test_5(base_dataframe):
-    """Test #5 : Test no data"""
+    """Test no data"""
     base_dataframe['d'] = None
     with pytest.raises(TypeError):
         res_df = unit_convert(base_dataframe,'kelvin')
 
 
 def test_6(base_dataframe):
-    """Test #6 : Test wrong unit type"""
+    """Test wrong unit type"""
     with pytest.raises(UnitConversionError):
         res_df = unit_convert(base_dataframe,'meter')
 

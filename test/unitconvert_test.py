@@ -31,7 +31,7 @@ def windmodulus(df):
     return uv_df
 
 def test_1(plugin_test_dir):
-    """Test #1 : Test a case simple conversion"""
+    """Test a case simple conversion"""
     # open and read source
     source0 = plugin_test_dir + "windModulus_file2cmp.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -52,13 +52,13 @@ def test_1(plugin_test_dir):
     file_to_compare = plugin_test_dir + "unitConvertUVInKmhExtended_file2cmp.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
 
 def test_2(plugin_test_dir):
-    """Test #2 : Test a case with no conversion"""
+    """Test a case with no conversion"""
     # open and read source
     source0 = plugin_test_dir + "windModulus_file2cmp.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -80,13 +80,13 @@ def test_2(plugin_test_dir):
     file_to_compare = plugin_test_dir + "windModulus_file2cmp.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     # delete_file(results_file)
     assert(res == True)
 
 
 def test_3(plugin_test_dir):
-    """Test #3 : Test a case with no conversion (with extended info)"""
+    """Test a case with no conversion (with extended info)"""
     # open and read source
     source0 = plugin_test_dir + "windModulus_file2cmp.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -110,13 +110,13 @@ def test_3(plugin_test_dir):
     file_to_compare = plugin_test_dir + "windModulusExtended_file2cmp.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
 
 def test_4(plugin_test_dir):
-    """Test #4 : Test a case with simple conversion and another plugin 2D"""
+    """Test a case with simple conversion and another plugin 2D"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
     src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
@@ -140,13 +140,13 @@ def test_4(plugin_test_dir):
     file_to_compare = plugin_test_dir + "unitConvertUVInKmh_file2cmp.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
 
 def test_5(plugin_test_dir):
-    """Test #5 : Test a case with simple conversion and another plugin 3D"""
+    """Test a case with simple conversion and another plugin 3D"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5x2_fileSrc.std"
     src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
@@ -168,13 +168,13 @@ def test_5(plugin_test_dir):
     file_to_compare = plugin_test_dir + "unitConvertUVInKmh3D_file2cmp.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
 
 def test_6(plugin_test_dir):
-    """Test #6 : Test a case with complete roundtrip conversion celcius -> kelvin -> fahrenheit -> celsius"""
+    """Test a case with complete roundtrip conversion celcius -> kelvin -> fahrenheit -> celsius"""
     # open and read source
     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
     src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
@@ -213,13 +213,13 @@ def test_6(plugin_test_dir):
     file_to_compare = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
 
 def test_7(plugin_test_dir):
-    """Test #7 : Test a case for output file mode in standard format"""
+    """Test a case for output file mode in standard format"""
     # open and read source
     source0 = plugin_test_dir + "input_big_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -268,13 +268,13 @@ def test_7(plugin_test_dir):
     file_to_compare = plugin_test_dir + "input_big_fileSrc.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.01)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
 
 def test_8(plugin_test_dir):
-    """Test #8 : Test a case with complete roundtrip conversion celcius -> kelvin -> celsius"""
+    """Test a case with complete roundtrip conversion celcius -> kelvin -> celsius"""
     # open and read source
     source0 = plugin_test_dir + "TTES_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
@@ -308,13 +308,13 @@ def test_8(plugin_test_dir):
     file_to_compare = plugin_test_dir + "TTES_fileSrc.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.01,e_moy=0.001)
+    res = fstcomp(results_file,file_to_compare,e_max=0.01)
     delete_file(results_file)
     assert(res == True)
 
 
 # def test_9(plugin_test_dir):
-#     """Test #9 : Test a case with complete roundtrip conversion celcius -> kelvin -> fahrenheit -> celsius in GeorgeKIndex context"""
+#     """Test a case with complete roundtrip conversion celcius -> kelvin -> fahrenheit -> celsius in GeorgeKIndex context"""
 #     # open and read source
 #     source0 = plugin_test_dir + "TTES_fileSrc.std"
 #     src_df0 = StandardFileReader(source0).to_pandas()
@@ -357,7 +357,7 @@ def test_8(plugin_test_dir):
 
 
 # def test_10(plugin_test_dir):
-#     """Test #10 : Test a case for output file mode in standard format"""
+#     """Test a case for output file mode in standard format"""
 #     # open and read source
 #     source0 = plugin_test_dir + "input_big_fileSrc.std"
 #     src_df0 = StandardFileReader(source0).to_pandas()
@@ -411,7 +411,7 @@ def test_8(plugin_test_dir):
 
 
 def test_12(plugin_test_dir):
-    """Test #12 : Test bad unit"""
+    """Test bad unit"""
     # open and read source
     source0 = plugin_test_dir + "windModulus_file2cmp.std"
     src_df0 = StandardFileReader(source0).to_pandas()

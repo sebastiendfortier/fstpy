@@ -18,7 +18,7 @@ def plugin_test_dir():
 #     pass
 # def test_regtest_1():
     # pass
-#     """Test #1 : Tester l'option --output avec un path qui n'existe pas!"""
+#     """Tester l'option --output avec un path qui n'existe pas!"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -41,7 +41,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_2():
-#     """Test #2 : Tester l'option --output avec un path qui existe mais qui est un nom de fichier!"""
+#     """Tester l'option --output avec un path qui existe mais qui est un nom de fichier!"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -64,7 +64,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_3():
-#     """Test #3 : Tester l'option --output avec un path existant qui est un répertoire mais dont on n'a pas les permissions!"""
+#     """Tester l'option --output avec un path existant qui est un répertoire mais dont on n'a pas les permissions!"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -87,7 +87,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_4():
-#     """Test #4 : Tester l'option --writingMode avec une valeur invalide!"""
+#     """Tester l'option --writingMode avec une valeur invalide!"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -110,7 +110,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_5():
-#     """Test #5 : Tester l'option --writingMode avec la valeur NOPREVIOUS et un fichier de sortie existant. Il doit indiquer que le fichier d'output existe déjà!"""
+#     """Tester l'option --writingMode avec la valeur NOPREVIOUS et un fichier de sortie existant. Il doit indiquer que le fichier d'output existe déjà!"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -133,7 +133,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_6():
-#     """Test #6 : Tester l'option --writingMode avec la valeur NOPREVIOUS et un fichier de sortie inexistant. Aucun message d'erreur doit apparaître, donc tout devra fonctionner normalement!"""
+#     """Tester l'option --writingMode avec la valeur NOPREVIOUS et un fichier de sortie inexistant. Aucun message d'erreur doit apparaître, donc tout devra fonctionner normalement!"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -156,7 +156,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_7():
-#     """Test #7 : Tester l'option --writingMode avec la valeur NEWFILEONLY et un fichier de sortie inexistant. Aucun message d'erreur doit apparaître, donc tout devra fonctionner normalement!"""
+#     """Tester l'option --writingMode avec la valeur NEWFILEONLY et un fichier de sortie inexistant. Aucun message d'erreur doit apparaître, donc tout devra fonctionner normalement!"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -179,7 +179,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_8():
-#     """Test #8 : Tester l'option --writingMode avec la valeur NEWFILEONLY et un fichier de sortie existant. Un message d'avertissement doit apparaître et tout devra fonctionner normalement!"""
+#     """Tester l'option --writingMode avec la valeur NEWFILEONLY et un fichier de sortie existant. Un message d'avertissement doit apparaître et tout devra fonctionner normalement!"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -202,7 +202,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_9():
-#     """Test #9 : Tester la partie pdsLabel de l'etiket. Comme le pdsLabel SHORT a seulement 5 caractèresun caractère _ sera ajouter pour que cette partie soit de longueur 6."""
+#     """Tester la partie pdsLabel de l'etiket. Comme le pdsLabel SHORT a seulement 5 caractèresun caractère _ sera ajouter pour que cette partie soit de longueur 6."""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -225,7 +225,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_10():
-#     """Test #10 : Test que la partie implementation de l'etiket est bien écrit avec la bonne valeur OPERATIONAL = N, PARALLEL = P et EXPERIMENTAL = X"""
+#     """Test que la partie implementation de l'etiket est bien écrit avec la bonne valeur OPERATIONAL = N, PARALLEL = P et EXPERIMENTAL = X"""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -248,7 +248,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_11():
-#     """Test #11 : Test que la partie ensemble member de l'etiket est bien écrit avec la bonne valeur"""
+#     """Test que la partie ensemble member de l'etiket est bien écrit avec la bonne valeur"""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -271,7 +271,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_12():
-#     """Test #12 : Test que la partie run de l'etiket est bien écrit avec la bonne valeur"""
+#     """Test que la partie run de l'etiket est bien écrit avec la bonne valeur"""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -294,7 +294,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_13():
-#     """Test #13 : Test la lecture d'un fichier très simple, 1 grille et 2 champs"""
+#     """Test la lecture d'un fichier très simple, 1 grille et 2 champs"""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -317,7 +317,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_14():
-#     """Test #14 : Test la lecture d'un fichier complexe, plusieurs grilles et plusieurs champs"""
+#     """Test la lecture d'un fichier complexe, plusieurs grilles et plusieurs champs"""
 #     # open and read source
 #     source0 = plugin_test_dir + "input_big_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -340,7 +340,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_15():
-#     """Test #15 : Test la lecture d'un fichier de modèle en pression"""
+#     """Test la lecture d'un fichier de modèle en pression"""
 #     # open and read source
 #     source0 = plugin_test_dir + "input_model"
 #     src_df0 = StandardFileReader(source0)()
@@ -363,7 +363,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_16():
-#     """Test #16 : Test la clé paramétrable --noMetadata. Le fichier résultant devrait contenir seulement les champs de données. Les tictic tactac ne seront pas écrit."""
+#     """Test la clé paramétrable --noMetadata. Le fichier résultant devrait contenir seulement les champs de données. Les tictic tactac ne seront pas écrit."""
 #     # open and read source
 #     source0 = plugin_test_dir + "input_big_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -386,7 +386,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_17():
-#     """Test #17 : Test la clé paramétrable --metadataOnly. Le fichier résultant devrait contenir seulement les champs de metadata"""
+#     """Test la clé paramétrable --metadataOnly. Le fichier résultant devrait contenir seulement les champs de metadata"""
 #     # open and read source
 #     source0 = plugin_test_dir + "input_big_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -409,7 +409,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_18():
-#     """Test #18 : Test la lecture d'un fichier qui contiendrait plusieurs grilles. Le fichier écrit contiendra une seule grille et les champs seront combinés."""
+#     """Test la lecture d'un fichier qui contiendrait plusieurs grilles. Le fichier écrit contiendra une seule grille et les champs seront combinés."""
 #     # open and read source
 #     source0 = plugin_test_dir + "fstdWithDuplicatedGrid_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -432,7 +432,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_19():
-#     """Test #19 : Test la lecture et la réécriture d'un champ(!!) 64 bits"""
+#     """Test la lecture et la réécriture d'un champ(!!) 64 bits"""
 #     # open and read source
 #     source0 = plugin_test_dir + "tt_stg_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -455,7 +455,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_20():
-#     """Test #20 : Tester avec un champ qui a un pdsName plus grand que 4! Un message d'erreur indiquant que le pds n'a pas pu être enregistré car la longueur du _pdsName est trop grande pour les fichiers standards."""
+#     """Tester avec un champ qui a un pdsName plus grand que 4! Un message d'erreur indiquant que le pds n'a pas pu être enregistré car la longueur du _pdsName est trop grande pour les fichiers standards."""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -478,7 +478,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_21():
-#     """Test #21 : Tester avec un champ qui a un pdsName égale à 4! Aucun message d'erreur doit apparaître, donc tout devra fonctionner normalement!"""
+#     """Tester avec un champ qui a un pdsName égale à 4! Aucun message d'erreur doit apparaître, donc tout devra fonctionner normalement!"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -501,7 +501,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_22():
-#     """Test #22 : Tester avec un forecast hour qui devra être arrondit à l'entier supérieur Forecast hour arrondit à l'entier supérieur et fichier écrit sans problème"""
+#     """Tester avec un forecast hour qui devra être arrondit à l'entier supérieur Forecast hour arrondit à l'entier supérieur et fichier écrit sans problème"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -524,7 +524,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_23():
-#     """Test #23 : Tester avec un forecast hour qui devra être arrondit à l'entier inférieur Forecast hour arrondit à l'entier inférieur et fichier écrit sans problème"""
+#     """Tester avec un forecast hour qui devra être arrondit à l'entier inférieur Forecast hour arrondit à l'entier inférieur et fichier écrit sans problème"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -547,7 +547,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_24():
-#     """Test #24 : Test un pds_label plus grand que 6 mais avec implementation = 'EXPERIMENTAL'. Doit passer mais l'étiquette sera tronqué à 6 caractères."""
+#     """Test un pds_label plus grand que 6 mais avec implementation = 'EXPERIMENTAL'. Doit passer mais l'étiquette sera tronqué à 6 caractères."""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -570,7 +570,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_25():
-#     """Test #25 : Test un pds_label plus grand que 6 mais avec implementation = 'OPERATIONAL'. L'écriture ne doit pas fonctionnée."""
+#     """Test un pds_label plus grand que 6 mais avec implementation = 'OPERATIONAL'. L'écriture ne doit pas fonctionnée."""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -593,7 +593,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_26():
-#     """Test #26 : Test un pds_label égale à 6 et implementation = 'OPERATIONAL'. Ce test doit fonctionné."""
+#     """Test un pds_label égale à 6 et implementation = 'OPERATIONAL'. Ce test doit fonctionné."""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -616,7 +616,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_27():
-#     """Test #27 : Test lecture ecriture d'une grille #Ce test doit fonctionné."""
+#     """Test lecture ecriture d'une grille #Ce test doit fonctionné."""
 #     # open and read source
 #     source0 = plugin_test_dir + "dm2011042100-00-00_000_dieses_no_toctoc"
 #     src_df0 = StandardFileReader(source0)()
@@ -639,7 +639,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_28():
-#     """Test #28 : Tester l'option --writingMode avec la valeur APPEND et un fichier de sortie déjà existant. Aucun message d'erreur doit apparaître, le contenue de la mémoire est ajouté au fichier"""
+#     """Tester l'option --writingMode avec la valeur APPEND et un fichier de sortie déjà existant. Aucun message d'erreur doit apparaître, le contenue de la mémoire est ajouté au fichier"""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -662,7 +662,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_29():
-#     """Test #29 : Test que la partie implementation de l'etiket est bien écrit avec la bonne valeur OPERATIONAL = N, PARALLEL = P et EXPERIMENTAL = X et que la run est R1."""
+#     """Test que la partie implementation de l'etiket est bien écrit avec la bonne valeur OPERATIONAL = N, PARALLEL = P et EXPERIMENTAL = X et que la run est R1."""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -685,7 +685,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_30():
-#     """Test #30 : Test que la partie implementation de l'etiket est bien écrit avec la bonne valeur OPERATIONAL = N, PARALLEL = P et EXPERIMENTAL = X et que la run est R1."""
+#     """Test que la partie implementation de l'etiket est bien écrit avec la bonne valeur OPERATIONAL = N, PARALLEL = P et EXPERIMENTAL = X et que la run est R1."""
 #     # open and read source
 #     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -708,7 +708,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_32():
-#     """Test #32 : Teste la lecture suivi de l'écriture avec un fichier qui contient des IP's encodés."""
+#     """Teste la lecture suivi de l'écriture avec un fichier qui contient des IP's encodés."""
 #     # open and read source
 #     source0 = plugin_test_dir + "FichierStandardAvecDifferendKind_file2cmp.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -731,7 +731,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_33():
-#     """Test #33 : Teste la lecture suivi de l'écriture avec un fichier qui contient des IP's encodés mais qui seront pas encodés."""
+#     """Teste la lecture suivi de l'écriture avec un fichier qui contient des IP's encodés mais qui seront pas encodés."""
 #     # open and read source
 #     source0 = plugin_test_dir + "FichierStandardAvecDifferendKind_file2cmp.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -754,7 +754,7 @@ def plugin_test_dir():
 
 
 # def test_regtest_34():
-#     """Test #34 : Teste l'écriture avec noModificationFlag"""
+#     """Teste l'écriture avec noModificationFlag"""
 #     # open and read source
 #     source0 = plugin_test_dir + "FichierStandardAvecDifferendKind_file2cmp.std"
 #     src_df0 = StandardFileReader(source0)()
@@ -774,5 +774,3 @@ def plugin_test_dir():
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
 #     assert(res == True)
-
-
