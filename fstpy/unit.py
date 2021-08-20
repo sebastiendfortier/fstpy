@@ -14,7 +14,7 @@ class kelvin_to_celsius:
       self.bias = bias
    def __call__(self,v):
       return v - self.bias
-      
+
 
 class kelvin_to_fahrenheit:
    def __init__(self, bias,   factor):
@@ -23,7 +23,7 @@ class kelvin_to_fahrenheit:
    def __call__(self,v):
       return (v - 273.15) * 9/5 + 32
       # return v / self.factor - self.bias
-      
+
 
 class kelvin_to_rankine:
    def __init__(self, factor):
@@ -66,7 +66,7 @@ class fahrenheit_to_kelvin:
       return (v - 32) * 5/9 + 273.15
       # return (v +  self.bias) * self.factor
 
-      
+
 
 class fahrenheit_to_celsius:
    def __init__(self, fbias,   ffactor,   cbias):
@@ -78,8 +78,8 @@ class fahrenheit_to_celsius:
       b = fahrenheit_to_kelvin(self.fbias, self.ffactor)
       return (v - 32) * 5/9
       # return a(b(v))
-      
-         
+
+
 class fahrenheit_to_rankine:
    def __init__(self,  bias, factor):
       self.bias=bias
@@ -94,7 +94,7 @@ class rankine_to_kelvin:
       self.factor=factor
    def __call__(self,v):
       return v * self.factor
-         
+
 class rankine_to_celsius:
    def __init__(self,  rfactor,   cbias):
       self.rfactor=rfactor
@@ -130,48 +130,48 @@ def get_temperature_converter(unit_from, unit_to):
    from_name = unit_from.iloc[0]['name']
    to_name = unit_to.iloc[0]['name']
    if (from_name == "kelvin") and (to_name == "celsius"):
-      converter = kelvin_to_celsius(to_bias)            
-      return converter 
+      converter = kelvin_to_celsius(to_bias)
+      return converter
    if (from_name == "kelvin") and (to_name == "fahrenheit"):
-      converter = kelvin_to_fahrenheit(to_bias, to_factor)         
-      return converter 
+      converter = kelvin_to_fahrenheit(to_bias, to_factor)
+      return converter
    if (from_name == "kelvin") and (to_name == "rankine"):
-      converter = kelvin_to_rankine(to_factor)            
-      return converter 
+      converter = kelvin_to_rankine(to_factor)
+      return converter
    if (from_name == "celsius") and (to_name == "kelvin"):
-      converter = celsius_to_kelvin(from_bias)        
-      return converter 
+      converter = celsius_to_kelvin(from_bias)
+      return converter
    if (from_name == "celsius") and (to_name == "fahrenheit"):
-      converter = celsius_to_fahrenheit(from_bias, to_bias, to_factor)    
-      return converter 
+      converter = celsius_to_fahrenheit(from_bias, to_bias, to_factor)
+      return converter
    if (from_name == "celsius") and (to_name == "rankine"):
-      converter = celsius_to_rankine(from_bias, to_factor)       
-      return converter 
+      converter = celsius_to_rankine(from_bias, to_factor)
+      return converter
    if (from_name == "fahrenheit") and (to_name == "kelvin"):
-      converter = fahrenheit_to_kelvin(from_bias, from_factor)     
-      return converter 
+      converter = fahrenheit_to_kelvin(from_bias, from_factor)
+      return converter
    if (from_name == "fahrenheit") and (to_name == "celsius"):
-      converter = fahrenheit_to_celsius(from_bias, from_factor, to_bias)    
-      return converter 
+      converter = fahrenheit_to_celsius(from_bias, from_factor, to_bias)
+      return converter
    if (from_name == "fahrenheit") and (to_name == "rankine"):
-      converter = fahrenheit_to_rankine(from_bias, from_factor)    
-      return converter 
+      converter = fahrenheit_to_rankine(from_bias, from_factor)
+      return converter
    if (from_name == "rankine")    and (to_name == "kelvin"):
-      converter = rankine_to_kelvin(from_factor)        
-      return converter 
+      converter = rankine_to_kelvin(from_factor)
+      return converter
    if (from_name == "rankine")    and (to_name == "celsius"):
-      converter = rankine_to_celsius(from_factor, to_bias)       
-      return converter 
+      converter = rankine_to_celsius(from_factor, to_bias)
+      return converter
    if (from_name == "rankine")    and (to_name == "fahrenheit"):
-      converter = rankine_to_fahrenheit(from_factor, to_bias, to_factor)    
-      return converter 
+      converter = rankine_to_fahrenheit(from_factor, to_bias, to_factor)
+      return converter
    return None
 
 def get_converter(unit_from:str, unit_to:str, std:bool=False):
-   """Based on unit names contained in fstpy.UNITS database (dataframe), 
-   attemps to provide the appropriate unit conversion function 
+   """Based on unit names contained in fstpy.UNITS database (dataframe),
+   attemps to provide the appropriate unit conversion function
    based on unit name and family. The returned function takes a value
-   and returns a value value_to = f(value_from). 
+   and returns a value value_to = f(value_from).
 
    :param unit_from: unit name to convert from
    :type unit_from: str
@@ -201,11 +201,11 @@ def get_converter(unit_from:str, unit_to:str, std:bool=False):
    else:
       converter = factor_conversion(from_factor,to_factor)
 
-   return converter   
+   return converter
 
 def unit_convert_array(arr, from_unit_name,to_unit_name='scalar') -> np.ndarray:
-   """Converts the data to the specified unit provided in the to_unit_name parameter. 
-   
+   """Converts the data to the specified unit provided in the to_unit_name parameter.
+
    :param arr: array to be converted
    :type df: np.ndarray
    :param from_unit_name: unit name to convert from
@@ -227,12 +227,12 @@ def unit_convert_array(arr, from_unit_name,to_unit_name='scalar') -> np.ndarray:
          converted_arr = converter(arr)
       else:
          converted_arr = arr
-       
+
    return converted_arr
 
 def unit_convert(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False) -> pd.DataFrame:
    """Converts the data portion 'd' of all the records of a dataframe to the specified unit
-   provided in the to_unit_name parameter. If the standard_unit flag is True, the to_unit_name 
+   provided in the to_unit_name parameter. If the standard_unit flag is True, the to_unit_name
    will be ignored and the unit will be based on the standard file variable dictionnary unit
    value instead. This ensures that if a unit conversion was done, the varaible will return
    to the proper standard file unit value. ex. : TT should be in celsius. o.dict can be consulted
@@ -265,14 +265,17 @@ def unit_convert(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False) -> 
             to_unit_name,_ = get_unit_and_description(df.at[i,'nomvar'])
             unit_to = get_unit_by_name(to_unit_name)
             converter = get_converter(unit_from, unit_to, True)
-         else:   
+         else:
             converter = get_converter(unit_from, unit_to)
-         
+
          if not(converter is None):
             converted_arr = converter(df.at[i,'d'])
             df.at[i,'d'] = converted_arr
             df.at[i,'unit'] = to_unit_name
             df.at[i,'unit_converted'] = True
             df.at[i,'key'] = None
-         
+   if 'level'not in df.columns:
+      df = fstpy.add_composite_columns(df,True,'numpy', attributes_to_decode=['ip_info'])
+   df = df.sort_values(by=['level']).reset_index(drop=True)
+
    return df
