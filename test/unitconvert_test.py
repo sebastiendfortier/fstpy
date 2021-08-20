@@ -52,7 +52,7 @@ def test_1(plugin_test_dir):
     file_to_compare = plugin_test_dir + "unitConvertUVInKmhExtended_file2cmp.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
@@ -80,7 +80,7 @@ def test_2(plugin_test_dir):
     file_to_compare = plugin_test_dir + "windModulus_file2cmp.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     # delete_file(results_file)
     assert(res == True)
 
@@ -110,7 +110,7 @@ def test_3(plugin_test_dir):
     file_to_compare = plugin_test_dir + "windModulusExtended_file2cmp.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
@@ -140,7 +140,7 @@ def test_4(plugin_test_dir):
     file_to_compare = plugin_test_dir + "unitConvertUVInKmh_file2cmp.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
@@ -168,7 +168,7 @@ def test_5(plugin_test_dir):
     file_to_compare = plugin_test_dir + "unitConvertUVInKmh3D_file2cmp.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
@@ -213,7 +213,7 @@ def test_6(plugin_test_dir):
     file_to_compare = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.1)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
@@ -268,7 +268,7 @@ def test_7(plugin_test_dir):
     file_to_compare = plugin_test_dir + "input_big_fileSrc.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.1,e_moy=0.01)
+    res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
     assert(res == True)
 
@@ -308,7 +308,7 @@ def test_8(plugin_test_dir):
     file_to_compare = plugin_test_dir + "TTES_fileSrc.std"
 
     #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.01,e_moy=0.001)
+    res = fstcomp(results_file,file_to_compare,e_max=0.01)
     delete_file(results_file)
     assert(res == True)
 

@@ -5,7 +5,7 @@ import pandas as pd
 from fstpy import get_unit_by_name
 from fstpy.std_dec import get_unit_and_description
 
-from .dataframe import add_unit_and_description_columns
+from .dataframe import add_composite_columns, add_unit_and_description_columns
 from .exceptions import UnitConversionError
 from .std_reader import load_data
 
@@ -274,8 +274,9 @@ def unit_convert(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False) -> 
             df.at[i,'unit'] = to_unit_name
             df.at[i,'unit_converted'] = True
             df.at[i,'key'] = None
+
    if 'level'not in df.columns:
-      df = fstpy.add_composite_columns(df,True,'numpy', attributes_to_decode=['ip_info'])
+      df = add_composite_columns(df,True,'numpy', attributes_to_decode=['ip_info'])
    df = df.sort_values(by=['level']).reset_index(drop=True)
 
    return df
