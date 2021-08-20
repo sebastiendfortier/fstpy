@@ -251,6 +251,10 @@ def add_ip_info_columns(df:pd.DataFrame) -> pd.DataFrame:
     return df
 
 def add_composite_columns(df,decode,array_container, attributes_to_decode=['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']):
+    attrs = ['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']
+    for attr in attributes_to_decode:
+        if attr not in attrs:
+            sys.stderr.write(f'{attr} not found in {attrs}\n')
 
     df = add_data_column(df,array_container)
     # df = add_grid_column(df)
