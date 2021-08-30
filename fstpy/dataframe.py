@@ -50,7 +50,7 @@ def add_flag_values(df:pd.DataFrame) -> pd.DataFrame:
     """
     # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
     vparse_typvar = np.vectorize(parse_typvar,otypes=['bool','bool','bool','bool','bool','bool','bool','bool'])
-    df.loc[:,'multiple_modifications'],df.loc[:,'zapped'],df.loc[:,'filtered'],df.loc[:,'interpolated'],df.loc[:,'unit_converted'],df.loc[:,'bounded'],df.loc[:,'missing_data'],df.loc[:,'ensemble_extra_info'] = vparse_typvar(df['typvar'])
+    df.loc[:,'multiple_modifications'],df.loc[:,'zapped'],df.loc[:,'filtered'],df.loc[:,'interpolated'],df.loc[:,'unit_converted'],df.loc[:,'bounded'],df.loc[:,'missing_data'],df.loc[:,'ensemble_extra_info'] = vparse_typvar(df['typvar'].values)
     return df
 
 
@@ -104,7 +104,7 @@ def add_shape_column(df):
     if 'shape' in df.columns:
         return df
     vmake_shape = np.vectorize(get_shape,otypes=['object'])
-    df.loc[:,'shape'] = vmake_shape(df['ni'],df['nj'])
+    df.loc[:,'shape'] = vmake_shape(df['ni'].values,df['nj'].values)
     return df
 
 
@@ -127,7 +127,7 @@ def add_parsed_etiket_columns(df:pd.DataFrame) ->pd.DataFrame:
     """
     # df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = get_parsed_etiket(df.at[i,'etiket'])
     vparse_etiket = np.vectorize(get_parsed_etiket,otypes=['str','str','str','str'])
-    df.loc[:,'label'],df.loc[:,'run'],df.loc[:,'implementation'],df.loc[:,'ensemble_member'] = vparse_etiket(df['etiket'])
+    df.loc[:,'label'],df.loc[:,'run'],df.loc[:,'implementation'],df.loc[:,'ensemble_member'] = vparse_etiket(df['etiket'].values)
     return df
 
 def add_unit_and_description_columns(df:pd.DataFrame) ->pd.DataFrame:
@@ -150,7 +150,7 @@ def add_unit_and_description_columns(df:pd.DataFrame) ->pd.DataFrame:
     return df
 
 def assign_unit_and_description(vget_unit_and_description, df):
-    df.loc[:,'unit'],df.loc[:,'description'] = vget_unit_and_description(df['nomvar'])
+    df.loc[:,'unit'],df.loc[:,'description'] = vget_unit_and_description(df['nomvar'].values)
 
 # def add_flags_columns(df:pd.DataFrame) ->pd.DataFrame:
 #     df.loc[:,'unit_converted'] = False
@@ -175,9 +175,9 @@ def add_decoded_date_column(df:pd.DataFrame,attr:str='dateo') ->pd.DataFrame:
     """
     vconvert_rmndate_to_datetime = np.vectorize(convert_rmndate_to_datetime)#,otypes=['datetime64']
     if attr == 'dateo':
-        df.loc[:,'date_of_observation'] = vconvert_rmndate_to_datetime(df['dateo'])
+        df.loc[:,'date_of_observation'] = vconvert_rmndate_to_datetime(df['dateo'].values)
     else:
-        df.loc[:,'date_of_validity'] = vconvert_rmndate_to_datetime(df['datev'])
+        df.loc[:,'date_of_validity'] = vconvert_rmndate_to_datetime(df['datev'].values)
     return df
 
 
@@ -192,7 +192,7 @@ def add_forecast_hour_column(df:pd.DataFrame) -> pd.DataFrame:
     from .std_dec import get_forecast_hour
     # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
     vcreate_forecast_hour = np.vectorize(get_forecast_hour)#,otypes=['timedelta64[ns]']
-    df.loc[:,'forecast_hour'] = vcreate_forecast_hour(df['deet'],df['npas'])
+    df.loc[:,'forecast_hour'] = vcreate_forecast_hour(df['deet'].values, df['npas'].values)
     return df
 
 
@@ -233,7 +233,7 @@ def add_data_type_str_column(df:pd.DataFrame) -> pd.DataFrame:
     """
     from .std_dec import get_data_type_str
     vcreate_data_type_str = np.vectorize(get_data_type_str,otypes=['str'])
-    df.loc[:,'data_type_str'] = vcreate_data_type_str(df['datyp'])
+    df.loc[:,'data_type_str'] = vcreate_data_type_str(df['datyp'].values)
     return df
 
 
@@ -247,7 +247,7 @@ def add_ip_info_columns(df:pd.DataFrame) -> pd.DataFrame:
     """
     from .std_dec import get_ip_info
     vcreate_ip_info = np.vectorize(get_ip_info,otypes=['float32','int32','str','float32','int32','str','float32','int32','str','bool','bool','bool','object'])
-    df.loc[:,'level'],df.loc[:,'ip1_kind'],df.loc[:,'ip1_pkind'],df.loc[:,'ip2_dec'],df.loc[:,'ip2_kind'],df.loc[:,'ip2_pkind'],df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'],df.loc[:,'surface'],df.loc[:,'follow_topography'],df.loc[:,'ascending'],df.loc[:,'interval'] = vcreate_ip_info(df['ip1'],df['ip2'],df['ip3'])
+    df.loc[:,'level'],df.loc[:,'ip1_kind'],df.loc[:,'ip1_pkind'],df.loc[:,'ip2_dec'],df.loc[:,'ip2_kind'],df.loc[:,'ip2_pkind'],df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'],df.loc[:,'surface'],df.loc[:,'follow_topography'],df.loc[:,'ascending'],df.loc[:,'interval'] = vcreate_ip_info(df['ip1'].values,df['ip2'].values,df['ip3'].values)
     return df
 
 def add_composite_columns(df,decode,array_container, attributes_to_decode=['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']):

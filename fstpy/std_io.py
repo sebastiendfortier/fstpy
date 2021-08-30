@@ -39,7 +39,7 @@ def parallel_get_dataframe_from_file(files, get_records_func, n_cores):
 
 def add_grid_column(df):
     vcreate_grid_identifier = np.vectorize(get_grid_identifier,otypes=['str'])
-    df['grid'] = vcreate_grid_identifier(df['nomvar'],df['ip1'],df['ip2'],df['ig1'],df['ig2'])
+    df.loc[:,'grid'] = vcreate_grid_identifier(df['nomvar'].values,df['ip1'].values,df['ip2'].values,df['ig1'].values,df['ig2'].values)
     return df
 
 def get_dataframe_from_file(file: str, query: str, array_container: str = None):
@@ -128,7 +128,7 @@ def _fstluk_dask(key):
 
 def add_numpy_data_column(df):
     vfstluk = np.vectorize(_fstluk,otypes='O')
-    df.loc[:,'d'] = vfstluk(df['key'])
+    df.loc[:,'d'] = vfstluk(df['key'].values)
     # print(df[['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'key']])
     # df.loc[:,'d'] = None
     # print('dtype:\n',df['d'].dtype)
@@ -145,7 +145,7 @@ def add_numpy_data_column(df):
 
 def add_dask_data_column(df):
     vfstluk = np.vectorize(_fstluk_dask,otypes='O')
-    df.loc[:,'d'] = vfstluk(df['key'])
+    df.loc[:,'d'] = vfstluk(df['key'].values)
     return df
 
 def get_dataframe_from_file_and_load(file:str,query:str,array_container:str):
