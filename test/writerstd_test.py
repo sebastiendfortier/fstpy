@@ -37,7 +37,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == False)
+#     assert(res)
 
 
 # def test_regtest_2():
@@ -60,7 +60,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == False)
+#     assert(res)
 
 
 # def test_regtest_3():
@@ -83,7 +83,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == False)
+#     assert(res)
 
 
 # def test_regtest_4():
@@ -106,7 +106,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == False)
+#     assert(res)
 
 
 # def test_regtest_5():
@@ -129,7 +129,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == False)
+#     assert(res)
 
 
 # def test_regtest_6():
@@ -152,7 +152,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_7():
@@ -175,7 +175,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_8():
@@ -198,7 +198,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_9():
@@ -221,7 +221,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_10():
@@ -244,7 +244,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_11():
@@ -267,7 +267,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_12():
@@ -290,7 +290,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_13():
@@ -313,7 +313,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_14():
@@ -336,7 +336,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_15():
@@ -359,7 +359,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_16():
@@ -382,7 +382,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_17():
@@ -405,7 +405,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_18():
@@ -428,7 +428,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_19():
@@ -451,7 +451,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_20():
@@ -474,7 +474,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == False)
+#     assert(res)
 
 
 # def test_regtest_21():
@@ -497,7 +497,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_22():
@@ -520,7 +520,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == False)
+#     assert(res)
 
 
 # def test_regtest_23():
@@ -543,7 +543,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == False)
+#     assert(res)
 
 
 # def test_regtest_24():
@@ -566,7 +566,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_25():
@@ -589,7 +589,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == False)
+#     assert(res)
 
 
 # def test_regtest_26():
@@ -612,7 +612,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_27():
@@ -635,7 +635,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_28():
@@ -658,7 +658,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_29():
@@ -681,7 +681,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_30():
@@ -704,7 +704,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_32():
@@ -727,7 +727,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_33():
@@ -750,7 +750,7 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_regtest_34():
@@ -773,4 +773,4 @@ def plugin_test_dir():
 
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
-#     assert(res == True)
+#     assert(res)

@@ -144,7 +144,7 @@ def voir(df:pd.DataFrame,style=False):
     #     df.at[i,'level']=res.loc[i][0]
     #     df.at[i,' '] = res.loc[i][2]
 
-    res_df = to_print_df.sort_values(by=['nomvar','level'],ascending=True)
+    res_df = to_print_df.sort_values(by=['nomvar','level'],ascending=[True,False])
 
     if style:
         res_df = res_df.drop(columns=['dateo','grid','run','implementation','ensemble_member','shape','key','d','path','file_modification_time','ip1_kind','ip2_dec','ip2_kind','ip2_pkind','ip3_dec','ip3_kind','ip3_pkind','date_of_observation','date_of_validity','forecast_hour','d','surface','follow_topography','ascending','interval'],errors='ignore')
@@ -229,7 +229,7 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     #     df.at[i,'level']=res.loc[i][0]
     #     df.at[i,' '] = res.loc[i][2]
 
-    df.sort_values(by=['nomvar','level'],ascending=True,inplace=True)
+    df.sort_values(by=['nomvar','level'],ascending=[True,False],inplace=True)
 
     # if 'level' in df.columns:
     print(df[['nomvar','typvar','level',' ','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
@@ -980,16 +980,24 @@ def get_hy_field(df:pd.DataFrame,hybrid_ips:list):
 def get_grid_deformation_fileds(df:pd.DataFrame,no_meta_df:pd.DataFrame):
     grid_deformation_fields_df = pd.DataFrame(dtype=object)
 
-    groups = no_meta_df.groupby(['grid','deet','npas'])
+    groups = no_meta_df.groupby(['grid','dateo','deet','npas'])
 
     df_list = []
     hasDate = False
     for _,group in groups:
         grid = group.grid.unique()[0]
+        dateo = group.dateo.unique()[0]
+        lat_df = df.loc[(df.nomvar=="^^") & (df.grid==grid) & (df.dateo==dateo)]
+        if lat_df.empty:
+            lat_df = df.loc[(df.nomvar=="^^") & (df.grid==grid)]
 
-        lat_df = df.loc[(df.nomvar=="^^") & (df.grid==grid)]
-        lon_df = df.loc[(df.nomvar==">>") & (df.grid==grid)]
-        tictac_df = df.loc[(df.nomvar=="^>") & (df.grid==grid)]
+        lon_df = df.loc[(df.nomvar==">>") & (df.grid==grid) & (df.dateo==dateo)]
+        if lon_df.empty:
+            lon_df = df.loc[(df.nomvar==">>") & (df.grid==grid)]
+
+        tictac_df = df.loc[(df.nomvar=="^>") & (df.grid==grid) & (df.dateo==dateo)]
+        if tictac_df.empty:
+            tictac_df = df.loc[(df.nomvar=="^>") & (df.grid==grid)]
 
         if not lat_df.empty:
             hasDate = ((lat_df.deet.unique()[0]!=0))

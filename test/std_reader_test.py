@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from pandas.core.dtypes.missing import isnull
+from fstpy.dataframe import sort_dataframe
 import pytest
 from fstpy.std_reader import *
-import pandas as pd
 from test import TEST_PATH
 
 pytestmark = [pytest.mark.std_reader, pytest.mark.unit_tests]

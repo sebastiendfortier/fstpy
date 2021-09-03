@@ -54,7 +54,7 @@ def test_1(plugin_test_dir):
     #compare results
     res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
-    assert(res == True)
+    assert(res)
 
 
 def test_2(plugin_test_dir):
@@ -82,7 +82,7 @@ def test_2(plugin_test_dir):
     #compare results
     res = fstcomp(results_file,file_to_compare,e_max=0.1)
     # delete_file(results_file)
-    assert(res == True)
+    assert(res)
 
 
 def test_3(plugin_test_dir):
@@ -112,7 +112,7 @@ def test_3(plugin_test_dir):
     #compare results
     res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
-    assert(res == True)
+    assert(res)
 
 
 def test_4(plugin_test_dir):
@@ -142,7 +142,7 @@ def test_4(plugin_test_dir):
     #compare results
     res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
-    assert(res == True)
+    assert(res)
 
 
 def test_5(plugin_test_dir):
@@ -170,7 +170,7 @@ def test_5(plugin_test_dir):
     #compare results
     res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
-    assert(res == True)
+    assert(res)
 
 
 def test_6(plugin_test_dir):
@@ -215,7 +215,7 @@ def test_6(plugin_test_dir):
     #compare results
     res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
-    assert(res == True)
+    assert(res)
 
 
 def test_7(plugin_test_dir):
@@ -270,7 +270,7 @@ def test_7(plugin_test_dir):
     #compare results
     res = fstcomp(results_file,file_to_compare,e_max=0.1)
     delete_file(results_file)
-    assert(res == True)
+    assert(res)
 
 
 def test_8(plugin_test_dir):
@@ -310,7 +310,7 @@ def test_8(plugin_test_dir):
     #compare results
     res = fstcomp(results_file,file_to_compare,e_max=0.01)
     delete_file(results_file)
-    assert(res == True)
+    assert(res)
 
 
 # def test_9(plugin_test_dir):
@@ -353,7 +353,7 @@ def test_8(plugin_test_dir):
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
 #     delete_file(results_file)
-#     assert(res == True)
+#     assert(res)
 
 
 # def test_10(plugin_test_dir):
@@ -407,7 +407,7 @@ def test_8(plugin_test_dir):
 #     #compare results
 #     res = fstcomp(results_file,file_to_compare)
 #     delete_file(results_file)
-#     assert(res == True)
+#     assert(res)
 
 
 def test_12(plugin_test_dir):

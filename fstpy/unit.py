@@ -5,7 +5,7 @@ import pandas as pd
 from fstpy import get_unit_by_name
 from fstpy.std_dec import get_unit_and_description
 
-from .dataframe import add_composite_columns, add_unit_and_description_columns
+from .dataframe import add_columns, add_unit_and_description_columns
 from .exceptions import UnitConversionError
 from .std_reader import load_data
 
@@ -216,7 +216,7 @@ def unit_convert_array(arr, from_unit_name,to_unit_name='scalar') -> np.ndarray:
    :rtype: np.ndarray
    """
    unit_to = get_unit_by_name(to_unit_name)
-
+   res_arr = np.copy(arr)
    if (from_unit_name == to_unit_name) or (from_unit_name == 'scalar') or (to_unit_name == 'scalar'):
       return arr
    else:
@@ -224,7 +224,7 @@ def unit_convert_array(arr, from_unit_name,to_unit_name='scalar') -> np.ndarray:
       converter = get_converter(unit_from, unit_to)
 
       if not(converter is None):
-         converted_arr = converter(arr)
+         converted_arr = converter(res_arr)
       else:
          converted_arr = arr
 
@@ -250,11 +250,11 @@ def unit_convert(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False) -> 
    df = load_data(df)
 
    df = add_unit_and_description_columns(df)
-
+   res_df = df.copy(deep=True)
    unit_to = get_unit_by_name(to_unit_name)
 
-   for i in df.index:
-      current_unit = df.at[i,'unit']
+   for i in res_df.index:
+      current_unit = res_df.at[i,'unit']
       if (current_unit == to_unit_name):
          continue
       elif (not standard_unit) and ((current_unit == 'scalar') or (to_unit_name == 'scalar')):
@@ -262,21 +262,23 @@ def unit_convert(df:pd.DataFrame, to_unit_name='scalar',standard_unit=False) -> 
       else:
          unit_from = get_unit_by_name(current_unit)
          if standard_unit:
-            to_unit_name,_ = get_unit_and_description(df.at[i,'nomvar'])
+            to_unit_name,_ = get_unit_and_description(res_df.at[i,'nomvar'])
             unit_to = get_unit_by_name(to_unit_name)
             converter = get_converter(unit_from, unit_to, True)
          else:
             converter = get_converter(unit_from, unit_to)
 
          if not(converter is None):
-            converted_arr = converter(df.at[i,'d'])
-            df.at[i,'d'] = converted_arr
-            df.at[i,'unit'] = to_unit_name
-            df.at[i,'unit_converted'] = True
-            df.at[i,'key'] = None
+            converted_arr = converter(res_df.at[i,'d'])
+            res_df.at[i,'d'] = converted_arr
+            res_df.at[i,'unit'] = to_unit_name
+            res_df.at[i,'unit_converted'] = True
+            res_df.at[i,'key'] = None
 
-   if 'level'not in df.columns:
-      df = add_composite_columns(df,True,'numpy', attributes_to_decode=['ip_info'])
-   df = df.sort_values(by=['level']).reset_index(drop=True)
+   if not standard_unit:
+      if 'level'not in res_df.columns:
+         res_df = add_columns(res_df, True, columns=['ip_info'])
 
-   return df
+      res_df = res_df.sort_values(by='level',ascending=res_df.ascending.unique()[0]).reset_index(drop=True)
+
+   return res_df

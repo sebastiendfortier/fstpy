@@ -3,6 +3,7 @@ import concurrent.futures
 
 import numpy as np
 import pandas as pd
+import sys
 
 from .std_dec import (convert_rmndate_to_datetime,
                       get_parsed_etiket, get_unit_and_description)
@@ -54,22 +55,19 @@ def add_flag_values(df:pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool,array_container:str='numpy') -> pd.DataFrame:
+def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool=True) -> pd.DataFrame:
     """Adds basic and decoded columns to the dataframe.
 
     :param df: input dataframe
     :type df: pd.DataFrame
-    :param decode_metadata: if true, decodes attributes specified in attributes_to_decode list
+    :param decode_metadata: if true, decodes extra columns
     :type decode_metadata: bool
-    :param array_container: array container, defaults to 'numpy'
-    :type array_container: str, optional
-    :type attributes_to_decode: list, optional
     :return: dataframe with decoded columns
     :rtype: pd.DataFrame
     """
     df = post_process_dataframe(df)
 
-    df = add_composite_columns(df,decode_metadata,array_container)
+    df = add_columns(df,decode_metadata)
     # df = parallel_add_composite_columns_tr(df,decode_metadata,array_container,attributes_to_decode,n_cores=min(mp.cpu_count(),len(df.index),1))
 
     return df
@@ -90,11 +88,11 @@ def clean_dataframe(df):
     return df
 
 
-def get_data_holder(d,key:int,array_container:str):
-    # import dask.array as da
-    if not (isinstance(d,np.ndarray)):# or (isinstance(d,da.core.Array))):
-        d = (array_container,int(key))
-    return d
+# def get_data_holder(d):
+#     # import dask.array as da
+#     if not (isinstance(d,np.ndarray)):# or (isinstance(d,da.core.Array))):
+#         d = None
+#     return d
 
 def get_shape(ni,nj):
     return (ni,nj)
@@ -108,12 +106,13 @@ def add_shape_column(df):
     return df
 
 
-def add_data_column(df,array_container):
+def add_data_column(df):
     if 'd' in df.columns:
         return df
-    vcreate_data = np.vectorize(get_data_holder,otypes=['object'])
     df.loc[:,'d']=None
-    df.loc[:,'d'] = vcreate_data(df['d'],df['key'],array_container)
+    # vcreate_data = np.vectorize(get_data_holder,otypes=['object'])
+    # df.loc[:,'d']=None
+    # df.loc[:,'d'] = vcreate_data(df['d'],df['key'],array_container)
     return df
 
 
@@ -250,45 +249,44 @@ def add_ip_info_columns(df:pd.DataFrame) -> pd.DataFrame:
     df.loc[:,'level'],df.loc[:,'ip1_kind'],df.loc[:,'ip1_pkind'],df.loc[:,'ip2_dec'],df.loc[:,'ip2_kind'],df.loc[:,'ip2_pkind'],df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'],df.loc[:,'surface'],df.loc[:,'follow_topography'],df.loc[:,'ascending'],df.loc[:,'interval'] = vcreate_ip_info(df['ip1'].values,df['ip2'].values,df['ip3'].values)
     return df
 
-def add_composite_columns(df,decode,array_container, attributes_to_decode=['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']):
-    attrs = ['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']
-    for attr in attributes_to_decode:
-        if attr not in attrs:
-            sys.stderr.write(f'{attr} not found in {attrs}\n')
+def add_columns(df, decode, columns=['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']):
+    cols = ['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']
+    for col in columns:
+        if col not in cols:
+            sys.stderr.write(f'{col} not found in {cols}\n')
 
-    df = add_data_column(df,array_container)
-    # df = add_grid_column(df)
+    df = add_data_column(df)
     df = add_shape_column(df)
 
     if decode:
-        if 'etiket' in attributes_to_decode:
+        if 'etiket' in columns:
             df = add_parsed_etiket_columns(df)
 
-        if 'unit' in attributes_to_decode:
+        if 'unit' in columns:
             df = add_unit_and_description_columns(df)
 
-        if 'dateo' in attributes_to_decode:
+        if 'dateo' in columns:
             df = add_decoded_date_column(df,'dateo')
 
-        if 'datev' in attributes_to_decode:
+        if 'datev' in columns:
             df = add_decoded_date_column(df,'datev')
 
-        if 'forecast_hour' in attributes_to_decode:
+        if 'forecast_hour' in columns:
             df = add_forecast_hour_column(df)
 
-        if 'datyp' in attributes_to_decode:
+        if 'datyp' in columns:
             df = add_data_type_str_column(df)
 
-        if ('ip_info' in  attributes_to_decode):
+        if ('ip_info' in  columns):
             df = add_ip_info_columns(df)
 
-        if 'flags' in attributes_to_decode:
+        if 'flags' in columns:
             # df = add_flags_columns(df)
             df = add_flag_values(df)
 
 
 
-    if decode and ('ip_info' in attributes_to_decode):
+    if decode and ('ip_info' in columns):
         df = set_vertical_coordinate_type(df)
     return df
 
@@ -321,7 +319,7 @@ def post_process_dataframe(df):
 
     return df
 
-# def convert_df_dtypes(df,decoded,attributes_to_decode=['ip1','ip2','ip3']):
+# def convert_df_dtypes(df,decoded,columns=['ip1','ip2','ip3']):
 #     if not df.empty:
 #         if decoded:
 #             if ('ip1' in attributes_to_decode) and ('level' in df.columns) and ('ip1_kind' in df.columns):
@@ -477,13 +475,13 @@ def remove_from_df(df_to_remove_from:pd.DataFrame, df_to_remove:pd.DataFrame) ->
 #         return pd.DataFrame(dtype='object')
 #     return query_res
 
-def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attributes_to_decode,n_cores):
+def parallel_add_composite_columns_tr(df, decode_metadata, attributes_to_decode,n_cores):
     dataframes = []
     df_split = np.array_split(df, n_cores)
     with concurrent.futures.ThreadPoolExecutor(max_workers=n_cores) as executor:
         # Start the load operations and mark each future with its URL
         #df,decode,array_container
-        future_to_df = {executor.submit(add_composite_columns, dfp, decode_metadata, array_container, attributes_to_decode): dfp for dfp in df_split}
+        future_to_df = {executor.submit(add_columns, dfp, decode_metadata, attributes_to_decode): dfp for dfp in df_split}
         for future in concurrent.futures.as_completed(future_to_df):
             dfp = future_to_df[future]
             try:
@@ -497,11 +495,11 @@ def parallel_add_composite_columns_tr(df, decode_metadata, array_container, attr
     df = sort_dataframe(df)
     return df
 
-# def parallel_add_composite_columns(df, decode_metadata, array_container, n_cores):
+# def parallel_add_columns(df, decode_metadata, array_container, n_cores):
 #     df_split = np.array_split(df, n_cores)
 #     df_with_params = list(zip(df_split,itertools.repeat(decode_metadata),itertools.repeat(array_container)))
 #     pool = mp.Pool(n_cores)
-#     df = pd.concat(pool.starmap(add_composite_columns, df_with_params))
+#     df = pd.concat(pool.starmap(add_columns, df_with_params))
 #     pool.close()
 #     pool.join()
 #     return df
