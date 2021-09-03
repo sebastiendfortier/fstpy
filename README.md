@@ -43,7 +43,7 @@ a great variety of built-in plotting functions.
 
 Use the ssm package
 
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.5/
+    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.6/
 
 Use the git repository package: at your own risk ;)
 
@@ -57,7 +57,7 @@ Use the git repository package: at your own risk ;)
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.5/
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.6/
 ```
 
 ### Use pre-build developpement environment
@@ -75,7 +75,7 @@ ln -s ~sgci800/.conda/envs/fstpy_full
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.5/
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.6/
 ```
 
 ### Use fstpy
@@ -185,6 +185,13 @@ cd doc
 make clean    
 make doc
 ```
+
+# Creating the ssm package
+
+From $PROJECT<sub>ROOT</sub>
+
+    cd misc/ssm
+    ./make_package.ssh
 
 # Acknowledgements
 
