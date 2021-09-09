@@ -249,7 +249,18 @@ def add_ip_info_columns(df:pd.DataFrame) -> pd.DataFrame:
     df.loc[:,'level'],df.loc[:,'ip1_kind'],df.loc[:,'ip1_pkind'],df.loc[:,'ip2_dec'],df.loc[:,'ip2_kind'],df.loc[:,'ip2_pkind'],df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'],df.loc[:,'surface'],df.loc[:,'follow_topography'],df.loc[:,'ascending'],df.loc[:,'interval'] = vcreate_ip_info(df['ip1'].values,df['ip2'].values,df['ip3'].values)
     return df
 
-def add_columns(df, decode, columns=['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']):
+def add_columns(df:pd.DataFrame, decode:bool, columns:'list[str]'=['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']) -> pd.DataFrame:
+    """If not already present, adds the data('d') and shape columns to a dataframe. If decode is True and valid columns are provided, they will be added.
+
+    :param df: dataframe to modify (meta data needs to be present in dataframe)
+    :type df: pd.DataFrame
+    :param decode: if decode is True, add the specified columns
+    :type decode: bool
+    :param columns: [description], defaults to ['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']
+    :type columns: list[str], optional
+    :return: dataframe with coluns added
+    :rtype: pd.DataFrame
+    """
     cols = ['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']
     for col in columns:
         if col not in cols:
@@ -285,9 +296,9 @@ def add_columns(df, decode, columns=['flags','etiket','unit','dateo','datev','fo
             df = add_flag_values(df)
 
 
-
     if decode and ('ip_info' in columns):
         df = set_vertical_coordinate_type(df)
+
     return df
 
 # def add_unit_column(df):
