@@ -39,10 +39,10 @@ def parallel_get_dataframe_from_file(files, get_records_func, n_cores):
 
 def add_grid_column(df):
     vcreate_grid_identifier = np.vectorize(get_grid_identifier,otypes=['str'])
-    df['grid'] = vcreate_grid_identifier(df['nomvar'],df['ip1'],df['ip2'],df['ig1'],df['ig2'])
+    df.loc[:,'grid'] = vcreate_grid_identifier(df['nomvar'].values,df['ip1'].values,df['ip2'].values,df['ig1'].values,df['ig2'].values)
     return df
 
-def get_dataframe_from_file(file: str, query: str, array_container: str = None):
+def get_dataframe_from_file(file: str, query: str):
     records = get_header(file)
 
     df = pd.DataFrame(records)
@@ -128,7 +128,7 @@ def _fstluk_dask(key):
 
 def add_numpy_data_column(df):
     vfstluk = np.vectorize(_fstluk,otypes='O')
-    df.loc[:,'d'] = vfstluk(df['key'])
+    df.loc[:,'d'] = vfstluk(df['key'].values)
     # print(df[['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'key']])
     # df.loc[:,'d'] = None
     # print('dtype:\n',df['d'].dtype)
@@ -145,17 +145,13 @@ def add_numpy_data_column(df):
 
 def add_dask_data_column(df):
     vfstluk = np.vectorize(_fstluk_dask,otypes='O')
-    df.loc[:,'d'] = vfstluk(df['key'])
+    df.loc[:,'d'] = vfstluk(df['key'].values)
     return df
 
-def get_dataframe_from_file_and_load(file:str,query:str,array_container:str):
-    df = get_dataframe_from_file(file,query,None)
+def get_dataframe_from_file_and_load(file:str,query:str):
+    df = get_dataframe_from_file(file,query)
     unit=rmn.fstopenall(file,rmn.FST_RO)
-    if array_container in ['numpy','dask.array']:
-        if array_container == 'numpy':
-            df = add_numpy_data_column(df)
-        else:
-            df = add_dask_data_column(df)
+    df = add_numpy_data_column(df)
     # df['d'] = None
     # for i in df.index:
     #     df.at[i,'d'] = rmn.fstluk(int(df.at[i,'key']))['d']
@@ -190,11 +186,8 @@ def get_file_modification_time(path:str,mode:str,caller_class,exception_class):
 
     return file_modification_time
 
-def read_record(array_container,key):
-    if array_container == 'dask.array':
-        return da.from_array(rmn.fstluk(key)['d'])
-    elif array_container == 'numpy':
-        return rmn.fstluk(key)['d']
+def read_record(key:int):
+    return rmn.fstluk(int(key))['d']
 
 def strip_string_values(record):
     record['nomvar'] = record['nomvar'].strip()

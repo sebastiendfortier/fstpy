@@ -10,9 +10,9 @@
       * :ref:`search`
 
       .. #currentmodule:: fstpy
-      .. #autofuntion:: __init__  
+      .. #autofuntion:: __init__
 
-.. include:: intro.rst 
+.. include:: intro.rst
 
 
 Documentation
@@ -24,6 +24,7 @@ Documentation
 * :doc:`install`
 * :doc:`usage`
 * :doc:`contributing`
+* :doc:`ssm`
 
 .. toctree::
    :maxdepth: 1
@@ -34,6 +35,7 @@ Documentation
    install
    usage
    contributing
+   ssm
 
 **Modules**
 
@@ -86,5 +88,3 @@ Documentation
 
    acknowledgements
    LICENSE
-
-     
