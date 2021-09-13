@@ -4,7 +4,7 @@ import concurrent.futures
 import numpy as np
 import pandas as pd
 import sys
-
+import logging
 from .std_dec import (convert_rmndate_to_datetime,
                       get_parsed_etiket, get_unit_and_description)
 
@@ -264,7 +264,7 @@ def add_columns(df:pd.DataFrame, decode:bool, columns:'list[str]'=['flags','etik
     cols = ['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']
     for col in columns:
         if col not in cols:
-            sys.stderr.write(f'{col} not found in {cols}\n')
+            logging.warning(f'{col} not found in {cols}\n')
 
     df = add_data_column(df)
     df = add_shape_column(df)
@@ -498,7 +498,7 @@ def parallel_add_composite_columns_tr(df, decode_metadata, attributes_to_decode,
             try:
                 data = future.result()
             except Exception as exc:
-                print('%r generated an exception: %s' % (dfp, exc))
+                logging.warning('%r generated an exception: %s' % (dfp, exc))
             else:
                 dataframes.append(data)
                 #print('%r %s d is %d ' % (d, data, len(data)))

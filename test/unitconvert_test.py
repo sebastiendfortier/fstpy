@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from fstpy.dataframe_utils import fstcomp
 from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.unit import unit_convert
@@ -8,7 +7,7 @@ from test import TMP_PATH, TEST_PATH
 import pandas as pd
 import pytest
 from fstpy.exceptions import UnitConversionError
-
+from ci_fstcomp import fstcomp
 
 
 pytestmark = [pytest.mark.unit_regtests] #, pytest.mark.regressions

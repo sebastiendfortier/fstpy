@@ -27,11 +27,8 @@ before_script:
   - . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
   - . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/python_packages/python3.6/all/2021.07
   - . ssmuse-sh -d /fs/ssm/eccc/cmd/cmdw/PRIVATE/dev_python_packages/python3.6/all/2021.09
-  # - .  "/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/etc/profile.d/conda.sh"
-  # - export PATH="/fs/ssm/eccc/cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64/bin:$PATH"
-  # - export CONDA_PREFIX=/home/sbf000/.conda/envs/${CONDA_ENV}
-  # - export PROJ_LIB=/home/sbf000/.conda/envs/${CONDA_ENV}/share/proj
-  # - export PATH=/home/sbf000/.conda/envs/${CONDA_ENV}/bin:$PATH
+  - . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/ssm/cifstcomp/1.0.0
+
 
 run_unittest:
   stage: run_unittest
@@ -84,5 +81,5 @@ install_latest_doc:
 ssm_package:
   stage: ssm_package
   script:
-    - cd misc/ssm
-    - ./make_package.sh
+    - cd ssm
+    - ./make_ssm_package.sh

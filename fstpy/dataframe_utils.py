@@ -1,31 +1,30 @@
 # -*- coding: utf-8 -*-
-import sys
 import math
-# import dask
-# import dask.array as da
+import sys
+
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
-import os
-import fstpy
+import logging
+
 from fstpy import DATYP_DICT
-from .fstcompstats import fstcompstats
-from .dataframe import (add_ip_info_columns, reorder_columns )
+
+from .dataframe import add_ip_info_columns, reorder_columns
 from .exceptions import SelectError, StandardFileError
-from .logger_config import logger
 from .std_dec import convert_rmndate_to_datetime
-from .std_reader import StandardFileReader, load_data
+from .std_reader import load_data
+
 
 def select_with_meta(df:pd.DataFrame,nomvar:list) -> pd.DataFrame:
-    """select fields with accompaning meta data
-
-    :param df: dataframe to select from
-    :type df: pd.DataFrame
-    :param nomvar: list of nomvars to seelct
-    :type nomvar: list
-    :raises SelectError: if dataframe is empty, if nothing to select or if variable not found in dataframe
-    :return: dataframe with selection results
-    :rtype: pd.DataFrame
+    """Select fields with accompaning meta data  
+  
+    :param df: dataframe to select from  
+    :type df: pd.DataFrame  
+    :param nomvar: list of nomvars to select   
+    :type nomvar: list  
+    :raises SelectError: if dataframe is empty, if nothing to select or if variable not found in dataframe  
+    :return: dataframe with selection results  
+    :rtype: pd.DataFrame  
     """
     if df.empty:
         raise SelectError(f'dataframe is empty - nothing to select into')
@@ -53,12 +52,12 @@ def select_with_meta(df:pd.DataFrame,nomvar:list) -> pd.DataFrame:
     return selection_result_df
 
 def metadata_cleanup(df:pd.DataFrame,strict_toctoc=True) -> pd.DataFrame:
-    """cleans the metadata from a dataframe according to rules
-
-    :param df: dataframe to clean
-    :type df: pd.DataFrame
-    :return: dataframe with only cleaned meta_data
-    :rtype: pd.DataFrame
+    """Cleans the metadata from a dataframe according to rules.   
+  
+    :param df: dataframe to clean  
+    :type df: pd.DataFrame  
+    :return: dataframe with only cleaned meta_data  
+    :rtype: pd.DataFrame  
     """
 
     if df.empty:
@@ -92,40 +91,40 @@ def metadata_cleanup(df:pd.DataFrame,strict_toctoc=True) -> pd.DataFrame:
 
     return df
 
-class FstCompError(Exception):
-    pass
+# class FstCompError(Exception):
+#     pass
 
-def fstcomp(file1:str, file2:str, exclude_meta=False, cmp_number_of_fields=True,columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_c_cor=0.00001) -> bool:
-    """Utility used to compare the contents of two RPN standard files (record by record).
+# def fstcomp(file1:str, file2:str, exclude_meta=False, cmp_number_of_fields=True,columns=['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], verbose=False,e_max=0.0001,e_c_cor=0.00001) -> bool:
+#     """Utility used to compare the contents of two RPN standard files (record by record).
 
-    :param file1: path to file 1
-    :type file1: str
-    :param file2: path to file 2
-    :type file2: str
-    :param columns: columns to be considered, defaults to ['nomvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
-    :type columns: list, optional
-    :param verbose: if activated prints more information, defaults to False
-    :type verbose: bool, optional
-    :raises StandardFileError: type of error that will be raised
-    :return: True if files are sufficiently similar else False
-    :rtype: bool
-    """
-    sys.stdout.write('fstcomp -A %s -B %s\n'%(file1,file2))
+#     :param file1: path to file 1
+#     :type file1: str
+#     :param file2: path to file 2
+#     :type file2: str
+#     :param columns: columns to be considered, defaults to ['nomvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
+#     :type columns: list, optional
+#     :param verbose: if activated prints more information, defaults to False
+#     :type verbose: bool, optional
+#     :raises StandardFileError: type of error that will be raised
+#     :return: True if files are sufficiently similar else False
+#     :rtype: bool
+#     """
+#     sys.stdout.write('fstcomp -A %s -B %s\n'%(file1,file2))
 
 
-    if not os.path.exists(file1):
-        sys.stderr.write('fstcomp - %s does not exist\n' % file1)
-        raise StandardFileError('fstcomp - %s does not exist' % file1)
-    if not os.path.exists(file2):
-        sys.stderr.write('fstcomp - %s does not exist\n' % file2)
-        raise StandardFileError('fstcomp - %s does not exist' % file2)
-    # open and read files
-    df1 = StandardFileReader(file1).to_pandas()
+#     if not os.path.exists(file1):
+#         sys.stderr.write('fstcomp - %s does not exist\n' % file1)
+#         raise StandardFileError('fstcomp - %s does not exist' % file1)
+#     if not os.path.exists(file2):
+#         sys.stderr.write('fstcomp - %s does not exist\n' % file2)
+#         raise StandardFileError('fstcomp - %s does not exist' % file2)
+#     # open and read files
+#     df1 = StandardFileReader(file1).to_pandas()
 
-    df2 = StandardFileReader(file2).to_pandas()
-    # print('df2',df2)
+#     df2 = StandardFileReader(file2).to_pandas()
+#     # print('df2',df2)
 
-    return fstcomp_df(df1, df2, exclude_meta, cmp_number_of_fields, columns, print_unmatched=verbose,e_max=e_max,e_c_cor=e_c_cor)
+#     return fstcomp_df(df1, df2, exclude_meta, cmp_number_of_fields, columns, print_unmatched=verbose,e_max=e_max,e_c_cor=e_c_cor)
 
 def voir(df:pd.DataFrame,style=False):
     """Displays the metadata of the supplied records in the rpn voir format"""
@@ -153,7 +152,7 @@ def voir(df:pd.DataFrame,style=False):
         res_df = res_df.drop(columns=['datev','grid','run','implementation','ensemble_member','shape','key','d','path','file_modification_time','ip1_kind','ip2_dec','ip2_kind','ip2_pkind','ip3_dec','ip3_kind','ip3_pkind','date_of_observation','date_of_validity','forecast_hour','d','surface','follow_topography','ascending','interval'],errors='ignore')
 
     #logger.debug('    NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s) FORECASTHOUR      IP1        LEVEL        IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
-    sys.stdout.write('%s\n'%res_df.reset_index(drop=True).to_string(header=True))
+    logging.info('%s\n'%res_df.reset_index(drop=True).to_string(header=True))
 
 
 
@@ -215,7 +214,7 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     :rtype: pd.DataFrame
     """
 
-    sys.stdout.write('fststat\n')
+    logging.info('fststat\n')
     pd.options.display.float_format = '{:0.6E}'.format
     if df.empty:
         raise StandardFileError('fststat - no records to process')
@@ -232,7 +231,7 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     df.sort_values(by=['nomvar','level'],ascending=[True,False],inplace=True)
 
     # if 'level' in df.columns:
-    print(df[['nomvar','typvar','level',' ','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
+    logging.info(df[['nomvar','typvar','level',' ','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
     # else:
     #     print(res_df[['nomvar','typvar','ip1','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string())
     del df[' ']
@@ -302,9 +301,9 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
 ##################################################################################################
 ##################################################################################################
 ##################################################################################################
-def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
-    df.drop(df[df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"])].index, inplace=True, errors='ignore')
-    return df
+# def remove_meta_data_fields(df: pd.DataFrame) -> pd.DataFrame:
+#     df.drop(df[df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"])].index, inplace=True, errors='ignore')
+#     return df
 
 
 
@@ -468,160 +467,160 @@ def compute_stats(df:pd.DataFrame) -> pd.DataFrame:
 #     return df
 
 
-def add_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
-    diff['abs_diff'] = None# = diff['d_x'].copy(deep=True)
-    diff['e_rel_max'] = None# = diff['d_x'].copy(deep=True)
-    diff['e_rel_moy'] = None# = diff['d_x'].copy(deep=True)
-    diff['var_a'] = None# = diff['d_x'].copy(deep=True)
-    diff['var_b'] = None# = diff['d_x'].copy(deep=True)
-    diff['c_cor'] = None# = diff['d_x'].copy(deep=True)
-    diff['moy_a'] = None# = diff['d_x'].copy(deep=True)
-    diff['moy_b'] = None# = diff['d_x'].copy(deep=True)
-    diff['bias'] = None #= diff['d_x'].copy(deep=True)
-    diff['e_max'] = None# = diff['d_x'].copy(deep=True)
-    diff['e_moy'] = None# = diff['d_x'].copy(deep=True)
-    # diff.drop(columns=['d_x', 'd_y'], inplace=True,errors='ignore')
-    return diff
+# def add_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
+#     diff['abs_diff'] = None# = diff['d_x'].copy(deep=True)
+#     diff['e_rel_max'] = None# = diff['d_x'].copy(deep=True)
+#     diff['e_rel_moy'] = None# = diff['d_x'].copy(deep=True)
+#     diff['var_a'] = None# = diff['d_x'].copy(deep=True)
+#     diff['var_b'] = None# = diff['d_x'].copy(deep=True)
+#     diff['c_cor'] = None# = diff['d_x'].copy(deep=True)
+#     diff['moy_a'] = None# = diff['d_x'].copy(deep=True)
+#     diff['moy_b'] = None# = diff['d_x'].copy(deep=True)
+#     diff['bias'] = None #= diff['d_x'].copy(deep=True)
+#     diff['e_max'] = None# = diff['d_x'].copy(deep=True)
+#     diff['e_moy'] = None# = diff['d_x'].copy(deep=True)
+#     # diff.drop(columns=['d_x', 'd_y'], inplace=True,errors='ignore')
+#     return diff
 
 
-def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
-    #diff['etiket'] = diff['etiket_x']
-    #diff['ip1_kind'] = diff['ip1_kind_x']
-    #diff['ip2'] = diff['ip2_x']
-    #diff['ip3'] = diff['ip3_x']
-    diff.drop(columns=['abs_diff'], inplace=True,errors='ignore')
-    return diff
+# def del_fstcomp_columns(diff: pd.DataFrame) -> pd.DataFrame:
+#     #diff['etiket'] = diff['etiket_x']
+#     #diff['ip1_kind'] = diff['ip1_kind_x']
+#     #diff['ip2'] = diff['ip2_x']
+#     #diff['ip3'] = diff['ip3_x']
+#     diff.drop(columns=['abs_diff'], inplace=True,errors='ignore')
+#     return diff
 
-def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_number_of_fields=True, columns=['nomvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','grtyp','ig1','ig2','ig3','ig4'], print_unmatched=False,e_max=0.0001,e_c_cor=0.00001) -> bool:
-    path1 = df1.path.unique()[0]
-    path2 = df2.path.unique()[0]
+# def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_number_of_fields=True, columns=['nomvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','grtyp','ig1','ig2','ig3','ig4'], print_unmatched=False,e_max=0.0001,e_c_cor=0.00001) -> bool:
+#     path1 = df1.path.unique()[0]
+#     path2 = df2.path.unique()[0]
 
-    columns_to_keep = columns.copy()
-    columns_to_keep.extend(['d','key'])
-    df1 = df1[columns_to_keep]
-    df2 = df2[columns_to_keep]
-    #print(df1.columns)
-    #print(df2.columns)
-    # df1 = df1.sort_values(by=columns)
-    # df2 = df2.sort_values(by=columns)
-    df1 = df1.sort_values(by=columns)
-    df2 = df2.sort_values(by=columns)
+#     columns_to_keep = columns.copy()
+#     columns_to_keep.extend(['d','key'])
+#     df1 = df1[columns_to_keep]
+#     df2 = df2[columns_to_keep]
+#     #print(df1.columns)
+#     #print(df2.columns)
+#     # df1 = df1.sort_values(by=columns)
+#     # df2 = df2.sort_values(by=columns)
+#     df1 = df1.sort_values(by=columns)
+#     df2 = df2.sort_values(by=columns)
 
-    # print('allclose= ',allclose,'exclude_meta= ',exclude_meta)
-    success = True
-    pd.options.display.float_format = '{:0.6E}'.format
-    # check if both df have records
-    if df1.empty or df2.empty:
-        sys.stderr.write('you must supply files witch contain records\n')
-        if df1.empty:
-            sys.stderr.write('file 1 is empty\n')
-        if df2.empty:
-            sys.stderr.write('file 2 is empty\n')
-        raise fstpy.StandardFileError('fstcomp - one of the files is empty\n')
-    # remove meta data {!!,>>,^^,P0,PT,HY,!!SF} from records to compare
+#     # print('allclose= ',allclose,'exclude_meta= ',exclude_meta)
+#     success = True
+#     pd.options.display.float_format = '{:0.6E}'.format
+#     # check if both df have records
+#     if df1.empty or df2.empty:
+#         sys.stderr.write('you must supply files witch contain records\n')
+#         if df1.empty:
+#             sys.stderr.write('file 1 is empty\n')
+#         if df2.empty:
+#             sys.stderr.write('file 2 is empty\n')
+#         raise fstpy.StandardFileError('fstcomp - one of the files is empty\n')
+#     # remove meta data {!!,>>,^^,P0,PT,HY,!!SF} from records to compare
 
-    if exclude_meta:
-        df1 = remove_meta_data_fields(df1)
-        df2 = remove_meta_data_fields(df2)
-
-
-    if cmp_number_of_fields:
-        if len(df1.index) != len(df2.index):
-            sys.stderr.write(f'file 1 ({len(df1.index)}) and file 2 ({len(df2.index)}) dont have the same number of records\n')
-            # sys.stderr.write(f'file 1 {df1.nomvar.tolist()}\n')
-            # sys.stderr.write(f'file 2 {df2.nomvar.tolist()}\n')
-            unique1, counts1 = np.unique(df1.nomvar.to_numpy(), return_counts=True)
-            unique2, counts2 = np.unique(df2.nomvar.to_numpy(), return_counts=True)
-            vars1 = dict(zip(unique1, counts1))
-            vars2 = dict(zip(unique2, counts2))
-            sys.stderr.write(f'file 1 {vars1}\n')
-            sys.stderr.write(f'file 2 {vars2}\n')
-            return False
-    # print(df1.to_string())
-    # print(df2.to_string())
-    # voir(df1)
-    # voir(df2)
-    # for i in df1.index:
-    #     if df1.at[i,'d'].all() != df2.at[i,'d'].all():
-    #         print(df1.at[i,'d'][:10],df2.at[i,'d'][:10])
-    #logger.debug('A',df1['d'][:100].to_string())
-    #logger.debug('A',df1.loc[i])#[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']])
-    #logger.debug('----------')
-    #logger.debug('B',df2['d'][:100].to_string())
-    #logger.debug('B',df2.loc[i])#[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']])
-    # check if they are exactly the same
-    # if df1.equals(df2):
-    #     if exclude_meta:
-    #         print('files are identical - excluding meta data fields')
-    #     else:
-    #         print('files are identical')
-    #     # logger.debug('A',df1[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())
-    #     # logger.debug('----------')
-    #     # logger.debug('B',df2[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())
-    #     return True
-    #create common fields
-    if print_unmatched:
-        print(df1[['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo']])
-        print(df2[['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo']])
-        print(df1[['ip1', 'ip2', 'ip3', 'deet', 'npas']])
-        print(df2[['ip1', 'ip2', 'ip3', 'deet', 'npas']])
-        print(df1[['grtyp', 'ig1', 'ig2', 'ig3', 'ig4']])
-        print(df2[['grtyp', 'ig1', 'ig2', 'ig3', 'ig4']])
-
-    common = pd.merge(df1, df2, how='inner', on=columns)
-
-    #Rows in df1 Which Are Not Available in df2
-    common_with_1 = common.merge(df1, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
-    #Rows in df2 Which Are Not Available in df1
-    common_with_2 = common.merge(df2, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'right_only']
-    missing = pd.concat([common_with_1, common_with_2],ignore_index=True)
-
-    if exclude_meta:
-        missing = remove_meta_data_fields(missing)
-
-    if len(common.index) != 0:
-        if len(common_with_1.index) != 0:
-            if print_unmatched:
-                sys.stdout.write('df in file 1 that were not found in file 2 - excluded from comparison\n')
-                sys.stdout.write('%s\n'%common_with_1.to_string())
-        if len(common_with_2.index) != 0:
-            if print_unmatched:
-                sys.stdout.write('df in file 2 that were not found in file 1 - excluded from comparison\n')
-                sys.stdout.write('%s\n'%common_with_2.to_string())
-    else:
-        sys.stderr.write('fstcomp - no common df to compare\n')
-        if not df1.empty:
-            sys.stderr.write('A %s\n'%df1[['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].reset_index(drop=True).to_string())
-        sys.stderr.write('----------\n')
-        if not df2.empty:
-            sys.stderr.write('B %s\n'%df2[['nomvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].reset_index(drop=True).to_string())
-        raise FstCompError('fstcomp - no common df to compare')
+#     if exclude_meta:
+#         df1 = remove_meta_data_fields(df1)
+#         df2 = remove_meta_data_fields(df2)
 
 
-    # force free some memory
-    del df1
-    del df2
-    # print(path1,path2)
-    diff = common
-    # print(diff.columns)
-    # diff = common.copy()
-    #voir(diff)
-    diff = add_fstcomp_columns(diff)
+#     if cmp_number_of_fields:
+#         if len(df1.index) != len(df2.index):
+#             sys.stderr.write(f'file 1 ({len(df1.index)}) and file 2 ({len(df2.index)}) dont have the same number of records\n')
+#             # sys.stderr.write(f'file 1 {df1.nomvar.tolist()}\n')
+#             # sys.stderr.write(f'file 2 {df2.nomvar.tolist()}\n')
+#             unique1, counts1 = np.unique(df1.nomvar.to_numpy(), return_counts=True)
+#             unique2, counts2 = np.unique(df2.nomvar.to_numpy(), return_counts=True)
+#             vars1 = dict(zip(unique1, counts1))
+#             vars2 = dict(zip(unique2, counts2))
+#             sys.stderr.write(f'file 1 {vars1}\n')
+#             sys.stderr.write(f'file 2 {vars2}\n')
+#             return False
+#     # print(df1.to_string())
+#     # print(df2.to_string())
+#     # voir(df1)
+#     # voir(df2)
+#     # for i in df1.index:
+#     #     if df1.at[i,'d'].all() != df2.at[i,'d'].all():
+#     #         print(df1.at[i,'d'][:10],df2.at[i,'d'][:10])
+#     #logger.debug('A',df1['d'][:100].to_string())
+#     #logger.debug('A',df1.loc[i])#[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']])
+#     #logger.debug('----------')
+#     #logger.debug('B',df2['d'][:100].to_string())
+#     #logger.debug('B',df2.loc[i])#[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']])
+#     # check if they are exactly the same
+#     # if df1.equals(df2):
+#     #     if exclude_meta:
+#     #         print('files are identical - excluding meta data fields')
+#     #     else:
+#     #         print('files are identical')
+#     #     # logger.debug('A',df1[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())
+#     #     # logger.debug('----------')
+#     #     # logger.debug('B',df2[['nomvar', 'ni', 'nj', 'nk', 'dateo', 'level', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4','path']].to_string())
+#     #     return True
+#     #create common fields
+#     if print_unmatched:
+#         print(df1[['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo']])
+#         print(df2[['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo']])
+#         print(df1[['ip1', 'ip2', 'ip3', 'deet', 'npas']])
+#         print(df2[['ip1', 'ip2', 'ip3', 'deet', 'npas']])
+#         print(df1[['grtyp', 'ig1', 'ig2', 'ig3', 'ig4']])
+#         print(df2[['grtyp', 'ig1', 'ig2', 'ig3', 'ig4']])
 
-    diff,success = compute_fstcomp_stats(diff,path1,path2,e_max,e_c_cor)
+#     common = pd.merge(df1, df2, how='inner', on=columns)
 
-    diff = del_fstcomp_columns(diff)
+#     #Rows in df1 Which Are Not Available in df2
+#     common_with_1 = common.merge(df1, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
+#     #Rows in df2 Which Are Not Available in df1
+#     common_with_2 = common.merge(df2, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'right_only']
+#     missing = pd.concat([common_with_1, common_with_2],ignore_index=True)
 
-    # diff.sort_values(by=['nomvar','etiket','ip1'],inplace=True)
-    if len(diff.index):
-        sys.stdout.write('%s\n'%diff[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'bias', 'e_max', 'e_moy']].to_string(formatters={'level': '{:,.6f}'.format,'diff_percent': '{:,.1f}%'.format}))
-        #logger.debug(diff[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'bias', 'e_max', 'e_moy']].to_string())
-    if len(missing.index):
-        sys.stdout.write('missing df\n')
-        sys.stdout.write('%s\n'%missing[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3']].to_string(header=False, formatters={'level': '{:,.6f}'.format}))
-        return False
-        #logger.debug(missing[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3']].to_string(header=False))
-    return success
+#     if exclude_meta:
+#         missing = remove_meta_data_fields(missing)
+
+#     if len(common.index) != 0:
+#         if len(common_with_1.index) != 0:
+#             if print_unmatched:
+#                 sys.stdout.write('df in file 1 that were not found in file 2 - excluded from comparison\n')
+#                 sys.stdout.write('%s\n'%common_with_1.to_string())
+#         if len(common_with_2.index) != 0:
+#             if print_unmatched:
+#                 sys.stdout.write('df in file 2 that were not found in file 1 - excluded from comparison\n')
+#                 sys.stdout.write('%s\n'%common_with_2.to_string())
+#     else:
+#         sys.stderr.write('fstcomp - no common df to compare\n')
+#         if not df1.empty:
+#             sys.stderr.write('A %s\n'%df1[['nomvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].reset_index(drop=True).to_string())
+#         sys.stderr.write('----------\n')
+#         if not df2.empty:
+#             sys.stderr.write('B %s\n'%df2[['nomvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']].reset_index(drop=True).to_string())
+#         raise FstCompError('fstcomp - no common df to compare')
+
+
+#     # force free some memory
+#     del df1
+#     del df2
+#     # print(path1,path2)
+#     diff = common
+#     # print(diff.columns)
+#     # diff = common.copy()
+#     #voir(diff)
+#     diff = add_fstcomp_columns(diff)
+
+#     diff,success = compute_fstcomp_stats(diff,path1,path2,e_max,e_c_cor)
+
+#     diff = del_fstcomp_columns(diff)
+
+#     # diff.sort_values(by=['nomvar','etiket','ip1'],inplace=True)
+#     if len(diff.index):
+#         sys.stdout.write('%s\n'%diff[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'bias', 'e_max', 'e_moy']].to_string(formatters={'level': '{:,.6f}'.format,'diff_percent': '{:,.1f}%'.format}))
+#         #logger.debug(diff[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3', 'e_rel_max', 'e_rel_moy', 'var_a', 'var_b', 'c_cor', 'moy_a', 'moy_b', 'bias', 'e_max', 'e_moy']].to_string())
+#     if len(missing.index):
+#         sys.stdout.write('missing df\n')
+#         sys.stdout.write('%s\n'%missing[['nomvar', 'etiket', 'ip1', 'ip2', 'ip3']].to_string(header=False, formatters={'level': '{:,.6f}'.format}))
+#         return False
+#         #logger.debug(missing[['nomvar', 'etiket', 'ip1_pkind', 'ip2', 'ip3']].to_string(header=False))
+#     return success
 
 # def calc_derr(a,b):
 #     if (a == 0.) and (b != 0.):
@@ -640,122 +639,122 @@ def fstcomp_df(df1: pd.DataFrame, df2: pd.DataFrame, exclude_meta=False, cmp_num
 
 # ligne 441
 
-def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_c_cor=0.00001) -> bool:
-    success = True
+# def compute_fstcomp_stats(diff: pd.DataFrame,path1:str,path2:str,e_max=0.0001,e_c_cor=0.00001) -> bool:
+#     success = True
 
-    df_list = np.array_split(diff, math.ceil(len(diff.index)/100))
-    for df in df_list:
-        iun1 = rmn.fstopenall(path1)
-        for i in df.index:
-            df.at[i,'d_x'] = rmn.fstluk(int(df.at[i,'key_x']))['d']
-        rmn.fstcloseall(iun1)
-        iun2 = rmn.fstopenall(path2)
-        for i in df.index:
-            df.at[i,'d_y'] = rmn.fstluk(int(df.at[i,'key_y']))['d']
-        rmn.fstcloseall(iun2)
+#     df_list = np.array_split(diff, math.ceil(len(diff.index)/100))
+#     for df in df_list:
+#         iun1 = rmn.fstopenall(path1)
+#         for i in df.index:
+#             df.at[i,'d_x'] = rmn.fstluk(int(df.at[i,'key_x']))['d']
+#         rmn.fstcloseall(iun1)
+#         iun2 = rmn.fstopenall(path2)
+#         for i in df.index:
+#             df.at[i,'d_y'] = rmn.fstluk(int(df.at[i,'key_y']))['d']
+#         rmn.fstcloseall(iun2)
 
-        print('diff dx\n',df[['nomvar','d_x']])
-        print('diff dy\n',df[['nomvar','d_y']])
-        to_drop = []
-        for i in df.index:
-            # a = df.at[i, 'd_x'].astype('float64')
-            # b = df.at[i, 'd_y'].astype('float64')
-            a = np.array(df.at[i, 'd_x'].ravel(),dtype=np.float32,order='F')
-            b = np.array(df.at[i, 'd_y'].ravel(),dtype=np.float32,order='F')
-            if np.allclose(a,b):
-                to_drop.append(i)
-                continue
-            # e_rel_max = 0.
-            # e_rel_moy = 0.
-            # var_a = 0.
-            # var_b = 0.
-            # c_cor = 0.
-            # moy_a = 0.
-            # moy_b = 0.
-            # bias = 0.
-            # e_max = 0.
-            # e_moy = 0.
+#         print('diff dx\n',df[['nomvar','d_x']])
+#         print('diff dy\n',df[['nomvar','d_y']])
+#         to_drop = []
+#         for i in df.index:
+#             # a = df.at[i, 'd_x'].astype('float64')
+#             # b = df.at[i, 'd_y'].astype('float64')
+#             a = np.array(df.at[i, 'd_x'].ravel(),dtype=np.float32,order='F')
+#             b = np.array(df.at[i, 'd_y'].ravel(),dtype=np.float32,order='F')
+#             if np.allclose(a,b):
+#                 to_drop.append(i)
+#                 continue
+#             # e_rel_max = 0.
+#             # e_rel_moy = 0.
+#             # var_a = 0.
+#             # var_b = 0.
+#             # c_cor = 0.
+#             # moy_a = 0.
+#             # moy_b = 0.
+#             # bias = 0.
+#             # e_max = 0.
+#             # e_moy = 0.
 
-            n = a.size
-            # fstcompstats(a,b,n,errrelmax,errrelmoy,vara,varb,ccor,moya,moyb,bias,errmax,errmoy)
-            df.at[i, 'e_rel_max'], df.at[i, 'e_rel_moy'], df.at[i, 'var_a'], df.at[i, 'var_b'], df.at[i, 'c_cor'], df.at[i, 'moy_a'], df.at[i, 'moy_b'], df.at[i, 'bias'], df.at[i, 'e_max'], df.at[i, 'e_moy'] = fstcompstats(a=a, b=b, n=n)#, errrelmax=e_rel_max, errrelmoy=e_rel_moy, vara=var_a, varb=var_b, ccor=c_cor, moya=moy_a, moyb=moy_b, bias=bias, errmax=e_max, errmoy=e_moy)
-            # print(e_rel_max, e_rel_moy, var_a, var_b, c_cor, moy_a, moy_b, bias, e_max, e_moy)
-            # print(r)
-            # a = df.at[i, 'd_x'].flatten().astype('float64')
-            # b = df.at[i, 'd_y'].flatten().astype('float64')
+#             n = a.size
+#             # fstcompstats(a,b,n,errrelmax,errrelmoy,vara,varb,ccor,moya,moyb,bias,errmax,errmoy)
+#             df.at[i, 'e_rel_max'], df.at[i, 'e_rel_moy'], df.at[i, 'var_a'], df.at[i, 'var_b'], df.at[i, 'c_cor'], df.at[i, 'moy_a'], df.at[i, 'moy_b'], df.at[i, 'bias'], df.at[i, 'e_max'], df.at[i, 'e_moy'] = fstcompstats(a=a, b=b, n=n)#, errrelmax=e_rel_max, errrelmoy=e_rel_moy, vara=var_a, varb=var_b, ccor=c_cor, moya=moy_a, moyb=moy_b, bias=bias, errmax=e_max, errmoy=e_moy)
+#             # print(e_rel_max, e_rel_moy, var_a, var_b, c_cor, moy_a, moy_b, bias, e_max, e_moy)
+#             # print(r)
+#             # a = df.at[i, 'd_x'].flatten().astype('float64')
+#             # b = df.at[i, 'd_y'].flatten().astype('float64')
 
-            # df.at[i, 'abs_diff'] = np.abs(a-b)
+#             # df.at[i, 'abs_diff'] = np.abs(a-b)
 
-            # # verror_rel = np.vectorize(calc_derr)
+#             # # verror_rel = np.vectorize(calc_derr)
 
-            # # derr = verror_rel(a1,b1)
-            # # np.abs(1-(a/b)), np.where((b == 0) & (a != 0), np.abs(1-(b/a)), 0))
-            # derr = np.full_like(a,0)
-            # derr = np.where(a!=0,np.abs(1-(b/a)),np.where(b!=0,np.abs(1-(a/b)),derr))
-
-
-            # # derr = np.where(derr==1,0,derr)
-
-            # df.at[i, 'e_rel_max'] = np.max(derr)
-            # df.at[i, 'e_rel_moy'] = np.mean(derr)
-
-            # sum_a2 = np.sum(a**2)
-            # sum_b2 = np.sum(b**2)
-            # # print(np.mean(sum_a2) == np.var(a))
-            # # print(np.mean(sum_b2) == np.var(b))
-            # df.at[i, 'var_a'] = np.var(a)
-            # df.at[i, 'var_b'] = np.var(b)
-            # df.at[i, 'moy_a'] = np.mean(a)
-            # df.at[i, 'moy_b'] = np.mean(b)
-
-            # c_cor = np.sum(a*b)
-            # if sum_a2*sum_b2 != 0:
-            #     c_cor = c_cor/np.sqrt(sum_a2*sum_b2)
-            # elif (sum_a2==0) and (sum_b2==0):
-            #     c_cor = 1.0
-            # elif sum_a2 == 0:
-            #     c_cor = np.sqrt(df.at[i, 'var_b'])
-            # else:
-            #     c_cor = np.sqrt(df.at[i, 'var_a'])
-            # df.at[i, 'c_cor'] = c_cor
-            # # df.at[i, 'c_cor'] = np.correlate(a,b)[0]
-            # df.at[i, 'bias']=(df.at[i, 'moy_b']-df.at[i, 'moy_a'])
-            # df.at[i, 'e_max'] = np.max(df.at[i, 'abs_diff'])
-            # df.at[i, 'e_moy'] = np.mean(df.at[i, 'abs_diff'])
-
-            # print(df.at[i, 'e_rel_max'], df.at[i, 'e_rel_moy'], df.at[i, 'var_a'], df.at[i, 'var_b'], df.at[i, 'c_cor'], df.at[i, 'moy_a'], df.at[i, 'moy_b'], df.at[i, 'bias'], df.at[i, 'e_max'], df.at[i, 'e_moy'])
-            # # nbdiff = np.count_nonzero(a!=b)
-            # # df.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
-            # # print(df.at[i, 'c_cor'],1.0,1.0+1e-07,1-1e-07,math.isclose(df.at[i, 'c_cor'],1.0,rel_tol=1e-07))
-
-            # if ((mod(datypa,128) != 1) and (mod(datypa,128) != 6)):
-            #     PACK_ERR2 = 0
-            # else:
-            #     PACK_ERR2 = PACK_ERR
-
-            # ERR_UNIT = (MAX_A - MIN_A) / (2.0 ** NBITS)
-
-            # if ((df.at[i, 'e_rel_max'] > e_max) and (PACK_ERR!=0)):
-            #     # found err true
-            #     pass
-
-            # if (PACK_ERR > 0) and (df.at[i, 'e_max'] > (PACK_ERR*ERR_UNIT*1.001)):
-            #     # found err true
-            #      pass
+#             # # derr = verror_rel(a1,b1)
+#             # # np.abs(1-(a/b)), np.where((b == 0) & (a != 0), np.abs(1-(b/a)), 0))
+#             # derr = np.full_like(a,0)
+#             # derr = np.where(a!=0,np.abs(1-(b/a)),np.where(b!=0,np.abs(1-(a/b)),derr))
 
 
+#             # # derr = np.where(derr==1,0,derr)
 
-            if (not (-e_c_cor <= abs(df.at[i, 'c_cor']-1.0) <= e_c_cor)) or (not (-e_max <= df.at[i, 'e_max'] <= e_max)):
-                df.at[i, 'nomvar'] = '<' + df.at[i, 'nomvar'] + '>'
-                # print('maximum absolute difference:%s'%np.max(np.abs(a-b)))
-                # print(np.abs(a-b))
-                success = False
-            # print('dataframe\n',df)
-        df['d_x']=None
-        df['d_y']=None
-        df.drop(to_drop,inplace=True)
-    diff = pd.concat(df_list,ignore_index=True)
-    return diff,success
+#             # df.at[i, 'e_rel_max'] = np.max(derr)
+#             # df.at[i, 'e_rel_moy'] = np.mean(derr)
+
+#             # sum_a2 = np.sum(a**2)
+#             # sum_b2 = np.sum(b**2)
+#             # # print(np.mean(sum_a2) == np.var(a))
+#             # # print(np.mean(sum_b2) == np.var(b))
+#             # df.at[i, 'var_a'] = np.var(a)
+#             # df.at[i, 'var_b'] = np.var(b)
+#             # df.at[i, 'moy_a'] = np.mean(a)
+#             # df.at[i, 'moy_b'] = np.mean(b)
+
+#             # c_cor = np.sum(a*b)
+#             # if sum_a2*sum_b2 != 0:
+#             #     c_cor = c_cor/np.sqrt(sum_a2*sum_b2)
+#             # elif (sum_a2==0) and (sum_b2==0):
+#             #     c_cor = 1.0
+#             # elif sum_a2 == 0:
+#             #     c_cor = np.sqrt(df.at[i, 'var_b'])
+#             # else:
+#             #     c_cor = np.sqrt(df.at[i, 'var_a'])
+#             # df.at[i, 'c_cor'] = c_cor
+#             # # df.at[i, 'c_cor'] = np.correlate(a,b)[0]
+#             # df.at[i, 'bias']=(df.at[i, 'moy_b']-df.at[i, 'moy_a'])
+#             # df.at[i, 'e_max'] = np.max(df.at[i, 'abs_diff'])
+#             # df.at[i, 'e_moy'] = np.mean(df.at[i, 'abs_diff'])
+
+#             # print(df.at[i, 'e_rel_max'], df.at[i, 'e_rel_moy'], df.at[i, 'var_a'], df.at[i, 'var_b'], df.at[i, 'c_cor'], df.at[i, 'moy_a'], df.at[i, 'moy_b'], df.at[i, 'bias'], df.at[i, 'e_max'], df.at[i, 'e_moy'])
+#             # # nbdiff = np.count_nonzero(a!=b)
+#             # # df.at[i, 'diff_percent'] = nbdiff / a.size * 100.0
+#             # # print(df.at[i, 'c_cor'],1.0,1.0+1e-07,1-1e-07,math.isclose(df.at[i, 'c_cor'],1.0,rel_tol=1e-07))
+
+#             # if ((mod(datypa,128) != 1) and (mod(datypa,128) != 6)):
+#             #     PACK_ERR2 = 0
+#             # else:
+#             #     PACK_ERR2 = PACK_ERR
+
+#             # ERR_UNIT = (MAX_A - MIN_A) / (2.0 ** NBITS)
+
+#             # if ((df.at[i, 'e_rel_max'] > e_max) and (PACK_ERR!=0)):
+#             #     # found err true
+#             #     pass
+
+#             # if (PACK_ERR > 0) and (df.at[i, 'e_max'] > (PACK_ERR*ERR_UNIT*1.001)):
+#             #     # found err true
+#             #      pass
+
+
+
+#             if (not (-e_c_cor <= abs(df.at[i, 'c_cor']-1.0) <= e_c_cor)) or (not (-e_max <= df.at[i, 'e_max'] <= e_max)):
+#                 df.at[i, 'nomvar'] = '<' + df.at[i, 'nomvar'] + '>'
+#                 # print('maximum absolute difference:%s'%np.max(np.abs(a-b)))
+#                 # print(np.abs(a-b))
+#                 success = False
+#             # print('dataframe\n',df)
+#         df['d_x']=None
+#         df['d_y']=None
+#         df.drop(to_drop,inplace=True)
+#     diff = pd.concat(df_list,ignore_index=True)
+#     return diff,success
 
 class SelectError(Exception):
     pass

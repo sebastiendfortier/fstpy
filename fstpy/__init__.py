@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import pandas as pd
-from .fstcompstats import fstcompstats
-# __version__ = '1.0.1'
-
+import logging
 error = 0
 if sys.version_info[:2] < (3, 6):
     sys.exit("Wrong python version, python>=3.6")
@@ -11,7 +9,7 @@ if sys.version_info[:2] < (3, 6):
 try:
     import rpnpy.librmn.all as rmn
 except ImportError:
-    sys.stdout.write('rpnpy.librmn.all is required')
+    logging.critical('rpnpy.librmn.all is required')
     error=1
 
 # try:

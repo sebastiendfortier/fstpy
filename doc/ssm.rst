@@ -1,7 +1,3 @@
-.. raw:: org
-
-   #+TITLE_: SSM
-
 Creating the ssm package
 ========================
 
@@ -9,5 +5,5 @@ From $PROJECT\ :sub:`ROOT`
 
 ::
 
-   cd misc/ssm
-   ./make_package.ssh
+   cd ssm
+   ./make_ssm_package.ssh

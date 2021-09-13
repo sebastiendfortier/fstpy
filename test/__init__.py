@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+from fstpy.log import setup_custom_logger
 import os
+
+logger = setup_custom_logger()
 
 DEFAULT_HOST_NUM = 3
 HOST_NUM = os.getenv("FSTPY_HOST_NUM", None)

@@ -3,8 +3,8 @@ import datetime
 import multiprocessing as mp
 import os.path
 import pathlib
-import sys
 import time
+import logging
 
 # import dask.array as da
 import numpy as np
@@ -108,7 +108,7 @@ def process_hy(hy_df, df):
     hy_count = hy_df.nomvar.count()
     if hy_count >= 1:
         if hy_count > 1:
-            sys.stderr.write('More than one HY in this file! - UNKNOWN BEHAVIOR, continue at your own risk\n')
+            logging.warning('More than one HY in this file! - UNKNOWN BEHAVIOR, continue at your own risk\n')
 
         grids = [ x for x in list(df.grid.unique()) if x != 'None' ]
         if len(grids):

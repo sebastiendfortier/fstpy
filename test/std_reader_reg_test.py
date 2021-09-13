@@ -2,10 +2,11 @@
 from test import TEST_PATH, TMP_PATH
 
 import pytest
-from fstpy.dataframe_utils import fstcomp, select_with_meta
+from fstpy.dataframe_utils import select_with_meta
 from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.utils import delete_file
+from ci_fstcomp import fstcomp
 from rpnpy.librmn.all import FSTDError
 
 pytestmark = [pytest.mark.std_reader_regtests, pytest.mark.regressions]
@@ -19,7 +20,7 @@ def test_1(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_fileSrc_.std"
     with pytest.raises(FSTDError):
-        src_df0 = StandardFileReader(source0).to_pandas()
+        _ = StandardFileReader(source0).to_pandas()
 
 
 def test_2(plugin_test_dir):
@@ -663,7 +664,7 @@ def test_30(plugin_test_dir):
     #write the result
     results_file = TMP_PATH + "test_read_reg_30.std"
     delete_file(results_file)
-    print(src_df0[['grid','nomvar','ip1','ip2','ip3','dateo','deet','npas','datev']])
+
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -742,7 +743,6 @@ def test_33(plugin_test_dir):
     source0 = plugin_test_dir + "resulttest_33.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    print(src_df0)
     #compute ReaderStd
     # src_df0 = ReaderStd(src_df0)
     #['[ReaderStd --input {sources[0]}]>>', '[WriterStd --output {destination_path}]']

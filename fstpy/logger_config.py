@@ -4,7 +4,7 @@ import logging
 
 from .log import setup_custom_logger
 
-logger = setup_custom_logger('root')
+logger = setup_custom_logger()
 # start logging with this function
 logger = logging.getLogger('root')
 

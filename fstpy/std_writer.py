@@ -5,10 +5,9 @@ import numpy as np
 import pandas as pd
 import math
 import rpnpy.librmn.all as rmn
-
+import logging
 from .dataframe_utils import metadata_cleanup
 from .exceptions import StandardFileWriterError
-from .logger_config import logger
 from .std_io import get_grid_metadata_fields
 from .std_reader import load_data, unload_data
 from .utils import initializer
@@ -126,7 +125,7 @@ class StandardFileWriter:
                 #     print(df.at[i,'d'].dtype,df.at[i,'ni'],df.at[i,'nj'],df.at[i,'nk'],df.at[i,'shape'],df.at[i,'d'].shape,df.at[i,'d'])
                 record_path = self.df.at[i,'path']
                 if identical_destination_and_record_path(record_path,self.filename):
-                    logger.warning('StandardFileWriter - record path and output file are identical, adding  new records')
+                    logging.warning('StandardFileWriter - record path and output file are identical, adding  new records')
                 write_dataframe_record_to_file(file_id,df,i,rewrite)
             df = unload_data(df,only_marked=True)
             rmn.fstcloseall(file_id)
@@ -139,7 +138,7 @@ def set_rewrite(df):
 
     if original_df_length != dropped_df_length:
         rewrite=False
-        sys.stderr.write('StandardFileWriter - duplicates found, activating rewrite\n')
+        logging.warning('StandardFileWriter - duplicates found, activating rewrite\n')
     return rewrite
 
 def write_dataframe_record_to_file(file_id,df,i,rewrite):

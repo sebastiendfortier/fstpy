@@ -1,5 +1,0 @@
-# compile
-f2py3 -c -m fstcompstats fstcompstats.f90
-
-# create interface
-f2py3 -h fstcompstats.pyf fstcompstats.f90 -m fstcompstats
