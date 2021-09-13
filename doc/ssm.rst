@@ -6,4 +6,4 @@ From $PROJECT\ :sub:`ROOT`
 ::
 
    cd ssm
-   ./make_package.ssh
+   ./make_ssm_package.ssh

@@ -14,3 +14,4 @@ mydask.png
 global.lock
 purge.lock
 fstpy.egg-info
+_build

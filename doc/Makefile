@@ -14,7 +14,7 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 dyn_doc:
-	@$(TOOLS)/create_dyn_doc.sh
+	@$(TOOLS_DIR)/create_dyn_doc.sh
 
 readme: 
 	../make_readme.sh

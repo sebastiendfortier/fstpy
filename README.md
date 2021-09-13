@@ -2,10 +2,10 @@
 
 ## What is it?
 
-Fstpy is a high level interface to rpn's rpnpy python library that
-produces pandas dataframes or Xarray's from CMC standard files. In order
-to promote decoupling, modularization and collaboration, fstpy only
-reads and writes. All other operations and algorithms can be
+Fstpy is a high level interface to rpn\'s rpnpy python library that
+produces pandas dataframes or Xarray\'s from CMC standard files. In
+order to promote decoupling, modularization and collaboration, fstpy
+only reads and writes. All other operations and algorithms can be
 independent.
 
 ## Fstpy philosophy
@@ -17,13 +17,13 @@ learning curve is much less steep.
 
 ## Dataframes
 
-They are good for organizing information. eg: select all the tt's, sort
+They are good for organizing information. eg: select all the tt\'s, sort
 them by grid then by level and produce 3d matrices for each tt of each
 grid. Dataframes will help to integrate new model changes and new data
 types. Thanks to the dataframes we can also export our results more
 easily to different types of formats.
 
-## Xarray's
+## Xarray\'s
 
 They are used to analyse grouped and indexed data. They are espceially
 good for working with n-dimensional meteorological data. They also offer
@@ -53,7 +53,7 @@ Use the git repository package: at your own risk ;)
 
 ### Use pre-build developpement environment
 
-``` bash
+``` {.bash}
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
@@ -62,7 +62,7 @@ Use the git repository package: at your own risk ;)
 
 ### Use pre-build developpement environment
 
-``` bash
+``` {.bash}
 # get conda if you don't already have it  
 . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
 # create a link to pre-built environment
@@ -80,7 +80,7 @@ ln -s ~sgci800/.conda/envs/fstpy_full
 
 ### Use fstpy
 
-``` python
+``` {.python}
 # inside your script    
 import fstpy.all as fstpy   
 df = fstpy.StandardFileReader('path to my fst file').to_pandas()
@@ -88,7 +88,7 @@ df = fstpy.StandardFileReader('path to my fst file').to_pandas()
 
 ### Example
 
-``` python
+``` {.python}
 data_path = prefix + '/data/'    
 import fstpy.all as fstpy
 # setup your file to read    
@@ -110,7 +110,7 @@ fstpy.StandardFileWriter(dest_path,just_tt_and_uv).to_fst()
 
 ## Using pre-build developpement environment
 
-``` bash
+``` {.bash}
 # get conda if you don't already have it  
 . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
 # create a link to pre-built environment
@@ -123,7 +123,7 @@ ln -s ~sgci800/.conda/envs/fstpy_full
 
 ## Creating the developpement environment
 
-``` bash
+``` {.bash}
 # get conda if you don't already have it  
 . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
 # create a conda environment for fstpy's requirements   
@@ -143,7 +143,7 @@ conda env create -f fstpy_dev.yaml
 
 ## Getting the source code
 
-``` bash
+``` {.bash}
 git clone git@gitlab.science.gc.ca:cmds/fstpy.git
 # create a new branch
 git checkout -b my_change
@@ -157,19 +157,19 @@ git merge origin master
 git push origin my_change
 ```
 
-Then create a merge request on science's gitlab
+Then create a merge request on science\'s gitlab
 <https://gitlab.science.gc.ca/CMDS/fstpy/merge_requests>
 
 ## Using setup.sh to setup your developpement environment
 
-``` bash
+``` {.bash}
 # From the $project_root directory of the project
 source setup.sh
 ```
 
 ## Testing
 
-``` bash
+``` {.bash}
 # From the $project_root/test directory of the project
 . activate fstpy_dev    
 # get rmn python library      
@@ -179,7 +179,7 @@ python -m pytest
 
 ## Building documentation
 
-``` bash
+``` {.bash}
 # This will build documentation in docs/build and there you will find index.html 
 cd doc
 make clean    
@@ -188,10 +188,10 @@ make doc
 
 # Creating the ssm package
 
-From $PROJECT<sub>ROOT</sub>
+From \$PROJECT~ROOT~
 
-    cd misc/ssm
-    ./make_package.ssh
+    cd ssm
+    ./make_ssm_package.ssh
 
 # Acknowledgements
 
@@ -199,11 +199,9 @@ Great thanks to:
 
 -   [Phillipe Carphin](mailto:Phillipe.Carphin2@canada.ca) for inspiring
     the use of pandas.
-
 -   [Dominik Jacques](mailto:Dominik.Jacques@canada.ca) for the awsome
     domUtils project, a great structure of what should be a python
     project.
-
 -   [Micheal Neish](mailto:Micheal.Neish@canada.ca) for the awsome
     fstd2nc project, great insights on how to develop xarray structure
     from CMC standard files and great functions to work on fst files.

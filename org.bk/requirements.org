@@ -1,0 +1,12 @@
+#+TITLE_: REQUIREMENTS
+#+OPTIONS: toc:1
+
+* Requirements
+** packages
+  - python 3.6   
+  - numpy   
+  - pandas      
+  - dask    
+  - xarray    
+
+
