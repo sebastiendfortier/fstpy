@@ -31,17 +31,17 @@ echo '}' >> control.json
 
 
 echo 'Building package '${PKGNAME}
-mkdir -p ${PKGNAME}/lib/packages/fstpy
+mkdir -p ${PKGNAME}/lib/python/${name}
 mkdir -p ${PKGNAME}/.ssm.d
 mkdir -p ${PKGNAME}/bin
 mkdir -p ${PKGNAME}/share
 mkdir -p ${PKGNAME}/etc/profile.d
 
-PROJECT_ROOT=$ROOT_DIR/fstpy
+PROJECT_ROOT=$ROOT_DIR/${name}
 echo 'Copying files to '${PKGNAME}' directory'
 cp ssm_package_setup.sh ${PKGNAME}/etc/profile.d/${PKGNAME}.sh
 cp control.json ${PKGNAME}/.ssm.d/.
-cp -rf ${PROJECT_ROOT}/* ${PKGNAME}/lib/packages/fstpy/.
+cp -rf ${PROJECT_ROOT}/* ${PKGNAME}/lib/python/${name}/.
 cp -rf requirements.txt ${PKGNAME}/share/.
 echo 'Creating ssm archive '${PKGNAME}'.ssm'
 tar -zcvf ${PKGNAME}.ssm ${PKGNAME}
