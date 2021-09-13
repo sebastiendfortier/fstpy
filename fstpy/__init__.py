@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
 import pandas as pd
-from .fstcompstats import fstcompstats
-# __version__ = '1.0.1'
 
 error = 0
 if sys.version_info[:2] < (3, 6):

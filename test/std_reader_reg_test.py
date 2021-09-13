@@ -2,10 +2,11 @@
 from test import TEST_PATH, TMP_PATH
 
 import pytest
-from fstpy.dataframe_utils import fstcomp, select_with_meta
+from fstpy.dataframe_utils import select_with_meta
 from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.utils import delete_file
+from ci_fstcomp import fstcomp
 from rpnpy.librmn.all import FSTDError
 
 pytestmark = [pytest.mark.std_reader_regtests, pytest.mark.regressions]
@@ -19,7 +20,7 @@ def test_1(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_fileSrc_.std"
     with pytest.raises(FSTDError):
-        src_df0 = StandardFileReader(source0).to_pandas()
+        _ = StandardFileReader(source0).to_pandas()
 
 
 def test_2(plugin_test_dir):

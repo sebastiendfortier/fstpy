@@ -1,9 +1,0 @@
-#+TITLE_: SSM
-#+OPTIONS: toc:1
-
-* Creating the ssm package
-From $PROJECT_ROOT
-  #+BEGIN_SRC
-  cd misc/ssm
-  ./make_package.ssh
-  #+END_SRC

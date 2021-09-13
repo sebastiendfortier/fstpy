@@ -84,5 +84,5 @@ install_latest_doc:
 ssm_package:
   stage: ssm_package
   script:
-    - cd misc/ssm
-    - ./make_package.sh
+    - cd ssm
+    - ./make_ssm_package.sh
