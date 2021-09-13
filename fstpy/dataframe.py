@@ -264,7 +264,7 @@ def add_columns(df:pd.DataFrame, decode:bool, columns:'list[str]'=['flags','etik
     cols = ['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']
     for col in columns:
         if col not in cols:
-            sys.stderr.write(f'{col} not found in {cols}\n')
+            logging.warning(f'{col} not found in {cols}\n')
 
     df = add_data_column(df)
     df = add_shape_column(df)

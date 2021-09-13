@@ -152,7 +152,7 @@ def voir(df:pd.DataFrame,style=False):
         res_df = res_df.drop(columns=['datev','grid','run','implementation','ensemble_member','shape','key','d','path','file_modification_time','ip1_kind','ip2_dec','ip2_kind','ip2_pkind','ip3_dec','ip3_kind','ip3_pkind','date_of_observation','date_of_validity','forecast_hour','d','surface','follow_topography','ascending','interval'],errors='ignore')
 
     #logger.debug('    NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s) FORECASTHOUR      IP1        LEVEL        IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
-    sys.stdout.write('%s\n'%res_df.reset_index(drop=True).to_string(header=True))
+    logging.info('%s\n'%res_df.reset_index(drop=True).to_string(header=True))
 
 
 
@@ -214,7 +214,7 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     :rtype: pd.DataFrame
     """
 
-    sys.stdout.write('fststat\n')
+    logging.info('fststat\n')
     pd.options.display.float_format = '{:0.6E}'.format
     if df.empty:
         raise StandardFileError('fststat - no records to process')

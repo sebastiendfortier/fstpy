@@ -5,7 +5,6 @@ from functools import wraps
 import pandas as pd
 import rpnpy.librmn.all as rmn
 import logging
-from .logger_config import logger
 
 
 def initializer(func):
@@ -252,26 +251,26 @@ def ip_from_value_and_kind(value:float,kind:str) -> int:
 def column_descriptions():
     """Prints the base attributes descriptions
     """
-    sys.stdout.write('nomvar: variable name')
-    sys.stdout.write('typvar: type of field ([F]orecast, [A]nalysis, [C]limatology)')
-    sys.stdout.write('etiket: concatenation of label, run, implementation and ensemble_member')
-    sys.stdout.write('ni: first dimension of the data field - relates to shape')
-    sys.stdout.write('nj: second dimension of the data field - relates to shape')
-    sys.stdout.write('nk: third dimension of the data field - relates to shape')
-    sys.stdout.write('dateo: date of observation time stamp')
-    sys.stdout.write('ip1: encoded vertical level')
-    sys.stdout.write('ip2: encoded forecast hour, but can be used in other ways by encoding an ip value')
-    sys.stdout.write('ip3: user defined identifier')
-    sys.stdout.write('deet: length of a time step in seconds - usually invariable - relates to model ouput times')
-    sys.stdout.write('npas: time step number')
-    sys.stdout.write('datyp: data type of the elements (int,float,str,etc)')
-    sys.stdout.write('nbits: number of bits kept for the elements of the field (16,32,etc)')
-    sys.stdout.write('ig1: first grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    sys.stdout.write('ig2: second grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    sys.stdout.write('ig3: third grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    sys.stdout.write('ig4: fourth grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    sys.stdout.write('grtyp: type of geographical projection identifier (Z, X, Y, etc)')
-    sys.stdout.write('datev: date of validity (dateo + deet * npas) Will be set to -1 if dateo invalid')
-    sys.stdout.write('d: data associated to record, empty until data is loaded - either a numpy array or a daks array for one level of data')
-    sys.stdout.write('key: key/handle of the record - used by rpnpy to locate records in a file')
-    sys.stdout.write('shape: (ni, nj, nk) dimensions of the data field - an attribute of the numpy/dask array (array.shape)')
+    logging.info('nomvar: variable name')
+    logging.info('typvar: type of field ([F]orecast, [A]nalysis, [C]limatology)')
+    logging.info('etiket: concatenation of label, run, implementation and ensemble_member')
+    logging.info('ni: first dimension of the data field - relates to shape')
+    logging.info('nj: second dimension of the data field - relates to shape')
+    logging.info('nk: third dimension of the data field - relates to shape')
+    logging.info('dateo: date of observation time stamp')
+    logging.info('ip1: encoded vertical level')
+    logging.info('ip2: encoded forecast hour, but can be used in other ways by encoding an ip value')
+    logging.info('ip3: user defined identifier')
+    logging.info('deet: length of a time step in seconds - usually invariable - relates to model ouput times')
+    logging.info('npas: time step number')
+    logging.info('datyp: data type of the elements (int,float,str,etc)')
+    logging.info('nbits: number of bits kept for the elements of the field (16,32,etc)')
+    logging.info('ig1: first grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
+    logging.info('ig2: second grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
+    logging.info('ig3: third grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
+    logging.info('ig4: fourth grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
+    logging.info('grtyp: type of geographical projection identifier (Z, X, Y, etc)')
+    logging.info('datev: date of validity (dateo + deet * npas) Will be set to -1 if dateo invalid')
+    logging.info('d: data associated to record, empty until data is loaded - either a numpy array or a daks array for one level of data')
+    logging.info('key: key/handle of the record - used by rpnpy to locate records in a file')
+    logging.info('shape: (ni, nj, nk) dimensions of the data field - an attribute of the numpy/dask array (array.shape)')
