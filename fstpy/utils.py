@@ -4,7 +4,7 @@ import sys
 from functools import wraps
 import pandas as pd
 import rpnpy.librmn.all as rmn
-
+import logging
 from .logger_config import logger
 
 
@@ -167,7 +167,7 @@ def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:
     #     sys.stderr.write('more than one variable, returning a dataframe based on first row\n')
     #     return df
     if df.empty:
-        print('cant create, model dataframe empty')
+        logging.warning('cant create, model dataframe empty')
     res_df = df.iloc[0].to_dict()
     res_df = pd.DataFrame([res_df])
 

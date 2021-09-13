@@ -2,6 +2,7 @@
 
 import numpy as np
 import sys
+import logging
 
 # Read a 32-bit integer from a buffer
 def read32(b):# -> int:
@@ -89,16 +90,16 @@ class RecordHeader:
     dltf=0
 
 def print_file_header(h):
-    print("file_size: %d, num_overwrites: %d, num_extensions: %d, nchunks: %d, last_chunk: %x, max_data_length: %d, num_erasures: %d, nrecs: %d"%( h.file_size, h.num_overwrites, h.num_extensions, h.nchunks, h.last_chunk, h.max_data_length, h.num_erasures, h.nrecs))
+    logging.info("file_size: %d, num_overwrites: %d, num_extensions: %d, nchunks: %d, last_chunk: %x, max_data_length: %d, num_erasures: %d, nrecs: %d"%( h.file_size, h.num_overwrites, h.num_extensions, h.nchunks, h.last_chunk, h.max_data_length, h.num_erasures, h.nrecs))
     
 def print_chunk_header(h) :
-    print("this_chunk: %x, next_chunk: %x, nrecs: %d, checksum: %x"%( h.this_chunk, h.next_chunk, h.nrecs, h.checksum))
+    logging.info("this_chunk: %x, next_chunk: %x, nrecs: %d, checksum: %x"%( h.this_chunk, h.next_chunk, h.nrecs, h.checksum))
 
 def print_record_header (i,h):
-    print("%5d- status: %d, size: %d, data pointer: %x, deet: %d, npak: %d, ni: %d, grtyp: '%c', nj: %d, datyp: %d nk: %d, npas: %d, ig4: %d, ig2: %d, ig1: %d, ig3: %d, etiket: '%s', typvar: '%s', nomvar: '%s', ip1: %d, ip2: %d, ip3: %d, dateo: %d, swa: %d, ubc: %d, dltf: %d"%(i, h.status, h.size, h.data, h.deet, h.npak, h.ni, h.grtyp, h.nj, h.datyp, h.nk, h.npas, h.ig4, h.ig2, h.ig1, h.ig3, h.etiket, h.typvar, h.nomvar, h.ip1, h.ip2, h.ip2, h.dateo,h.swa,h.ubc,h.dltf))
+    logging.info("%5d- status: %d, size: %d, data pointer: %x, deet: %d, npak: %d, ni: %d, grtyp: '%c', nj: %d, datyp: %d nk: %d, npas: %d, ig4: %d, ig2: %d, ig1: %d, ig3: %d, etiket: '%s', typvar: '%s', nomvar: '%s', ip1: %d, ip2: %d, ip3: %d, dateo: %d, swa: %d, ubc: %d, dltf: %d"%(i, h.status, h.size, h.data, h.deet, h.npak, h.ni, h.grtyp, h.nj, h.datyp, h.nk, h.npas, h.ig4, h.ig2, h.ig1, h.ig3, h.etiket, h.typvar, h.nomvar, h.ip1, h.ip2, h.ip2, h.dateo,h.swa,h.ubc,h.dltf))
 
 def print_record_header1 (i,h):
-    print("%5d- %-4s %-2s %-12s %8d%8d%6d%10d %19d %9d%10d%9d%9d %3d %2d %c %5d %5d %5d %5d"%(i, h.nomvar,h.typvar,h.etiket,h.ni, h.nj,h.nk,h.dateo,h.ip1,h.ip2,h.ip3, h.deet, h.npas, h.datyp, h.npak, h.grtyp, h.ig1, h.ig2, h.ig3, h.ig4))
+    logging.info("%5d- %-4s %-2s %-12s %8d%8d%6d%10d %19d %9d%10d%9d%9d %3d %2d %c %5d %5d %5d %5d"%(i, h.nomvar,h.typvar,h.etiket,h.ni, h.nj,h.nk,h.dateo,h.ip1,h.ip2,h.ip3, h.deet, h.npas, h.datyp, h.npak, h.grtyp, h.ig1, h.ig2, h.ig3, h.ig4))
 
 
 def read_file_header (f):# -> FileHeader:
@@ -293,13 +294,13 @@ if __name__ == "__main__":
     if len(sys.argv)==2:
         path=sys.argv[1]#'/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std'
     else:
-        print('please provide a valid file')
+        logging.critical('please provide a valid file')
         sys.exit()
     # print(f'voir on {path}')
 
     h_list = get_record_headers(path)
     i=0
-    print('       NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s)           IP1       IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
+    logging.info('       NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s)           IP1       IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
     for rec in h_list:
         #print_record_header1(i,rec)
         i += 1

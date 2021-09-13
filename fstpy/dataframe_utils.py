@@ -5,6 +5,7 @@ import sys
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
+import logging
 
 from fstpy import DATYP_DICT
 
@@ -230,7 +231,7 @@ def fststat(df:pd.DataFrame) -> pd.DataFrame:
     df.sort_values(by=['nomvar','level'],ascending=[True,False],inplace=True)
 
     # if 'level' in df.columns:
-    print(df[['nomvar','typvar','level',' ','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
+    logging.info(df[['nomvar','typvar','level',' ','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string(formatters={'level':'{:,.6f}'.format}))
     # else:
     #     print(res_df[['nomvar','typvar','ip1','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string())
     del df[' ']

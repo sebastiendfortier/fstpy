@@ -664,7 +664,7 @@ def test_30(plugin_test_dir):
     #write the result
     results_file = TMP_PATH + "test_read_reg_30.std"
     delete_file(results_file)
-    print(src_df0[['grid','nomvar','ip1','ip2','ip3','dateo','deet','npas','datev']])
+
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
@@ -743,7 +743,6 @@ def test_33(plugin_test_dir):
     source0 = plugin_test_dir + "resulttest_33.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    print(src_df0)
     #compute ReaderStd
     # src_df0 = ReaderStd(src_df0)
     #['[ReaderStd --input {sources[0]}]>>', '[WriterStd --output {destination_path}]']
