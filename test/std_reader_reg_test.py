@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import datetime
 from test import TEST_PATH, TMP_PATH
 
 import pytest
@@ -29,7 +28,6 @@ def test_2(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "regdiag_2012061300_012_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
-
 
     #compute ReaderStd
     src_df0 = select_with_meta(src_df0,["UU","VV","T6"])

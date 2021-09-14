@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
-from fstpy.unit import unit_convert
+from fstpy.unit import UnitConversionError, unit_convert
 from fstpy.utils import delete_file
 from test import TMP_PATH, TEST_PATH
 import pandas as pd
 import pytest
-from fstpy.exceptions import UnitConversionError
 from ci_fstcomp import fstcomp
 
 

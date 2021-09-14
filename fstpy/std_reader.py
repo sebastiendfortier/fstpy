@@ -11,11 +11,12 @@ import rpnpy.librmn.all as rmn
 # import xarray as xr
 
 from .dataframe import add_columns, add_data_column, add_shape_column, drop_duplicates
-from .exceptions import StandardFileError
-from .std_io import (compare_modification_times, 
-                     parallel_get_dataframe_from_file, get_dataframe_from_file,read_record)
+from .std_io import (close_fst, compare_modification_times, open_fst, 
+                     parallel_get_dataframe_from_file, get_dataframe_from_file)
 from .utils import initializer
 
+class StandardFileReaderError(Exception):
+    pass
 
 class StandardFileReader:
     """Class to handle fst files
@@ -23,7 +24,7 @@ class StandardFileReader:
         No data is loaded unless specified, only the metadata is read. Extra metadata is added to the dataframe if specified.  
   
         :param filenames: path to file or list of paths to files  
-        :type filenames: str|list[str]  
+        :type filenames: str|list[str], does not accept wildcards (numpy has many tools for this)
         :param decode_metadata: adds extra columns, defaults to False  
                 'unit':str, unit name   
                 'unit_converted':bool  
@@ -64,7 +65,7 @@ class StandardFileReader:
         elif isinstance(self.filenames,list):
             self.filenames = [os.path.abspath(str(f)) for f in filenames]
         else:
-            raise StandardFileError('Filenames must be str or list\n')
+            raise StandardFileReaderError('Filenames must be str or list\n')
 
 
 
@@ -117,26 +118,21 @@ def load_data(df:pd.DataFrame,clean:bool=False) -> pd.DataFrame:
 
     path_groups = df.groupby(df.path)
     for _,path_df in path_groups:
-        if ('file_modification_time' in path_df.columns) and ((path_df.iloc[0]['file_modification_time'] is None) == False):
-            compare_modification_times(path_df.iloc[0]['file_modification_time'], path_df.iloc[0]['path'],rmn.FST_RO, 'std_reader.py::load_data',StandardFileError)
+        
+        if ('file_modification_time' in path_df.columns) and (not (path_df.iloc[0]['file_modification_time'] is None)):
+            compare_modification_times(path_df.iloc[0]['file_modification_time'], path_df.iloc[0]['path'],rmn.FST_RO, 'load_data',StandardFileReaderError)
 
-        unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
-        # loads faster when keys are in sequence
-        # if sort:
-            # path_df = path_df.sort_values(by=['key'])
+        unit,  _ = open_fst(path_df.iloc[0]['path'],rmn.FST_RO,'load_data',StandardFileReaderError)
 
         for i in path_df.index:
-            # if isinstance(path_df.at[i,'d'],dask_array_type):
-            #     continue
             if isinstance(path_df.at[i,'d'],np.ndarray):
                 continue
-            #call stored function with param, rmn.fstluk(key)
-            path_df.at[i,'d'] = read_record(path_df.at[i,'key'])
+            path_df.at[i,'d'] = rmn.fstluk(int(path_df.at[i,'key']))['d']
             path_df.at[i,'clean'] = True if clean else False
-            #path_df.at[i,'fstinl_params'] = None
-            # path_df.at[i,'path'] = None
+
         df_list.append(path_df)
-        rmn.fstcloseall(unit)
+        
+        close_fst(unit,path_df.iloc[0]['path'],'load_data')
 
 
     if len(df_list):
@@ -146,9 +142,6 @@ def load_data(df:pd.DataFrame,clean:bool=False) -> pd.DataFrame:
     else:
         res_df = df
 
-    # if sort:
-    #     res_df = sort_dataframe(res_df)
-    # print('load_data\n',res_df[['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1']])
     return res_df
 
 def unload_data(df:pd.DataFrame,only_marked:bool=False) -> pd.DataFrame:
@@ -164,118 +157,8 @@ def unload_data(df:pd.DataFrame,only_marked:bool=False) -> pd.DataFrame:
 
     for i in df.index:
         if isinstance(df.at[i,'d'],np.ndarray) and not(df.at[i,'key'] is None) and ( df.at[i,'clean'] if only_marked else True):
-            # df.at[i,'d'] = ('numpy',int(df.at[i,'key']))
             df.at[i,'d'] = None
 
     df = df.drop(columns=['clean'],errors='ignore')
+    
     return df
-
-
-# def stack_arrays(df):
-
-#     df = load_data(df)
-#     df_list = []
-#     grid_groups = df.groupby(df.grid)
-#     for _, grid_df in grid_groups:
-#         for nomvar in grid_df.nomvar.unique():
-#             if nomvar in ['>>','^^','!!','!!SF','HY','P0','PT']:
-#                 to_stack_df = grid_df.query('nomvar=="%s"'%nomvar)
-#                 df_list.append(to_stack_df)
-#                 continue
-#             to_stack_df = grid_df.query('nomvar=="%s"'%nomvar)
-#             if len(to_stack_df.d) == 1:
-#                 df_list.append(to_stack_df)
-#                 continue
-#             if 'level' not in  to_stack_df.columns:
-#                 to_stack_df['level'] = None
-#                 to_stack_df['ip1_kind'] = None
-#                 for i in to_stack_df.index:
-#                     to_stack_df.at[i,'level'], to_stack_df.at[i,'ip1_kind'], _ = decode_ip(to_stack_df.at[i,'ip1'])
-#             to_stack_df.sort_values(by=['level'],ascending=False,inplace=True)
-#             #print('stacking %s with %s levels'%(nomvar, len(to_stack_df.level)))
-#             var = create_1row_df_from_model(to_stack_df)
-#             #print(var.index)
-#             data_list = to_stack_df['d'].to_list()
-#             stacked_data = np.stack(data_list)
-#             #print(type(stacked_data),type(var.at[0,'d']))
-#             var['stacked'] = True
-#             var['ip1'] = None
-#             var['level'] = None
-#             var['ip1_kind'] = None
-#             var['key'] = None
-#             var.at[0,'level'] = to_stack_df['level'].to_numpy()
-#             var.at[0,'ip1_kind'] = to_stack_df['ip1_kind'].to_numpy()
-#             var.at[0,'d'] = stacked_data
-#             var.at[0,'ip1'] = to_stack_df['ip1'].to_numpy()
-#             var.at[0,'key'] = to_stack_df['key'].to_numpy()
-#             var.at[0,'shape'] = (len(var.at[0,'ip1']),var.at[0,'ni'],var.at[0,'nj'])
-#             var.at[0,'nk'] = len(var.at[0,'ip1'])
-#             df_list.append(var)
-
-#     if len(df_list) > 1:
-#         new_df = pd.concat(df_list)
-#     else:
-#         new_df = df_list[0]
-#     new_df = sort_dataframe(new_df)
-#     new_df.reset_index(inplace=True,drop=True)
-#     return new_df
-
-
-# def create_coordinate_type(meta:set, ip1_kind:int, vcode:int, coord_types:pd.DataFrame) ->str:
-#     vctype = 'UNKNOWN'
-#     toctoc_exists = '!!' in meta
-#     p0_exists = 'P0' in meta
-#     hy_exists = 'HY' in meta
-#     pt_exists = 'PT' in meta
-#     e1_exists = 'E1' in meta
-#     sf_exists = '!!SF' in meta
-
-#     result = coord_types.query(f'(ip1_kind == {ip1_kind}) and (toctoc == {toctoc_exists}) and (P0 == {p0_exists}) and (E1 == {e1_exists}) and (PT == {pt_exists}) and (HY == {hy_exists}) and (SF == {sf_exists}) and (vcode == {vcode})')
-
-#     if len(result.index) > 1:
-#         logger.debug(result)
-#     if len(result.index):
-#         vctype = result['vctype'].iloc[0]
-#     return vctype
-
-
-
-#e_rel_max   E-REL-MOY   VAR-A        C-COR        MOY-A        BIAIS       E-MAX       E-MOY
-
-# def add_metadata_fields(df:pd.DataFrame, latitude_and_longitude=True, pressure=True, vertical_descriptors=True) -> pd.DataFrame:
-#     if 'path' not in df:
-#         logger.warning('add_metadata_fields - no path to get meta from')
-#         return df
-
-#     meta_df = get_grid_metadata_fields(df, 'add_metadata_fields',StandardFileError,latitude_and_longitude, pressure, vertical_descriptors)
-
-#     res = pd.concat([df,meta_df])
-
-#     return res
-
-# def get_vertical_grid_descriptor(self, records:list):
-#     """ Gets the vertical grid descriptor associated with the supplied records"""
-#     logger.info('get_vertical_grid_descriptor')
-#     if records == None or not len(records):
-#         logger.error('get_vertical_grid_descriptor - no records to process')
-#         return
-# #    ip1      (int)  : Ip1 of the vgrid record to find, use -1 for any (I)
-# #    ip2      (int)  : Ip2 of the vgrid record to find, use -1 for any (I)
-# #    ip1_kind     (int)  : Kind of vertical coor
-# #    version  (int)  : Version of vertical coor
-# #https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.1/rpnpy/vgd/const
-#     for rec in records:
-#         v = vgd.vgd_read(self._fileid_in, ip1=rec.ig1, ip2=rec.ig2)
-#         # Get Some info about the vgrid
-#         vkind    = vgd.vgd_get(v, 'KIND')
-#         vver     = vgd.vgd_get(v, 'VERS')
-#         ip1diagt = vgd.vgd_get(v, 'DIPT')
-#         ip1diagm = vgd.vgd_get(v, 'DIPM')
-#         tlvl     = vgd.vgd_get(v, 'VIPT')
-#         # mlvl     = vgd.vgd_get(v, 'VIPM')
-
-#         VGD_KIND_VER_INV = dict((v, k) for k, v in vgd.VGD_KIND_VER.items())
-#         vtype = VGD_KIND_VER_INV[(vkind,vver)]
-#         (ldiagval, ldiagkind) = rmn.convertIp(rmn.CONVIP_DECODE, ip1diagt)
-#         (l2diagval, l2diagkind) = rmn.convertIp(rmn.CONVIP_DECODE, ip1diagm)
-#         logger.debug("CB14: Found vgrid type=%s (ip1_kind=%d, vers=%d) with %d levels and diag levels=%7.2f%s (ip1=%d) and %7.2f%s (ip1=%d)" % (vtype, vkind, vver, len(tlvl), ldiagval, rmn.kindToString(ldiagkind), ip1diagt, l2diagval, rmn.kindToString(l2diagkind), ip1diagm))

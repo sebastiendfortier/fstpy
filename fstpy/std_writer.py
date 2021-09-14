@@ -7,12 +7,13 @@ import math
 import rpnpy.librmn.all as rmn
 import logging
 from .dataframe_utils import metadata_cleanup
-from .exceptions import StandardFileWriterError
 from .std_io import get_grid_metadata_fields
 from .std_reader import load_data, unload_data
 from .utils import initializer
 import sys
 
+class StandardFileWriterError(Exception):
+    pass 
 
 class StandardFileWriter:
     """Writes a standard file Dataframe to file. if no metada fields like ^^ and >> are found,
@@ -119,10 +120,8 @@ class StandardFileWriter:
             df = load_data(df,clean=True) # partial load to keep memory usage low
 
             file_id = rmn.fstopenall(self.filename,rmn.FST_RW)
-            # print(df)
+
             for i in df.index:
-                # if df.at[i,'nomvar']=='!!':
-                #     print(df.at[i,'d'].dtype,df.at[i,'ni'],df.at[i,'nj'],df.at[i,'nk'],df.at[i,'shape'],df.at[i,'d'].shape,df.at[i,'d'])
                 record_path = self.df.at[i,'path']
                 if identical_destination_and_record_path(record_path,self.filename):
                     logging.warning('StandardFileWriter - record path and output file are identical, adding  new records')
@@ -142,10 +141,7 @@ def set_rewrite(df):
     return rewrite
 
 def write_dataframe_record_to_file(file_id,df,i,rewrite):
-    #df = change_etiket_if_a_plugin_name(df,i)
     df = reshape_data_to_original_shape(df,i)
-    # if df.at[i,'nomvar']=='!!':
-    #     print(df.loc[i].to_dict(),rewrite)
     rmn.fstecr(file_id, data=np.asfortranarray(df.at[i,'d']), meta=df.loc[i].to_dict(),rewrite=rewrite)
 
 
@@ -165,37 +161,3 @@ def reshape_data_to_original_shape(df, i):
         if df.at[i,'d'].shape != tuple(df.at[i,'shape']):
             df.at[i,'d'] = df.at[i,'d'].reshape(df.at[i,'shape'])
     return df
-
-# def change_etiket_if_a_plugin_name(df, i):
-#     df.at[i,'etiket'] = get_std_etiket(df.at[i,'etiket'])
-#     return df
-
-# def remove_df_columns(df,keys_to_keep = {'key','dateo', 'deet', 'npas', 'ni', 'nj', 'nk', 'datyp', 'nbits', 'ip1', 'ip2', 'ip3', 'typvar', 'nomvar', 'etiket', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'}):
-#     d = df.iloc[0].to_dict()
-#     d_keys = set(d.keys())
-#     keys_to_remove = list(d_keys-keys_to_keep)
-#     #keys_to_keep = {'dateo', 'datev', 'deet', 'npas', 'ni', 'nj', 'nk', 'nbits', 'datyp', 'ip1', 'ip2', 'ip3', 'typvar', 'nomvar', 'etiket', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'}
-#     df = df.drop(columns=keys_to_remove,errors='ignore')
-#     return df
-
-# def get_std_etiket(plugin_name:str):
-#     """get_std_etiket get the etiket corresponding to the plugin name
-
-#     :param plugin_name: plugin name
-#     :type plugin_name: str
-#     :return: etiket corresponding to plugin name in etiket db
-#     :rtype: str
-#     """
-#     etiket = get_etikey_by_name(plugin_name)
-#     if etiket.empty:
-#         return plugin_name
-#     return get_column_value_from_row(etiket, 'etiket')
-
-# def keys_to_remove(keys, the_dict):
-#     for key in keys:
-#         if key in the_dict:
-#             del the_dict[key]
-
-# def set_typvar(df, i):
-#     if ('typvar' in df.columns) and ('unit_converted' in df.columns) and (df.at[i,'unit_converted'] == True) and (len(df.at[i,'typvar']) == 1):
-#         df.at[i,'typvar']  += 'U'

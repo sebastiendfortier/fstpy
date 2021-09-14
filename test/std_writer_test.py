@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-from numpy.lib.function_base import delete
 import pytest
-from rpnpy.librmn.all import FSTDError
 from test import TMP_PATH, TEST_PATH
 import tempfile
-import fstpy.all as fstpy
 pytestmark = [pytest.mark.std_writer, pytest.mark.unit_tests]
 
 

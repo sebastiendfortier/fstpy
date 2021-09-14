@@ -6,8 +6,10 @@ from fstpy import get_unit_by_name
 from fstpy.std_dec import get_unit_and_description
 
 from .dataframe import add_columns, add_unit_and_description_columns
-from .exceptions import UnitConversionError
 from .std_reader import load_data
+
+class UnitConversionError(Exception):
+   pass
 
 class kelvin_to_celsius:
    def __init__(self, bias):
