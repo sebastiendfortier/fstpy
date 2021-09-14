@@ -55,36 +55,42 @@ def add_flag_values(df:pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool=True) -> pd.DataFrame:
-    """Adds basic and decoded columns to the dataframe.
+# def add_decoded_columns( df:pd.DataFrame,decode_metadata:bool=True) -> pd.DataFrame:
+#     """Adds basic and decoded columns to the dataframe.
 
-    :param df: input dataframe
+#     :param df: input dataframe
+#     :type df: pd.DataFrame
+#     :param decode_metadata: if true, decodes extra columns
+#     :type decode_metadata: bool
+#     :return: dataframe with decoded columns
+#     :rtype: pd.DataFrame
+#     """
+#     df = post_process_dataframe(df)
+
+#     df = add_columns(df,decode_metadata)
+#     # df = parallel_add_composite_columns_tr(df,decode_metadata,array_container,attributes_to_decode,n_cores=min(mp.cpu_count(),len(df.index),1))
+
+#     return df
+
+def drop_duplicates(df:pd.DataFrame) -> pd.DataFrame:
+    """Removes duplicate rows from dataframe
+        
+    :param df: original dataframe
     :type df: pd.DataFrame
-    :param decode_metadata: if true, decodes extra columns
-    :type decode_metadata: bool
-    :return: dataframe with decoded columns
+    :return: dataframe without duplicate rows
     :rtype: pd.DataFrame
     """
-    df = post_process_dataframe(df)
-
-    df = add_columns(df,decode_metadata)
-    # df = parallel_add_composite_columns_tr(df,decode_metadata,array_container,attributes_to_decode,n_cores=min(mp.cpu_count(),len(df.index),1))
-
-    return df
-
-def clean_dataframe(df):
-    # df = convert_df_dtypes(df,decode_metadata,attributes_to_decode)
-
-    df = reorder_columns(df)
-
-    df = sort_dataframe(df)
-
+    init_row_count = len(df.index)
     columns = ['nomvar','typvar','etiket','ni','nj','nk','dateo',
         'ip1','ip2','ip3','deet','npas','datyp','nbits',
         'grtyp','ig1','ig3','ig4','datev','key']
 
     df = df.drop_duplicates(subset=columns,keep='first')
 
+    row_count = len(df.index)
+    if init_row_count != row_count:
+        logging.warning('Found duplicate rows in dataframe!')
+        
     return df
 
 
@@ -99,6 +105,7 @@ def get_shape(ni,nj):
 
 
 def add_shape_column(df):
+    print('shape' in df.columns)
     if 'shape' in df.columns:
         return df
     vmake_shape = np.vectorize(get_shape,otypes=['object'])
@@ -110,9 +117,6 @@ def add_data_column(df):
     if 'd' in df.columns:
         return df
     df.loc[:,'d']=None
-    # vcreate_data = np.vectorize(get_data_holder,otypes=['object'])
-    # df.loc[:,'d']=None
-    # df.loc[:,'d'] = vcreate_data(df['d'],df['key'],array_container)
     return df
 
 
@@ -261,13 +265,11 @@ def add_columns(df:pd.DataFrame, decode:bool, columns:'list[str]'=['flags','etik
     :return: dataframe with coluns added
     :rtype: pd.DataFrame
     """
+
     cols = ['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']
     for col in columns:
         if col not in cols:
             logging.warning(f'{col} not found in {cols}\n')
-
-    df = add_data_column(df)
-    df = add_shape_column(df)
 
     if decode:
         if 'etiket' in columns:
@@ -355,15 +357,14 @@ def reorder_columns(df) -> pd.DataFrame:
     df = df[ordered]
     return df
 
-def sort_dataframe(df) -> pd.DataFrame:
-    if df.empty:
-        return df
-    if ('grid' in df.columns) and ('datev' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns):
-        df = df.sort_values(by=['grid','datev','nomvar','level'],ascending=[True,True,True,False])
-    else:
-        df = df.sort_values(by=['datev','nomvar'],ascending=[True,True])
-    df = df
-    return df
+# def sort_dataframe(df) -> pd.DataFrame:
+#     if df.empty:
+#         return df
+#     if ('grid' in df.columns) and ('datev' in df.columns)and ('nomvar' in df.columns) and ('level' in df.columns):
+#         df = df.sort_values(by=['grid','datev','nomvar','level'],ascending=[True,True,True,False])
+#     else:
+#         df = df.sort_values(by=['datev','nomvar'],ascending=[True,True])
+#     return df
 
 def set_vertical_coordinate_type(df) -> pd.DataFrame:
     from fstpy import VCTYPES

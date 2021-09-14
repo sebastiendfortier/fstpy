@@ -5,29 +5,14 @@ import os.path
 import pathlib
 import time
 import logging
-
-# import dask.array as da
+from typing import Type
+import logging
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
-
-from fstpy.extra import get_std_file_header
-
 from .exceptions import StandardFileError, StandardFileReaderError
-from .logger_config import logger
 from .std_dec import get_grid_identifier
 
-
-
-def open_fst(path:str, mode:str, caller_class:str, error_class:Exception):
-    file_modification_time = get_file_modification_time(path,mode,caller_class,error_class)
-    file_id = rmn.fstopenall(path, mode)
-    logger.info(caller_class + ' - opening file %s', path)
-    return file_id, file_modification_time
-
-def close_fst(file_id:int, file:str,caller_class:str):
-    logger.info(caller_class + ' - closing file %s', file)
-    rmn.fstcloseall(file_id)
 
 def parallel_get_dataframe_from_file(files, get_records_func, n_cores):
     # Step 1: Init multiprocessing.Pool()
@@ -37,86 +22,135 @@ def parallel_get_dataframe_from_file(files, get_records_func, n_cores):
     df = pd.concat(df_list,ignore_index=True)
     return df
 
-def add_grid_column(df):
+def add_grid_column(df : pd.DataFrame) -> pd.DataFrame:
     vcreate_grid_identifier = np.vectorize(get_grid_identifier,otypes=['str'])
     df.loc[:,'grid'] = vcreate_grid_identifier(df['nomvar'].values,df['ip1'].values,df['ip2'].values,df['ig1'].values,df['ig2'].values)
     return df
 
-def get_dataframe_from_file(file: str, query: str):
-    records = get_header(file)
+def get_dataframe_from_file(path: str, query: str, load_data=False):
+    
+    records = get_records_from_file(path,load_data)
 
     df = pd.DataFrame(records)
 
-    df = add_path_and_mod_time(file, df)
-
     df = add_grid_column(df)
 
+    hy_df = df.loc[df.nomvar == "HY"]
 
-    hy_df = df.loc[df.nomvar== "HY"]
-
+    df = df.loc[df.nomvar != "HY"]
+    
     if (query is None) == False:
 
-        sub_df = df.query(query)
+        query_result_df = df.query(query)
 
         # get metadata
-        df = add_meta_to_query_results(df, sub_df, hy_df)
-
+        df = add_metadata_to_query_results(df, query_result_df, hy_df)
 
     # check HY count
     df = process_hy(hy_df, df)
-    df = df[df.dltf==0]
+
     return df
 
-def add_path_and_mod_time(file, df):
-    f_mod_time = get_file_modification_time(file,rmn.FST_RO,'add_path_and_mod_time',StandardFileReaderError)
-    df.loc[:,'path'] = file
+def add_path_and_mod_time(path, df):
+    f_mod_time = get_file_modification_time(path,rmn.FST_RO,'add_path_and_mod_time',StandardFileReaderError)
+    df.loc[:,'path'] = path
     df.loc[:,'file_modification_time'] = f_mod_time
     return df
 
-def get_header(file):
-    unit = rmn.fstopenall(file)
+def open_fst(path:str, mode:str, caller_class:str, error_class:Type):
+    file_modification_time = get_file_modification_time(path,mode,caller_class,error_class)
+    file_id = rmn.fstopenall(path, mode)
+    logging.info(f'{caller_class} - opening file {path}')
+    return file_id, file_modification_time
 
-    records = get_std_file_header(unit)
+def close_fst(file_id:int, path:str,caller_class:str):
+    logging.info(f'{caller_class} - closing file {path}')
+    rmn.fstcloseall(file_id)
 
-    rmn.fstcloseall(unit)
-    return records
+def get_dataframe_from_file_and_load(path:str, query:str):
+    df = get_dataframe_from_file(path, query, load_data=True)
+    return df
 
-def add_meta_to_query_results(df, sub_df, hy_df):
-    # get metadata
-    # meta_df = df.query('nomvar in ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1","PN"]')
+    
+def get_records_from_file(path:str,load_data=False) -> 'list[dict]':
+    file_id, file_modification_time = open_fst(path,rmn.FST_RO,'StandardFileReader',StandardFileReaderError)
+
+    keys=rmn.fstinl(file_id)
+    
+    desired_order_list = ['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','grtyp','ig1','ig2','ig3','ig4','datev','key','path','file_modification_time']
+    
+    if load_data:
+        rmn_function = rmn.fstluk
+        desired_order_list.extend('d')
+    else:
+        rmn_function = rmn.fstprm
+        
+    rec_list = []
+    for k in keys:
+        rec = rmn_function(k)
+        if rec['dltf'] == 1:
+            continue
+        rec.pop('xtra1')
+        rec.pop('xtra2')
+        rec.pop('xtra3')
+        rec.pop('ubc')
+        rec.pop('lng')
+        rec.pop('swa')
+        rec['nomvar'] = rec['nomvar'].strip()
+        rec['typvar'] = rec['typvar'].strip()
+        rec['etiket'] = rec['etiket'].strip()
+        rec['grtyp'] = rec['grtyp'].strip()
+        rec['file_modification_time'] = file_modification_time
+        rec['path'] = path
+        
+        reordered_dict = {k: rec[k] for k in desired_order_list}
+        
+        rec_list.append(reordered_dict)
+
+    close_fst(file_id, path,'StandardFileReader')
+    
+    return rec_list
+
+def add_metadata_to_query_results(df, query_result_df, hy_df):
     meta_df = df.loc[df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1","PN"])]
-    # print(meta_df.query('grid in %s'%list(sub_df.grid.unique())) )
-    # print(list(sub_df.grid.unique()))
-    # print(sub_df)
-    # subdfmeta = meta_df.query('grid in %s'%list(sub_df.grid.unique()))
-    subdfmeta = meta_df.loc[meta_df.grid.isin(list(sub_df.grid.unique()))]
-    # print(subdfmeta)
 
-    if (not sub_df.empty) and (not subdfmeta.empty):
-        df = pd.concat([sub_df,subdfmeta],ignore_index=True)
-    elif (not sub_df.empty) and (subdfmeta.empty):
-        df = sub_df
-    elif sub_df.empty:
-        df = sub_df
+    query_result_metadata_df = meta_df.loc[meta_df.grid.isin(list(query_result_df.grid.unique()))]
+
+    if (not query_result_df.empty) and (not query_result_metadata_df.empty):
+        df = pd.concat([query_result_df,query_result_metadata_df],ignore_index=True)
+    elif (not query_result_df.empty) and (query_result_metadata_df.empty):
+        df = query_result_df
+    elif query_result_df.empty:
+        df = query_result_df
 
     if (not df.empty) and (not hy_df.empty):
         df = pd.concat([df,hy_df],ignore_index=True)
+        
     return df
 
-def process_hy(hy_df, df):
+def process_hy(hy_df:pd.DataFrame, df:pd.DataFrame) -> pd.DataFrame:
+    """Make sure there is only one HY, add it to the dataframe and set its grid
+
+    :param hy_df: dataframe of all hy fields
+    :type hy_df: pd.DataFrame
+    :param df: original dataframe without hy
+    :type df: pd.DataFrame
+    :return: modified dataframe with one HY field
+    :rtype: pd.DataFrame
+    """
+    if hy_df.empty:
+        return df
+        
     # check HY count
     hy_count = hy_df.nomvar.count()
+
     if hy_count >= 1:
         if hy_count > 1:
             logging.warning('More than one HY in this file! - UNKNOWN BEHAVIOR, continue at your own risk\n')
-
-        grids = [ x for x in list(df.grid.unique()) if x != 'None' ]
-        if len(grids):
-            grid = grids[0]
-            hy_df = df.loc[df.nomvar=="HY"]
-            hy_df.loc[:,'grid'] = grid
-        #remove HY
-        df = df[df['grid']!= 'None']
+        hy_df = pd.DataFrame([hy_df.iloc[0].to_dict()])
+        grid = df.grid.unique()[0]
+        hy_df['grid'] = grid
+            
         df = pd.concat([df,hy_df],ignore_index=True)
     return df
 
@@ -148,16 +182,6 @@ def add_dask_data_column(df):
     df.loc[:,'d'] = vfstluk(df['key'].values)
     return df
 
-def get_dataframe_from_file_and_load(file:str,query:str):
-    df = get_dataframe_from_file(file,query)
-    unit=rmn.fstopenall(file,rmn.FST_RO)
-    df = add_numpy_data_column(df)
-    # df['d'] = None
-    # for i in df.index:
-    #     df.at[i,'d'] = rmn.fstluk(int(df.at[i,'key']))['d']
-
-    rmn.fstcloseall(unit)
-    return df
 
 # written by Micheal Neish creator of fstd2nc
 # Lightweight test for FST files.
@@ -174,7 +198,21 @@ def maybeFST(filename):
     # Same check as c_wkoffit in librmn
     return buf[12:] == b'STDR'
 
-def get_file_modification_time(path:str,mode:str,caller_class,exception_class):
+def get_file_modification_time(path:str,mode:str,caller_class:str,exception_class:Type) -> datetime.datetime:
+    """Gets the file modification time
+
+    :param path: file path to get modification time from
+    :type path: str
+    :param mode: [description]
+    :type mode: str
+    :param caller_class: name of calling class for logging
+    :type caller_class: str
+    :param exception_class: exception to raise
+    :type exception_class: Type
+    :raises exception_class: exception to raise
+    :return: last modification time of file
+    :rtype: datetime.datetime
+    """
     file = pathlib.Path(path)
     if not file.exists():
         return datetime.datetime.now()
@@ -233,7 +271,7 @@ def get_2d_lat_lon(df:pd.DataFrame) -> pd.DataFrame:
                 # lat=grid['lat']
                 # lon=grid['lon']
             except Exception:
-                logger.warning('get_2d_lat_lon - no lat lon for this record')
+                logging.warning('get_2d_lat_lon - no lat lon for this record')
                 continue
 
             grid = rmn.gdll(g)

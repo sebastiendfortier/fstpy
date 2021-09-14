@@ -276,7 +276,7 @@ def get_grid_identifier(nomvar:str,ip1:int,ip2:int,ig1:int,ig2:int) -> str:
     if nomvar in ["^>",">>", "^^", "!!", "!!SF"]:
         grid = "".join([str(ip1),str(ip2)])
     elif nomvar == "HY":
-        grid = None
+        grid = 'None'
     else:
         grid = "".join([str(ig1),str(ig2)])
     return grid

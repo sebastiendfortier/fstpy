@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+import datetime
 from test import TEST_PATH, TMP_PATH
 
 import pytest
+from ci_fstcomp import fstcomp
 from fstpy.dataframe_utils import select_with_meta
 from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.utils import delete_file
-from ci_fstcomp import fstcomp
 from rpnpy.librmn.all import FSTDError
 
 pytestmark = [pytest.mark.std_reader_regtests, pytest.mark.regressions]
@@ -681,18 +682,9 @@ def test_31(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "data_with_mask.std"
     src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
-    #print(src_df0[['nomvar','deet','npas']])
-    # print(source0)
-    # print(src_df0[['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','grtyp','ig1','ig2','ig3','ig4']].to_string())
-    import datetime
-    src_df0 = src_df0.loc[src_df0.forecast_hour==datetime.timedelta(seconds=24*3600)]
-    # src_df0 = src_df0.loc[(src_df0.dateo==442080800) & (src_df0.deet==300) and (src_df0.npas==288)]
-    # # print(src_df0[['nomvar','ip2','deet','npas']])
-    # src_df0.loc[:,'etiket']='RU210RKFX'
-    # src_df0['ip2'] = 24
-    #compute ReaderStd
-    # df = ReaderStd(src_df0)
+
     #['[ReaderStd --input {sources[0]}] >> ', '[Select --forecastHour 24] >>', '[WriterStd --output {destination_path}]']
+    src_df0 = src_df0.loc[(src_df0.dateo==442080800) & (src_df0.deet==300) & (src_df0.npas==288)]
     src_df0.loc[:,'etiket']='RU210RKFX'
     src_df0.loc[:,'ip2'] = 24
     # print(src_df0[['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','grtyp','ig1','ig2','ig3','ig4']].to_string())

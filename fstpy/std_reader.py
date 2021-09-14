@@ -2,77 +2,69 @@
 import itertools
 import multiprocessing as mp
 import os
-from pathlib import Path
-import sys
 
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
-# from dask.array.core import Array as dask_array_type
-# from dask.config import set as dask_config_set
+
 
 # import xarray as xr
 
-from .dataframe import add_decoded_columns, clean_dataframe
+from .dataframe import add_columns, add_data_column, add_shape_column, drop_duplicates
 from .exceptions import StandardFileError
 from .std_io import (compare_modification_times, get_dataframe_from_file_and_load,
                      parallel_get_dataframe_from_file, get_dataframe_from_file,read_record)
 from .utils import initializer
-# from .xarray import (get_date_of_validity_data_array, get_latitude_data_array,
-#                      get_level_data_array, get_longitude_data_array,
-#                      get_variable_data_array, set_data_array_attributes)
 
 
 class StandardFileReader:
     """Class to handle fst files
-        Opens, reads the contents of an fst files or files into a pandas Dataframe and closes
-        No data is loaded unless specified, only the metadata is read. Extra metadata is added to the dataframe if specified.
-
-        :param filenames: path to file or list of paths to files
-        :type filenames: str|list[str]
-        :param decode_metadata: adds extra columns, defaults to False
-                'unit':str, unit name |br|
-                'unit_converted':bool |br|
-                'description':str, field description |br|
-                'date_of_observation':datetime, of the date of observation |br|
-                'date_of_validity':datetime, of the date of validity |br|
-                'level':float32, decoded ip1 level |br|
-                'ip1_kind':int32, decoded ip1 kind |br|
-                'ip1_pkind':str, string repr of ip1_kind int |br|
-                'data_type_str':str, string repr of data type |br|
-                'label':str, label derived from etiket |br|
-                'run':str, run derived from etiket |br|
-                'implementation':str, implementation derived from etiket |br|
-                'ensemble_member':str, ensemble member derived from etiket |br|
-                'surface':bool, True if the level is a surface level |br|
-                'follow_topography':bool, indicates if this type of level follows topography |br|
-                'ascending':bool, indicates if this type of level is in ascending order |br|
-                'vctype':str, vertical level type |br|
-                'forecast_hour':timedelta, forecast hour obtained from deet * npas / 3600 |br|
-                'ip2_dec':value of decoded ip2  |br|
-                'ip2_kind':kind of decoded ip2  |br|
-                'ip2_pkind':printable kind of decoded ip2 |br|
-                'ip3_dec':value of decoded ip3 |br|
-                'ip3_kind':kind of decoded ip3 |br|
-                'ip3_pkind':printable kind of decoded ip3 |br|
-        :type decode_metadata: bool, optional
-        :param load_data: if True, the data will be read, not just the metadata (fstluk vs fstprm), default False
-        :type load_data: bool, optional
-        :param query: parameter to pass to dataframe.query method, to select specific records
-        :type query: str, optional
+        Opens, reads the contents of an fst files or files into a pandas Dataframe and closes  
+        No data is loaded unless specified, only the metadata is read. Extra metadata is added to the dataframe if specified.  
+  
+        :param filenames: path to file or list of paths to files  
+        :type filenames: str|list[str]  
+        :param decode_metadata: adds extra columns, defaults to False  
+                'unit':str, unit name   
+                'unit_converted':bool  
+                'description':str, field description   
+                'date_of_observation':datetime, of the date of observation   
+                'date_of_validity':datetime, of the date of validity   
+                'level':float32, decoded ip1 level   
+                'ip1_kind':int32, decoded ip1 kind   
+                'ip1_pkind':str, string repr of ip1_kind int   
+                'data_type_str':str, string repr of data type   
+                'label':str, label derived from etiket   
+                'run':str, run derived from etiket   
+                'implementation':str, implementation derived from etiket   
+                'ensemble_member':str, ensemble member derived from etiket   
+                'surface':bool, True if the level is a surface level   
+                'follow_topography':bool, indicates if this type of level follows topography   
+                'ascending':bool, indicates if this type of level is in ascending order   
+                'vctype':str, vertical level type   
+                'forecast_hour':timedelta, forecast hour obtained from deet * npas / 3600   
+                'ip2_dec':value of decoded ip2    
+                'ip2_kind':kind of decoded ip2    
+                'ip2_pkind':printable kind of decoded ip2   
+                'ip3_dec':value of decoded ip3   
+                'ip3_kind':kind of decoded ip3   
+                'ip3_pkind':printable kind of decoded ip3   
+        :type decode_metadata: bool, optional  
+        :param load_data: if True, the data will be read, not just the metadata (fstluk vs fstprm), default False  
+        :type load_data: bool, optional  
+        :param query: parameter to pass to dataframe.query method, to select specific records  
+        :type query: str, optional  
     """
     meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]
     @initializer
     def __init__(self, filenames, decode_metadata=False,load_data=False,query=None):
-        #{'datev':-1, 'etiket':' ', 'ip1':-1, 'ip2':-1, 'ip3':-1, 'typvar':' ', 'nomvar':' '}
         """init instance"""
-        # if self.array_container not in ['numpy','dask.array']:
-        #     sys.stderr.write('wrong type of array container specified, defaulting to numpy\n')
-        #     self.array_container = 'numpy'
         if isinstance(self.filenames,str):
             self.filenames = os.path.abspath(str(self.filenames))
-        else:
+        elif isinstance(self.filenames,list):
             self.filenames = [os.path.abspath(str(f)) for f in filenames]
+        else:
+            raise StandardFileError('Filenames must be str or list\n')
 
 
 
@@ -84,25 +76,21 @@ class StandardFileReader:
         """
 
         if isinstance(self.filenames, list):
-            # convert to list of tuple (path,query)
-            self.filenames = list(zip(self.filenames,itertools.repeat(self.query)))
-            if self.load_data:
-                df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file_and_load, n_cores=min(mp.cpu_count(),len(self.filenames)))
-            else:
-                df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file, n_cores=min(mp.cpu_count(),len(self.filenames)))
+            # convert to list of tuple (path,query,load_data)
+            self.filenames = list(zip(self.filenames,itertools.repeat(self.query),itertools.repeat(self.load_data)))
+            
+            df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file, n_cores=min(mp.cpu_count(),len(self.filenames)))
 
         else:
+            df = get_dataframe_from_file(self.filenames, self.query, self.load_data)
 
-            if self.load_data:
-                df = get_dataframe_from_file_and_load(self.filenames,self.query)
-            else:
-                df = get_dataframe_from_file(self.filenames,self.query)
+        df = add_data_column(df)
 
+        df = add_shape_column(df)
+    
+        df = add_columns(df,decode=self.decode_metadata)
 
-
-        df = add_decoded_columns(df,self.decode_metadata)
-
-        df = clean_dataframe(df)
+        df = drop_duplicates(df)
 
         return df
 
