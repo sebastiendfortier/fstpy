@@ -3,7 +3,6 @@ import concurrent.futures
 
 import numpy as np
 import pandas as pd
-import sys
 import logging
 from .std_dec import (convert_rmndate_to_datetime,
                       get_parsed_etiket, get_unit_and_description)
@@ -145,15 +144,17 @@ def add_unit_and_description_columns(df:pd.DataFrame) ->pd.DataFrame:
     vget_unit_and_description = np.vectorize(get_unit_and_description,otypes=['str','str'])
     if 'unit' in df.columns:
         sub_df = df.loc[df['unit'].isna()].copy()
-        assign_unit_and_description(vget_unit_and_description, sub_df)
+        sub_df.loc[:,'unit'],sub_df.loc[:,'description'] = vget_unit_and_description(df['nomvar'].values)
+        # assign_unit_and_description(vget_unit_and_description, sub_df)
         df.loc[df['unit'].isna()] = sub_df
     else:
         df.loc[:,'unit'] = None
-        assign_unit_and_description(vget_unit_and_description, df)
+        df.loc[:,'unit'],df.loc[:,'description'] = vget_unit_and_description(df['nomvar'].values)
+        # assign_unit_and_description(vget_unit_and_description, df)
     return df
 
-def assign_unit_and_description(vget_unit_and_description, df):
-    df.loc[:,'unit'],df.loc[:,'description'] = vget_unit_and_description(df['nomvar'].values)
+# def assign_unit_and_description(vget_unit_and_description, df):
+#     df.loc[:,'unit'],df.loc[:,'description'] = vget_unit_and_description(df['nomvar'].values)
 
 # def add_flags_columns(df:pd.DataFrame) ->pd.DataFrame:
 #     df.loc[:,'unit_converted'] = False
