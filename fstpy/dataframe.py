@@ -144,9 +144,10 @@ def add_unit_and_description_columns(df:pd.DataFrame) ->pd.DataFrame:
     vget_unit_and_description = np.vectorize(get_unit_and_description,otypes=['str','str'])
     if 'unit' in df.columns:
         sub_df = df.loc[df['unit'].isna()].copy()
-        sub_df.loc[:,'unit'],sub_df.loc[:,'description'] = vget_unit_and_description(df['nomvar'].values)
-        # assign_unit_and_description(vget_unit_and_description, sub_df)
-        df.loc[df['unit'].isna()] = sub_df
+        if not sub_df.empty:
+            sub_df.loc[:,'unit'],sub_df.loc[:,'description'] = vget_unit_and_description(df['nomvar'].values)
+            # assign_unit_and_description(vget_unit_and_description, sub_df)
+            df.loc[df['unit'].isna()] = sub_df
     else:
         df.loc[:,'unit'] = None
         df.loc[:,'unit'],df.loc[:,'description'] = vget_unit_and_description(df['nomvar'].values)
@@ -316,22 +317,22 @@ def add_columns(df:pd.DataFrame, decode:bool, columns:'list[str]'=['flags','etik
 #         df.at[i,'unit'],df.at[i,'description']=get_unit_and_description(df.at[i,'nomvar'])
 #     return df
 
-def add_empty_columns(df, columns, init, dtype_str):
-    for col in columns:
-        if col not in df.columns:
-            df.insert(len(df.columns),col,init)
-            df = df.astype({col:dtype_str})
-    return df
+# def add_empty_columns(df, columns, init, dtype_str):
+#     for col in columns:
+#         if col not in df.columns:
+#             df.insert(len(df.columns),col,init)
+#             df = df.astype({col:dtype_str})
+#     return df
 
-def post_process_dataframe(df):
-    if 'dltf' in df.columns:
-        df=df.loc[df.dltf==0]
-        # df.query('dltf == 0',inplace=True)
-        df.drop(columns=['dltf'], inplace=True,errors='ignore')
-    # if 'd' not in df.columns:
-    #     df['d']=None
+# def post_process_dataframe(df):
+#     if 'dltf' in df.columns:
+#         df=df.loc[df.dltf==0]
+#         # df.query('dltf == 0',inplace=True)
+#         df.drop(columns=['dltf'], inplace=True,errors='ignore')
+#     # if 'd' not in df.columns:
+#     #     df['d']=None
 
-    return df
+#     return df
 
 # def convert_df_dtypes(df,decoded,columns=['ip1','ip2','ip3']):
 #     if not df.empty:
