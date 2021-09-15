@@ -33,6 +33,7 @@ before_script:
 run_unittest:
   stage: run_unittest
   script:
+    - sleep 2000
     - cd test
     - python3 -m pytest -v -m unit_tests
 
