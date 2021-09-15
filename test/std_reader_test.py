@@ -46,23 +46,23 @@ def test_3(input_file):
 #     assert 'd' in df.columns
 #     assert not df.d.isna().all()
 
-def test_5(input_file):
-    """Test load_data=True,decode_metadata=True"""
-    std_file = StandardFileReader(input_file,load_data=True,decode_metadata=True,query='nomvar=="UU"')
-    df = std_file.to_pandas()
-    assert len(df.index) == 90
-    assert len(df.columns) == 58
-    assert 'd' in df.columns
-    assert not df.d.isna().all()
+# def test_5(input_file):
+#     """Test load_data=True,decode_metadata=True"""
+#     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=True,query='nomvar=="UU"')
+#     df = std_file.to_pandas()
+#     assert len(df.index) == 90
+#     assert len(df.columns) == 58
+#     assert 'd' in df.columns
+#     assert not df.d.isna().all()
 
-def test_6(input_file):
-    """Test load_data=True"""
-    std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="UU"')
-    df = std_file.to_pandas()
-    assert len(df.index) == 90
-    assert len(df.columns) == 26
-    assert 'd' in df.columns
-    assert not df.d.isna().all()
+# def test_6(input_file):
+#     """Test load_data=True"""
+#     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="UU"')
+#     df = std_file.to_pandas()
+#     assert len(df.index) == 90
+#     assert len(df.columns) == 26
+#     assert 'd' in df.columns
+#     assert not df.d.isna().all()
 
 
 def test_7(input_file):
@@ -73,14 +73,14 @@ def test_7(input_file):
     assert len(df.columns) == 26
     assert df.d.isna().all()
 
-def test_8(input_file):
-    """Test load_data=True,query='nomvar=='TT'"""
-    std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="TT"')
-    df = std_file.to_pandas()
-    assert len(df.index) == 90
-    assert len(df.columns) == 26
-    assert 'd' in df.columns
-    assert not df.d.isna().all()
+# def test_8(input_file):
+#     """Test load_data=True,query='nomvar=='TT'"""
+#     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="TT"')
+#     df = std_file.to_pandas()
+#     assert len(df.index) == 90
+#     assert len(df.columns) == 26
+#     assert 'd' in df.columns
+#     assert not df.d.isna().all()
 
 
 def test_9(input_file):
