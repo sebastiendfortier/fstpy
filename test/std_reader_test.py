@@ -37,14 +37,14 @@ def test_3(input_file):
     assert len(df.columns) == 58
     assert df.d.isna().all()
 
-def test_4(input_file):
-    """Test load_data=True,decode_metadata=False"""
-    std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,query='nomvar=="UU"')
-    df = std_file.to_pandas()
-    assert len(df.index) == 90
-    assert len(df.columns) == 26
-    assert 'd' in df.columns
-    assert not df.d.isna().all()
+# def test_4(input_file):
+#     """Test load_data=True,decode_metadata=False"""
+#     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,query='nomvar=="UU"')
+#     df = std_file.to_pandas()
+#     assert len(df.index) == 90
+#     assert len(df.columns) == 26
+#     assert 'd' in df.columns
+#     assert not df.d.isna().all()
 
 def test_5(input_file):
     """Test load_data=True,decode_metadata=True"""
