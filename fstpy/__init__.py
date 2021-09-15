@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 import sys
 import pandas as pd
-import logging
 error = 0
 if sys.version_info[:2] < (3, 6):
     sys.exit("Wrong python version, python>=3.6")
 
-try:
-    import rpnpy.librmn.all as rmn
-except ImportError:
-    logging.critical('rpnpy.librmn.all is required')
-    error=1
+import rpnpy.librmn.all as rmn
 
 # try:
 #     import pandas as pd
@@ -22,8 +17,6 @@ except ImportError:
 #     sys.stdout.write('pandas>=1.1.5 is required')
 #     error=1
 
-if error == 1:
-    sys.exit('Requirements not met')
 
 # https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.1/rpnpy/librmn/fstd98#fstopt
 rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
@@ -216,6 +209,7 @@ LEVELTYPES = _leveltypes #: :meta hide-value:
 :return: dataframe
 :rtype: pd.DataFrame
 :meta hide-value:
+
 >>> fstpy.LEVELTYPES
                 label  kind  follow_topography  surface
 0     METER_SEA_LEVEL     0                  0   np.nan
@@ -228,7 +222,11 @@ LEVELTYPES = _leveltypes #: :meta hide-value:
 7       MILLIBARS_NEW    12                  0   np.nan
 8               INDEX    13                  0   np.nan
 9              NUMBER   100                  0   np.nan
+
 """
+
+
+
 THERMO_CONSTANTS = _thermoconstants
 """Thermodynamic constants table
 

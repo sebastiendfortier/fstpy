@@ -92,11 +92,13 @@ def add_data_column(df):
 
 
 def add_parsed_etiket_columns(df:pd.DataFrame) ->pd.DataFrame:
-    """adds label,run,implementation and ensemble_member columns from the parsed etikets to a dataframe
+    """adds label,run,implementation and ensemble_member columns from the parsed 
+       etikets to a dataframe
 
     :param df: dataframe
     :type df: pd.DataFrame
-    :return: dataframe with label,run,implementation and ensemble_member columns added
+    :return: dataframe with label,run,implementation and ensemble_member columns 
+             added
     :rtype: pd.DataFrame
     """
     # df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = get_parsed_etiket(df.at[i,'etiket'])
@@ -136,7 +138,8 @@ def add_decoded_date_column(df:pd.DataFrame,attr:str='dateo') ->pd.DataFrame:
     :type df: pd.DataFrame
     :param attr: selected date to decode, defaults to 'dateo'
     :type attr: str, optional
-    :return: either date_of_observation or date_of_validity column added to the dataframe
+    :return: either date_of_observation or date_of_validity column added to the 
+             dataframe
     :rtype: pd.DataFrame
     """
     vconvert_rmndate_to_datetime = np.vectorize(convert_rmndate_to_datetime)#,otypes=['datetime64']
@@ -182,7 +185,8 @@ def add_ip_info_columns(df:pd.DataFrame) -> pd.DataFrame:
 
     :param df: dataframe
     :type df: pd.DataFrame
-    :return: level, ip1_kind, ip1_pkind,surface and follow_topography columns added to the dataframe.
+    :return: level, ip1_kind, ip1_pkind,surface and follow_topography columns 
+             added to the dataframe.
     :rtype: pd.DataFrame
     """
     from .std_dec import get_ip_info
@@ -191,13 +195,17 @@ def add_ip_info_columns(df:pd.DataFrame) -> pd.DataFrame:
     return df
 
 def add_columns(df:pd.DataFrame, columns:'list[str]'=['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']) -> pd.DataFrame:
-    """If valid columns are provided, they will be added. These include ['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']
+    """If valid columns are provided, they will be added. 
+       These include ['flags','etiket','unit','dateo','datev','forecast_hour',
+       'datyp','ip_info']
 
     :param df: dataframe to modify (meta data needs to be present in dataframe)
     :type df: pd.DataFrame
     :param decode: if decode is True, add the specified columns
     :type decode: bool
-    :param columns: [description], defaults to ['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']
+    :param columns: [description], defaults to 
+                    ['flags','etiket','unit','dateo','datev','forecast_hour',
+                    'datyp','ip_info']
     :type columns: list[str], optional
     :return: dataframe with coluns added
     :rtype: pd.DataFrame

@@ -1,6 +1,6 @@
-==========================================
-Standard file attribute decoding functions
-==========================================
+============================
+Attribute decoding functions
+============================
    
 .. automodule:: fstpy.std_dec
    :members: 

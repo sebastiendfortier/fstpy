@@ -25,7 +25,7 @@ def create_encoded_etiket(label:str,run:str,implementation:str,ensemble_member:s
    return etiket
 
 def create_encoded_dateo(date_of_observation:datetime.datetime) -> int:
-   """Create a RMNDaate int from a datetime object
+   """Create a RMNDate int from a datetime object
 
    :param date_of_observation: date of observation as a datetime object
    :type date_of_observation: datetime.datetime

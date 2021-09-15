@@ -23,9 +23,12 @@ class StandardFileWriter:
     :type filename: str
     :param df: dataframe to write
     :type df: pd.DataFrame
-    :param mode: In 'dump' mode, no processing will be done on the dataframe before writing, data must be present in the dataframe.
-    If set to 'update', path must be an existing file. Only the field metadata will be updated, the data itself will not be modified.
-    In 'write' mode, the data will be loaded, metadata fields like '>>' will be added if not present default 'write'
+    :param mode: In 'dump' mode, no processing will be done on the dataframe 
+                before writing, data must be present in the dataframe.
+                If set to 'update', path must be an existing file. Only the 
+                field metadata will be updated, the data itself will not be 
+                modified. In 'write' mode, the data will be loaded, metadata 
+                fields like '>>' will be added if not present default 'write'
     :type mode: str
     :param no_meta: if true these fields ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"] will be removed from the dataframe
     :type no_meta: bool

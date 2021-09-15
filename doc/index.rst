@@ -78,6 +78,8 @@ Documentation
 
 **Misc**
 
+* :doc:`ressources`
+* :doc:`conda_howto`
 * :doc:`acknowledgements`
 * :doc:`LICENSE`
 
@@ -86,5 +88,7 @@ Documentation
    :hidden:
    :caption: Misc
 
+   ressources
+   conda_howto
    acknowledgements
    LICENSE

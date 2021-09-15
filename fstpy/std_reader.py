@@ -7,58 +7,75 @@ import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
 
+from .dataframe import (add_columns, add_data_column, add_shape_column,
+                        drop_duplicates)
+from .std_io import (close_fst, compare_modification_times,
+                     get_dataframe_from_file, open_fst,
+                     parallel_get_dataframe_from_file)
+from .utils import initializer
 
 # import xarray as xr
 
-from .dataframe import add_columns, add_data_column, add_shape_column, drop_duplicates
-from .std_io import (close_fst, compare_modification_times, open_fst, 
-                     parallel_get_dataframe_from_file, get_dataframe_from_file)
-from .utils import initializer
 
 class StandardFileReaderError(Exception):
     pass
 
 class StandardFileReader:
     """Class to handle fst files
-        Opens, reads the contents of an fst files or files into a pandas Dataframe and closes  
-        No data is loaded unless specified, only the metadata is read. Extra metadata is added to the dataframe if specified.  
+        Opens, reads the contents of an fst files or files 
+        into a pandas Dataframe and closes.  
+        No data is loaded unless specified, 
+        only the metadata is read. 
+        Extra metadata is added to the dataframe if specified.  
   
         :param filenames: path to file or list of paths to files  
-        :type filenames: str|list[str], does not accept wildcards (numpy has many tools for this)
+        :type filenames: str|list[str], does not accept wildcards (numpy has 
+                         many tools for this)
         :param decode_metadata: adds extra columns, defaults to False  
-                'unit':str, unit name   
-                'unit_converted':bool  
-                'description':str, field description   
-                'date_of_observation':datetime, of the date of observation   
-                'date_of_validity':datetime, of the date of validity   
-                'level':float32, decoded ip1 level   
-                'ip1_kind':int32, decoded ip1 kind   
-                'ip1_pkind':str, string repr of ip1_kind int   
-                'data_type_str':str, string repr of data type   
-                'label':str, label derived from etiket   
-                'run':str, run derived from etiket   
-                'implementation':str, implementation derived from etiket   
-                'ensemble_member':str, ensemble member derived from etiket   
-                'surface':bool, True if the level is a surface level   
-                'follow_topography':bool, indicates if this type of level follows topography   
-                'ascending':bool, indicates if this type of level is in ascending order   
-                'vctype':str, vertical level type   
-                'forecast_hour':timedelta, forecast hour obtained from deet * npas / 3600   
-                'ip2_dec':value of decoded ip2    
-                'ip2_kind':kind of decoded ip2    
-                'ip2_pkind':printable kind of decoded ip2   
-                'ip3_dec':value of decoded ip3   
-                'ip3_kind':kind of decoded ip3   
-                'ip3_pkind':printable kind of decoded ip3   
+            'unit':str, unit name   
+            'unit_converted':bool  
+            'description':str, field description   
+            'date_of_observation':datetime, of the date of 
+                                    observation   
+            'date_of_validity': datetime, of the date of 
+                                validity   
+            'level':float32, decoded ip1 level   
+            'ip1_kind':int32, decoded ip1 kind   
+            'ip1_pkind':str, string repr of ip1_kind int   
+            'data_type_str':str, string repr of data type   
+            'label':str, label derived from etiket   
+            'run':str, run derived from etiket   
+            'implementation': str, implementation derived 
+                                from etiket   
+            'ensemble_member': str, ensemble member derived 
+                                from etiket   
+            'surface':bool, True if the level is a 
+                        surface level   
+            'follow_topography':bool, indicates if this type 
+                                of level follows topography   
+            'ascending':bool, indicates if this type of 
+                        level is in ascending order   
+            'vctype':str, vertical level type   
+            'forecast_hour': timedelta, forecast hour 
+                            obtained from deet * npas / 3600   
+            'ip2_dec':value of decoded ip2    
+            'ip2_kind':kind of decoded ip2    
+            'ip2_pkind':printable kind of decoded ip2   
+            'ip3_dec':value of decoded ip3   
+            'ip3_kind':kind of decoded ip3   
+            'ip3_pkind':printable kind of decoded ip3   
         :type decode_metadata: bool, optional  
-        :param load_data: if True, the data will be read, not just the metadata (fstluk vs fstprm), default False  
+        :param load_data: if True, the data will be read, 
+                          not just the metadata (fstluk vs fstprm), default 
+                          False  
         :type load_data: bool, optional  
-        :param query: parameter to pass to dataframe.query method, to select specific records  
+        :param query: parameter to pass to dataframe.query method, to select 
+                      specific records  
         :type query: str, optional  
     """
     meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]
     @initializer
-    def __init__(self, filenames, decode_metadata=False,load_data=False,query=None):
+    def __init__(self, filenames, decode_metadata=False,load_data=False, query=None):
         """init instance"""
         if isinstance(self.filenames,str):
             self.filenames = os.path.abspath(str(self.filenames))
@@ -78,9 +95,9 @@ class StandardFileReader:
 
         if isinstance(self.filenames, list):
             # convert to list of tuple (path,query,load_data)
-            self.filenames = list(zip(self.filenames,itertools.repeat(self.query),itertools.repeat(self.load_data)))
+            self.filenames = list(zip(self.filenames, itertools.repeat(self.query),itertools.repeat(self.load_data)))
             
-            df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file, n_cores=min(mp.cpu_count(),len(self.filenames)))
+            df = parallel_get_dataframe_from_file(self.filenames,  get_dataframe_from_file, n_cores=min(mp.cpu_count(),len(self.filenames)))
 
         else:
             df = get_dataframe_from_file(self.filenames, self.query, self.load_data)
@@ -120,10 +137,13 @@ def load_data(df:pd.DataFrame,clean:bool=False) -> pd.DataFrame:
     path_groups = df.groupby(df.path)
     for _,path_df in path_groups:
         
-        if ('file_modification_time' in path_df.columns) and (not (path_df.iloc[0]['file_modification_time'] is None)):
-            compare_modification_times(path_df.iloc[0]['file_modification_time'], path_df.iloc[0]['path'],rmn.FST_RO, 'load_data',StandardFileReaderError)
+        if ('file_modification_time' in path_df.columns) and \
+            (not (path_df.iloc[0]['file_modification_time'] is None)):
+            compare_modification_times(path_df.iloc[0]['file_modification_time'] \
+            , path_df.iloc[0]['path'],rmn.FST_RO, 'load_data',StandardFileReaderError)
 
-        unit,  _ = open_fst(path_df.iloc[0]['path'],rmn.FST_RO,'load_data',StandardFileReaderError)
+        unit,  _ = open_fst(path_df.iloc[0]['path'],rmn.FST_RO,'load_data', \
+            StandardFileReaderError)
 
         for i in path_df.index:
             if isinstance(path_df.at[i,'d'],np.ndarray):
@@ -146,7 +166,8 @@ def load_data(df:pd.DataFrame,clean:bool=False) -> pd.DataFrame:
     return res_df
 
 def unload_data(df:pd.DataFrame,only_marked:bool=False) -> pd.DataFrame:
-    """Removes the loaded data for every record in a dataframe if it can be loaded from file
+    """Removes the loaded data for every record in a dataframe if it can be 
+       loaded from file
 
     :param df: dataframe to remove data from
     :type df: pd.DataFrame

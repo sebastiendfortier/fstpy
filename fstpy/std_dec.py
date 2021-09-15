@@ -149,7 +149,7 @@ def get_unit_and_description(nomvar):
     return unit,description
 
 # written by Micheal Neish creator of fstd2nc
-def convert_rmndate_to_datetime(date:int) ->' datetime.datetime|None':
+def convert_rmndate_to_datetime(date:int) ->'datetime.datetime|None':
     """returns a datetime object of the decoded RMNDate int
 
     :param date: RMNDate int value
