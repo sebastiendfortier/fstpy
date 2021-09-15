@@ -190,8 +190,8 @@ def add_ip_info_columns(df:pd.DataFrame) -> pd.DataFrame:
     df.loc[:,'level'],df.loc[:,'ip1_kind'],df.loc[:,'ip1_pkind'],df.loc[:,'ip2_dec'],df.loc[:,'ip2_kind'],df.loc[:,'ip2_pkind'],df.loc[:,'ip3_dec'],df.loc[:,'ip3_kind'],df.loc[:,'ip3_pkind'],df.loc[:,'surface'],df.loc[:,'follow_topography'],df.loc[:,'ascending'],df.loc[:,'interval'] = vcreate_ip_info(df['ip1'].values,df['ip2'].values,df['ip3'].values)
     return df
 
-def add_columns(df:pd.DataFrame, decode:bool, columns:'list[str]'=['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']) -> pd.DataFrame:
-    """If not already present, adds the data('d') and shape columns to a dataframe. If decode is True and valid columns are provided, they will be added.
+def add_columns(df:pd.DataFrame, columns:'list[str]'=['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']) -> pd.DataFrame:
+    """If valid columns are provided, they will be added. These include ['flags','etiket','unit','dateo','datev','forecast_hour','datyp','ip_info']
 
     :param df: dataframe to modify (meta data needs to be present in dataframe)
     :type df: pd.DataFrame
@@ -208,34 +208,32 @@ def add_columns(df:pd.DataFrame, decode:bool, columns:'list[str]'=['flags','etik
         if col not in cols:
             logging.warning(f'{col} not found in {cols}\n')
 
-    if decode:
-        if 'etiket' in columns:
-            df = add_parsed_etiket_columns(df)
+    
+    if 'etiket' in columns:
+        df = add_parsed_etiket_columns(df)
 
-        if 'unit' in columns:
-            df = add_unit_and_description_columns(df)
+    if 'unit' in columns:
+        df = add_unit_and_description_columns(df)
 
-        if 'dateo' in columns:
-            df = add_decoded_date_column(df,'dateo')
+    if 'dateo' in columns:
+        df = add_decoded_date_column(df,'dateo')
 
-        if 'datev' in columns:
-            df = add_decoded_date_column(df,'datev')
+    if 'datev' in columns:
+        df = add_decoded_date_column(df,'datev')
 
-        if 'forecast_hour' in columns:
-            df = add_forecast_hour_column(df)
+    if 'forecast_hour' in columns:
+        df = add_forecast_hour_column(df)
 
-        if 'datyp' in columns:
-            df = add_data_type_str_column(df)
+    if 'datyp' in columns:
+        df = add_data_type_str_column(df)
 
-        if ('ip_info' in  columns):
-            df = add_ip_info_columns(df)
+    if ('ip_info' in  columns):
+        df = add_ip_info_columns(df)
 
-        if 'flags' in columns:
-            # df = add_flags_columns(df)
-            df = add_flag_values(df)
+    if 'flags' in columns:
+        df = add_flag_values(df)
 
-
-    if decode and ('ip_info' in columns):
+    if 'ip_info' in columns:
         df = set_vertical_coordinate_type(df)
 
     return df

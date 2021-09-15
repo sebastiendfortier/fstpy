@@ -48,20 +48,20 @@ rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
 
 
 
-DATYP_DICT = {
-                    0:'X',
-                    1:'R',
-                    2:'I',
-                    4:'S',
-                    5:'E',
-                    6:'F',
-                    7:'A',
-                    8:'Z',
-                    130:'i',
-                    132:'s',
-                    133:'e',
-                    134:'f'
-                } #: :meta hide-value:
+DATYP_DICT = {  
+                0:'X',
+                1:'R',
+                2:'I',
+                4:'S',
+                5:'E',
+                6:'F',
+                7:'A',
+                8:'Z',
+                130:'i',
+                132:'s',
+                133:'e',
+                134:'f'
+            } #: :meta hide-value:
 """data type aliases constant
 
 :return: correspondance betweeen datyp and str version of datyp
@@ -70,19 +70,19 @@ DATYP_DICT = {
 """
 
 KIND_DICT = {
-                    -1:'_',
-                    0: 'm',   #[metres] (height with respect to sea level)
-                    1: 'sg',  #[sigma] (0.0->1.0)
-                    2: 'mb',  #[mbars] (pressure in millibars)
-                    3: '   ', #[others] (arbitrary code)
-                    4: 'M',   #[metres] (height with respect to ground level)
-                    5: 'hy',  #[hybrid] (0.0->1.0)
-                    6: 'th',  #[theta]
-                    10: 'H',  #[hours]
-                    15: '  ', #[reserved, integer]
-                    17: ' ',  #[index X of conversion matrix]
-                    21: 'mp'  #[pressure in metres]
-                } #: :meta hide-value:
+                -1:'_',
+                0: 'm',   #[metres] (height with respect to sea level)
+                1: 'sg',  #[sigma] (0.0->1.0)
+                2: 'mb',  #[mbars] (pressure in millibars)
+                3: '   ', #[others] (arbitrary code)
+                4: 'M',   #[metres] (height with respect to ground level)
+                5: 'hy',  #[hybrid] (0.0->1.0)
+                6: 'th',  #[theta]
+                10: 'H',  #[hours]
+                15: '  ', #[reserved, integer]
+                17: ' ',  #[index X of conversion matrix]
+                21: 'mp'  #[pressure in metres]
+            } #: :meta hide-value:
 """kind aliases constant
 
 :return: correspondance betweeen kind and str version of kind
@@ -95,23 +95,23 @@ _csv_path = _const_prefix + '/csv/'
 _stationsfb = pd.read_csv(_csv_path + 'stationsfb.csv')
 _vctypes = pd.read_csv(_csv_path + 'verticalcoordinatetypes.csv')
 _stdvar = pd.read_csv(_csv_path + 'stdvar.csv')
-_units = pd.read_csv(_csv_path + 'units.csv'
-,dtype=
-{
-    'name':str,
-    'symbol':str,
-    'expression':str,
-    'bias':'float32',
-    'factor':'float32',
-    'mass':'int32',
-    'length':'int32',
-    'time':'int32',
-    'electricCurrent':'int32',
-    'temperature':'int32',
-    'amountOfSubstance':'int32',
-    'luminousIntensity':'int32'
-    })
-_etikets = pd.read_csv(_csv_path + 'etiket.csv')
+_units = pd.read_csv(_csv_path + 'units.csv' \
+    ,dtype= {
+        'name':str,
+        'symbol':str,
+        'expression':str,
+        'bias':'float32',
+        'factor':'float32',
+        'mass':'int32',
+        'length':'int32',
+        'time':'int32',
+        'electricCurrent':'int32',
+        'temperature':'int32',
+        'amountOfSubstance':'int32',
+        'luminousIntensity':'int32'
+        })
+    
+# _etikets = pd.read_csv(_csv_path + 'etiket.csv')
 _leveltypes = pd.read_csv(_csv_path + 'leveltype.csv')
 _thermoconstants = pd.read_csv(_csv_path + 'thermo_constants.csv')
 

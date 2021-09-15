@@ -89,7 +89,8 @@ class StandardFileReader:
 
         df = add_shape_column(df)
     
-        df = add_columns(df,decode=self.decode_metadata)
+        if self.decode_metadata:
+            df = add_columns(df)
 
         df = drop_duplicates(df)
 
