@@ -117,7 +117,7 @@ def test_4(plugin_test_dir):
     """Test a case with simple conversion and another plugin 2D"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
-    src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
+    src_df0 = StandardFileReader(source0).to_pandas()
 
     src_df0 = windmodulus(src_df0)
     #compute unit_convert
@@ -147,7 +147,7 @@ def test_5(plugin_test_dir):
     """Test a case with simple conversion and another plugin 3D"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5x2_fileSrc.std"
-    src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
+    src_df0 = StandardFileReader(source0).to_pandas()
 
     src_df0 = windmodulus(src_df0)
     #compute unit_convert
@@ -175,7 +175,7 @@ def test_6(plugin_test_dir):
     """Test a case with complete roundtrip conversion celcius -> kelvin -> fahrenheit -> celsius"""
     # open and read source
     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
-    src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
+    src_df0 = StandardFileReader(source0).to_pandas()
 
     other_df = src_df0.loc[src_df0.nomvar!="TT"]
     tt_df = src_df0.loc[src_df0.nomvar=="TT"]
