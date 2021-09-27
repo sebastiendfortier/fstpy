@@ -7,7 +7,7 @@ from fstpy.dataframe_utils import select_with_meta
 from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.utils import delete_file
-from rpnpy.librmn.all import FSTDError
+
 
 pytestmark = [pytest.mark.std_reader_regtests, pytest.mark.regressions]
 
@@ -19,7 +19,7 @@ def test_1(plugin_test_dir):
     """Test l'option --input avec un fichier qui n'existe pas!"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_fileSrc_.std"
-    with pytest.raises(FSTDError):
+    with pytest.raises(FileNotFoundError):
         _ = StandardFileReader(source0).to_pandas()
 
 

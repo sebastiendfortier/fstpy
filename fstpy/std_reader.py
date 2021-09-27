@@ -1,33 +1,30 @@
 # -*- coding: utf-8 -*-
+from fstpy.xarray_utils import comvert_to_cmc_xarray
 import itertools
 import multiprocessing as mp
 import os
 
 import numpy as np
 import pandas as pd
-import rpnpy.librmn.all as rmn
-
+import dask.array as da
 from .dataframe import (add_columns, add_data_column, add_shape_column,
                         drop_duplicates)
-from .std_io import (close_fst, compare_modification_times,
-                     get_dataframe_from_file, open_fst,
+from .std_io import (get_dataframe_from_file, get_file_modification_time,
                      parallel_get_dataframe_from_file)
 from .utils import initializer
 
-# import xarray as xr
 
 
 class StandardFileReaderError(Exception):
     pass
 
+
 class StandardFileReader:
-    """Class to handle fst files
-        Opens, reads the contents of an fst files or files 
-        into a pandas Dataframe and closes.  
-        No data is loaded unless specified, 
-        only the metadata is read. 
-        Extra metadata is added to the dataframe if specified.  
-  
+    """Class to handle fst files.  
+        Opens, reads the contents of an fst file or files   
+        into a pandas dataframe and closes.   
+        Extra metadata columns are added to the dataframe if specified.    
+
         :param filenames: path to file or list of paths to files  
         :type filenames: str|list[str], does not accept wildcards (numpy has 
                          many tools for this)
@@ -65,26 +62,21 @@ class StandardFileReader:
             'ip3_kind':kind of decoded ip3   
             'ip3_pkind':printable kind of decoded ip3   
         :type decode_metadata: bool, optional  
-        :param load_data: if True, the data will be read, 
-                          not just the metadata (fstluk vs fstprm), default 
-                          False  
-        :type load_data: bool, optional  
         :param query: parameter to pass to dataframe.query method, to select 
                       specific records  
         :type query: str, optional  
     """
-    meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]
+    meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1", "PN"]
+
     @initializer
-    def __init__(self, filenames, decode_metadata=False,load_data=False, query=None):
+    def __init__(self, filenames, decode_metadata=False, query=None):
         """init instance"""
-        if isinstance(self.filenames,str):
+        if isinstance(self.filenames, str):
             self.filenames = os.path.abspath(str(self.filenames))
-        elif isinstance(self.filenames,list):
+        elif isinstance(self.filenames, list):
             self.filenames = [os.path.abspath(str(f)) for f in filenames]
         else:
             raise StandardFileReaderError('Filenames must be str or list\n')
-
-
 
     def to_pandas(self) -> pd.DataFrame:
         """creates the dataframe from the provided file metadata
@@ -94,93 +86,58 @@ class StandardFileReader:
         """
 
         if isinstance(self.filenames, list):
-            # convert to list of tuple (path,query,load_data)
-            self.filenames = list(zip(self.filenames, itertools.repeat(self.query),itertools.repeat(self.load_data)))
-            
-            df = parallel_get_dataframe_from_file(self.filenames,  get_dataframe_from_file, n_cores=min(mp.cpu_count(),len(self.filenames)))
+            # convert to list of tuple (path,query)
+            self.filenames = list(
+                zip(self.filenames, itertools.repeat(self.query)))
+
+            df = parallel_get_dataframe_from_file(
+                self.filenames,  get_dataframe_from_file, n_cores=min(mp.cpu_count(), len(self.filenames)))
 
         else:
-            df = get_dataframe_from_file(self.filenames, self.query, self.load_data)
+            df = get_dataframe_from_file(self.filenames, self.query)
 
         df = add_data_column(df)
 
         df = add_shape_column(df)
-    
+
         if self.decode_metadata:
             df = add_columns(df)
 
         df = drop_duplicates(df)
 
         return df
+     
+    def to_cmc_xarray(self):
+        df = self.to_pandas()
+        return comvert_to_cmc_xarray(df)
 
-def load_data(df:pd.DataFrame,clean:bool=False) -> pd.DataFrame:
-    """Gets the associated data for every record in a dataframe
-
-    :param df: dataframe to add arrays to
-    :type df: pd.DataFrame
-    :param clean: mark loaded data for removal by unload
-    :type clean: bool
-    :param sort: sort data while loading
-    :type sort: bool
-    :return: dataframe with filled arrays
-    :rtype: pd.DataFrame
-    """
-    if df.empty:
-        return df
-    # add the default flag
-    if clean:
-        df.loc[:,'clean'] = False
-
-    df_list = []
-    no_path_df = df.loc[df.path.isna()]
-
-    path_groups = df.groupby(df.path)
-    for _,path_df in path_groups:
-        
-        if ('file_modification_time' in path_df.columns) and \
-            (not (path_df.iloc[0]['file_modification_time'] is None)):
-            compare_modification_times(path_df.iloc[0]['file_modification_time'] \
-            , path_df.iloc[0]['path'],rmn.FST_RO, 'load_data',StandardFileReaderError)
-
-        unit,  _ = open_fst(path_df.iloc[0]['path'],rmn.FST_RO,'load_data', \
-            StandardFileReaderError)
-
-        for i in path_df.index:
-            if isinstance(path_df.at[i,'d'],np.ndarray):
-                continue
-            path_df.at[i,'d'] = rmn.fstluk(int(path_df.at[i,'key']))['d']
-            path_df.at[i,'clean'] = True if clean else False
-
-        df_list.append(path_df)
-        
-        close_fst(unit,path_df.iloc[0]['path'],'load_data')
-
-
-    if len(df_list):
-        if not no_path_df.empty:
-            df_list.append(no_path_df)
-        res_df = pd.concat(df_list,ignore_index=True)
-    else:
-        res_df = df
-
-    return res_df
-
-def unload_data(df:pd.DataFrame,only_marked:bool=False) -> pd.DataFrame:
-    """Removes the loaded data for every record in a dataframe if it can be 
-       loaded from file
-
-    :param df: dataframe to remove data from
-    :type df: pd.DataFrame
-    :param only_marked: unloads only marked o rows with clean column at True
-    :type only_marked: bool
-    :return: dataframe with arrays removed
-    :rtype: pd.DataFrame
-    """
-
-    for i in df.index:
-        if isinstance(df.at[i,'d'],np.ndarray) and not(df.at[i,'key'] is None) and ( df.at[i,'clean'] if only_marked else True):
-            df.at[i,'d'] = None
-
-    df = df.drop(columns=['clean'],errors='ignore')
+def to_cmc_xarray(df):
+    return comvert_to_cmc_xarray(df)
     
+class ComputeError(Exception):
+    pass
+
+
+def compute(df: pd.DataFrame) -> pd.DataFrame:
+    groups = df.groupby('path')
+    df_list = []
+    for path, current_df in groups:
+        file_modification_time = get_file_modification_time(path)
+        if np.datetime64(current_df.iloc[0]['file_modification_time'])-np.datetime64(file_modification_time) != np.timedelta64(0):
+            raise ComputeError(
+                'File has been modified since it was first read - keys are invalid, make sure file stays intact during processing\n')
+        current_df = current_df.sort_values('key')
+        # with _lock:
+        # unit = rmn.fstopenall(path)
+        for i in current_df.index:
+            if isinstance(current_df.at[i, 'd'], np.ndarray):
+                pass
+            if isinstance(current_df.at[i, 'd'], da.core.Array):
+                # print(current_df.loc[i]['nomvar'],current_df.at[i,'d'].shape)
+                current_df.at[i, 'd'] = current_df.at[i, 'd'].compute()
+                
+        df_list.append(current_df)
+
+    df = pd.concat(df_list).sort_index()
+
     return df

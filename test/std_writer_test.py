@@ -22,7 +22,7 @@ def tmp_file():
 #     assert(res)
 
 # def test_invalid_path(input_file):
-#     std_file = StandardFileReader(input_file,load_data=True)
+#     std_file = StandardFileReader(input_file)
 #     df = std_file.to_pandas()
 
 #     #should crash
@@ -49,7 +49,7 @@ def tmp_file():
 # def test_default_not_load_datad_same_file(input_file,tmp_file):
 #     file = tmp_file
 
-#     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="TT"')
+#     std_file = StandardFileReader(input_file,query='nomvar=="TT"')
 #     df = std_file.to_pandas()
 
 #     std_file_writer = StandardFileWriter(file,df)
@@ -69,7 +69,7 @@ def tmp_file():
 # def test_default_not_load_datad_same_file_overwrite(input_file,tmp_file):
 #     file = tmp_file
 
-#     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="TT"')
+#     std_file = StandardFileReader(input_file,query='nomvar=="TT"')
 #     df = std_file.to_pandas()
 
 #     std_file_writer = StandardFileWriter(file,df)
@@ -99,13 +99,13 @@ def tmp_file():
 # #     assert status
 
 # # def test_default_normal(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,load_data=True)
+# #     std_file = StandardFileReader(input_file)
 # #     df = std_file.to_pandas()
 
 # #     std_file_writer = StandardFileWriter(tmp_file,df)
 # #     std_file_writer.to_fst()
 
-# #     written_file = StandardFileReader(tmp_file,load_data=True)
+# #     written_file = StandardFileReader(tmp_file)
 # #     written_df = written_file.to_pandas()
 
 # #     status = fstcomp_df(df,written_df,exclude_meta=False)
@@ -113,13 +113,13 @@ def tmp_file():
 # #     assert status
 
 # # def test_default_meta_only_load_datad(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,load_data=True,read_meta_fields_only=True)
+# #     std_file = StandardFileReader(input_file,read_meta_fields_only=True)
 # #     df = std_file.to_pandas()
 
 # #     std_file_writer = StandardFileWriter(tmp_file,df)
 # #     std_file_writer.to_fst()
 
-# #     written_file = StandardFileReader(tmp_file,load_data=True)
+# #     written_file = StandardFileReader(tmp_file)
 # #     written_df = written_file.to_pandas()
 
 # #     status = fstcomp_df(df,written_df,exclude_meta=False)
@@ -151,7 +151,7 @@ def tmp_file():
 # #     std_file_writer = StandardFileWriter(tmp_file,df)
 # #     std_file_writer.to_fst()
 
-# #     written_file = StandardFileReader(tmp_file,load_data=True)
+# #     written_file = StandardFileReader(tmp_file)
 # #     written_df = written_file.to_pandas()
 
 # #     status = fstcomp_df(df,written_df,exclude_meta=False)
@@ -159,13 +159,13 @@ def tmp_file():
 # #     assert status
 
 # # def test_default_no_extra_load_datad(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,query='nomvar=="UU"')
+# #     std_file = StandardFileReader(input_file,decode_metadata=False,query='nomvar=="UU"')
 # #     df = std_file.to_pandas()
 
 # #     std_file_writer = StandardFileWriter(tmp_file,df)
 # #     std_file_writer.to_fst()
 
-# #     written_file = StandardFileReader(tmp_file,load_data=True)
+# #     written_file = StandardFileReader(tmp_file)
 # #     written_df = written_file.to_pandas()
 
 # #     status = fstcomp_df(df,written_df,exclude_meta=False)
@@ -173,13 +173,13 @@ def tmp_file():
 # #     assert status
 
 # # def test_default_load_datad_query(input_file,tmp_file):
-# #     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="UU"')
+# #     std_file = StandardFileReader(input_file,query='nomvar=="UU"')
 # #     df = std_file.to_pandas()
 
 # #     std_file_writer = StandardFileWriter(tmp_file,df)
 # #     std_file_writer.to_fst()
 
-# #     written_file = StandardFileReader(tmp_file,load_data=True)
+# #     written_file = StandardFileReader(tmp_file)
 # #     written_df = written_file.to_pandas()
 
 # #     status = fstcomp_df(df,written_df,exclude_meta=False)
@@ -191,10 +191,10 @@ def tmp_file():
 # #     std_file = StandardFileReader(input_file)
 # #     df = std_file.to_pandas()
 
-# #     std_file_writer = StandardFileWriter(tmp_file,df,load_data=True)
+# #     std_file_writer = StandardFileWriter(tmp_file,df)
 # #     std_file_writer.to_fst()
 
-# #     written_file = StandardFileReader(tmp_file,load_data=True)
+# #     written_file = StandardFileReader(tmp_file)
 # #     written_df = written_file.to_pandas()
 
 # #     status = fstcomp_df(df,written_df,exclude_meta=False)
@@ -205,10 +205,10 @@ def tmp_file():
 # #     std_file = StandardFileReader(input_file,read_meta_fields_only=True)
 # #     df = std_file.to_pandas()
 
-# #     std_file_writer = StandardFileWriter(tmp_file,df,load_data=True)
+# #     std_file_writer = StandardFileWriter(tmp_file,df)
 # #     std_file_writer.to_fst()
 
-# #     written_file = StandardFileReader(tmp_file,load_data=True)
+# #     written_file = StandardFileReader(tmp_file)
 # #     written_df = written_file.to_pandas()
 
 # #     status = fstcomp_df(df,written_df,exclude_meta=False)
@@ -220,7 +220,7 @@ def tmp_file():
 # #     df = std_file.to_pandas()
 
 # #     #should crash
-# #     std_file_writer = StandardFileWriter(tmp_file,df,load_data=True)
+# #     std_file_writer = StandardFileWriter(tmp_file,df)
 # #     std_file_writer.to_fst()
 # #     assert False
 
@@ -228,10 +228,10 @@ def tmp_file():
 # #     std_file = StandardFileReader(input_file,decode_metadata=False)
 # #     df = std_file.to_pandas()
 
-# #     std_file_writer = StandardFileWriter(tmp_file,df,load_data=True)
+# #     std_file_writer = StandardFileWriter(tmp_file,df)
 # #     std_file_writer.to_fst()
 
-# #     written_file = StandardFileReader(tmp_file,load_data=True)
+# #     written_file = StandardFileReader(tmp_file)
 # #     written_df = written_file.to_pandas()
 
 # #     status = fstcomp_df(df,written_df,exclude_meta=False)
@@ -242,10 +242,10 @@ def tmp_file():
 # #     std_file = StandardFileReader(input_file,decode_metadata=False,query='nomvar=="UU"')
 # #     df = std_file.to_pandas()
 
-# #     std_file_writer = StandardFileWriter(tmp_file,df,load_data=True)
+# #     std_file_writer = StandardFileWriter(tmp_file,df)
 # #     std_file_writer.to_fst()
 
-# #     written_file = StandardFileReader(tmp_file,load_data=True)
+# #     written_file = StandardFileReader(tmp_file)
 # #     written_df = written_file.to_pandas()
 
 # #     status = fstcomp_df(df,written_df,exclude_meta=False)
@@ -256,10 +256,10 @@ def tmp_file():
 # #     std_file = StandardFileReader(input_file,query='nomvar=="UU"')
 # #     df = std_file.to_pandas()
 
-# #     std_file_writer = StandardFileWriter(tmp_file,df,load_data=True)
+# #     std_file_writer = StandardFileWriter(tmp_file,df)
 # #     std_file_writer.to_fst()
 
-# #     written_file = StandardFileReader(tmp_file,load_data=True)
+# #     written_file = StandardFileReader(tmp_file)
 # #     written_df = written_file.to_pandas()
 
 # #     status = fstcomp_df(df,written_df,exclude_meta=False)

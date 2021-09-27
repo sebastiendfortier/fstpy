@@ -1,25 +1,71 @@
 # -*- coding: utf-8 -*-
+import logging
+import os
 import sys
+from pathlib import Path
+from threading import RLock, stack_size
+
 import pandas as pd
+import rpnpy.librmn.all as rmn
+
 error = 0
 if sys.version_info[:2] < (3, 6):
     sys.exit("Wrong python version, python>=3.6")
 
-import rpnpy.librmn.all as rmn
+p = Path(os.path.abspath(__file__))
+v_file = open(p.parent.parent / 'VERSION')
+__version__ = v_file.readline().strip()
+v_file.close()
 
-# try:
-#     import pandas as pd
-# except ImportError:
-#     sys.stdout.write('pandas is required')
-#     error=1
-
-# if pd.__version__ < '1.1.5':
-#     sys.stdout.write('pandas>=1.1.5 is required')
-#     error=1
-
+_LOCK = RLock()
+stack_size(100000000)
 
 # https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.1/rpnpy/librmn/fstd98#fstopt
-rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
+
+
+def fstpy_log_level_debug():
+    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_DEBUG, setOget=0)
+
+
+def fstpy_log_level_info():
+    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_INFO, setOget=0)
+
+
+def fstpy_log_level_warning():
+    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_WARNING, setOget=0)
+
+
+def fstpy_log_level_error():
+    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_ERROR, setOget=0)
+
+
+def fstpy_log_level_fatal():
+    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_FATAL, setOget=0)
+
+
+def fstpy_log_level_catast():
+    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
+
+
+FSTPY_LOG_LEVEL = os.environ.get('FSTPY_LOG_LEVEL')
+FSTPY_LOG_VALUES = ['DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL']
+# if FSTPY_LOG_LEVEL is None:
+#     fstpy_log_level_info()
+# elif FSTPY_LOG_LEVEL not in FSTPY_LOG_VALUES:
+#     logging.error(
+#         f'Acceptable FSTPY_LOG_LEVEL environment variable values are {FSTPY_LOG_VALUES}')
+if not(FSTPY_LOG_LEVEL is None):
+    if FSTPY_LOG_LEVEL == 'DEBUG':
+        fstpy_log_level_debug()
+    elif FSTPY_LOG_LEVEL == 'INFO':
+        fstpy_log_level_info()
+    elif FSTPY_LOG_LEVEL == 'WARNING':
+        fstpy_log_level_warning()
+    elif FSTPY_LOG_LEVEL == 'ERROR':
+        fstpy_log_level_error()
+    elif FSTPY_LOG_LEVEL == 'CRITICAL':
+        fstpy_log_level_catast()    
+
 
 # KIND_ABOVE_SEA = 0
 # KIND_SIGMA     = 1
@@ -36,25 +82,23 @@ rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
 #  0       : m  [metres] (height with respect to sea level)
 #   [pressure in metres]
 
-#'/fs/site3/eccc/ops/cmod/prod/hubs/suites/ops/rdps_20191231/r1/gridpt/prog/hyb/2021021012_*'
+# '/fs/site3/eccc/ops/cmod/prod/hubs/suites/ops/rdps_20191231/r1/gridpt/prog/hyb/2021021012_*'
 
 
-
-
-DATYP_DICT = {  
-                0:'X',
-                1:'R',
-                2:'I',
-                4:'S',
-                5:'E',
-                6:'F',
-                7:'A',
-                8:'Z',
-                130:'i',
-                132:'s',
-                133:'e',
-                134:'f'
-            } #: :meta hide-value:
+DATYP_DICT = {
+    0: 'X',
+    1: 'R',
+    2: 'I',
+    4: 'S',
+    5: 'E',
+    6: 'F',
+    7: 'A',
+    8: 'Z',
+    130: 'i',
+    132: 's',
+    133: 'e',
+    134: 'f'
+}  # : :meta hide-value:
 """data type aliases constant
 
 :return: correspondance betweeen datyp and str version of datyp
@@ -63,19 +107,19 @@ DATYP_DICT = {
 """
 
 KIND_DICT = {
-                -1:'_',
-                0: 'm',   #[metres] (height with respect to sea level)
-                1: 'sg',  #[sigma] (0.0->1.0)
-                2: 'mb',  #[mbars] (pressure in millibars)
-                3: '   ', #[others] (arbitrary code)
-                4: 'M',   #[metres] (height with respect to ground level)
-                5: 'hy',  #[hybrid] (0.0->1.0)
-                6: 'th',  #[theta]
-                10: 'H',  #[hours]
-                15: '  ', #[reserved, integer]
-                17: ' ',  #[index X of conversion matrix]
-                21: 'mp'  #[pressure in metres]
-            } #: :meta hide-value:
+    -1: '_',
+    0: 'm',  # [metres] (height with respect to sea level)
+    1: 'sg',  # [sigma] (0.0->1.0)
+    2: 'mb',  # [mbars] (pressure in millibars)
+    3: '   ',  # [others] (arbitrary code)
+    4: 'M',  # [metres] (height with respect to ground level)
+    5: 'hy',  # [hybrid] (0.0->1.0)
+    6: 'th',  # [theta]
+    10: 'H',  # [hours]
+    15: '  ',  # [reserved, integer]
+    17: ' ',  # [index X of conversion matrix]
+    21: 'mp'  # [pressure in metres]
+}  # : :meta hide-value:
 """kind aliases constant
 
 :return: correspondance betweeen kind and str version of kind
@@ -83,35 +127,34 @@ KIND_DICT = {
 :meta hide-value:
 """
 
-_const_prefix='/'.join(__file__.split('/')[0:-1])
+_const_prefix = '/'.join(__file__.split('/')[0:-1])
 _csv_path = _const_prefix + '/csv/'
 _stationsfb = pd.read_csv(_csv_path + 'stationsfb.csv')
 _vctypes = pd.read_csv(_csv_path + 'verticalcoordinatetypes.csv')
 _stdvar = pd.read_csv(_csv_path + 'stdvar.csv')
-_units = pd.read_csv(_csv_path + 'units.csv' \
-    ,dtype= {
-        'name':str,
-        'symbol':str,
-        'expression':str,
-        'bias':'float32',
-        'factor':'float32',
-        'mass':'int32',
-        'length':'int32',
-        'time':'int32',
-        'electricCurrent':'int32',
-        'temperature':'int32',
-        'amountOfSubstance':'int32',
-        'luminousIntensity':'int32'
-        })
-    
+_units = pd.read_csv(_csv_path + 'units.csv', dtype={
+    'name': str,
+    'symbol': str,
+    'expression': str,
+    'bias': 'float32',
+    'factor': 'float32',
+    'mass': 'int32',
+    'length': 'int32',
+    'time': 'int32',
+    'electricCurrent': 'int32',
+    'temperature': 'int32',
+    'amountOfSubstance': 'int32',
+    'luminousIntensity': 'int32'
+})
+
 # _etikets = pd.read_csv(_csv_path + 'etiket.csv')
 _leveltypes = pd.read_csv(_csv_path + 'leveltype.csv')
 _thermoconstants = pd.read_csv(_csv_path + 'thermo_constants.csv')
 
-STATIONSFB = _stationsfb #: :meta hide-value:
+STATIONSFB = _stationsfb  # : :meta hide-value:
 """FB stations table
 
-:return: correspondance betweeen datyp and str version of datyp
+:return: FB stations table
 :rtype: pd.DataFrame
 :meta hide-value:
 >>> fstpy.STATIONSFB
@@ -124,10 +167,10 @@ STATIONSFB = _stationsfb #: :meta hide-value:
 ...
 """
 
-VCTYPES = _vctypes #: :meta hide-value:
-"""virtical coordinate type information table
+VCTYPES = _vctypes  # : :meta hide-value:
+"""vertical coordinate type information table
 
-:return: correspondance betweeen datyp and str version of datyp
+:return: vertical coordinate type information table
 :rtype: pd.DataFrame
 :meta hide-value:
 >>> fstpy.VCTYPES
@@ -137,7 +180,7 @@ VCTYPES = _vctypes #: :meta hide-value:
 2          5    True   True  False  False  False  False   5005           HYBRID_5005
 ...
 """
-STDVAR = _stdvar #: :meta hide-value:
+STDVAR = _stdvar  # : :meta hide-value:
 """Like the o.dict standard file dictionnary table
 
 :return: dataframe
@@ -159,7 +202,7 @@ STDVAR = _stdvar #: :meta hide-value:
 
 [928 rows x 4 columns]
 """
-UNITS = _units #: :meta hide-value:
+UNITS = _units  # : :meta hide-value:
 """Units table for conversions
 
 :return: dataframe
@@ -203,7 +246,7 @@ UNITS = _units #: :meta hide-value:
 
 # [86 rows x 2 columns]
 # """
-LEVELTYPES = _leveltypes #: :meta hide-value:
+LEVELTYPES = _leveltypes  # : :meta hide-value:
 """Level type table
 
 :return: dataframe
@@ -226,7 +269,6 @@ LEVELTYPES = _leveltypes #: :meta hide-value:
 """
 
 
-
 THERMO_CONSTANTS = _thermoconstants
 """Thermodynamic constants table
 
@@ -244,28 +286,51 @@ THERMO_CONSTANTS = _thermoconstants
 6  'epsilon'    0.62198
 """
 
-def get_constant_row_by_name(df:pd.DataFrame, df_name:str, index:str, name:str) -> pd.Series:
+
+def get_constant_row_by_name(df: pd.DataFrame, df_name: str, index: str, name: str) -> pd.Series:
     row = df.loc[df[index] == name]
     if len(row.index):
         return row
-    #else:
+    # else:
     #    logger.warning('get_constant_row_by_name - %s - no %s found by that name'%(name,df_name))
         #logger.error('get_constant_row_by_name - available %s are:'%df_name)
-        #logger.error(pprint.pformat(sorted(df[index].to_list())))
+        # logger.error(pprint.pformat(sorted(df[index].to_list())))
     return pd.Series(dtype=object)
 
-def get_unit_by_name(name:str) -> pd.Series:
+
+def get_unit_by_name(name: str) -> pd.Series:
     unit = get_constant_row_by_name(UNITS, 'unit', 'name', name)
     if len(unit.index):
         return unit
     else:
         return get_constant_row_by_name(UNITS, 'unit', 'name', 'scalar')
 
-def get_etikey_by_name(name:str) -> pd.Series:
+
+def get_etikey_by_name(name: str) -> pd.Series:
     return get_constant_row_by_name(ETIKETS, 'etiket', 'plugin_name', name)
 
-def get_constant_by_name(name:str) -> pd.Series:
+
+def get_constant_by_name(name: str) -> pd.Series:
     return get_constant_row_by_name(THERMO_CONSTANTS, 'value', 'name', name)
+
 
 def get_column_value_from_row(row, column):
     return row[column].values[0]
+
+# def init_dask(num_cpus:int=None):
+#     """Create a dask client that works on one machine and that has
+#         processes=True. This is important because of rpnpy and its non parallel
+#         compatibility
+
+#     :param num_cpus: number of dask cpus, defaults to None
+#     :type num_cpus: int, optional
+#     """
+#     if num_cpus is None:
+#         num_cpus = multiprocessing.cpu_count()
+#     # Start a LocalCluster that has 1 thread per process
+#     # processes=True very important
+#     cluster = dask.distributed.LocalCluster(processes=True, n_workers=num_cpus, threads_per_worker=1)
+
+#     # Connect to the local cluster.
+#     # We store the connection in the client variable, but we shouldn't need that variable anymore.
+#     _ = dask.distributed.Client(cluster)

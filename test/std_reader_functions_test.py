@@ -329,4 +329,3 @@ def raw_data_frame(raw_dict):
 
 # # def test_parse_etiket(raw_etiket:str):
 # #     pass
-

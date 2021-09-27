@@ -2,7 +2,7 @@
 from fstpy.log import setup_fstpy_logger
 import os
 
-logger = setup_fstpy_logger()
+# logger = setup_fstpy_logger()
 
 DEFAULT_HOST_NUM = 3
 HOST_NUM = os.getenv("FSTPY_HOST_NUM", None)

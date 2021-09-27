@@ -27,7 +27,7 @@ def test_2(input_file):
     df = std_file.to_pandas()
     assert len(df.index) == 1874
     assert len(df.columns) == 26
-    assert df.d.isna().all()
+
 
 def test_3(input_file):
     """Test decode_metadata=True"""
@@ -35,34 +35,37 @@ def test_3(input_file):
     df = std_file.to_pandas()
     assert len(df.index) == 1874
     assert len(df.columns) == 58
-    assert df.d.isna().all()
 
-# def test_4(input_file):
-#     """Test load_data=True,decode_metadata=False"""
-#     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,query='nomvar=="UU"')
-#     df = std_file.to_pandas()
-#     assert len(df.index) == 90
-#     assert len(df.columns) == 26
-#     assert 'd' in df.columns
-#     assert not df.d.isna().all()
 
-# def test_5(input_file):
-#     """Test load_data=True,decode_metadata=True"""
-#     std_file = StandardFileReader(input_file,load_data=True,decode_metadata=True,query='nomvar=="UU"')
-#     df = std_file.to_pandas()
-#     assert len(df.index) == 90
-#     assert len(df.columns) == 58
-#     assert 'd' in df.columns
-#     assert not df.d.isna().all()
+def test_4(input_file):
+    """Test decode_metadata=False get the real data"""
+    std_file = StandardFileReader(input_file,decode_metadata=False,query='nomvar=="UU"')
+    df = std_file.to_pandas()
+    df = compute(df)
+    assert len(df.index) == 90
+    assert len(df.columns) == 26
+    for i in df.index:
+        assert isinstance(df.at[i,'d'],np.ndarray)
 
-# def test_6(input_file):
-#     """Test load_data=True"""
-#     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="UU"')
-#     df = std_file.to_pandas()
-#     assert len(df.index) == 90
-#     assert len(df.columns) == 26
-#     assert 'd' in df.columns
-#     assert not df.d.isna().all()
+def test_5(input_file):
+    """Test decode_metadata=True get the real data"""
+    std_file = StandardFileReader(input_file,decode_metadata=True,query='nomvar=="UU"')
+    df = std_file.to_pandas()
+    df = compute(df)
+    assert len(df.index) == 90
+    assert len(df.columns) == 58
+    for i in df.index:
+        assert isinstance(df.at[i,'d'],np.ndarray)
+
+def test_6(input_file):
+    """Test get the real data"""
+    std_file = StandardFileReader(input_file,query='nomvar=="UU"')
+    df = std_file.to_pandas()
+    df = compute(df)
+    assert len(df.index) == 90
+    assert len(df.columns) == 26
+    for i in df.index:
+        assert isinstance(df.at[i,'d'],np.ndarray)
 
 
 def test_7(input_file):
@@ -71,16 +74,18 @@ def test_7(input_file):
     df = std_file.to_pandas()
     assert len(df.index) == 90
     assert len(df.columns) == 26
-    assert df.d.isna().all()
 
-# def test_8(input_file):
-#     """Test load_data=True,query='nomvar=='TT'"""
-#     std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="TT"')
-#     df = std_file.to_pandas()
-#     assert len(df.index) == 90
-#     assert len(df.columns) == 26
-#     assert 'd' in df.columns
-#     assert not df.d.isna().all()
+
+def test_8(input_file):
+    """Test query='nomvar=='TT' get the real data"""
+    std_file = StandardFileReader(input_file,query='nomvar=="TT"')
+    df = std_file.to_pandas()
+    df = compute(df)
+    assert len(df.index) == 90
+    assert len(df.columns) == 26
+    for i in df.index:
+        assert isinstance(df.at[i,'d'],np.ndarray)
+
 
 
 def test_9(input_file):
@@ -121,5 +126,5 @@ def test_10(input_file,input_file2):
     df = std_file.to_pandas()
     assert len(df.index) == 2009
     assert len(df.columns) == 26
-    assert df.d.isna().all()
+    
     

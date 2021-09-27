@@ -55,10 +55,9 @@ Example
    # get statistics on the selected records    
    df = fstpy.fststat(records)    
    # get a subset of records containing only UU and VV momvar    
-   just_tt_and_uv = fstpy.select(records,'nomvar in ["TT","UV"]')    
+   just_tt_and_uv = records.query('nomvar in ["TT","UV"]')    
    # display selected records in a rpn voir format   
    fstpy.voir(just_tt_and_uv)    
    dest_path = '/tmp/out.std'    
    # write the selected records to the output file    
    fstpy.StandardFileWriter(dest_path,just_tt_and_uv).to_fst()    
-
