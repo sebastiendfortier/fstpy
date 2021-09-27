@@ -275,42 +275,95 @@ def get_lat_lon(df):
     return get_grid_metadata_fields(df, pressure=False, vertical_descriptors=False)
 
 
-def get_grid_metadata_fields(df, latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
+def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
 
     path_groups = df.groupby(df.path)
     df_list = []
-    # for each files in the df
-    for path, rec_df in path_groups:
-        # path = rec_df.iloc[0]['path']
+    #for each files in the df
+    for _, rec_df in path_groups:
+        path = rec_df.iloc[0]['path']
 
         if path is None:
             continue
-        meta_df = get_dataframe_from_file(path,query='nomvar in ["^^",">>","^>","!!","HY","!!SF","E1","P0","PT","PN"]')    
-
+        # file_modification_time = rec_df.iloc[0]['file_modification_time']
+        # compare_modification_times(file_modification_time,path,rmn.FST_RO,caller,error_class)
+        meta_df = get_all_grid_metadata_fields_from_std_file(path)
+        # meta_df = pd.DataFrame(records)
+        #print(meta_df[['nomvar','grid']])
         if meta_df.empty:
+            # sys.stderr.write('get_grid_metadata_fields - no metatada in file %s\n'%path)
             return pd.DataFrame(dtype=object)
         grid_groups = rec_df.groupby(rec_df.grid)
-        # for each grid in the current file
-        for grid, grid_df in grid_groups:
-            # grid = grid_df.iloc[0]['grid']
-            grid_meta_df = meta_df.loc[meta_df.grid == grid]
+        #for each grid in the current file
+        for _,grid_df in grid_groups:
+            this_grid = grid_df.iloc[0]['grid']
             if vertical_descriptors:
-                vertical_df = grid_meta_df.loc[(grid_meta_df.nomvar.isin(["!!", "HY", "!!SF", "E1"]))]
+                #print('vertical_descriptors')
+                vertical_df = meta_df.loc[(meta_df.nomvar.isin(["!!", "HY", "!!SF", "E1"])) & (meta_df.grid==this_grid)]
                 df_list.append(vertical_df)
             if pressure:
-                pressure_df = grid_meta_df.loc[(grid_meta_df.nomvar.isin(["P0", "PT"]))]
+                #print('pressure')
+                pressure_df = meta_df.loc[(meta_df.nomvar.isin(["P0", "PT"])) & (meta_df.grid==this_grid)]
                 df_list.append(pressure_df)
             if latitude_and_longitude:
-                latlon_df = grid_meta_df.loc[(grid_meta_df.nomvar.isin(["^>", ">>", "^^"]))]
+                #print('lati and longi')
+                latlon_df = meta_df.loc[(meta_df.nomvar.isin(["^>", ">>", "^^"])) & (meta_df.grid==this_grid)]
+                #print(latlon_df)
                 df_list.append(latlon_df)
+                #print(latlon_df)
 
     if len(df_list):
-        result = pd.concat(df_list, ignore_index=True)
+        result = pd.concat(df_list,ignore_index=True)
         return result
     else:
         return pd.DataFrame(dtype=object)
 
 
+def get_all_grid_metadata_fields_from_std_file(path):
+    df = get_basic_dataframe(path)
+    df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "HY", "!!SF", "E1", "P0", "PT", "PN"])]
+    df = add_grid_column(df)
+    df = add_dask_column(df)
+    return df
+    # unit = rmn.fstopenall(path)
+    # lat_keys = rmn.fstinl(unit,nomvar='^^')
+    # lon_keys = rmn.fstinl(unit,nomvar='>>')
+    # tictac_keys = rmn.fstinl(unit,nomvar='^>')
+    # toctoc_keys = rmn.fstinl(unit,nomvar='!!')
+    # hy_keys = rmn.fstinl(unit,nomvar='HY')
+    # sf_keys = rmn.fstinl(unit,nomvar='!!SF')
+    # e1_keys = rmn.fstinl(unit,nomvar='E1')
+    # p0_keys = rmn.fstinl(unit,nomvar='P0')
+    # pt_keys = rmn.fstinl(unit,nomvar='PT')
+    # pn_keys = rmn.fstinl(unit,nomvar='PN')
+    # keys = lat_keys + lon_keys + tictac_keys + toctoc_keys + hy_keys + sf_keys + e1_keys + p0_keys + pt_keys + pn_keys
+    # records=[]
+    # for key in keys:
+    #     record = rmn.fstluk(key)
+    #     if record['dltf'] == 1:
+    #         continue
+    #     #record['fstinl_params'] = None
+    #     #del record['key']
+    #     strip_string_values(record)
+    #     #create a grid identifier for each record
+    #     record['grid'] = get_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
+    #     remove_extra_keys(record)
+    #     record['path'] = path
+    #     record['file_modification_time'] = get_file_modification_time(path)
+    #     records.append(record)
+    # rmn.fstcloseall(unit)
+    # return records
+
+def strip_string_values(record):
+    record['nomvar'] = record['nomvar'].strip()
+    record['etiket'] = record['etiket'].strip()
+    record['typvar'] = record['typvar'].strip()
+    
+def remove_extra_keys(record):
+    for k in ['swa','dltf','ubc','lng','xtra1','xtra2','xtra3']:
+        record.pop(k,None)
+        
+            
 class GetMetaDataError(Exception):
     pass
 

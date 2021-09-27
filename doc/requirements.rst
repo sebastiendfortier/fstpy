@@ -1,11 +1,19 @@
 Requirements
 ============
 
-packages
---------
+run time packages
+-----------------
+- pandas>=1.2.4
+- numpy>=1.19.5
+- xarray>=0.19.0
+- dask>=2021.8.0
 
--  python 3.6
--  numpy
--  pandas
--  dask
--  xarray
+developpement packages
+----------------------
+- ci_fstcomp>=1.0.2
+- pandas>=1.2.4
+- numpy>=1.19.5
+- xarray>=0.19.0
+- dask>=2021.8.0
+- pytest>=5.3.5
+- Sphinx>=3.4.3

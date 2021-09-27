@@ -118,27 +118,30 @@ class StandardFileWriter:
         rmn.fstcloseall(file_id)
 
     def _write(self):
-
-        meta = ["^^", ">>", "^>", "!!", "HY", "!!SF", "E1", "P0", "PT", "PN"]
-        cols = ['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3',
-                'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
-
+        if not self.no_meta:             
+            meta_df = get_grid_metadata_fields(self.df)             
+            self.df = pd.concat([self.df,meta_df],ignore_index=True)         
         self.df = metadata_cleanup(self.df)
+        # meta = ["^^", ">>", "^>", "!!", "HY", "!!SF", "E1", "P0", "PT", "PN"]
+        # cols = ['nomvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3',
+        #         'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
 
-        if not self.no_meta:
-            original_meta_df = self.df.loc[self.df.nomvar.isin(meta)]
-            original_meta_to_cmp_df = original_meta_df[cols].sort_values(cols).reset_index(drop=True)
-            meta_df = get_grid_metadata_fields(self.df)
-            self.df = pd.concat([meta_df, self.df], ignore_index=True)
-            self.df = metadata_cleanup(self.df)
+        # self.df = metadata_cleanup(self.df)
 
-            added_meta_df = self.df.loc[self.df.nomvar.isin(meta)]
-            added_meta_to_cmp_df = added_meta_df[cols].sort_values(cols).reset_index(drop=True)
+        # if not self.no_meta:
+        #     original_meta_df = self.df.loc[self.df.nomvar.isin(meta)]
+        #     original_meta_to_cmp_df = original_meta_df[cols].sort_values(cols).reset_index(drop=True)
+        #     meta_df = get_grid_metadata_fields(self.df)
+        #     self.df = pd.concat([meta_df, self.df], ignore_index=True)
+        #     self.df = metadata_cleanup(self.df)
 
-            if (not original_meta_to_cmp_df.empty) and (not added_meta_to_cmp_df.empty):
-                if original_meta_to_cmp_df.equals(added_meta_to_cmp_df):
-                    self.df = self.df.loc[~self.df.nomvar.isin(meta)]
-                    self.df = pd.concat([original_meta_df, self.df], ignore_index=True)
+        #     added_meta_df = self.df.loc[self.df.nomvar.isin(meta)]
+        #     added_meta_to_cmp_df = added_meta_df[cols].sort_values(cols).reset_index(drop=True)
+
+        #     if (not original_meta_to_cmp_df.empty) and (not added_meta_to_cmp_df.empty):
+        #         if original_meta_to_cmp_df.equals(added_meta_to_cmp_df):
+        #             self.df = self.df.loc[~self.df.nomvar.isin(meta)]
+        #             self.df = pd.concat([original_meta_df, self.df], ignore_index=True)
 
 
         if self.rewrite is None:

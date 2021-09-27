@@ -119,8 +119,14 @@ class ComputeError(Exception):
 
 
 def compute(df: pd.DataFrame) -> pd.DataFrame:
+    no_path_df = df.loc[df.path.isna()]
+
     groups = df.groupby('path')
+    
     df_list = []
+    
+    if not no_path_df.empty:
+        df_list.append(no_path_df)
     for path, current_df in groups:
         file_modification_time = get_file_modification_time(path)
         if np.datetime64(current_df.iloc[0]['file_modification_time'])-np.datetime64(file_modification_time) != np.timedelta64(0):
@@ -129,9 +135,9 @@ def compute(df: pd.DataFrame) -> pd.DataFrame:
         current_df = current_df.sort_values('key')
         # with _lock:
         # unit = rmn.fstopenall(path)
+
         for i in current_df.index:
-            if isinstance(current_df.at[i, 'd'], np.ndarray):
-                pass
+
             if isinstance(current_df.at[i, 'd'], da.core.Array):
                 # print(current_df.loc[i]['nomvar'],current_df.at[i,'d'].shape)
                 current_df.at[i, 'd'] = current_df.at[i, 'd'].compute()
