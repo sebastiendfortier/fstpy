@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fstpy.dataframe import sort_dataframe
+# from fstpy.dataframe import sort_dataframe
 import pytest
 from fstpy.std_reader import *
 from test import TEST_PATH
@@ -10,7 +10,10 @@ pytestmark = [pytest.mark.std_reader, pytest.mark.unit_tests]
 def input_file():
     return TEST_PATH + '/ReaderStd/testsFiles/source_data_5005.std'
 
-
+@pytest.fixture
+def input_file2():
+    return TEST_PATH + '/ReaderStd/testsFiles/input_big_fileSrc.std'
+    
 def test_1(input_file):
     """Test open a file"""
     std_file = StandardFileReader(input_file)
@@ -25,6 +28,7 @@ def test_2(input_file):
     assert len(df.index) == 1874
     assert len(df.columns) == 26
 
+
 def test_3(input_file):
     """Test decode_metadata=True"""
     std_file = StandardFileReader(input_file,decode_metadata=True)
@@ -32,32 +36,36 @@ def test_3(input_file):
     assert len(df.index) == 1874
     assert len(df.columns) == 58
 
+
 def test_4(input_file):
-    """Test load_data=True,decode_metadata=False"""
-    std_file = StandardFileReader(input_file,load_data=True,decode_metadata=False,query='nomvar=="UU"')
+    """Test decode_metadata=False get the real data"""
+    std_file = StandardFileReader(input_file,decode_metadata=False,query='nomvar=="UU"')
     df = std_file.to_pandas()
+    df = compute(df)
     assert len(df.index) == 90
     assert len(df.columns) == 26
-    assert 'd' in df.columns
-    assert not df['d'].isnull().all()
+    for i in df.index:
+        assert isinstance(df.at[i,'d'],np.ndarray)
 
 def test_5(input_file):
-    """Test load_data=True,decode_metadata=True"""
-    std_file = StandardFileReader(input_file,load_data=True,decode_metadata=True,query='nomvar=="UU"')
+    """Test decode_metadata=True get the real data"""
+    std_file = StandardFileReader(input_file,decode_metadata=True,query='nomvar=="UU"')
     df = std_file.to_pandas()
+    df = compute(df)
     assert len(df.index) == 90
     assert len(df.columns) == 58
-    assert 'd' in df.columns
-    assert not df['d'].isnull().all()
+    for i in df.index:
+        assert isinstance(df.at[i,'d'],np.ndarray)
 
 def test_6(input_file):
-    """Test load_data=True"""
-    std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="UU"')
+    """Test get the real data"""
+    std_file = StandardFileReader(input_file,query='nomvar=="UU"')
     df = std_file.to_pandas()
+    df = compute(df)
     assert len(df.index) == 90
     assert len(df.columns) == 26
-    assert 'd' in df.columns
-    assert not df['d'].isnull().all()
+    for i in df.index:
+        assert isinstance(df.at[i,'d'],np.ndarray)
 
 
 def test_7(input_file):
@@ -69,13 +77,15 @@ def test_7(input_file):
 
 
 def test_8(input_file):
-    """Test load_data=True,query='nomvar=='TT'"""
-    std_file = StandardFileReader(input_file,load_data=True,query='nomvar=="TT"')
+    """Test query='nomvar=='TT' get the real data"""
+    std_file = StandardFileReader(input_file,query='nomvar=="TT"')
     df = std_file.to_pandas()
+    df = compute(df)
     assert len(df.index) == 90
     assert len(df.columns) == 26
-    assert 'd' in df.columns
-    assert not df['d'].isnull().all()
+    for i in df.index:
+        assert isinstance(df.at[i,'d'],np.ndarray)
+
 
 
 def test_9(input_file):
@@ -90,8 +100,6 @@ def test_9(input_file):
     assert df.columns.equals(full_df.columns)
     assert len(df.index) == len(full_df.index)
 
-    df = sort_dataframe(df)
-    full_df = sort_dataframe(full_df)
     assert full_df.columns.all() == df.columns.all()
     assert full_df.nomvar.unique().all() == df.nomvar.unique().all()
     assert full_df.typvar.unique().all() == df.typvar.unique().all()
@@ -111,3 +119,12 @@ def test_9(input_file):
     assert full_df.grtyp.all() == df.grtyp.all()
     assert full_df.datyp.all() == df.datyp.all()
     assert full_df.nbits.all() == df.nbits.all()
+
+def test_10(input_file,input_file2):
+    """Test opening multiple files"""
+    std_file = StandardFileReader([input_file,input_file2])
+    df = std_file.to_pandas()
+    assert len(df.index) == 2009
+    assert len(df.columns) == 26
+    
+    

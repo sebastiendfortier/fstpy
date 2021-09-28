@@ -13,25 +13,45 @@ example: When this module is imported ``import fstpy.all as fstpy`` instead of u
 The following functions and constants are available through ``fstpy.``
  
    .. automodule:: fstpy.__init__  
-      :members: 
-
-   .. automodule:: fstpy.std_reader
-      :members: 
-
-   .. automodule:: fstpy.dataframe    
+      :noindex: 
       :members: 
 
    .. automodule:: fstpy.dataframe_utils 
+      :noindex: 
       :members:
 
-   .. automodule:: fstpy.pressure
-      :members:
+   .. automodule:: fstpy.dataframe    
+      :noindex:
+      :members: 
+   
+   .. automodule:: fstpy.log    
+      :noindex:
+      :members: 
+               
+   .. automodule:: fstpy.std_dec
+      :noindex:
+      :members: 
+      
+   .. automodule:: fstpy.std_enc
+      :noindex:
+      :members:    
+
+   .. automodule:: fstpy.std_io
+      :noindex:
+      :members:    
+
+   .. automodule:: fstpy.std_reader
+      :noindex:
+      :members:  
 
    .. automodule:: fstpy.std_writer 
+      :noindex:
       :members:
 
    .. automodule:: fstpy.unit    
+      :noindex:
       :members:
 
    .. automodule:: fstpy.utils       
+      :noindex:
       :members:

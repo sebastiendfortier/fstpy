@@ -34,10 +34,12 @@ add_fstpy_to_pythonpath(){
 use_fstpy_deps(){
     # fstpy uses low-level python binding for
     # librmn functions provided by rpnpy
-    . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmdw/PRIVATE/dev_python_packages/python3.6/all/2021.09
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/python_packages/python3.6/all/2021.07
-    . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/ssm/cifstcomp/1.0.0
+    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/1.0.2
+    . ssmuse-sh -d /home/olh001/ssm/surgepy/1.0.8
+    # . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
+    # . ssmuse-sh -d /fs/ssm/eccc/cmd/cmdw/PRIVATE/dev_python_packages/python3.6/all/2021.09
+    # . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/python_packages/python3.6/all/2021.07
+    # . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/1.0.0
 }
 
 use_fstpy

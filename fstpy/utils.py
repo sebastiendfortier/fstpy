@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import inspect
-import sys
-from functools import wraps
-import pandas as pd
-import rpnpy.librmn.all as rmn
 import logging
+import os
+from functools import wraps
+
+import dask.array as da
+import numpy as np
+import rpnpy.librmn.all as rmn
 
 
 def initializer(func):
@@ -19,7 +21,8 @@ def initializer(func):
     >>> p.cmd, p.reachable, p.user
     ('halt', True, 'root')
     """
-    names, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations = inspect.getfullargspec(func)
+    names, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations = inspect.getfullargspec(
+        func)
     #names, varargs, keywords, defaults = inspect.getfullargspec(func)
 
     @wraps(func)
@@ -35,7 +38,8 @@ def initializer(func):
 
     return wrapper
 
-def delete_file(my_file:str):
+
+def delete_file(my_file: str):
     """delete a file by path
 
     :param my_file: path to file to delete
@@ -44,168 +48,9 @@ def delete_file(my_file:str):
     import os
     if os.path.exists(my_file):
         os.unlink(my_file)
-        
-# def get_grid_groups(groups:list) -> list:
-#     """Takes a list of dataframes groups and groups them by grid attribute
-
-#     :param groups: list of dataframes groups
-#     :type groups: list
-#     :return: a list of dataframe groups grouped by grid
-#     :rtype: list
-#     """
-#     return make_groups(groups, 'grid', ['forecast_hour','nomvar','level'])
-
-# def get_forecast_hour_groups(groups:list) -> list:
-#     """Takes a list of dataframe groups and groups them by forecast_hour attribute
-
-#     :param groups: list of dataframes groups
-#     :type groups: list
-#     :return: a list of dataframe groups grouped by forecast_hour
-#     :rtype: list
-#     """
-#     return make_groups(groups, 'forecast_hour', ['forecast_hour','nomvar','level'])
-
-# def get_nomvar_groups(groups:list) -> list:
-#     """Takes a list of dataframe groups and groups them by nomvar attribute
-
-#     :param groups: list of dataframes groups
-#     :type groups: list
-#     :return: a list of dataframe groups grouped by nomvar
-#     :rtype: list
-#     """
-#     return make_groups(groups, 'nomvar', ['forecast_hour','nomvar','level'])
-
-# def get_level_groups(groups:list) -> list:
-#     """Takes a list of dataframes groups and groups them by level attribute
-
-#     :param groups: list of dataframes groups
-#     :type groups: list
-#     :return: a list of dataframe groups grouped by level
-#     :rtype: list
-#     """
-#     return make_groups(groups, 'level', ['forecast_hour','nomvar'])
-
-# def make_groups(groups:list, group_by_attribute:list, sort_by_attributes:list) -> list:
-#     """Takes a list of dataframes groups and groups them by attributes in attribute list
-
-#     :param groups: list of dataframes groups
-#     :type groups: list
-#     :param group_by_attribute: list of attribute names to group by
-#     :type group_by_attribute: list
-#     :param sort_by_attributes: attribute sort order
-#     :type sort_by_attributes: list
-#     :return: list of dataframe groups
-#     :rtype: list
-#     """
-#     groupdfs = []
-#     for group in groups:
-#         sub_groups = group.groupby(getattr(group,group_by_attribute))
-#         for _, sub_group in sub_groups:
-#             groupdfs.append(sub_group.sort_values(by=sort_by_attributes)) 
-#     return  groupdfs
-
-# def get_groups(df:pd.DataFrame, group_by_forecast_hour:bool=False,group_by_level=True) -> list:
-#     """Groups a dataframe by grid attribute then by selected attribute. 
-#     Dataframe can be grouped by combinations of attributes but will always be grouped by grid
-
-#     :param df: a dataframe to group
-#     :type df: pd.DataFrame
-#     :param group_by_forecast_hour: if true, dataframe will be grouped bu forecast hour, defaults to False
-#     :type group_by_forecast_hour: bool, optional
-#     :param group_by_level: if true, dataframe will be grouped bu level, defaults to True
-#     :type group_by_level: bool, optional
-#     :return: a list of dataframe groups
-#     :rtype: list
-#     """
-#     # create grid group
-#     grid_groups = get_grid_groups([df])
-#     if (group_by_forecast_hour == False) and (group_by_level == False):
-#         return grid_groups
-
-#     forecast_hour_groups= get_forecast_hour_groups(grid_groups)
-#     if (group_by_forecast_hour == True) and (group_by_level == False):
-#         return forecast_hour_groups
-            
-#     if (group_by_forecast_hour == False) and (group_by_level == True):
-#         return get_level_groups(grid_groups)
-    
-#     if (group_by_forecast_hour == True) and (group_by_level == True):
-#         return get_level_groups(forecast_hour_groups)
 
 
-# def flatten_data_series(df:pd.DataFrame) -> pd.DataFrame:
-#     """Flattens the arrays contained in the d attribute. 
-#     If each array had a 2d shape, the returned arrays will hav a 1d shape.
-#     This is useful when applying certain numpy algorithms to the arrays 
-
-#     :param df: a dataframe
-#     :type df: pd.DataFrame
-#     :return: the same dataframe with all arrays set to 1 dimension
-#     :rtype: pd.DataFrame
-#     """
-#     # import sys
-#     # if len(df.nomvar.unique()) > 1:
-#     #     sys.stderr.write('more than one variable, stacking the arrays would not yield a 3d array for one variable - no modifications made\n')
-#     #     return df
-#     for i in df.index:
-#         df.at[i,'d'] = df.at[i,'d'].flatten()
-#     return df    
-
-def create_1row_df_from_model(df:pd.DataFrame) -> pd.DataFrame:
-    """Creates a one row dataframe based on a model dataframe's first row. 
-    This is useful when you need to create a 1 dimension result holder. 
-    Since the new row will hold a result, the key and file_modification_time are set to None
-    so that if a call to load_data is made, the data portion won't be overwritten
-
-    :param df: dataframe used as a model
-    :type df: pd.DataFrame
-    :return: a 1 row dataframe
-    :rtype: pd.DataFrame
-    """
-    # if len(df.nomvar.unique()) > 1:
-    #     sys.stderr.write('more than one variable, returning a dataframe based on first row\n')
-    #     return df
-    if df.empty:
-        logging.warning('cant create, model dataframe empty')
-    res_df = df.iloc[0].to_dict()
-    res_df = pd.DataFrame([res_df])
-
-    #res_df['fstinl_params'] = None
-    res_df['file_modification_time'] = None
-    res_df['key'] = None
-    return res_df
-
-# def validate_nomvar(nomvar:str, caller_class:str, error_class:Exception):
-#     """Check that a nomvar only has 4 characters
-
-#     :param nomvar: nomvar string
-#     :type nomvar: str
-#     :param caller_class: a string that indicates the name of the caller class or method
-#     :type caller_class: str
-#     :param error_class: The exception to throw if nomvar is not 4 characters long
-#     :type error_class: Exception
-#     :raises error_class: The class of the exception
-#     """
-#     if len(nomvar) > 4:
-#         raise error_class(caller_class + ' - max 4 char for nomvar')
-
-# def  validate(df:pd.DataFrame, caller_class:str, error_class:Exception):
-#     """Raises an on error on empty dataframe
-
-#     :param df: input dataframe to check
-#     :type df: pd.DataFrame
-#     :param caller_class: a string that indicates the name of the caller class or method
-#     :type caller_class: str
-#     :param error_class: The exception to throw if nomvar is not 4 characters long
-#     :type error_class: Exception
-#     :raises error_class: The class of the exception
-#     """
-#     if df.empty:
-#         logger.error(caller_class + ' - no records to process')
-#         raise error_class(caller_class + ' - no records to process')    
-
-
-def get_file_list(pattern:str) -> str:
+def get_file_list(pattern: str) -> str:
     """Gets the list of files for provided path expression with wildcards
 
     :param pattern: a directory with regex pattern to find files in
@@ -217,7 +62,8 @@ def get_file_list(pattern:str) -> str:
     files = glob.glob(pattern)
     return files
 
-def ip_from_value_and_kind(value:float,kind:str) -> int:
+
+def ip_from_value_and_kind(value: float, kind: str) -> int:
     """Create an encoded ip value out of a value (float) and a printable kind.
     Valid kinds are m,sg,M,hy,th,H and mp
 
@@ -229,22 +75,23 @@ def ip_from_value_and_kind(value:float,kind:str) -> int:
     :rtype: int
     """
     d = {
-        'm':0,
-        'sg':1,
-        'mb':2,
-        'M':4,
-        'hy':5,
-        'th':6,
-        'H':10,
-        'mp':21
+        'm': 0,
+        'sg': 1,
+        'mb': 2,
+        'M': 4,
+        'hy': 5,
+        'th': 6,
+        'H': 10,
+        'mp': 21
     }
 
-    pk =  rmn.listToFLOATIP((value, value, d[kind.strip()]))
-    
+    pk = rmn.listToFLOATIP((value, value, d[kind.strip()]))
+
     if kind.strip() == 'H':
-        (_, ip, _) =  rmn.convertPKtoIP(rmn.listToFLOATIP((value, value, d["m"])), pk, pk)
+        (_, ip, _) = rmn.convertPKtoIP(
+            rmn.listToFLOATIP((value, value, d["m"])), pk, pk)
     else:
-        (ip, _, _) = rmn.convertPKtoIP(pk,pk,pk)
+        (ip, _, _) = rmn.convertPKtoIP(pk, pk, pk)
     return ip
 
 
@@ -252,25 +99,89 @@ def column_descriptions():
     """Prints the base attributes descriptions
     """
     logging.info('nomvar: variable name')
-    logging.info('typvar: type of field ([F]orecast, [A]nalysis, [C]limatology)')
-    logging.info('etiket: concatenation of label, run, implementation and ensemble_member')
+    logging.info(
+        'typvar: type of field ([F]orecast, [A]nalysis, [C]limatology)')
+    logging.info(
+        'etiket: concatenation of label, run, implementation and ensemble_member')
     logging.info('ni: first dimension of the data field - relates to shape')
     logging.info('nj: second dimension of the data field - relates to shape')
     logging.info('nk: third dimension of the data field - relates to shape')
     logging.info('dateo: date of observation time stamp')
     logging.info('ip1: encoded vertical level')
-    logging.info('ip2: encoded forecast hour, but can be used in other ways by encoding an ip value')
+    logging.info(
+        'ip2: encoded forecast hour, but can be used in other ways by encoding an ip value')
     logging.info('ip3: user defined identifier')
-    logging.info('deet: length of a time step in seconds - usually invariable - relates to model ouput times')
+    logging.info(
+        'deet: length of a time step in seconds - usually invariable - relates to model ouput times')
     logging.info('npas: time step number')
     logging.info('datyp: data type of the elements (int,float,str,etc)')
-    logging.info('nbits: number of bits kept for the elements of the field (16,32,etc)')
-    logging.info('ig1: first grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    logging.info('ig2: second grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    logging.info('ig3: third grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    logging.info('ig4: fourth grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
-    logging.info('grtyp: type of geographical projection identifier (Z, X, Y, etc)')
-    logging.info('datev: date of validity (dateo + deet * npas) Will be set to -1 if dateo invalid')
-    logging.info('d: data associated to record, empty until data is loaded - either a numpy array or a daks array for one level of data')
-    logging.info('key: key/handle of the record - used by rpnpy to locate records in a file')
-    logging.info('shape: (ni, nj, nk) dimensions of the data field - an attribute of the numpy/dask array (array.shape)')
+    logging.info(
+        'nbits: number of bits kept for the elements of the field (16,32,etc)')
+    logging.info(
+        'ig1: first grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
+    logging.info(
+        'ig2: second grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
+    logging.info(
+        'ig3: third grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
+    logging.info(
+        'ig4: fourth grid descriptor, helps to associate >>, ^^, !!, HY, etc with variables')
+    logging.info(
+        'grtyp: type of geographical projection identifier (Z, X, Y, etc)')
+    logging.info(
+        'datev: date of validity (dateo + deet * npas) Will be set to -1 if dateo invalid')
+    logging.info(
+        'd: data associated to record, empty until data is loaded - either a numpy array or a daks array for one level of data')
+    logging.info(
+        'key: key/handle of the record - used by rpnpy to locate records in a file')
+    logging.info(
+        'shape: (ni, nj, nk) dimensions of the data field - an attribute of the numpy/dask array (array.shape)')
+
+
+def get_num_rows_for_reading(df):
+    max_num_rows = 128
+    num_rows = os.getenv('FSTPY_NUM_ROWS')
+    if num_rows is None:
+        num_rows = max_num_rows
+    else:
+        num_rows = int(num_rows)    
+    num_rows = min(num_rows,len(df.index))    
+    return num_rows
+
+class ConversionError(Exception):
+    pass
+
+def to_numpy(arr: "np.ndarray|da.core.Array") -> np.ndarray:
+    """If the array is of numpy type, no op, else compute de daks array to get a numpy array
+
+    :param arr: array to convert
+    :type arr: np.ndarray|da.core.Array
+    :raises ConversionError: Raised if not a numpy or dask array
+    :return: a numpy array
+    :rtype: np.ndarray
+    """
+    if arr is None:
+        return arr
+    if isinstance(arr, da.core.Array):   
+        return arr.compute()  
+    elif isinstance(arr,np.ndarray):    
+        return arr    
+    else:
+        raise ConversionError('to_numpy - Array is not an array of type numpy or dask')    
+
+def to_dask(arr:"np.ndarray|da.core.Array") -> da.core.Array:
+    """If the array is of dask type, no op, else comvert array to dask array
+
+    :param arr: array to convert
+    :type arr: np.ndarray|da.core.Array
+    :raises ConversionError: Raised if not a numpy or dask array
+    :return: a dask array
+    :rtype:da.core.Array
+    """
+    if arr is None:
+        return arr
+    if isinstance(arr, da.core.Array):   
+        return arr
+    elif isinstance(arr, np.ndarray):   
+        return da.from_array(arr).astype(np.float32)        
+    else:    
+        raise ConversionError('to_dask - Array is not an array of type numpy or dask')    

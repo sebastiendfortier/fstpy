@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
-from fstpy.unit import unit_convert
+from fstpy.unit import UnitConversionError, unit_convert
 from fstpy.utils import delete_file
 from test import TMP_PATH, TEST_PATH
 import pandas as pd
 import pytest
-from fstpy.exceptions import UnitConversionError
 from ci_fstcomp import fstcomp
 
 
@@ -118,7 +117,7 @@ def test_4(plugin_test_dir):
     """Test a case with simple conversion and another plugin 2D"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
-    src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
+    src_df0 = StandardFileReader(source0).to_pandas()
 
     src_df0 = windmodulus(src_df0)
     #compute unit_convert
@@ -148,7 +147,7 @@ def test_5(plugin_test_dir):
     """Test a case with simple conversion and another plugin 3D"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5x2_fileSrc.std"
-    src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
+    src_df0 = StandardFileReader(source0).to_pandas()
 
     src_df0 = windmodulus(src_df0)
     #compute unit_convert
@@ -176,7 +175,7 @@ def test_6(plugin_test_dir):
     """Test a case with complete roundtrip conversion celcius -> kelvin -> fahrenheit -> celsius"""
     # open and read source
     source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
-    src_df0 = StandardFileReader(source0,load_data=True).to_pandas()
+    src_df0 = StandardFileReader(source0).to_pandas()
 
     other_df = src_df0.loc[src_df0.nomvar!="TT"]
     tt_df = src_df0.loc[src_df0.nomvar=="TT"]

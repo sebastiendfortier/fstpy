@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 
 v_file = open("VERSION")
-__version__ = v_file.readline()
+__version__ = v_file.readline().strip()
 v_file.close()
 
 setuptools.setup(

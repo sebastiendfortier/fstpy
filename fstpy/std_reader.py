@@ -1,80 +1,81 @@
 # -*- coding: utf-8 -*-
+from fstpy.xarray_utils import comvert_to_cmc_xarray
 import itertools
 import multiprocessing as mp
 import os
-from pathlib import Path
-import sys
 
 import numpy as np
 import pandas as pd
-import rpnpy.librmn.all as rmn
-# from dask.array.core import Array as dask_array_type
-# from dask.config import set as dask_config_set
+from .dataframe import (add_columns, add_data_column, add_shape_column,
+                        drop_duplicates)
+from .std_io import (get_dataframe_from_file, get_file_modification_time,
+                     parallel_get_dataframe_from_file)
+from .utils import initializer, to_numpy
 
-# import xarray as xr
 
-from .dataframe import add_decoded_columns, clean_dataframe
-from .exceptions import StandardFileError
-from .std_io import (compare_modification_times, get_dataframe_from_file_and_load,
-                     parallel_get_dataframe_from_file, get_dataframe_from_file,read_record)
-from .utils import initializer
-# from .xarray import (get_date_of_validity_data_array, get_latitude_data_array,
-#                      get_level_data_array, get_longitude_data_array,
-#                      get_variable_data_array, set_data_array_attributes)
+
+class StandardFileReaderError(Exception):
+    pass
 
 
 class StandardFileReader:
-    """Class to handle fst files
-        Opens, reads the contents of an fst files or files into a pandas Dataframe and closes
-        No data is loaded unless specified, only the metadata is read. Extra metadata is added to the dataframe if specified.
+    """Class to handle fst files.  
+        Opens, reads the contents of an fst file or files   
+        into a pandas dataframe and closes.   
+        Extra metadata columns are added to the dataframe if specified.    
 
-        :param filenames: path to file or list of paths to files
-        :type filenames: str|list[str]
-        :param decode_metadata: adds extra columns, defaults to False
-                'unit':str, unit name |br|
-                'unit_converted':bool |br|
-                'description':str, field description |br|
-                'date_of_observation':datetime, of the date of observation |br|
-                'date_of_validity':datetime, of the date of validity |br|
-                'level':float32, decoded ip1 level |br|
-                'ip1_kind':int32, decoded ip1 kind |br|
-                'ip1_pkind':str, string repr of ip1_kind int |br|
-                'data_type_str':str, string repr of data type |br|
-                'label':str, label derived from etiket |br|
-                'run':str, run derived from etiket |br|
-                'implementation':str, implementation derived from etiket |br|
-                'ensemble_member':str, ensemble member derived from etiket |br|
-                'surface':bool, True if the level is a surface level |br|
-                'follow_topography':bool, indicates if this type of level follows topography |br|
-                'ascending':bool, indicates if this type of level is in ascending order |br|
-                'vctype':str, vertical level type |br|
-                'forecast_hour':timedelta, forecast hour obtained from deet * npas / 3600 |br|
-                'ip2_dec':value of decoded ip2  |br|
-                'ip2_kind':kind of decoded ip2  |br|
-                'ip2_pkind':printable kind of decoded ip2 |br|
-                'ip3_dec':value of decoded ip3 |br|
-                'ip3_kind':kind of decoded ip3 |br|
-                'ip3_pkind':printable kind of decoded ip3 |br|
-        :type decode_metadata: bool, optional
-        :param load_data: if True, the data will be read, not just the metadata (fstluk vs fstprm), default False
-        :type load_data: bool, optional
-        :param query: parameter to pass to dataframe.query method, to select specific records
-        :type query: str, optional
+        :param filenames: path to file or list of paths to files  
+        :type filenames: str|list[str], does not accept wildcards (numpy has 
+                         many tools for this)
+        :param decode_metadata: adds extra columns, defaults to False  
+            'unit':str, unit name   
+            'unit_converted':bool  
+            'description':str, field description   
+            'date_of_observation':datetime, of the date of 
+                                    observation   
+            'date_of_validity': datetime, of the date of 
+                                validity   
+            'level':float32, decoded ip1 level   
+            'ip1_kind':int32, decoded ip1 kind   
+            'ip1_pkind':str, string repr of ip1_kind int   
+            'data_type_str':str, string repr of data type   
+            'label':str, label derived from etiket   
+            'run':str, run derived from etiket   
+            'implementation': str, implementation derived 
+                                from etiket   
+            'ensemble_member': str, ensemble member derived 
+                                from etiket   
+            'surface':bool, True if the level is a 
+                        surface level   
+            'follow_topography':bool, indicates if this type 
+                                of level follows topography   
+            'ascending':bool, indicates if this type of 
+                        level is in ascending order   
+            'vctype':str, vertical level type   
+            'forecast_hour': timedelta, forecast hour 
+                            obtained from deet * npas / 3600   
+            'ip2_dec':value of decoded ip2    
+            'ip2_kind':kind of decoded ip2    
+            'ip2_pkind':printable kind of decoded ip2   
+            'ip3_dec':value of decoded ip3   
+            'ip3_kind':kind of decoded ip3   
+            'ip3_pkind':printable kind of decoded ip3   
+        :type decode_metadata: bool, optional  
+        :param query: parameter to pass to dataframe.query method, to select 
+                      specific records  
+        :type query: str, optional  
     """
-    meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"]
+    meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1", "PN"]
+
     @initializer
-    def __init__(self, filenames, decode_metadata=False,load_data=False,query=None):
-        #{'datev':-1, 'etiket':' ', 'ip1':-1, 'ip2':-1, 'ip3':-1, 'typvar':' ', 'nomvar':' '}
+    def __init__(self, filenames, decode_metadata=False, query=None):
         """init instance"""
-        # if self.array_container not in ['numpy','dask.array']:
-        #     sys.stderr.write('wrong type of array container specified, defaulting to numpy\n')
-        #     self.array_container = 'numpy'
-        if isinstance(self.filenames,str):
+        if isinstance(self.filenames, str):
             self.filenames = os.path.abspath(str(self.filenames))
-        else:
+        elif isinstance(self.filenames, list):
             self.filenames = [os.path.abspath(str(f)) for f in filenames]
-
-
+        else:
+            raise StandardFileReaderError('Filenames must be str or list\n')
 
     def to_pandas(self) -> pd.DataFrame:
         """creates the dataframe from the provided file metadata
@@ -85,279 +86,59 @@ class StandardFileReader:
 
         if isinstance(self.filenames, list):
             # convert to list of tuple (path,query)
-            self.filenames = list(zip(self.filenames,itertools.repeat(self.query)))
-            if self.load_data:
-                df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file_and_load, n_cores=min(mp.cpu_count(),len(self.filenames)))
-            else:
-                df = parallel_get_dataframe_from_file(self.filenames, get_dataframe_from_file, n_cores=min(mp.cpu_count(),len(self.filenames)))
+            self.filenames = list(
+                zip(self.filenames, itertools.repeat(self.query)))
+
+            df = parallel_get_dataframe_from_file(
+                self.filenames,  get_dataframe_from_file, n_cores=min(mp.cpu_count(), len(self.filenames)))
 
         else:
+            df = get_dataframe_from_file(self.filenames, self.query)
 
-            if self.load_data:
-                df = get_dataframe_from_file_and_load(self.filenames,self.query)
-            else:
-                df = get_dataframe_from_file(self.filenames,self.query)
+        df = add_data_column(df)
 
+        df = add_shape_column(df)
 
+        if self.decode_metadata:
+            df = add_columns(df)
 
-        df = add_decoded_columns(df,self.decode_metadata)
-
-        df = clean_dataframe(df)
+        df = drop_duplicates(df)
 
         return df
+     
+    def to_cmc_xarray(self):
+        df = self.to_pandas()
+        return comvert_to_cmc_xarray(df)
+
+def to_cmc_xarray(df):
+    return comvert_to_cmc_xarray(df)
+    
+class ComputeError(Exception):
+    pass
 
 
-
-    # def to_xarray(self, timeseries=False, attributes=False):
-    #     """creates a xarray from the provided data
-
-    #     :param timeseries: if True, organizes the xarray into a time series, defaults to False
-    #     :type timeseries: bool, optional
-    #     :param attributes: if True, will add attributes to the data arrays, defaults to False
-    #     :type attributes: bool, optional
-    #     :return: xarray containing contents of cmc standard files
-    #     :rtype: xarray.DataSet
-    #     """
-
-    #     # dask_config_set(**{'array.slicing.split_large_chunks': True})
-
-    #     # self.array_container = 'dask.array'
-    #     self.decode_metadata = True
-    #     df = self.to_pandas()
-    #     df = load_data(df)
-    #     counter = 0
-    #     data_list = []
-    #     grid_groups = df.groupby(df.grid)
-
-    #     for _,grid_df in grid_groups:
-    #         counter += 1
-    #         if len(grid_groups.size()) > 1:
-    #             lat_name = 'rlat%s'%counter
-    #             lon_name = 'rlon%s'%counter
-    #             datev_name = 'time%s'%counter
-    #             level_name = 'level%s'%counter
-    #         else:
-    #             lat_name = 'rlat'
-    #             lon_name = 'rlon'
-    #             datev_name = 'time'
-    #             level_name = 'level'
-    #         lat_lon_df = get_lat_lon(grid_df)
-    #         longitudes = get_longitude_data_array(lat_lon_df,lon_name)
-    #         #print(longitudes.shape)
-    #         latitudes = get_latitude_data_array(lat_lon_df,lat_name)
-    #         #print(latitudes.shape)
-    #         nomvar_groups = grid_df.groupby(grid_df.nomvar)
-    #         for _,nomvar_df in nomvar_groups:
-    #             nomvar_df.sort_values(by='level',inplace=True)
-    #             if nomvar_df.iloc[0]['nomvar'] in ['!!','>>','^^','^>','HY']:
-    #                 continue
-    #             if len(nomvar_df.datev.unique()) > 1 and timeseries:
-    #                 time_dim = get_date_of_validity_data_array(nomvar_df,datev_name)
-    #                 nomvar_df.sort_values(by=['date_of_validity'],ascending=True,inplace=True)
-    #             else: #nomvar_df.ip1.unique() > 1:
-    #                 level_dim = get_level_data_array(nomvar_df,level_name)
-    #                 nomvar_df.sort_values(by=['level'],ascending=False,inplace=True)
-    #             attribs = {}
-    #             if attributes:
-    #                 attribs = set_data_array_attributes(attribs,nomvar_df, timeseries)
-
-    #             nomvar = nomvar_df.iloc[-1]['nomvar']
-    #             if timeseries:
-    #                 data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, time_dim, datev_name, latitudes, lat_name, longitudes, lon_name, timeseries=True))
-    #             else:
-    #                 data_list.append(get_variable_data_array(nomvar_df, nomvar, attribs, level_dim, level_name, latitudes, lat_name, longitudes, lon_name, timeseries=False))
-
-    #     d = {}
-    #     for variable in data_list:
-    #             d.update({variable.name:variable})
-
-    #     ds = xr.Dataset(d)
-
-    #     return ds
-
-
-def load_data(df:pd.DataFrame,clean:bool=False) -> pd.DataFrame:
-    """Gets the associated data for every record in a dataframe
-
-    :param df: dataframe to add arrays to
-    :type df: pd.DataFrame
-    :param clean: mark loaded data for removal by unload
-    :type clean: bool
-    :param sort: sort data while loading
-    :type sort: bool
-    :return: dataframe with filled arrays
-    :rtype: pd.DataFrame
-    """
-    if df.empty:
-        return df
-    # add the default flag
-    if clean:
-        df.loc[:,'clean'] = False
-
-    df_list = []
+def compute(df: pd.DataFrame) -> pd.DataFrame:
     no_path_df = df.loc[df.path.isna()]
 
-    path_groups = df.groupby(df.path)
-    for _,path_df in path_groups:
-        if ('file_modification_time' in path_df.columns) and ((path_df.iloc[0]['file_modification_time'] is None) == False):
-            compare_modification_times(path_df.iloc[0]['file_modification_time'], path_df.iloc[0]['path'],rmn.FST_RO, 'std_reader.py::load_data',StandardFileError)
+    groups = df.groupby('path')
+    
+    df_list = []
+    
+    if not no_path_df.empty:
+        df_list.append(no_path_df)
+        
+    for path, current_df in groups:
+        file_modification_time = get_file_modification_time(path)
+        if np.datetime64(current_df.iloc[0]['file_modification_time'])-np.datetime64(file_modification_time) != np.timedelta64(0):
+            raise ComputeError(
+                'File has been modified since it was first read - keys are invalid, make sure file stays intact during processing\n')
+        current_df = current_df.sort_values('key')
 
-        unit=rmn.fstopenall(path_df.iloc[0]['path'],rmn.FST_RO)
-        # loads faster when keys are in sequence
-        # if sort:
-            # path_df = path_df.sort_values(by=['key'])
+        for i in current_df.index:
+             current_df.at[i, 'd'] = to_numpy( current_df.at[i, 'd'])
 
-        for i in path_df.index:
-            # if isinstance(path_df.at[i,'d'],dask_array_type):
-            #     continue
-            if isinstance(path_df.at[i,'d'],np.ndarray):
-                continue
-            #call stored function with param, rmn.fstluk(key)
-            path_df.at[i,'d'] = read_record(path_df.at[i,'key'])
-            path_df.at[i,'clean'] = True if clean else False
-            #path_df.at[i,'fstinl_params'] = None
-            # path_df.at[i,'path'] = None
-        df_list.append(path_df)
-        rmn.fstcloseall(unit)
+        df_list.append(current_df)
 
+    df = pd.concat(df_list).sort_index()
 
-    if len(df_list):
-        if not no_path_df.empty:
-            df_list.append(no_path_df)
-        res_df = pd.concat(df_list,ignore_index=True)
-    else:
-        res_df = df
-
-    # if sort:
-    #     res_df = sort_dataframe(res_df)
-    # print('load_data\n',res_df[['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1']])
-    return res_df
-
-def unload_data(df:pd.DataFrame,only_marked:bool=False) -> pd.DataFrame:
-    """Removes the loaded data for every record in a dataframe if it can be loaded from file
-
-    :param df: dataframe to remove data from
-    :type df: pd.DataFrame
-    :param only_marked: unloads only marked o rows with clean column at True
-    :type only_marked: bool
-    :return: dataframe with arrays removed
-    :rtype: pd.DataFrame
-    """
-
-    for i in df.index:
-        if isinstance(df.at[i,'d'],np.ndarray) and not(df.at[i,'key'] is None) and ( df.at[i,'clean'] if only_marked else True):
-            # df.at[i,'d'] = ('numpy',int(df.at[i,'key']))
-            df.at[i,'d'] = None
-
-    df = df.drop(columns=['clean'],errors='ignore')
     return df
-
-
-# def stack_arrays(df):
-
-#     df = load_data(df)
-#     df_list = []
-#     grid_groups = df.groupby(df.grid)
-#     for _, grid_df in grid_groups:
-#         for nomvar in grid_df.nomvar.unique():
-#             if nomvar in ['>>','^^','!!','!!SF','HY','P0','PT']:
-#                 to_stack_df = grid_df.query('nomvar=="%s"'%nomvar)
-#                 df_list.append(to_stack_df)
-#                 continue
-#             to_stack_df = grid_df.query('nomvar=="%s"'%nomvar)
-#             if len(to_stack_df.d) == 1:
-#                 df_list.append(to_stack_df)
-#                 continue
-#             if 'level' not in  to_stack_df.columns:
-#                 to_stack_df['level'] = None
-#                 to_stack_df['ip1_kind'] = None
-#                 for i in to_stack_df.index:
-#                     to_stack_df.at[i,'level'], to_stack_df.at[i,'ip1_kind'], _ = decode_ip(to_stack_df.at[i,'ip1'])
-#             to_stack_df.sort_values(by=['level'],ascending=False,inplace=True)
-#             #print('stacking %s with %s levels'%(nomvar, len(to_stack_df.level)))
-#             var = create_1row_df_from_model(to_stack_df)
-#             #print(var.index)
-#             data_list = to_stack_df['d'].to_list()
-#             stacked_data = np.stack(data_list)
-#             #print(type(stacked_data),type(var.at[0,'d']))
-#             var['stacked'] = True
-#             var['ip1'] = None
-#             var['level'] = None
-#             var['ip1_kind'] = None
-#             var['key'] = None
-#             var.at[0,'level'] = to_stack_df['level'].to_numpy()
-#             var.at[0,'ip1_kind'] = to_stack_df['ip1_kind'].to_numpy()
-#             var.at[0,'d'] = stacked_data
-#             var.at[0,'ip1'] = to_stack_df['ip1'].to_numpy()
-#             var.at[0,'key'] = to_stack_df['key'].to_numpy()
-#             var.at[0,'shape'] = (len(var.at[0,'ip1']),var.at[0,'ni'],var.at[0,'nj'])
-#             var.at[0,'nk'] = len(var.at[0,'ip1'])
-#             df_list.append(var)
-
-#     if len(df_list) > 1:
-#         new_df = pd.concat(df_list)
-#     else:
-#         new_df = df_list[0]
-#     new_df = sort_dataframe(new_df)
-#     new_df.reset_index(inplace=True,drop=True)
-#     return new_df
-
-
-# def create_coordinate_type(meta:set, ip1_kind:int, vcode:int, coord_types:pd.DataFrame) ->str:
-#     vctype = 'UNKNOWN'
-#     toctoc_exists = '!!' in meta
-#     p0_exists = 'P0' in meta
-#     hy_exists = 'HY' in meta
-#     pt_exists = 'PT' in meta
-#     e1_exists = 'E1' in meta
-#     sf_exists = '!!SF' in meta
-
-#     result = coord_types.query(f'(ip1_kind == {ip1_kind}) and (toctoc == {toctoc_exists}) and (P0 == {p0_exists}) and (E1 == {e1_exists}) and (PT == {pt_exists}) and (HY == {hy_exists}) and (SF == {sf_exists}) and (vcode == {vcode})')
-
-#     if len(result.index) > 1:
-#         logger.debug(result)
-#     if len(result.index):
-#         vctype = result['vctype'].iloc[0]
-#     return vctype
-
-
-
-#e_rel_max   E-REL-MOY   VAR-A        C-COR        MOY-A        BIAIS       E-MAX       E-MOY
-
-# def add_metadata_fields(df:pd.DataFrame, latitude_and_longitude=True, pressure=True, vertical_descriptors=True) -> pd.DataFrame:
-#     if 'path' not in df:
-#         logger.warning('add_metadata_fields - no path to get meta from')
-#         return df
-
-#     meta_df = get_grid_metadata_fields(df, 'add_metadata_fields',StandardFileError,latitude_and_longitude, pressure, vertical_descriptors)
-
-#     res = pd.concat([df,meta_df])
-
-#     return res
-
-# def get_vertical_grid_descriptor(self, records:list):
-#     """ Gets the vertical grid descriptor associated with the supplied records"""
-#     logger.info('get_vertical_grid_descriptor')
-#     if records == None or not len(records):
-#         logger.error('get_vertical_grid_descriptor - no records to process')
-#         return
-# #    ip1      (int)  : Ip1 of the vgrid record to find, use -1 for any (I)
-# #    ip2      (int)  : Ip2 of the vgrid record to find, use -1 for any (I)
-# #    ip1_kind     (int)  : Kind of vertical coor
-# #    version  (int)  : Version of vertical coor
-# #https://wiki.cmc.ec.gc.ca/wiki/Python-RPN/2.1/rpnpy/vgd/const
-#     for rec in records:
-#         v = vgd.vgd_read(self._fileid_in, ip1=rec.ig1, ip2=rec.ig2)
-#         # Get Some info about the vgrid
-#         vkind    = vgd.vgd_get(v, 'KIND')
-#         vver     = vgd.vgd_get(v, 'VERS')
-#         ip1diagt = vgd.vgd_get(v, 'DIPT')
-#         ip1diagm = vgd.vgd_get(v, 'DIPM')
-#         tlvl     = vgd.vgd_get(v, 'VIPT')
-#         # mlvl     = vgd.vgd_get(v, 'VIPM')
-
-#         VGD_KIND_VER_INV = dict((v, k) for k, v in vgd.VGD_KIND_VER.items())
-#         vtype = VGD_KIND_VER_INV[(vkind,vver)]
-#         (ldiagval, ldiagkind) = rmn.convertIp(rmn.CONVIP_DECODE, ip1diagt)
-#         (l2diagval, l2diagkind) = rmn.convertIp(rmn.CONVIP_DECODE, ip1diagm)
-#         logger.debug("CB14: Found vgrid type=%s (ip1_kind=%d, vers=%d) with %d levels and diag levels=%7.2f%s (ip1=%d) and %7.2f%s (ip1=%d)" % (vtype, vkind, vver, len(tlvl), ldiagval, rmn.kindToString(ldiagkind), ip1diagt, l2diagval, rmn.kindToString(l2diagkind), ip1diagm))

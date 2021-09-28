@@ -31,7 +31,7 @@ See the contents of the dataframe
 .. code:: python
 
    import fstpy.all as fstpy
-   df = fstpy.StandardFileReader('/fs/site4/eccc/cmd/w/sbf000/fstpy/source_data_5005.std',load_data=True,query='nomvar=="TT"').to_pandas()
+   df = fstpy.StandardFileReader('/fs/site4/eccc/cmd/w/sbf000/fstpy/source_data_5005.std',query='nomvar=="TT"').to_pandas()
    # show the last rows of the dataframe
    print(df.tail())
 
@@ -148,7 +148,7 @@ select sub-sets of data
 .. code:: python
 
    import fstpy.all as fstpy
-   df = fstpy.StandardFileReader('/fs/site4/eccc/cmd/w/sbf000/fstpy/source_data_5005.std',load_data=True).to_pandas()
+   df = fstpy.StandardFileReader('/fs/site4/eccc/cmd/w/sbf000/fstpy/source_data_5005.std').to_pandas()
    # select TT
    sel_tt_df = df.query('nomvar=="TT"')
    # or
@@ -300,8 +300,9 @@ Getting the associated data for each record in the dataframe
    print(tt_df.head())
    # get the data for our new dataframes
    # after this operation the 'd' column of each dataframe contains a numpy ndarray
-   uuvv_df = fstpy.load_data(uuvv_df)
-   tt_df = fstpy.load_data(tt_df)
+   
+   uuvv_df = fstpy.compute(uuvv_df)
+   tt_df = fstpy.compute(tt_df)
    print(tt_df[['nomvar','d']].head())
 
 ::
@@ -329,7 +330,7 @@ Wind Modulus
    import fstpy.all as fstpy
    df = fstpy.StandardFileReader('/fs/site4/eccc/cmd/w/sbf000/fstpy/source_data_5005.std',decode_metadata=True).to_pandas()
    uuvv_df = df.query('(nomvar in ["UU","VV"]) and (surface==True)')
-   uuvv_df = fstpy.load_data(uuvv_df)
+   uuvv_df = fstpy.compute(uuvv_df)
    # first we need the wind modulus (we assume that we have only 1 level in each dataframe)
    # let's separate uu and vv from uuvv_df
    uu_df = uuvv_df.query('nomvar=="UU"')
@@ -387,7 +388,7 @@ Wind Chill
    import numpy as np
    df = fstpy.StandardFileReader('/fs/site4/eccc/cmd/w/sbf000/fstpy/source_data_5005.std',decode_metadata=True).to_pandas()
    uuvv_df = df.query('(nomvar in ["UU","VV"]) and (surface==True)')
-   uuvv_df = fstpy.load_data(uuvv_df)
+   uuvv_df = fstpy.compute(uuvv_df)
    uu_df = uuvv_df.query('nomvar=="UU"')
    vv_df = uuvv_df.query('nomvar=="VV"')
    uv_df = vv_df.copy(deep=True)
@@ -396,7 +397,7 @@ Wind Chill
    vv = (vv_df.iloc[0]['d']) 
    uv_df.at[0,'d'] = (uu**2 + vv**2)**.5
    tt_df = df.query('(nomvar=="TT") and (surface==True)')
-   tt_df = fstpy.load_data(uuvv_df)
+   tt_df = fstpy.compute(uuvv_df)
    # at this point we have uv_df and tt_df but uv_df is in knots
    # we need to do a unit conversion on uv_df to get it in kph
    # print(UNITS) to get a list of units
@@ -432,8 +433,8 @@ Basic statistics for each record in a dataframe
 
    df = df.query('nomvar=="TT"')
 
-   #load_data
-   df = fstpy.load_data(df)
+   # get the arrays from file
+   df = fstpy.compute(df)
 
    # function to calculate stats on each row of the dataframe
    # function exists in std.standardfile
@@ -487,8 +488,8 @@ Basic statistics for each column of 3d matrix
    # get TT
    tt_df = df.query('nomvar=="TT"')
 
-   #load_data
-   tt_df = fstpy.load_data(tt_df)
+   # get the arrays from file
+   tt_df = fstpy.compute(tt_df)
 
    # flatten arrays of the dataframe since second dimension is'nt necessary
    for i in tt_df.index:

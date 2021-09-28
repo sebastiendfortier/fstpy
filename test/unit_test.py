@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from fstpy.exceptions import UnitConversionError
 import pytest
 import pandas as pd
 import numpy as np
 import math
-from fstpy.unit import unit_convert,get_converter
+from fstpy.unit import UnitConversionError, unit_convert,get_converter
 from fstpy import get_unit_by_name
 
 pytestmark = [pytest.mark.unit, pytest.mark.unit_tests]

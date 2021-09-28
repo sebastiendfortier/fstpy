@@ -87,7 +87,7 @@ echo "   fstpy.voir(records)    " >> $OUTPUT
 echo "   # get statistics on the selected records    " >> $OUTPUT
 echo "   df = fstpy.fststat(records)    " >> $OUTPUT
 echo "   # get a subset of records containing only UU and VV momvar    " >> $OUTPUT
-echo "   just_tt_and_uv = fstpy.select(records,'nomvar in [\"TT\",\"UV\"]')    " >> $OUTPUT
+echo "   just_tt_and_uv = records.query('nomvar in [\"TT\",\"UV\"]')    " >> $OUTPUT
 echo "   # display selected records in a rpn voir format   " >> $OUTPUT
 echo "   fstpy.voir(just_tt_and_uv)    " >> $OUTPUT
 echo "   dest_path = '/tmp/out.std'    " >> $OUTPUT

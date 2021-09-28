@@ -13,3 +13,4 @@ Great thanks to:
 -  `Micheal Neish <mailto:Micheal.Neish@canada.ca>`__ for the awsome
    fstd2nc project, great insights on how to develop xarray structure
    from CMC standard files and great functions to work on fst files.
+   He played a pivotal role in the integration of dask into fstpy.
