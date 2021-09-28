@@ -59,16 +59,6 @@ def get_dataframe_from_file(path: str, query: str = None):
 
     return df
 
-# class AddPathAndModTimeError(Exception):
-#     pass
-
-# def add_path_and_mod_time(path, df):
-#     f_mod_time = get_file_modification_time(path,rmn.FST_RO,'add_path_and_mod_time',AddPathAndModTimeError)
-#     df.loc[:,'path'] = path
-#     df.loc[:,'file_modification_time'] = f_mod_time
-#     return df
-
-
 def open_fst(path: str, mode: str, caller_class: str, error_class: Type):
     file_modification_time = get_file_modification_time(path)
     file_id = rmn.fstopenall(path, mode)
@@ -83,33 +73,6 @@ def close_fst(file_id: int, path: str, caller_class: str):
 
 class GetRecordsFromFile(Exception):
     pass
-
-
-# def get_records_from_file(path: str) -> 'list[dict]':
-#     file_id, file_modification_time = open_fst(
-#         path, rmn.FST_RO, 'get_records_from_file', GetRecordsFromFile)
-
-#     keys = rmn.fstinl(file_id)
-
-#     desired_order_list = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet',
-#                           'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'key', 'path', 'file_modification_time']
-
-#     rec_list = []
-#     for k in keys:
-#         rec = rmn.fstprm(k)
-#         if rec['dltf'] == 1:
-#             continue
-#         rec = remove_extra_keys(rec)
-#         rec = strip_string_values(rec)
-#         rec['file_modification_time'] = file_modification_time
-#         rec['path'] = path
-#         reordered_dict = {k: rec[k] for k in desired_order_list}
-
-#         rec_list.append(reordered_dict)
-
-#     close_fst(file_id, path, 'get_records_from_file')
-
-#     return rec_list
 
 
 def add_metadata_to_query_results(df, query_result_df, hy_df):
@@ -325,44 +288,7 @@ def get_all_grid_metadata_fields_from_std_file(path):
     df = add_grid_column(df)
     df = add_dask_column(df)
     return df
-    # unit = rmn.fstopenall(path)
-    # lat_keys = rmn.fstinl(unit,nomvar='^^')
-    # lon_keys = rmn.fstinl(unit,nomvar='>>')
-    # tictac_keys = rmn.fstinl(unit,nomvar='^>')
-    # toctoc_keys = rmn.fstinl(unit,nomvar='!!')
-    # hy_keys = rmn.fstinl(unit,nomvar='HY')
-    # sf_keys = rmn.fstinl(unit,nomvar='!!SF')
-    # e1_keys = rmn.fstinl(unit,nomvar='E1')
-    # p0_keys = rmn.fstinl(unit,nomvar='P0')
-    # pt_keys = rmn.fstinl(unit,nomvar='PT')
-    # pn_keys = rmn.fstinl(unit,nomvar='PN')
-    # keys = lat_keys + lon_keys + tictac_keys + toctoc_keys + hy_keys + sf_keys + e1_keys + p0_keys + pt_keys + pn_keys
-    # records=[]
-    # for key in keys:
-    #     record = rmn.fstluk(key)
-    #     if record['dltf'] == 1:
-    #         continue
-    #     #record['fstinl_params'] = None
-    #     #del record['key']
-    #     strip_string_values(record)
-    #     #create a grid identifier for each record
-    #     record['grid'] = get_grid_identifier(record['nomvar'],record['ip1'],record['ip2'],record['ig1'],record['ig2'])
-    #     remove_extra_keys(record)
-    #     record['path'] = path
-    #     record['file_modification_time'] = get_file_modification_time(path)
-    #     records.append(record)
-    # rmn.fstcloseall(unit)
-    # return records
 
-def strip_string_values(record):
-    record['nomvar'] = record['nomvar'].strip()
-    record['etiket'] = record['etiket'].strip()
-    record['typvar'] = record['typvar'].strip()
-    
-def remove_extra_keys(record):
-    for k in ['swa','dltf','ubc','lng','xtra1','xtra2','xtra3']:
-        record.pop(k,None)
-        
             
 class GetMetaDataError(Exception):
     pass
