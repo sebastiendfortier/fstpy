@@ -350,15 +350,16 @@ def get_grid_deformation_fileds(df: pd.DataFrame, no_meta_df: pd.DataFrame):
             logging.error(f'grid with fields of different sizes for ni {group.ni.unique()}')
         if len(list(group.nj.unique())) > 1:
             logging.error(f'grid with fields of different sizes for nj {group.nj.unique()}')    
-        ni = group.ni.unique()[0]
-        nj = group.nj.unique()[0]
-        lat_df = df.loc[(df.nomvar == "^^") & (df.grid == grid) & (df.dateo == dateo) & (df.nj == nj)]
+        # ni = group.ni.unique()[0]
+        # nj = group.nj.unique()[0]
+        
+        lat_df = df.loc[(df.nomvar == "^^") & (df.grid == grid) & (df.dateo == dateo)] # & (df.nj == nj)]
         if lat_df.empty:
-            lat_df = df.loc[(df.nomvar == "^^") & (df.grid == grid) & (df.nj == nj)]
+            lat_df = df.loc[(df.nomvar == "^^") & (df.grid == grid)]# & (df.nj == nj)]
 
-        lon_df = df.loc[(df.nomvar == ">>") & (df.grid == grid) & (df.dateo == dateo) & (df.ni == ni)]
+        lon_df = df.loc[(df.nomvar == ">>") & (df.grid == grid) & (df.dateo == dateo)] # & (df.ni == ni)]
         if lon_df.empty:
-            lon_df = df.loc[(df.nomvar == ">>") & (df.grid == grid) & (df.ni == ni)]
+            lon_df = df.loc[(df.nomvar == ">>") & (df.grid == grid)]# & (df.ni == ni)]
 
         tictac_df = df.loc[(df.nomvar == "^>") & (df.grid == grid) & (df.dateo == dateo)]
         if tictac_df.empty:
