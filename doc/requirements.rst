@@ -17,3 +17,6 @@ developpement packages
 - dask>=2021.8.0
 - pytest>=5.3.5
 - Sphinx>=3.4.3
+- sphinx-autodoc-typehints>=1.12.0 
+- sphinx-gallery>=0.9.0 
+- sphinx-rtd-theme>=1.0.0
