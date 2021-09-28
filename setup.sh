@@ -40,7 +40,7 @@ use_fstpy_deps(){
     # fstpy uses low-level python binding for
     # librmn functions provided by rpnpy
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
-    print_and_do . ssmuse-sh -d /home/olh001/ssm/surgepy/1.0.8
+    print_and_do . ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/
     print_and_do . ssmuse-sh -d /fs/site4/eccc/cmd/w/sbf000/ssm/cifstcomp/1.0.2
 }
 
