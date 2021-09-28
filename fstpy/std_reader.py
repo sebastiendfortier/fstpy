@@ -6,12 +6,11 @@ import os
 
 import numpy as np
 import pandas as pd
-import dask.array as da
 from .dataframe import (add_columns, add_data_column, add_shape_column,
                         drop_duplicates)
 from .std_io import (get_dataframe_from_file, get_file_modification_time,
                      parallel_get_dataframe_from_file)
-from .utils import initializer
+from .utils import initializer, to_numpy
 
 
 
@@ -127,21 +126,17 @@ def compute(df: pd.DataFrame) -> pd.DataFrame:
     
     if not no_path_df.empty:
         df_list.append(no_path_df)
+        
     for path, current_df in groups:
         file_modification_time = get_file_modification_time(path)
         if np.datetime64(current_df.iloc[0]['file_modification_time'])-np.datetime64(file_modification_time) != np.timedelta64(0):
             raise ComputeError(
                 'File has been modified since it was first read - keys are invalid, make sure file stays intact during processing\n')
         current_df = current_df.sort_values('key')
-        # with _lock:
-        # unit = rmn.fstopenall(path)
 
         for i in current_df.index:
+             current_df.at[i, 'd'] = to_numpy( current_df.at[i, 'd'])
 
-            if isinstance(current_df.at[i, 'd'], da.core.Array):
-                # print(current_df.loc[i]['nomvar'],current_df.at[i,'d'].shape)
-                current_df.at[i, 'd'] = current_df.at[i, 'd'].compute()
-                
         df_list.append(current_df)
 
     df = pd.concat(df_list).sort_index()
