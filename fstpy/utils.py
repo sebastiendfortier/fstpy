@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import inspect
 import logging
-from functools import wraps
 import os
+from functools import wraps
+
+import dask.array as da
+import numpy as np
 import rpnpy.librmn.all as rmn
 
 
@@ -143,3 +146,42 @@ def get_num_rows_for_reading(df):
         num_rows = int(num_rows)    
     num_rows = min(num_rows,len(df.index))    
     return num_rows
+
+class ConversionError(Exception):
+    pass
+
+def to_numpy(arr: "np.ndarray|da.core.Array") -> np.ndarray:
+    """If the array is of numpy type, no op, else compute de daks array to get a numpy array
+
+    :param arr: array to convert
+    :type arr: np.ndarray|da.core.Array
+    :raises ConversionError: Raised if not a numpy or dask array
+    :return: a numpy array
+    :rtype: np.ndarray
+    """
+    if arr is None:
+        return arr
+    if isinstance(arr, da.core.Array):   
+        return arr.compute()  
+    elif isinstance(arr,np.ndarray):    
+        return arr    
+    else:
+        raise ConversionError('to_numpy - Array is not an array of type numpy or dask')    
+
+def to_dask(arr:"np.ndarray|da.core.Array") -> da.core.Array:
+    """If the array is of dask type, no op, else comvert array to dask array
+
+    :param arr: array to convert
+    :type arr: np.ndarray|da.core.Array
+    :raises ConversionError: Raised if not a numpy or dask array
+    :return: a dask array
+    :rtype:da.core.Array
+    """
+    if arr is None:
+        return arr
+    if isinstance(arr, da.core.Array):   
+        return arr
+    elif isinstance(arr, np.ndarray):   
+        return da.from_array(arr).astype(np.float32)        
+    else:    
+        raise ConversionError('to_dask - Array is not an array of type numpy or dask')    
