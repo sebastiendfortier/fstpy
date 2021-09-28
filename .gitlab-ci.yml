@@ -38,14 +38,14 @@ run_unittest:
   script:
     # - sleep 2000
     - cd test
-    - python3 -m pytest -v -m unit_tests
+    - python3 -m pytest -vrf -m unit_tests
 
 
 run_regtests:
   stage: run_regtests
   script:
     - cd test
-    - python3 -m pytest -v -m regressions
+    - python3 -m pytest -vrf -m regressions
 
 make_doc:
   stage: make_doc
