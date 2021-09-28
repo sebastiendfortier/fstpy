@@ -1,45 +1,66 @@
-# Introduction
+Introduction
+============
 
-## What is it?
+What is it?
+-----------
 
-Fstpy is a high level interface to rpn\'s rpnpy python library that
-produces pandas dataframes or Xarray\'s from CMC standard files. In
-order to promote decoupling, modularization and collaboration, fstpy
-only reads and writes. All other operations and algorithms can be
+Fstpy is a high level interface to rpn's rpnpy python library that
+produces pandas dataframes or Xarray's from CMC standard files. In order
+to promote decoupling, modularization and collaboration, fstpy only
+reads and writes. All other operations and algorithms can be
 independent.
 
-## Fstpy philosophy
+Fstpy philosophy
+----------------
 
 The idea of ​​using a dataframe is to have a pythonic way of working
 with standard files without having to know the mechanics of rmnlib.
 Since many people come here with numpy, pandas and xarray knowledge, the
 learning curve is much less steep.
 
-## Dataframes
+Dataframes
+----------
 
-They are good for organizing information. eg: select all the tt\'s, sort
+They are good for organizing information. eg: select all the tt's, sort
 them by grid then by level and produce 3d matrices for each tt of each
 grid. Dataframes will help to integrate new model changes and new data
 types. Thanks to the dataframes we can also export our results more
 easily to different types of formats.
 
-## Xarray\'s
+Xarray's
+--------
 
 They are used to analyse grouped and indexed data. They are espceially
 good for working with n-dimensional meteorological data. They also offer
 a great variety of built-in plotting functions.
 
-# Requirements
+Requirements
+============
 
-## packages
+run time packages
+-----------------
 
--   python 3.6
--   numpy
--   pandas
--   dask
--   xarray
+-   pandas&gt;=1.2.4
+-   numpy&gt;=1.19.5
+-   xarray&gt;=0.19.0
+-   dask&gt;=2021.8.0
 
-# Installation
+developpement packages
+----------------------
+
+-   ci\_fstcomp&gt;=1.0.2
+-   pandas&gt;=1.2.4
+-   numpy&gt;=1.19.5
+-   xarray&gt;=0.19.0
+-   dask&gt;=2021.8.0
+-   pytest&gt;=5.3.5
+-   Sphinx&gt;=3.4.3
+-   sphinx-autodoc-typehints&gt;=1.12.0
+-   sphinx-gallery&gt;=0.9.0
+-   sphinx-rtd-theme&gt;=1.0.0
+
+Installation
+============
 
 Use the ssm package
 
@@ -49,11 +70,12 @@ Use the git repository package: at your own risk ;)
 
     python3 -m pip install git+http://gitlab.science.gc.ca/CMDS/fstpy.git
 
-## Using fstpy in scripts or Jupyter Lab/Notebook
+Using fstpy in scripts or Jupyter Lab/Notebook
+----------------------------------------------
 
 ### Use pre-build developpement environment
 
-``` {.bash}
+``` {.sourceCode .bash}
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
@@ -62,7 +84,7 @@ Use the git repository package: at your own risk ;)
 
 ### Use pre-build developpement environment
 
-``` {.bash}
+``` {.sourceCode .bash}
 # get conda if you don't already have it  
 . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
 # create a link to pre-built environment
@@ -80,7 +102,7 @@ ln -s ~sgci800/.conda/envs/fstpy_full
 
 ### Use fstpy
 
-``` {.python}
+``` {.sourceCode .python}
 # inside your script    
 import fstpy.all as fstpy   
 df = fstpy.StandardFileReader('path to my fst file').to_pandas()
@@ -88,7 +110,7 @@ df = fstpy.StandardFileReader('path to my fst file').to_pandas()
 
 ### Example
 
-``` {.python}
+``` {.sourceCode .python}
 data_path = prefix + '/data/'    
 import fstpy.all as fstpy
 # setup your file to read    
@@ -106,11 +128,13 @@ dest_path = '/tmp/out.std'
 fstpy.StandardFileWriter(dest_path,just_tt_and_uv).to_fst()    
 ```
 
-# Contributing
+Contributing
+============
 
-## Using pre-build developpement environment
+Using pre-build developpement environment
+-----------------------------------------
 
-``` {.bash}
+``` {.sourceCode .bash}
 # get conda if you don't already have it  
 . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
 # create a link to pre-built environment
@@ -121,9 +145,10 @@ ln -s ~sgci800/.conda/envs/fstpy_full
 . activate fstpy_full   
 ```
 
-## Creating the developpement environment
+Creating the developpement environment
+--------------------------------------
 
-``` {.bash}
+``` {.sourceCode .bash}
 # get conda if you don't already have it  
 . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
 # create a conda environment for fstpy's requirements   
@@ -141,9 +166,10 @@ conda install numpy pandas dask xarray pytest
 conda env create -f fstpy_dev.yaml
 ```
 
-## Getting the source code
+Getting the source code
+-----------------------
 
-``` {.bash}
+``` {.sourceCode .bash}
 git clone git@gitlab.science.gc.ca:cmds/fstpy.git
 # create a new branch
 git checkout -b my_change
@@ -157,19 +183,21 @@ git merge origin master
 git push origin my_change
 ```
 
-Then create a merge request on science\'s gitlab
+Then create a merge request on science's gitlab
 <https://gitlab.science.gc.ca/CMDS/fstpy/merge_requests>
 
-## Using setup.sh to setup your developpement environment
+Using setup.sh to setup your developpement environment
+------------------------------------------------------
 
-``` {.bash}
+``` {.sourceCode .bash}
 # From the $project_root directory of the project
 source setup.sh
 ```
 
-## Testing
+Testing
+-------
 
-``` {.bash}
+``` {.sourceCode .bash}
 # From the $project_root/test directory of the project
 . activate fstpy_dev    
 # get rmn python library      
@@ -177,23 +205,26 @@ source setup.sh
 python -m pytest  
 ```
 
-## Building documentation
+Building documentation
+----------------------
 
-``` {.bash}
+``` {.sourceCode .bash}
 # This will build documentation in docs/build and there you will find index.html 
 cd doc
 make clean    
 make doc
 ```
 
-# Creating the ssm package
+Creating the ssm package
+========================
 
 From \$PROJECT~ROOT~
 
     cd ssm
     ./make_ssm_package.ssh
 
-# Acknowledgements
+Acknowledgements
+================
 
 Great thanks to:
 
@@ -204,4 +235,6 @@ Great thanks to:
     project.
 -   [Micheal Neish](mailto:Micheal.Neish@canada.ca) for the awsome
     fstd2nc project, great insights on how to develop xarray structure
-    from CMC standard files and great functions to work on fst files.
+    from CMC standard files and great functions to work on fst files. He
+    played a pivotal role in the integration of dask into fstpy.
+
