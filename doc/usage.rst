@@ -9,7 +9,7 @@ Use pre-build developpement environment
    # get rmn python library      
    . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
    # get fstpy ssm package
-   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.6/
+   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.9/
 
 .. _use-pre-build-developpement-environment-1:
 
@@ -30,7 +30,7 @@ Use pre-build developpement environment
    # get rmn python library      
    . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
    # get fstpy ssm package
-   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.6/
+   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.9/
 
 Use fstpy
 ~~~~~~~~~
@@ -61,3 +61,4 @@ Example
    dest_path = '/tmp/out.std'    
    # write the selected records to the output file    
    fstpy.StandardFileWriter(dest_path,just_tt_and_uv).to_fst()    
+

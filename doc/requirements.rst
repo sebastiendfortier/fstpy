@@ -20,3 +20,4 @@ developpement packages
 - sphinx-autodoc-typehints>=1.12.0 
 - sphinx-gallery>=0.9.0 
 - sphinx-rtd-theme>=1.0.0
+- nbsphinx>=0.8.7

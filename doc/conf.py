@@ -38,7 +38,8 @@ release = version
 extensions = ['sphinx.ext.napoleon',
               'sphinx.ext.doctest', 
               'sphinx_autodoc_typehints',
-              'sphinx_gallery.gen_gallery']
+              'sphinx_gallery.gen_gallery',
+              'nbsphinx']
 
 napoleon_include_private_with_doc = False
 
@@ -87,6 +88,7 @@ html_context = {
     "gitlab_version": "master", # Version     
     "conf_py_path": "/doc/", # Path in the checkout to the docs root 
 }
+
 
 
 # No longer using LFD on github tu to paywall restrictions
