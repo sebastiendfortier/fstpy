@@ -1,7 +1,7 @@
 Tutorial
 --------
 
-:download:`Jupyter notebook </Tutorial.ipynb>`
+Use save as on this link :download:`Jupyter notebook </Tutorial.ipynb>`
 
 .. toctree::
    :maxdepth: 2

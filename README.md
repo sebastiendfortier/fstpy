@@ -23,6 +23,14 @@ grid. Dataframes will help to integrate new model changes and new data
 types. Thanks to the dataframes we can also export our results more
 easily to different types of formats.
 
+## Dask
+
+Dask is the type of array that is used by fstpy to wrap numpy arrays for
+parallelisation purposes. You can use most of numpy\'s API directly on
+these types of arrays. The only difference is that until array.compute()
+is done, the dask array strores tasks instead of actually doing the
+computations.
+
 ## Xarray\'s
 
 They are used to analyse grouped and indexed data. They are espceially
@@ -50,6 +58,16 @@ a great variety of built-in plotting functions.
 -   sphinx-autodoc-typehints>=1.12.0
 -   sphinx-gallery>=0.9.0
 -   sphinx-rtd-theme>=1.0.0
+-   nbsphinx>=0.8.7
+
+## Surgepy
+
+This is an ssm package that we use at CMC on the science network and
+that contains a wide variety of packages
+
+``` bash
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/
+```
 
 # Installation
 
@@ -63,27 +81,11 @@ Use the git repository package: at your own risk ;)
 
 ## Using fstpy in scripts or Jupyter Lab/Notebook
 
-### Use pre-build developpement environment
+### Use pre-built developpement environment
 
 ``` bash
-# get rmn python library      
-. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
-# get fstpy ssm package
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.9/
-```
-
-### Use pre-build developpement environment
-
-``` bash
-# get conda if you don't already have it  
-. ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
-# create a link to pre-built environment
-cd ~/.conda/envs/
-ln -s ~sgci800/.conda/envs/fstpy_full
-# whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)
-# unless you put it in your profile
-# activate your conda environment     
-. activate fstpy_full     
+# use surgepy      
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/      
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
@@ -120,39 +122,6 @@ fstpy.StandardFileWriter(dest_path,just_tt_and_uv).to_fst()
 
 # Contributing
 
-## Using pre-build developpement environment
-
-``` bash
-# get conda if you don't already have it  
-. ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
-# create a link to pre-built environment
-cd ~/.conda/envs/
-ln -s ~sgci800/.conda/envs/fstpy_full
-# whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)
-# unless you put it in your profile
-. activate fstpy_full   
-```
-
-## Creating the developpement environment
-
-``` bash
-# get conda if you don't already have it  
-. ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
-# create a conda environment for fstpy's requirements   
-conda create -n fstpy_dev python=3.6   
-# whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)
-# unless you put it in your profile
-. activate fstpy_dev   
-# installing required packages in fstpy_req environment  
-conda install sphinx
-conda install -c conda-forge sphinx-autodoc-typehints
-conda install -c conda-forge sphinx-gallery
-conda install -c conda-forge sphinx_rtd_theme
-conda install numpy pandas dask xarray pytest
-# for a full jupyter developpement environment (fstpy_dev.yaml is located in project root)
-conda env create -f fstpy_dev.yaml
-```
-
 ## Getting the source code
 
 ``` bash
@@ -164,9 +133,9 @@ git checkout -b my_change
 # fetch changes
 git fetch
 # merge recent master
-git merge origin master
+git merge origin/master
 # push your changes
-git push origin my_change
+git push my_change
 ```
 
 Then create a merge request on science\'s gitlab
@@ -182,10 +151,11 @@ source setup.sh
 ## Testing
 
 ``` bash
-# From the $project_root/test directory of the project
-. activate fstpy_dev    
+# use surgepy
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2     
+# From the $project_root/test directory of the project
 python -m pytest  
 ```
 

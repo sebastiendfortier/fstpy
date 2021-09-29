@@ -33,32 +33,13 @@ rm -f $OUTPUT
 echo "Using fstpy in scripts or Jupyter Lab/Notebook" >> $OUTPUT
 echo "----------------------------------------------" >> $OUTPUT
 echo "" >> $OUTPUT
-echo "Use pre-build developpement environment" >> $OUTPUT
+echo "Use pre-built developpement environment" >> $OUTPUT
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" >> $OUTPUT
 echo "" >> $OUTPUT
 echo ".. code:: bash" >> $OUTPUT
 echo "" >> $OUTPUT
-echo "   # get rmn python library      " >> $OUTPUT
-echo "   . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      " >> $OUTPUT
-echo "   # get fstpy ssm package" >> $OUTPUT
-echo "   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/$VERSION/" >> $OUTPUT
-echo "" >> $OUTPUT
-echo ".. _use-pre-build-developpement-environment-1:" >> $OUTPUT
-echo "" >> $OUTPUT
-echo "Use pre-build developpement environment" >> $OUTPUT
-echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" >> $OUTPUT
-echo "" >> $OUTPUT
-echo ".. code:: bash" >> $OUTPUT
-echo "" >> $OUTPUT
-echo "   # get conda if you don't already have it  " >> $OUTPUT
-echo "   . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   " >> $OUTPUT
-echo "   # create a link to pre-built environment" >> $OUTPUT
-echo "   cd ~/.conda/envs/" >> $OUTPUT
-echo "   ln -s ~sgci800/.conda/envs/fstpy_full" >> $OUTPUT
-echo "   # whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)" >> $OUTPUT
-echo "   # unless you put it in your profile" >> $OUTPUT
-echo "   # activate your conda environment     " >> $OUTPUT
-echo "   . activate fstpy_full     " >> $OUTPUT
+echo "   # use surgepy      " >> $OUTPUT
+echo "   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/      " >> $OUTPUT
 echo "   # get rmn python library      " >> $OUTPUT
 echo "   . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      " >> $OUTPUT
 echo "   # get fstpy ssm package" >> $OUTPUT

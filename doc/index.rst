@@ -14,7 +14,6 @@
 
 .. include:: intro.rst
 
-
 Documentation
 -------------
 
@@ -79,7 +78,6 @@ Documentation
 **Misc**
 
 * :doc:`ressources`
-* :doc:`conda_howto`
 * :doc:`acknowledgements`
 * :doc:`LICENSE`
 
@@ -89,6 +87,5 @@ Documentation
    :caption: Misc
 
    ressources
-   conda_howto
    acknowledgements
    LICENSE
