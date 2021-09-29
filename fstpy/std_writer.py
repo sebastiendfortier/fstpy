@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import math
 import os
 
 import numpy as np
@@ -124,19 +125,18 @@ class StandardFileWriter:
 
         self.df = metadata_cleanup(self.df)
 
-
-
         if self.rewrite is None:
             rewrite = set_rewrite(self.df)
         else:
             rewrite = self.rewrite
 
         num_rows = get_num_rows_for_reading(self.df)
-
-        df_list = np.array_split(self.df, num_rows)  # of records per block
-
+        
+        df_list = np.array_split(self.df, math.ceil(len(self.df.index)/num_rows))  # of records per block
+        
         for df in df_list:
             df = compute(df)
+
             file_id = rmn.fstopenall(self.filename, rmn.FST_RW)
 
             for i in df.index:
@@ -168,8 +168,7 @@ def write_dataframe_record_to_file(file_id, df, i, rewrite):
     
     if isinstance(df.at[i, 'd'], np.ndarray):
         data = df.at[i, 'd']
-    else:
-        data = df.at[i, 'd'].compute()
+
     if str(data.dtype) != field_dtype:
         logging.warning(f'For record at index {i}, nomvar:{df.at[i,"nomvar"]} datyp:{df.at[i,"datyp"]} nbits:{df.at[i,"nbits"]} array.dtype:{df.at[i,"d"].dtype}')  
         logging.warning('Difference in field dtype detected! - check dataframe nbits datyp and array dtype for mismatch')    

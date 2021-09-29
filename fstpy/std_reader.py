@@ -135,7 +135,7 @@ def compute(df: pd.DataFrame) -> pd.DataFrame:
         current_df = current_df.sort_values('key')
 
         for i in current_df.index:
-             current_df.at[i, 'd'] = to_numpy( current_df.at[i, 'd'])
+             current_df.at[i, 'd'] = to_numpy(current_df.at[i, 'd'])
 
         df_list.append(current_df)
 

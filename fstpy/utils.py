@@ -140,6 +140,7 @@ def column_descriptions():
 def get_num_rows_for_reading(df):
     max_num_rows = 128
     num_rows = os.getenv('FSTPY_NUM_ROWS')
+
     if num_rows is None:
         num_rows = max_num_rows
     else:
