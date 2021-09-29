@@ -148,20 +148,6 @@ def get_file_modification_time(path):
     return datetime.datetime.strptime(file_modification_time, "%a %b %d %H:%M:%S %Y")
 
 
-# def strip_string_values(record):
-#     record['nomvar'] = record['nomvar'].strip()
-#     record['typvar'] = record['typvar'].strip()
-#     record['etiket'] = record['etiket'].strip()
-#     record['grtyp'] = record['grtyp'].strip()
-#     return record
-
-
-# def remove_extra_keys(record):
-#     for k in ['swa', 'dltf', 'ubc', 'lng', 'xtra1', 'xtra2', 'xtra3']:
-#         record.pop(k, None)
-#     return record
-
-
 class Get2dLatLonError(Exception):
     pass
 

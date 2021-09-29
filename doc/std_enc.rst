@@ -1,6 +1,6 @@
-======================================
-Dataframe attribute encoding functions
-======================================
+============================
+Dataframe attribute encoding
+============================
 
 .. automodule:: fstpy.std_enc
    :members: 
