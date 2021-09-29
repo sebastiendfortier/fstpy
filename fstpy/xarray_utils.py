@@ -90,7 +90,7 @@ def set_data_array_attributes(attribs:dict, nomvar_df:pd.DataFrame) -> dict:
     """
 
     attribs = nomvar_df.iloc[-1].to_dict()
-    attribs = remove_keys(attribs,['key','nomvar','etiket','ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','d','file_modification_time'])
+    attribs = remove_keys(attribs,['key','nomvar','etiket','ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','d'])
     for k,v in attribs.items():
         attribs = set_attrib(nomvar_df,attribs,k)
     # attribs = set_attrib(nomvar_df,attribs,'ip1_kind')

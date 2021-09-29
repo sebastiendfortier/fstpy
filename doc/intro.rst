@@ -27,6 +27,17 @@ grid. Dataframes will help to integrate new model changes and new data
 types. Thanks to the dataframes we can also export our results more
 easily to different types of formats.
 
+
+Dask
+----
+
+Dask is the type of array that is used by fstpy to wrap numpy arrays for 
+parallelisation purposes. You can use most of numpy’s API directly on 
+these types of arrays. The only difference is that until array.compute() 
+is done, the dask array strores tasks instead of actually doing the 
+computations.
+
+
 Xarray's
 --------
 

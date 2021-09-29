@@ -22,7 +22,6 @@ From my ec laptop in mobaxterm
 If you dont have these links in your ~/.conda/envs, make them
 
 [sbf000@eccc2-ppp4 ~] $ cd .conda/envs
-[sbf000@eccc2-ppp4 ~] $ ln -s /home/sgci800/.conda/envs/fstpy_full
 [sbf000@eccc2-ppp4 ~] $ ln -s /home/sgci800/.conda/envs/vscode
 
 Get a computing node
@@ -31,8 +30,7 @@ Get a computing node
 
 Get jupyterlab and all other necessary python packages 
 
-[sbf000@cs4be-197p34 ~] $ . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64
-[sbf000@cs4be-197p34 ~] $ . activate fstpy_full
+[sbf000@cs4be-197p34 ~] $ . ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8
 
 Run jupter lab
 

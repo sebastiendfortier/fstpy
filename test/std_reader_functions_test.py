@@ -63,7 +63,6 @@ def full_data_frame(raw_dict):
         'd': None,
         'date_of_validity': datetime.datetime(2020, 7, 14, 18, 0),
         'path': '/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std',
-        'file_modification_time': '446325:47:42',
         'surface': True,
         'follow_topography': True,
         'dirty': False,
@@ -81,7 +80,6 @@ def full_data_frame(raw_dict):
 def no_extra_data_frame(raw_dict):
     rec_dict_to_add = {
         'path': '/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std',
-        'file_modification_time': '446325:47:42',
         'fstinl_params': None,
         }
     final_dict = dict(rec_dict_to_add, **raw_dict)    

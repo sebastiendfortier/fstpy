@@ -123,12 +123,12 @@ def voir(df: pd.DataFrame, style=False):
         by=['nomvar', 'level'], ascending=[True, False])
 
     if style:
-        res_df = res_df.drop(columns=['dateo', 'grid', 'run', 'implementation', 'ensemble_member', 'shape', 'key', 'd', 'path', 'file_modification_time', 'ip1_kind', 'ip2_dec', 'ip2_kind', 'ip2_pkind',
+        res_df = res_df.drop(columns=['dateo', 'grid', 'run', 'implementation', 'ensemble_member', 'shape', 'key', 'd', 'path', 'ip1_kind', 'ip2_dec', 'ip2_kind', 'ip2_pkind',
                                       'ip3_dec', 'ip3_kind', 'ip3_pkind', 'date_of_observation', 'date_of_validity', 'forecast_hour', 'd', 'surface', 'follow_topography', 'ascending', 'interval','label','datatype_str','unit','description','zapped','filtered','interpolated','unit_converted','bounded','missing_data','ensemble_extra_info','vctype','data_type_str','level','ip1_pkind','multiple_modifications'], errors='ignore')
         res_df = reorder_columns(res_df, ordered=['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'datev', 'level',
                                                   ' ', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'])
     else:
-        res_df = res_df.drop(columns=['datev', 'grid', 'run', 'implementation', 'ensemble_member', 'shape', 'key', 'd', 'path', 'file_modification_time', 'ip1_kind', 'ip2_dec', 'ip2_kind', 'ip2_pkind',
+        res_df = res_df.drop(columns=['datev', 'grid', 'run', 'implementation', 'ensemble_member', 'shape', 'key', 'd', 'path', 'ip1_kind', 'ip2_dec', 'ip2_kind', 'ip2_pkind',
                                       'ip3_dec', 'ip3_kind', 'ip3_pkind', 'date_of_observation', 'date_of_validity', 'forecast_hour', 'd', 'surface', 'follow_topography', 'ascending', 'interval','label','unit','description','zapped','filtered','interpolated','unit_converted','bounded','missing_data','ensemble_extra_info','vctype','data_type_str','level','ip1_pkind','multiple_modifications'], errors='ignore')
 
     #print('    NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s) FORECASTHOUR      IP1        LEVEL        IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')

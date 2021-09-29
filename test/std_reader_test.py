@@ -26,7 +26,7 @@ def test_2(input_file):
     std_file = StandardFileReader(input_file,decode_metadata=False)
     df = std_file.to_pandas()
     assert len(df.index) == 1874
-    assert len(df.columns) == 26
+    assert len(df.columns) == 25
 
 
 def test_3(input_file):
@@ -34,7 +34,7 @@ def test_3(input_file):
     std_file = StandardFileReader(input_file,decode_metadata=True)
     df = std_file.to_pandas()
     assert len(df.index) == 1874
-    assert len(df.columns) == 58
+    assert len(df.columns) == 57
 
 
 def test_4(input_file):
@@ -43,7 +43,7 @@ def test_4(input_file):
     df = std_file.to_pandas()
     df = compute(df)
     assert len(df.index) == 90
-    assert len(df.columns) == 26
+    assert len(df.columns) == 25
     for i in df.index:
         assert isinstance(df.at[i,'d'],np.ndarray)
 
@@ -53,7 +53,7 @@ def test_5(input_file):
     df = std_file.to_pandas()
     df = compute(df)
     assert len(df.index) == 90
-    assert len(df.columns) == 58
+    assert len(df.columns) == 57
     for i in df.index:
         assert isinstance(df.at[i,'d'],np.ndarray)
 
@@ -63,7 +63,7 @@ def test_6(input_file):
     df = std_file.to_pandas()
     df = compute(df)
     assert len(df.index) == 90
-    assert len(df.columns) == 26
+    assert len(df.columns) == 25
     for i in df.index:
         assert isinstance(df.at[i,'d'],np.ndarray)
 
@@ -73,7 +73,7 @@ def test_7(input_file):
     std_file = StandardFileReader(input_file,query='nomvar=="TT"')
     df = std_file.to_pandas()
     assert len(df.index) == 90
-    assert len(df.columns) == 26
+    assert len(df.columns) == 25
 
 
 def test_8(input_file):
@@ -82,7 +82,7 @@ def test_8(input_file):
     df = std_file.to_pandas()
     df = compute(df)
     assert len(df.index) == 90
-    assert len(df.columns) == 26
+    assert len(df.columns) == 25
     for i in df.index:
         assert isinstance(df.at[i,'d'],np.ndarray)
 
@@ -125,6 +125,6 @@ def test_10(input_file,input_file2):
     std_file = StandardFileReader([input_file,input_file2])
     df = std_file.to_pandas()
     assert len(df.index) == 2009
-    assert len(df.columns) == 26
+    assert len(df.columns) == 25
     
     

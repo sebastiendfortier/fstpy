@@ -50,6 +50,7 @@ a great variety of built-in plotting functions.
 -   sphinx-autodoc-typehints>=1.12.0
 -   sphinx-gallery>=0.9.0
 -   sphinx-rtd-theme>=1.0.0
+-   nbsphinx>=0.8.7
 
 # Installation
 
@@ -186,7 +187,7 @@ source setup.sh
 . activate fstpy_dev    
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2     
-python -m pytest  
+python -m pytest -vrf
 ```
 
 ## Building documentation
