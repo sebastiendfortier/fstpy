@@ -21,3 +21,12 @@ developpement packages
 - sphinx-gallery>=0.9.0 
 - sphinx-rtd-theme>=1.0.0
 - nbsphinx>=0.8.7
+
+Surgepy
+-------
+
+This is an ssm package that we use at CMC on the science network and that contains a wide variety of packages
+
+.. code:: bash
+
+    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/
