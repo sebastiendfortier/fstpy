@@ -60,10 +60,9 @@ def get_dataframe_from_file(path: str, query: str = None):
     return df
 
 def open_fst(path: str, mode: str, caller_class: str, error_class: Type):
-    file_modification_time = get_file_modification_time(path)
     file_id = rmn.fstopenall(path, mode)
     logging.info(f'{caller_class} - opening file {path}')
-    return file_id, file_modification_time
+    return file_id
 
 
 def close_fst(file_id: int, path: str, caller_class: str):
@@ -201,16 +200,13 @@ def get_2d_lat_lon(df: pd.DataFrame) -> pd.DataFrame:
             tictic_df.at[0, 'ni'] = grid['lat'].shape[0]
             tictic_df.at[0, 'nj'] = grid['lat'].shape[1]
             tictic_df.at[0, 'shape'] = grid['lat'].shape
-            # tictic_df.at[0, 'ascending'] = False
-            # tictic_df.at[0, 'file_modification_time'] = None
 
             tactac_df.at[0, 'nomvar'] = 'LO'
             tactac_df.at[0, 'd'] = grid['lon']
             tactac_df.at[0, 'ni'] = grid['lon'].shape[0]
             tactac_df.at[0, 'nj'] = grid['lon'].shape[1]
             tactac_df.at[0, 'shape'] = grid['lon'].shape
-            # tactac_df.at[0, 'ascending'] = False
-            # tactac_df.at[0, 'file_modification_time'] = None
+
 
             latlons.append(tictic_df)
             latlons.append(tactac_df)
@@ -234,11 +230,9 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
 
         if path is None:
             continue
-        # file_modification_time = rec_df.iloc[0]['file_modification_time']
-        # compare_modification_times(file_modification_time,path,rmn.FST_RO,caller,error_class)
+
         meta_df = get_all_grid_metadata_fields_from_std_file(path)
-        # meta_df = pd.DataFrame(records)
-        #print(meta_df[['nomvar','grid']])
+
         if meta_df.empty:
             # sys.stderr.write('get_grid_metadata_fields - no metatada in file %s\n'%path)
             return pd.DataFrame(dtype=object)
@@ -278,15 +272,6 @@ def get_all_grid_metadata_fields_from_std_file(path):
             
 class GetMetaDataError(Exception):
     pass
-
-
-
-def compare_modification_times(df_file_modification_time, path: str, mode: str, caller: str, error_class: Type):
-    file_modification_time = get_file_modification_time(path)
-
-    if np.datetime64(df_file_modification_time)-np.datetime64(file_modification_time) != np.timedelta64(0):
-        raise error_class(
-            caller + ' - original file has been modified since the start of the operation, keys might be invalid - exiting!')
 
 
 ###############################################################################
@@ -594,8 +579,7 @@ def get_basic_dataframe(path):
         the 'dltf' flag.
     '''
     # file_id, f_mod_time = rmn.fstopenall(path)
-    file_id, f_mod_time = open_fst(
-        path, rmn.FST_RO, 'get_basic_dataframe', 'GetBasicDataFrameError')
+    file_id = open_fst(path, rmn.FST_RO, 'get_basic_dataframe', 'GetBasicDataFrameError')
 
     # Get the raw (packed) parameters.
     index = librmn.file_index(file_id)
@@ -735,17 +719,15 @@ def get_basic_dataframe(path):
     df = pd.DataFrame(out)
 
     df['path'] = path
-    df['file_modification_time'] = f_mod_time
+
     df = df.loc[df.dltf == 0]
     df = df.drop(labels=['dltf', 'lng', 'ubc'], axis=1)
-    def get_shape(row):
-        return (row['ni'],row['nj'])
-    # df['shape'] = df.apply(get_shape,axis=1)
+
     shape_list = [(0,0) for _ in range(len(df.index))]
     df['shape'] = shape_list
+
     for i in df.index:
         df.at[i,'shape'] = (df.at[i,'ni'],df.at[i,'nj'])
-    # df['d'] = df.apply(dask_column, axis=1)
     
 
     return df

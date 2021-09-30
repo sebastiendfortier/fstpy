@@ -113,9 +113,6 @@ class StandardFileReader:
 def to_cmc_xarray(df):
     return comvert_to_cmc_xarray(df)
     
-class ComputeError(Exception):
-    pass
-
 
 def compute(df: pd.DataFrame) -> pd.DataFrame:
     no_path_df = df.loc[df.path.isna()]
@@ -127,11 +124,8 @@ def compute(df: pd.DataFrame) -> pd.DataFrame:
     if not no_path_df.empty:
         df_list.append(no_path_df)
         
-    for path, current_df in groups:
-        file_modification_time = get_file_modification_time(path)
-        if np.datetime64(current_df.iloc[0]['file_modification_time'])-np.datetime64(file_modification_time) != np.timedelta64(0):
-            raise ComputeError(
-                'File has been modified since it was first read - keys are invalid, make sure file stays intact during processing\n')
+    for _, current_df in groups:
+
         current_df = current_df.sort_values('key')
 
         for i in current_df.index:
