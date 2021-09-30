@@ -1,32 +1,13 @@
 Using fstpy in scripts or Jupyter Lab/Notebook
 ----------------------------------------------
 
-Use pre-build developpement environment
+Use pre-built developpement environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
-   # get rmn python library      
-   . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
-   # get fstpy ssm package
-   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.9/
-
-.. _use-pre-build-developpement-environment-1:
-
-Use pre-build developpement environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code:: bash
-
-   # get conda if you don't already have it  
-   . ssmuse-sh -x cmd/cmdm/satellite/master_u1/miniconda3_4.9.2_ubuntu-18.04-skylake-64   
-   # create a link to pre-built environment
-   cd ~/.conda/envs/
-   ln -s ~sgci800/.conda/envs/fstpy_full
-   # whenever you need to use this environment on science run the following (if you have'nt loaded the conda ssm, you'll need to do it everytime)
-   # unless you put it in your profile
-   # activate your conda environment     
-   . activate fstpy_full     
+   # use surgepy      
+   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/      
    # get rmn python library      
    . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
    # get fstpy ssm package
