@@ -147,8 +147,7 @@ def get_unit_and_description(nomvar):
     'Air Temperature,celsius'
     """
     unit = STDVAR.loc[STDVAR['nomvar'] == f'{nomvar}']['unit'].values
-    description = STDVAR.loc[STDVAR['nomvar']
-                             == f'{nomvar}']['description_en'].values
+    description = STDVAR.loc[STDVAR['nomvar'] == f'{nomvar}']['description_en'].values
     if len(description):
         description = description[0]
     else:

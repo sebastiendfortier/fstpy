@@ -1,3 +1,11 @@
 
-Changelog: changed
-MR: https://gitlab.science.gc.ca/CMDS/fstpy/merge_requests/42
+All matrices are now lazy loaded and of type dask array.
+There is no longer a load_data function, it is replaced by fstpy.compute(df). 
+This function converts dask arrays to numpy arrays
+
+New: The 'd' column is always present now after reading, but no data is read, just the meta data.
+Added: environment variable FSTPY_LOG_LEVEL to control the log level.
+Added: fstpy.setup_fstpy_logger () to format the logger using the spooki method.
+Added: environment variable FSTPY_NUM_ROWS to control the number of records read at a time.
+Added: functions to_numpy and to_dask, to convert matrices from one format to another.
+Added: to_cmc_xarray function to work in 3 dimensions with xarray datasets.

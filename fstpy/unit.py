@@ -276,8 +276,8 @@ def unit_convert(df: pd.DataFrame, to_unit_name='scalar', standard_unit=False) -
     res_df = df.copy(deep=True)
     unit_to = get_unit_by_name(to_unit_name)
 
-    for i in res_df.index:
-        current_unit = res_df.at[i, 'unit']
+    for row in res_df.itertuples():
+        current_unit = row.unit
         if (current_unit == to_unit_name):
             continue
         elif (not standard_unit) and ((current_unit == 'scalar') or (to_unit_name == 'scalar')):
@@ -285,25 +285,22 @@ def unit_convert(df: pd.DataFrame, to_unit_name='scalar', standard_unit=False) -
         else:
             unit_from = get_unit_by_name(current_unit)
             if standard_unit:
-                to_unit_name, _ = get_unit_and_description(
-                    res_df.at[i, 'nomvar'])
+                to_unit_name, _ = get_unit_and_description(row.nomvar)
                 unit_to = get_unit_by_name(to_unit_name)
                 converter = get_converter(unit_from, unit_to, True)
             else:
                 converter = get_converter(unit_from, unit_to)
 
             if not(converter is None):
-                converted_arr = converter(res_df.at[i, 'd'])
-                res_df.at[i, 'd'] = converted_arr
-                res_df.at[i, 'unit'] = to_unit_name
-                res_df.at[i, 'unit_converted'] = True
-                res_df.at[i, 'key'] = None
+                converted_arr = converter(row.d)
+                res_df.at[row.Index, 'd'] = converted_arr
+                res_df.at[row.Index, 'unit'] = to_unit_name
+                res_df.at[row.Index, 'unit_converted'] = True
 
     if not standard_unit:
         if 'level'not in res_df.columns:
-            res_df = add_columns(res_df, columns=['ip_info'])
+            df = add_columns(res_df, columns=['ip_info'])
 
-        res_df = res_df.sort_values(by='level', ascending=res_df.ascending.unique()[
-                                    0]).reset_index(drop=True)
+        res_df = res_df.sort_values(by='level', ascending=res_df.ascending.unique()[0]).reset_index(drop=True)
 
     return res_df

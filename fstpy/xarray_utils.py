@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from fstpy.dataframe import add_columns
+from fstpy.dataframe import add_columns, add_shape_column
 from fstpy.std_io import get_field_dtype, get_lat_lon
 import xarray as xr
 import pandas as pd
 import numpy as np
 import dask.array as da
 
-def comvert_to_cmc_xarray(df, timeseries=False, attributes=False):
+def convert_to_cmc_xarray(df, timeseries=False, attributes=False):
     """creates a xarray from the provided data
 
     :param timeseries: if True, organizes the xarray into a time series, defaults to False
@@ -19,9 +19,8 @@ def comvert_to_cmc_xarray(df, timeseries=False, attributes=False):
     """
 
     # dask_config_set(**{'array.slicing.split_large_chunks': True})
-
-    # self.array_container = 'dask.array'
     df = add_columns(df)
+    df = add_shape_column(df)
     counter = 0
     data_list = []
     grid_groups = df.groupby(df.grid)

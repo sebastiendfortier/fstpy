@@ -1,13 +1,48 @@
 # -*- coding: utf-8 -*-
+import copy
 import logging
 
+import dask.array as da
 import numpy as np
 import pandas as pd
 
-from .std_dec import (convert_rmndate_to_datetime, get_parsed_etiket,
-                      get_unit_and_description)
+from .std_dec import (convert_rmndate_to_datetime, get_grid_identifier,
+                      get_parsed_etiket, get_unit_and_description)
+from .std_io import remove_column
 
 
+def add_grid_column(df: pd.DataFrame):
+    vcreate_grid_identifier = np.vectorize(get_grid_identifier, otypes=['str'])
+    df['grid'] = vcreate_grid_identifier(df['nomvar'].values, df['ip1'].values, df['ip2'].values, df['ig1'].values, df['ig2'].values)
+    return df
+    
+def get_path_and_key_from_array(darr:'da.core.Array'):
+    if not isinstance(darr,da.core.Array):
+        return None, None
+    graph = darr.__dask_graph__()
+    graph_list = list(graph.to_dict())
+    path_and_key = graph_list[0][0]
+    if ':' in path_and_key:
+        path_and_key = path_and_key.split(':')
+        return path_and_key[0], path_and_key[1]
+    else:
+        return None, None
+        
+def add_path_and_key_columns(df: pd.DataFrame):
+    """adds the path and key columns to the dataframe
+
+    :param df:dataframe
+    :type df: pd.DataFrame
+    :return: path and key for each row
+    :rtype: pd.DataFrame
+    """
+    df['path'] = None
+    df['key'] = None
+    vparse_task_list = np.vectorize(get_path_and_key_from_array, otypes=['object','object'])
+    df['path'], df['key'] = vparse_task_list(df['d'].values)
+    return df
+
+    
 # get modifier information from the second character of typvar
 def parse_typvar(typvar: str):
     multiple_modifications = False
@@ -39,8 +74,8 @@ def parse_typvar(typvar: str):
             ensemble_extra_info = True
     return multiple_modifications, zapped, filtered, interpolated, unit_converted, bounded, missing_data, ensemble_extra_info
 
-
-def add_flag_values(df: pd.DataFrame) -> pd.DataFrame:
+  
+def add_flag_values(df: pd.DataFrame):
     """adds the correct flag values derived from parsing the typvar
 
     :param df:dataframe
@@ -49,14 +84,13 @@ def add_flag_values(df: pd.DataFrame) -> pd.DataFrame:
     :rtype: pd.DataFrame
     """
     # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
-    vparse_typvar = np.vectorize(parse_typvar, otypes=[
-                                 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'])
-    df.loc[:, 'multiple_modifications'], df.loc[:, 'zapped'], df.loc[:, 'filtered'], df.loc[:, 'interpolated'], df.loc[:,
-                                                                                                                       'unit_converted'], df.loc[:, 'bounded'], df.loc[:, 'missing_data'], df.loc[:, 'ensemble_extra_info'] = vparse_typvar(df['typvar'].values)
+    vparse_typvar = np.vectorize(parse_typvar, otypes=['bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'])
+    df['multiple_modifications'], df['zapped'], df['filtered'], df['interpolated'], df['unit_converted'], df['bounded'], df['missing_data'], df['ensemble_extra_info'] = vparse_typvar(df['typvar'].values)
     return df
 
 
-def drop_duplicates(df: pd.DataFrame) -> pd.DataFrame:
+
+def drop_duplicates(df: pd.DataFrame):
     """Removes duplicate rows from dataframe
 
     :param df: original dataframe
@@ -67,33 +101,20 @@ def drop_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     init_row_count = len(df.index)
     columns = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo',
                'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits',
-               'grtyp', 'ig1', 'ig3', 'ig4', 'datev', 'key']
+               'grtyp', 'ig1', 'ig3', 'ig4', 'datev']
 
-    df = df.drop_duplicates(subset=columns, keep='first')
+    df.drop_duplicates(subset=columns, keep='first',inplace=True)
 
     row_count = len(df.index)
     if init_row_count != row_count:
         logging.warning('Found duplicate rows in dataframe!')
+    
+    return df    
 
-    return df
-
-
-def get_shape(ni, nj):
-    return (ni, nj)
 
 
 def add_shape_column(df):
-    if 'shape' in df.columns:
-        return df
-    vmake_shape = np.vectorize(get_shape, otypes=['object'])
-    df.loc[:, 'shape'] = vmake_shape(df['ni'].values, df['nj'].values)
-    return df
-
-
-def add_data_column(df):
-    if 'd' in df.columns:
-        return df
-    df.loc[:, 'd'] = None
+    df['shape'] = pd.Series(zip(df.ni.to_numpy(),df.nj.to_numpy()))
     return df
 
 
@@ -108,14 +129,12 @@ def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
     :rtype: pd.DataFrame
     """
     # df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = get_parsed_etiket(df.at[i,'etiket'])
-    vparse_etiket = np.vectorize(get_parsed_etiket, otypes=[
-                                 'str', 'str', 'str', 'str'])
-    df.loc[:, 'label'], df.loc[:, 'run'], df.loc[:, 'implementation'], df.loc[:,
-                                                                              'ensemble_member'] = vparse_etiket(df['etiket'].values)
+    vparse_etiket = np.vectorize(get_parsed_etiket, otypes=['str', 'str', 'str', 'str'])
+    df['label'], df['run'], df['implementation'], df['ensemble_member'] = vparse_etiket(df['etiket'].values)
     return df
 
 
-def add_unit_and_description_columns(df: pd.DataFrame) -> pd.DataFrame:
+def add_unit_and_description_columns(df: pd.DataFrame):
     """adds unit and description from the nomvars to a dataframe
 
     :param df: dataframe
@@ -123,28 +142,21 @@ def add_unit_and_description_columns(df: pd.DataFrame) -> pd.DataFrame:
     :return: dataframe with unit and description columns added
     :rtype: pd.DataFrame
     """
-
-    vget_unit_and_description = np.vectorize(
-        get_unit_and_description, otypes=['str', 'str'])
+    df.reset_index(drop=True,inplace=True)
+    vget_unit_and_description = np.vectorize(get_unit_and_description, otypes=['str', 'str'])
     if 'unit' in df.columns:
-        sub_df = df.loc[df['unit'].isna()].copy()
-        if not sub_df.empty:
-            # sub_df.loc[:,'unit'],sub_df.loc[:,'description'] = vget_unit_and_description(df['nomvar'].values)
-            assign_unit_and_description(vget_unit_and_description, sub_df)
-            df.loc[df['unit'].isna()] = sub_df
-    else:
-        df.loc[:, 'unit'] = None
-        # df.loc[:,'unit'],df.loc[:,'description'] = vget_unit_and_description(df['nomvar'].values)
-        assign_unit_and_description(vget_unit_and_description, df)
+        to_modify_df = copy.deepcopy(df.loc[df.unit.isna()])
+        remove_column(to_modify_df,'unit')
+        remove_column(to_modify_df,'description')
+        to_modify_df['unit'], to_modify_df['description'] = vget_unit_and_description(to_modify_df['nomvar'].values)
+        others_df = copy.deepcopy(df.loc[~df.unit.isna()])
+        df = pd.concat([to_modify_df,others_df]).sort_index()
+    else:    
+        df['unit'], df['description'] = vget_unit_and_description(df['nomvar'].values)
     return df
 
 
-def assign_unit_and_description(vget_unit_and_description, df):
-    df.loc[:, 'unit'], df.loc[:, 'description'] = vget_unit_and_description(
-        df['nomvar'].values)
-
-
-def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo') -> pd.DataFrame:
+def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
     """adds the decoded dateo or datev column to the dataframe
 
     :param df: dataframe
@@ -155,18 +167,16 @@ def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo') -> pd.DataFra
              dataframe
     :rtype: pd.DataFrame
     """
-    vconvert_rmndate_to_datetime = np.vectorize(
-        convert_rmndate_to_datetime)  # ,otypes=['datetime64']
+    vconvert_rmndate_to_datetime = np.vectorize(convert_rmndate_to_datetime)  # ,otypes=['datetime64']
     if attr == 'dateo':
-        df.loc[:, 'date_of_observation'] = vconvert_rmndate_to_datetime(
-            df['dateo'].values)
+        df['date_of_observation'] = vconvert_rmndate_to_datetime(df['dateo'].values)
     else:
-        df.loc[:, 'date_of_validity'] = vconvert_rmndate_to_datetime(
-            df['datev'].values)
-    return df
+        df['date_of_validity'] = vconvert_rmndate_to_datetime(df['datev'].values)
+    return df    
 
 
-def add_forecast_hour_column(df: pd.DataFrame) -> pd.DataFrame:
+
+def add_forecast_hour_column(df: pd.DataFrame):
     """adds the forecast_hour column derived from the deet and npas columns
 
     :param df:dataframe
@@ -177,11 +187,10 @@ def add_forecast_hour_column(df: pd.DataFrame) -> pd.DataFrame:
     from .std_dec import get_forecast_hour
 
     # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
-    vcreate_forecast_hour = np.vectorize(
-        get_forecast_hour)  # ,otypes=['timedelta64[ns]']
-    df.loc[:, 'forecast_hour'] = vcreate_forecast_hour(
-        df['deet'].values, df['npas'].values)
+    vcreate_forecast_hour = np.vectorize(get_forecast_hour)  # ,otypes=['timedelta64[ns]']
+    df['forecast_hour'] = vcreate_forecast_hour(df['deet'].values, df['npas'].values)
     return df
+    
 
 
 def add_data_type_str_column(df: pd.DataFrame) -> pd.DataFrame:
@@ -194,11 +203,12 @@ def add_data_type_str_column(df: pd.DataFrame) -> pd.DataFrame:
     """
     from .std_dec import get_data_type_str
     vcreate_data_type_str = np.vectorize(get_data_type_str, otypes=['str'])
-    df.loc[:, 'data_type_str'] = vcreate_data_type_str(df['datyp'].values)
+    df['data_type_str'] = vcreate_data_type_str(df['datyp'].values)
     return df
+    
 
 
-def add_ip_info_columns(df: pd.DataFrame) -> pd.DataFrame:
+def add_ip_info_columns(df: pd.DataFrame):
     """adds all relevant level info from the ip1 column values
 
     :param df: dataframe
@@ -210,12 +220,12 @@ def add_ip_info_columns(df: pd.DataFrame) -> pd.DataFrame:
     from .std_dec import get_ip_info
     vcreate_ip_info = np.vectorize(get_ip_info, otypes=[
                                    'float32', 'int32', 'str', 'float32', 'int32', 'str', 'float32', 'int32', 'str', 'bool', 'bool', 'bool', 'object'])
-    df.loc[:, 'level'], df.loc[:, 'ip1_kind'], df.loc[:, 'ip1_pkind'], df.loc[:, 'ip2_dec'], df.loc[:, 'ip2_kind'], df.loc[:, 'ip2_pkind'], df.loc[:, 'ip3_dec'], df.loc[:, 'ip3_kind'], df.loc[:,
-                                                                                                                                                                                                'ip3_pkind'], df.loc[:, 'surface'], df.loc[:, 'follow_topography'], df.loc[:, 'ascending'], df.loc[:, 'interval'] = vcreate_ip_info(df['ip1'].values, df['ip2'].values, df['ip3'].values)
+    df['level'], df['ip1_kind'], df['ip1_pkind'], df['ip2_dec'], df['ip2_kind'], df['ip2_pkind'], df['ip3_dec'], df['ip3_kind'], df['ip3_pkind'], df['surface'], df['follow_topography'], df['ascending'], df['interval'] = vcreate_ip_info(df['ip1'].values, df['ip2'].values, df['ip3'].values)
     return df
 
 
-def add_columns(df: pd.DataFrame, columns: 'list[str]' = ['flags', 'etiket', 'unit', 'dateo', 'datev', 'forecast_hour', 'datyp', 'ip_info']) -> pd.DataFrame:
+
+def add_columns(df: pd.DataFrame, columns: 'list[str]' = ['flags', 'etiket', 'unit', 'dateo', 'datev', 'forecast_hour', 'datyp', 'ip_info']):
     """If valid columns are provided, they will be added. 
        These include ['flags','etiket','unit','dateo','datev','forecast_hour',
        'datyp','ip_info']
@@ -228,8 +238,6 @@ def add_columns(df: pd.DataFrame, columns: 'list[str]' = ['flags', 'etiket', 'un
                     ['flags','etiket','unit','dateo','datev','forecast_hour',
                     'datyp','ip_info']
     :type columns: list[str], optional
-    :return: dataframe with coluns added
-    :rtype: pd.DataFrame
     """
 
     cols = ['flags', 'etiket', 'unit', 'dateo',
@@ -258,21 +266,21 @@ def add_columns(df: pd.DataFrame, columns: 'list[str]' = ['flags', 'etiket', 'un
 
     if ('ip_info' in columns):
         df = add_ip_info_columns(df)
+        df = set_vertical_coordinate_type(df)
 
     if 'flags' in columns:
         df = add_flag_values(df)
 
-    if 'ip_info' in columns:
-        df = set_vertical_coordinate_type(df)
+    return df    
 
-    return df
+    
 
 
-def reorder_columns(df) -> pd.DataFrame:
+def reorder_columns(df):
     ordered = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2',
                'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
     if df.empty:
-        return df
+        return 
     all_columns = set(df.columns)
     # all_columns = set(df.columns.to_list())
 
@@ -281,15 +289,15 @@ def reorder_columns(df) -> pd.DataFrame:
         ordered.extend(list(extra_columns))
 
     df = df[ordered]
-    return df
 
 
-def set_vertical_coordinate_type(df) -> 'pd.DataFrame|pd.Series[Dtype@pconcat]':
+
+def set_vertical_coordinate_type(df):
     from fstpy import VCTYPES
     if 'level' not in df.columns:
         df = add_ip_info_columns(df)
     newdfs = []
-    df.loc[:, 'vctype'] = 'UNKNOWN'
+    df.loc[:,'vctype'] = 'UNKNOWN'
     grid_groups = df.groupby(df.grid)
 
     for _, grid in grid_groups:
@@ -310,7 +318,7 @@ def set_vertical_coordinate_type(df) -> 'pd.DataFrame|pd.Series[Dtype@pconcat]':
                             this_vcode = vc
                             continue
 
-                ip1_kind_group.loc[:, 'vctype'] = 'UNKNOWN'
+                ip1_kind_group['vctype'] = 'UNKNOWN'
                 #vctype_dict = {'ip1_kind':ip1_kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
                 # print(VCTYPES)
                 # print(VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(5,False,True,False,False,False,False,-1)))
@@ -321,25 +329,24 @@ def set_vertical_coordinate_type(df) -> 'pd.DataFrame|pd.Series[Dtype@pconcat]':
                 # print(vctyte_df)
                 if not vctyte_df.empty:
                     if len(vctyte_df.index) > 1:
-                        logging.warning(
-                            'set_vertical_coordinate_type - more than one match!!!')
-                    ip1_kind_group.loc[:,
-                                       'vctype'] = vctyte_df.iloc[0]['vctype']
+                        logging.warning('set_vertical_coordinate_type - more than one match!!!')
+                    ip1_kind_group['vctype'] = vctyte_df.iloc[0]['vctype']
             newdfs.append(ip1_kind_group)
 
     df = pd.concat(newdfs, ignore_index=True)
 
-    df.loc[df.nomvar.isin([">>", "^^", "!!", "P0", "PT",
-                           "HY", "PN", "!!SF"]), "vctype"] = "UNKNOWN"
+    df.loc[df.nomvar.isin([">>", "^^", "!!", "P0", "PT","HY", "PN", "!!SF"]), "vctype"] = "UNKNOWN"
+    
     return df
+
 
 
 def get_meta_fields_exists(grid):
     toctoc = grid.loc[grid.nomvar == "!!"]
     vcode = []
     if not toctoc.empty:
-        for i in toctoc.index:
-            vcode.append(toctoc.at[i, 'ig1'])
+        for row in toctoc.itertuples():
+            vcode.append(row.ig1)
         toctoc = True
     else:
         vcode.append(-1)

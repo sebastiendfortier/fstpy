@@ -1,4 +1,4 @@
-from . import LEVELTYPES, STATIONSFB, STDVAR, THERMO_CONSTANTS, UNITS, VCTYPES
+from . import LEVELTYPES, STATIONSFB, STDVAR, UNITS, VCTYPES, DATYPS
 from .dataframe import (add_columns, add_data_type_str_column,
                         add_decoded_date_column, add_forecast_hour_column,
                         add_ip_info_columns, add_parsed_etiket_columns,
@@ -13,4 +13,4 @@ from .std_writer import StandardFileWriter
 from .unit import get_converter, unit_convert, unit_convert_array
 from .utils import (column_descriptions, delete_file, get_num_rows_for_reading,
                     to_dask, to_numpy)
-from .xarray_utils import comvert_to_cmc_xarray
+from .xarray_utils import convert_to_cmc_xarray

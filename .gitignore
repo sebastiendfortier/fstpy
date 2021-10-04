@@ -1,6 +1,6 @@
 *.o
 __pycache__
-.vscode
+# .vscode
 .cache
 .ipynb_checkpoints
 .pytest_cache

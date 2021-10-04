@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 import datetime
 import logging
 import multiprocessing as mp
@@ -14,8 +15,6 @@ import rpnpy.librmn.all as rmn
 from dask import array as da
 from rpnpy.librmn import librmn
 
-from fstpy.std_dec import get_grid_identifier
-
 from . import _LOCK
 
 
@@ -28,15 +27,9 @@ def parallel_get_dataframe_from_file(files, get_records_func, n_cores):
     return df
 
 
-def add_grid_column(df: pd.DataFrame) -> pd.DataFrame:
-    vcreate_grid_identifier = np.vectorize(get_grid_identifier, otypes=['str'])
-    df.loc[:, 'grid'] = vcreate_grid_identifier(
-        df['nomvar'].values, df['ip1'].values, df['ip2'].values, df['ig1'].values, df['ig2'].values)
-    return df
-
-
 def get_dataframe_from_file(path: str, query: str = None):
-
+    from .dataframe import add_grid_column
+    
     df = get_basic_dataframe(path)
 
     df = add_grid_column(df)
@@ -57,8 +50,17 @@ def get_dataframe_from_file(path: str, query: str = None):
 
     df = add_dask_column(df)
 
+    remove_column(df,'key')
+    remove_column(df,'path')
+    remove_column(df,'shape')
+    
     return df
 
+def remove_column(df,name):
+    if name in df.columns:
+        df.pop(name)
+        
+               
 def open_fst(path: str, mode: str, caller_class: str, error_class: Type):
     file_id = rmn.fstopenall(path, mode)
     logging.info(f'{caller_class} - opening file {path}')
@@ -74,7 +76,7 @@ class GetRecordsFromFile(Exception):
     pass
 
 
-def add_metadata_to_query_results(df, query_result_df, hy_df):
+def add_metadata_to_query_results(df, query_result_df, hy_df) -> pd.DataFrame:
     meta_df = df.loc[df.nomvar.isin(
         ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1", "PN"])]
 
@@ -220,13 +222,14 @@ def get_lat_lon(df):
     return get_grid_metadata_fields(df, pressure=False, vertical_descriptors=False)
 
 
-def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vertical_descriptors=True):
-
-    path_groups = df.groupby(df.path)
+def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vertical_descriptors=True) -> pd.DataFrame:
+    from fstpy.dataframe import add_path_and_key_columns
+    new_df = copy.deepcopy(df)
+    df = add_path_and_key_columns(new_df)
+    path_groups = new_df.groupby(new_df.path)
     df_list = []
     #for each files in the df
-    for _, rec_df in path_groups:
-        path = rec_df.iloc[0]['path']
+    for path, rec_df in path_groups:
 
         if path is None:
             continue
@@ -263,6 +266,7 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
 
 
 def get_all_grid_metadata_fields_from_std_file(path):
+    from .dataframe import add_grid_column
     df = get_basic_dataframe(path)
     df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "HY", "!!SF", "E1", "P0", "PT", "PN"])]
     df = add_grid_column(df)
@@ -534,15 +538,15 @@ def get_data(path, key, cache={}):
 
 def add_dask_column(df):
     arrays = []
-    for i, row in df.iterrows():
-        path = row['path']
-        key = row['key']
+    for row in df.itertuples():
+        path = row.path
+        key = row.key
         # Unique identifier for this record.
-        name = path+":"+str(key)
+        name = ''.join([path,":",str(key)])
         # How to read the data for this record.
-        shape = (row['ni'], row['nj'])
+        shape = row.shape
         dsk = {(name, 0, 0): (get_data, path, key)}
-        field_dtype = get_field_dtype(df.at[i, 'datyp'], df.at[i, 'nbits'])
+        field_dtype = get_field_dtype(row.datyp, row.nbits)
         # Size of the record.
         chunks = [(s,) for s in shape]
         arrays.append(da.Array(dsk, name, chunks, field_dtype))
@@ -551,8 +555,9 @@ def add_dask_column(df):
     d = np.zeros(len(arrays), dtype=object)
     for i in range(len(d)):
         d[i] = arrays[i]
-    df.loc[:, 'd'] = d
+    df['d'] = d
     return df
+
 
 
 def get_field_dtype(datyp, nbits):
@@ -723,11 +728,6 @@ def get_basic_dataframe(path):
     df = df.loc[df.dltf == 0]
     df = df.drop(labels=['dltf', 'lng', 'ubc'], axis=1)
 
-    shape_list = [(0,0) for _ in range(len(df.index))]
-    df['shape'] = shape_list
-
-    for i in df.index:
-        df.at[i,'shape'] = (df.at[i,'ni'],df.at[i,'nj'])
-    
+    df['shape'] = pd.Series(zip(df.ni.to_numpy(),df.nj.to_numpy()))
 
     return df
