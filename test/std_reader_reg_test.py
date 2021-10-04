@@ -652,8 +652,8 @@ def test_30(plugin_test_dir):
     source0 = plugin_test_dir + "ensemble_members.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    for i in src_df0.index:
-        src_df0.at[i,'etiket'] = ''.join(['E16_0_0_',src_df0.at[i,'etiket'][-4:]])
+    for row in src_df0.itertuples():
+        src_df0.at[row.Index,'etiket'] = ''.join(['E16_0_0_',row.etiket[-4:]])
 
     src_df0.loc[src_df0.nomvar.isin(['>>','^^']),'etiket'] = 'ER______X'
     #compute ReaderStd

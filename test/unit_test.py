@@ -13,10 +13,10 @@ pytestmark = [pytest.mark.unit, pytest.mark.unit_tests]
 def base_dataframe():
     arr = np.array([[-5.0]],dtype='float32')
     d = [
-        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'celsius','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0], 'path':None,'datev':123456},
-        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'fahrenheit','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0], 'path':None,'datev':123456},
-        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'rankine','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0], 'path':None,'datev':123456},
-        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'kelvin','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0], 'path':None,'datev':123456},
+        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'celsius','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0], 'datev':123456},
+        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'fahrenheit','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0],'datev':123456},
+        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'rankine','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0], 'datev':123456},
+        {'nomvar':'TT','grid':'1','ip1':0,'ip2':0,'ip3':0,'unit':'kelvin','unit_converted':False,'d':arr,'ni':arr.shape[0],'nj':arr.shape[0], 'datev':123456},
         ]
     df = pd.DataFrame(d)
     return df

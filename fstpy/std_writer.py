@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 import logging
 import math
 import os
@@ -7,11 +8,12 @@ import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
 
+from fstpy.dataframe import add_path_and_key_columns
 from fstpy.std_reader import compute
 
 from .dataframe_utils import metadata_cleanup
 from .std_io import get_field_dtype, get_grid_metadata_fields
-from .utils import get_num_rows_for_reading, initializer
+from .utils import get_num_rows_for_reading, initializer, to_numpy
 
 
 class StandardFileWriterError(Exception):
@@ -66,12 +68,6 @@ class StandardFileWriter:
         """In write mode, gets the metadata fields if not already present and adds them to the dataframe.
         If not in update only mode, loads the actual data, opens the file writes the dataframe and closes.
         """
-        if self.mode == 'dump':
-            for i in self.df.index:
-                if not isinstance(self.df.at[i, 'd'], np.ndarray):
-                    raise StandardFileWriterError(
-                        f'StandardFileWriter - all data must be loaded in dump mode - row[{i}] does not have its data loaded')
-
         # remove meta
         if self.no_meta:
             self.df = self.df.loc[~self.df.nomvar.isin(
@@ -90,9 +86,8 @@ class StandardFileWriter:
         else:
             rewrite = True
         file_id = rmn.fstopenall(self.filename, rmn.FST_RW)
-        for i in self.df.index:
-            rmn.fstecr(file_id, data=np.asfortranarray(
-                self.df.at[i, 'd']), meta=self.df.loc[i].to_dict(), rewrite=rewrite)
+        for row in self.df.itertuples():
+            rmn.fstecr(file_id, data=np.asfortranarray(to_numpy(row.d)), meta=self.df.loc[row.Index].to_dict(), rewrite=rewrite)
         rmn.fstcloseall(file_id)
 
     def _update(self):
@@ -100,7 +95,13 @@ class StandardFileWriter:
             raise StandardFileWriterError(
                 'StandardFileWriter - file does not exist, cant update records')
 
-        path = self.df.path.unique()
+        new_df = copy.deepcopy(self.df)
+        
+        add_path_and_key_columns(new_df)
+        
+        path = new_df.path.unique()
+        
+        
         if len(path) != 1:
             raise StandardFileWriterError(
                 'StandardFileWriter - more than one path, cant update records')
@@ -110,12 +111,9 @@ class StandardFileWriter:
                 'StandardFileWriter - path in dataframe is different from destination file path, cant update records')
 
         file_id = rmn.fstopenall(self.filename, rmn.FST_RW)
-        for i in self.df.index:
-            d = self.df.loc[i].to_dict()
-            key = d['key']
-            del d['key']
-            rmn.fst_edit_dir(int(key), dateo=int(d['dateo']), deet=int(d['deet']), npas=int(d['npas']), ni=int(d['ni']), nj=int(d['nj']), nk=int(d['nk']), datyp=int(d['datyp']), ip1=int(d['ip1']), ip2=int(
-                d['ip2']), ip3=int(d['ip3']), typvar=d['typvar'], nomvar=d['nomvar'], etiket=d['etiket'], grtyp=d['grtyp'], ig1=int(d['ig1']), ig2=int(d['ig2']), ig3=int(d['ig3']), ig4=int(d['ig4']), keep_dateo=False)
+        for row in new_df.itertuples():
+            rmn.fst_edit_dir(int(row.key), dateo=int(row.dateo), deet=int(row.deet), npas=int(row.npas), ni=int(row.ni), nj=int(row.nj), nk=int(row.nk), datyp=int(row.datyp), ip1=int(row.ip1), ip2=int(
+                row.ip2), ip3=int(row.ip3), typvar=row.typvar, nomvar=row.nomvar, etiket=row.etiket, grtyp=row.grtyp, ig1=int(row.ig1), ig2=int(row.ig2), ig3=int(row.ig3), ig4=int(row.ig4), keep_dateo=False)
         rmn.fstcloseall(file_id)
 
     def _write(self):
@@ -135,16 +133,16 @@ class StandardFileWriter:
         df_list = np.array_split(self.df, math.ceil(len(self.df.index)/num_rows))  # of records per block
         
         for df in df_list:
-            df = compute(df)
+            df = compute(df,False)
 
             file_id = rmn.fstopenall(self.filename, rmn.FST_RW)
 
-            for i in df.index:
-                record_path = self.df.at[i, 'path']
+            for row in df.itertuples():
+                record_path = row.path
                 if identical_destination_and_record_path(record_path, self.filename):
                     logging.warning(
                         'StandardFileWriter - record path and output file are identical, adding  new records')
-                write_dataframe_record_to_file(file_id, df, i, rewrite)
+                write_dataframe_record_to_file(file_id, df, row, rewrite)
             rmn.fstcloseall(file_id)
 
 
@@ -162,35 +160,17 @@ def set_rewrite(df):
     return rewrite
 
 
-def write_dataframe_record_to_file(file_id, df, i, rewrite):
-    df = reshape_data_to_original_shape(df, i)
-    field_dtype = get_field_dtype(df.at[i, 'datyp'], df.at[i, 'nbits'])
+def write_dataframe_record_to_file(file_id, df, row, rewrite):
+    field_dtype = get_field_dtype(row.datyp, row.nbits)
     
-    if isinstance(df.at[i, 'd'], np.ndarray):
-        data = df.at[i, 'd']
+    data = row.d
 
     if str(data.dtype) != field_dtype:
-        logging.warning(f'For record at index {i}, nomvar:{df.at[i,"nomvar"]} datyp:{df.at[i,"datyp"]} nbits:{df.at[i,"nbits"]} array.dtype:{df.at[i,"d"].dtype}')  
+        logging.warning(f'For record at index {row.Index}, nomvar:{row.nomvar} datyp:{row.datyp} nbits:{row.nbits} array.dtype:{row.d.dtype}')  
         logging.warning('Difference in field dtype detected! - check dataframe nbits datyp and array dtype for mismatch')    
         
-    rmn.fstecr(file_id, data=np.asfortranarray(data.astype(field_dtype)),
-               meta=df.loc[i].to_dict(), rewrite=rewrite)
-
-
-def update_records(df, i):
-    d = df.loc[i].to_dict()
-    key = d['key']
-    del d['key']
-    rmn.fst_edit_dir(int(key), dateo=int(d['dateo']), deet=int(d['deet']), npas=int(d['npas']), ni=int(d['ni']), nj=int(d['nj']), nk=int(d['nk']), datyp=int(d['datyp']), ip1=int(d['ip1']), ip2=int(
-        d['ip2']), ip3=int(d['ip3']), typvar=d['typvar'], nomvar=d['nomvar'], etiket=d['etiket'], grtyp=d['grtyp'], ig1=int(d['ig1']), ig2=int(d['ig2']), ig3=int(d['ig3']), ig4=int(d['ig4']), keep_dateo=False)
+    rmn.fstecr(file_id, data=np.asfortranarray(data.astype(field_dtype)),meta=df.loc[row.Index].to_dict(), rewrite=rewrite)
 
 
 def identical_destination_and_record_path(record_path, filename):
     return record_path == filename
-
-
-def reshape_data_to_original_shape(df, i):
-    if df.at[i, 'nomvar'] not in ['>>', '^^', '^>', '!!', 'HY', '!!SF']:
-        if df.at[i, 'd'].shape != tuple(df.at[i, 'shape']):
-            df.at[i, 'd'] = df.at[i, 'd'].reshape(df.at[i, 'shape'])
-    return df

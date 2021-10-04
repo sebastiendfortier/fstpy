@@ -7,7 +7,7 @@ import pandas as pd
 import rpnpy.librmn.all as rmn
 
 from fstpy import DATYP_DICT
-from .std_reader import compute
+from fstpy.utils import to_numpy
 
 from .dataframe import add_columns, add_ip_info_columns, reorder_columns
 from .std_dec import convert_rmndate_to_datetime
@@ -73,6 +73,7 @@ def metadata_cleanup(df: pd.DataFrame, strict_toctoc=True) -> pd.DataFrame:
         return df
 
     df = add_columns(df,['ip_info'])
+    
     no_meta_df = df.loc[~df.nomvar.isin(["!!", "P0", "PT", ">>", "^^", "^>", "HY", "!!SF"])]
 
     # get deformation fields
@@ -113,22 +114,19 @@ def voir(df: pd.DataFrame, style=False):
 
     to_print_df = df.copy()
     to_print_df['datyp'] = to_print_df['datyp'].map(DATYP_DICT)
-    to_print_df['datev'] = to_print_df['datev'].apply(
-        convert_rmndate_to_datetime)
-    to_print_df['dateo'] = to_print_df['dateo'].apply(
-        convert_rmndate_to_datetime)
-    to_print_df = add_ip_info_columns(to_print_df)
+    to_print_df['datev'] = to_print_df['datev'].apply(convert_rmndate_to_datetime)
+    to_print_df['dateo'] = to_print_df['dateo'].apply(convert_rmndate_to_datetime)
+    df = add_ip_info_columns(to_print_df)
 
-    res_df = to_print_df.sort_values(
-        by=['nomvar', 'level'], ascending=[True, False])
+    res_df = to_print_df.sort_values(by=['nomvar', 'level'], ascending=[True, False])
 
     if style:
-        res_df = res_df.drop(columns=['dateo', 'grid', 'run', 'implementation', 'ensemble_member', 'shape', 'key', 'd', 'path', 'ip1_kind', 'ip2_dec', 'ip2_kind', 'ip2_pkind',
-                                      'ip3_dec', 'ip3_kind', 'ip3_pkind', 'date_of_observation', 'date_of_validity', 'forecast_hour', 'd', 'surface', 'follow_topography', 'ascending', 'interval','label','datatype_str','unit','description','zapped','filtered','interpolated','unit_converted','bounded','missing_data','ensemble_extra_info','vctype','data_type_str','level','ip1_pkind','multiple_modifications'], errors='ignore')
+        res_df = res_df.drop(columns=['dateo', 'grid', 'run', 'implementation', 'ensemble_member', 'd', 'ip1_kind', 'ip2_dec', 'ip2_kind', 'ip2_pkind',
+                                      'ip3_dec', 'ip3_kind', 'ip3_pkind', 'date_of_observation', 'date_of_validity', 'forecast_hour', 'd', 'surface', 'follow_topography', 'ascending', 'interval','label','unit','description','zapped','filtered','interpolated','unit_converted','bounded','missing_data','ensemble_extra_info','vctype','data_type_str','level','ip1_pkind','multiple_modifications'], errors='ignore')
         res_df = reorder_columns(res_df, ordered=['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'datev', 'level',
                                                   ' ', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'])
     else:
-        res_df = res_df.drop(columns=['datev', 'grid', 'run', 'implementation', 'ensemble_member', 'shape', 'key', 'd', 'path', 'ip1_kind', 'ip2_dec', 'ip2_kind', 'ip2_pkind',
+        res_df = res_df.drop(columns=['datev', 'grid', 'run', 'implementation', 'ensemble_member', 'd', 'ip1_kind', 'ip2_dec', 'ip2_kind', 'ip2_pkind',
                                       'ip3_dec', 'ip3_kind', 'ip3_pkind', 'date_of_observation', 'date_of_validity', 'forecast_hour', 'd', 'surface', 'follow_topography', 'ascending', 'interval','label','unit','description','zapped','filtered','interpolated','unit_converted','bounded','missing_data','ensemble_extra_info','vctype','data_type_str','level','ip1_pkind','multiple_modifications'], errors='ignore')
 
     #print('    NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s) FORECASTHOUR      IP1        LEVEL        IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
@@ -139,54 +137,38 @@ class FstStatError(Exception):
     pass
 
 
-def fststat(df: pd.DataFrame) -> pd.DataFrame:
+def fststat(df: pd.DataFrame):
     """Produces summary statistics for a dataframe
 
     :param df: input dataframe
     :type df: pd.DataFrame
-    :return: output dataframe with added 'mean','std','min_pos','min','max_pos','max' columns
-    :rtype: pd.DataFrame
     """
-
     logging.info('fststat')
-    pd.options.display.float_format = '{:0.6E}'.format
+    
     if df.empty:
         raise FstStatError('fststat - no records to process')
-    df = compute_stats(df)
-    df = add_ip_info_columns(df)
+    df = add_columns(df,['ip_info'])    
+    compute_stats(df)
 
-    df.sort_values(by=['nomvar', 'level'], ascending=[
-                   True, False], inplace=True)
-
-    logging.info('\n%s' % df[['nomvar', 'typvar', 'level', 'ip1', 'ip2', 'ip3', 'dateo', 'etiket', 'mean',
-                              'std', 'min_pos', 'min', 'max_pos', 'max']].to_string(formatters={'level': '{:,.6f}'.format}))
-
-    return df
-
-
-def compute_stats(df: pd.DataFrame) -> pd.DataFrame:
+def compute_stats(df: pd.DataFrame):
+    pd.options.display.float_format = '{:0.6E}'.format
     df['min'] = None
     df['max'] = None
     df['mean'] = None
     df['std'] = None
-    shape_list = [(0, 0) for _ in range(len(df.index))]
-    df['min_pos'] = shape_list
-    df['max_pos'] = shape_list
-
-    df = compute(df)
-    for i in df.index:
-        df.at[i, 'mean'] = np.mean(df.at[i, 'd'])
-        df.at[i, 'std'] = np.std(df.at[i, 'd'])
-        df.at[i, 'min'] = np.min(df.at[i, 'd'])
-        df.at[i, 'max'] = np.max(df.at[i, 'd'])
-        min_pos = np.unravel_index(
-            np.argmin(df.at[i, 'd']), (df.at[i, 'ni'], df.at[i, 'nj']))
-        df.at[i, 'min_pos'] = (min_pos[0] + 1, min_pos[1]+1)
-        max_pos = np.unravel_index(
-            np.argmax(df.at[i, 'd']), (df.at[i, 'ni'], df.at[i, 'nj']))
-        df.at[i, 'max_pos'] = (max_pos[0] + 1, max_pos[1]+1)
-
-    return df
+    df['min_pos'] = None
+    df['max_pos'] = None
+    print(f"        {'nomvar':>6s} {'typvar':>6s} {'level':>8s} {'ip1':>9s} {'ip2':>4s} {'ip3':>4s} {'dateo':>10s} {'etiket':>14s} {'mean':>8s} {'std':>8s} {'min_pos':>12s} {'min':>8s} {'max_pos':>12s} {'max':>8s}")
+    i  = 0
+    for row in df.itertuples():
+        d = to_numpy(row.d)
+        min_pos = np.unravel_index(np.argmin(d), (row.ni, row.nj))
+        min_pos = (min_pos[0] + 1, min_pos[1]+1)
+        max_pos = np.unravel_index(np.argmax(d), (row.ni, row.nj))
+        max_pos = (max_pos[0] + 1, max_pos[1]+1)
+        print(f'{i:>5d} - {row.nomvar:>6s} {row.typvar:>6s} {row.level:>.6f} {row.ip1:>9d} {row.ip2:>4d} {row.ip3:>4d} {row.dateo:>10d} {row.etiket:>14s} {np.mean(d):>.6f} {np.std(d):>.6f} {str(min_pos):>12s} {np.min(d):>.6f} {str(max_pos):>12s} {np.max(d):>.6f}')
+        i = i+1
+    
 
 
 def get_kinds_and_ip1(df: pd.DataFrame) -> dict:

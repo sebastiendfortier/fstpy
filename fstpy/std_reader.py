@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
-from fstpy.xarray_utils import comvert_to_cmc_xarray
+import copy
 import itertools
 import multiprocessing as mp
 import os
 
-import numpy as np
 import pandas as pd
-from .dataframe import (add_columns, add_data_column, add_shape_column,
-                        drop_duplicates)
-from .std_io import (get_dataframe_from_file, get_file_modification_time,
-                     parallel_get_dataframe_from_file)
-from .utils import initializer, to_numpy
 
+from fstpy.xarray_utils import convert_to_cmc_xarray
+
+from .utils import initializer, to_numpy
 
 
 class StandardFileReaderError(Exception):
@@ -78,6 +75,8 @@ class StandardFileReader:
             raise StandardFileReaderError('Filenames must be str or list\n')
 
     def to_pandas(self) -> pd.DataFrame:
+        from .std_io import get_dataframe_from_file, parallel_get_dataframe_from_file
+        from .dataframe import add_columns, drop_duplicates
         """creates the dataframe from the provided file metadata
 
         :return: df
@@ -85,19 +84,21 @@ class StandardFileReader:
         """
 
         if isinstance(self.filenames, list):
-            # convert to list of tuple (path,query)
-            self.filenames = list(
-                zip(self.filenames, itertools.repeat(self.query)))
+            if len(self.filenames) < 100:
+                df_list = []
+                for f in self.filenames:
+                    df = get_dataframe_from_file(f, self.query)
+                    df_list.append(df)
+                df = pd.concat(df_list,ignore_index=True)    
+            else:    
+                # convert to list of tuple (path,query)
+                self.filenames = list(zip(self.filenames, itertools.repeat(self.query)))
 
-            df = parallel_get_dataframe_from_file(
-                self.filenames,  get_dataframe_from_file, n_cores=min(mp.cpu_count(), len(self.filenames)))
+                df = parallel_get_dataframe_from_file(
+                    self.filenames,  get_dataframe_from_file, n_cores=min(mp.cpu_count(), len(self.filenames)))
 
         else:
             df = get_dataframe_from_file(self.filenames, self.query)
-
-        df = add_data_column(df)
-
-        df = add_shape_column(df)
 
         if self.decode_metadata:
             df = add_columns(df)
@@ -108,16 +109,22 @@ class StandardFileReader:
      
     def to_cmc_xarray(self):
         df = self.to_pandas()
-        return comvert_to_cmc_xarray(df)
+        return convert_to_cmc_xarray(df)
 
 def to_cmc_xarray(df):
-    return comvert_to_cmc_xarray(df)
+    return convert_to_cmc_xarray(df)
     
 
-def compute(df: pd.DataFrame) -> pd.DataFrame:
-    no_path_df = df.loc[df.path.isna()]
+def compute(df: pd.DataFrame,remove_path_and_key=True) -> pd.DataFrame:
+    from .std_io import remove_column
+    from .dataframe import add_path_and_key_columns
+    new_df = copy.deepcopy(df)
+    
+    df = add_path_and_key_columns(new_df)
+    
+    no_path_df = new_df.loc[new_df.path.isna()]
 
-    groups = df.groupby('path')
+    groups = new_df.groupby('path')
     
     df_list = []
     
@@ -128,11 +135,16 @@ def compute(df: pd.DataFrame) -> pd.DataFrame:
 
         current_df = current_df.sort_values('key')
 
-        for i in current_df.index:
-             current_df.at[i, 'd'] = to_numpy(current_df.at[i, 'd'])
+        for row in current_df.itertuples():
+             current_df.at[row.Index, 'd'] = to_numpy(row.d)
 
         df_list.append(current_df)
+    
+    new_df = pd.concat(df_list).sort_index()
+    
+    if remove_path_and_key:
+        remove_column(new_df,'key')
+        remove_column(new_df,'path')
 
-    df = pd.concat(df_list).sort_index()
-
-    return df
+    
+    return new_df
