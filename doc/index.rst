@@ -77,6 +77,7 @@ Documentation
 
 **Misc**
 
+* :doc:`caveats`
 * :doc:`ressources`
 * :doc:`acknowledgements`
 * :doc:`LICENSE`
@@ -86,6 +87,7 @@ Documentation
    :hidden:
    :caption: Misc
 
+   caveats
    ressources
    acknowledgements
    LICENSE
