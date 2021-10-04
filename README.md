@@ -2,8 +2,8 @@
 
 ## What is it?
 
-Fstpy is a high level interface to rpn\'s rpnpy python library that
-produces pandas dataframes or Xarray\'s from CMC standard files. In
+Fstpy is a high level interface to rpn's rpnpy python library that
+produces pandas dataframes or Xarray's from CMC standard files. In
 order to promote decoupling, modularization and collaboration, fstpy
 only reads and writes. All other operations and algorithms can be
 independent.
@@ -17,7 +17,7 @@ learning curve is much less steep.
 
 ## Dataframes
 
-They are good for organizing information. eg: select all the tt\'s, sort
+They are good for organizing information. eg: select all the tt's, sort
 them by grid then by level and produce 3d matrices for each tt of each
 grid. Dataframes will help to integrate new model changes and new data
 types. Thanks to the dataframes we can also export our results more
@@ -26,12 +26,12 @@ easily to different types of formats.
 ## Dask
 
 Dask is the type of array that is used by fstpy to wrap numpy arrays for
-parallelisation purposes. You can use most of numpy\'s API directly on
+parallelisation purposes. You can use most of numpy's API directly on
 these types of arrays. The only difference is that until array.compute()
 is done, the dask array strores tasks instead of actually doing the
 computations.
 
-## Xarray\'s
+## Xarray's
 
 They are used to analyse grouped and indexed data. They are espceially
 good for working with n-dimensional meteorological data. They also offer
@@ -59,6 +59,15 @@ a great variety of built-in plotting functions.
 -   sphinx-gallery>=0.9.0
 -   sphinx-rtd-theme>=1.0.0
 -   nbsphinx>=0.8.7
+
+## Surgepy
+
+This is an ssm package that we use at CMC on the science network and
+that contains a wide variety of packages
+
+``` bash
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/
+```
 
 # Installation
 
@@ -129,7 +138,7 @@ git merge origin/master
 git push my_change
 ```
 
-Then create a merge request on science\'s gitlab
+Then create a merge request on science's gitlab
 <https://gitlab.science.gc.ca/CMDS/fstpy/merge_requests>
 
 ## Using setup.sh to setup your developpement environment
