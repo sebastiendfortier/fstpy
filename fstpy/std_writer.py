@@ -97,7 +97,7 @@ class StandardFileWriter:
 
         new_df = copy.deepcopy(self.df)
         
-        add_path_and_key_columns(new_df)
+        df = add_path_and_key_columns(new_df)
         
         path = new_df.path.unique()
         
