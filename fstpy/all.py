@@ -1,4 +1,4 @@
-from . import LEVELTYPES, STATIONSFB, STDVAR, UNITS, VCTYPES, DATYPS
+from . import LEVELTYPES, STATIONSFB, STDVAR, UNITS, VCTYPES
 from .dataframe import (add_columns, add_data_type_str_column,
                         add_decoded_date_column, add_forecast_hour_column,
                         add_ip_info_columns, add_parsed_etiket_columns,

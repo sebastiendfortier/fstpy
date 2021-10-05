@@ -8,12 +8,16 @@ VERSION=$(head -n 1 ${ROOT_DIR}VERSION)
 PLAT=all
 #echo ${VERSION}
 
+
+
 name=fstpy
 PKGNAME=${name}_${VERSION}_${PLAT}
 echo ${VERSION}
 echo ${DIR}
 echo ${name}
 echo ${PKGNAME}
+
+rm -rf ${ROOT_DIR}/${name}/__pycache__
 
 
 echo '{' > control.json
@@ -30,12 +34,14 @@ echo '    "x-build-uname": "('`uname -s`', '`uname -n`', '`uname -r`', '`uname -
 echo '}' >> control.json
 
 
+
 echo 'Building package '${PKGNAME}
 mkdir -p ${PKGNAME}/lib/python/${name}
 mkdir -p ${PKGNAME}/.ssm.d
 mkdir -p ${PKGNAME}/bin
 mkdir -p ${PKGNAME}/share
 mkdir -p ${PKGNAME}/etc/profile.d
+
 
 PROJECT_ROOT=$ROOT_DIR/${name}
 echo 'Copying files to '${PKGNAME}' directory'

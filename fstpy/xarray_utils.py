@@ -78,7 +78,7 @@ def convert_to_cmc_xarray(df, timeseries=False, attributes=False):
 
 
 def set_data_array_attributes(attribs:dict, nomvar_df:pd.DataFrame) -> dict:
-    """[summary]
+    """Sets the data array attributes
 
     :param attribs: dictionnary of attribute to attach to data arrays
     :type attribs: dict

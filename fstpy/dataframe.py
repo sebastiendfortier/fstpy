@@ -114,7 +114,7 @@ def drop_duplicates(df: pd.DataFrame):
 
 
 def add_shape_column(df):
-    df['shape'] = pd.Series(zip(df.ni.to_numpy(),df.nj.to_numpy()))
+    df['shape'] = pd.Series(zip(df.ni.to_numpy(),df.nj.to_numpy()),dtype='object').to_numpy()
     return df
 
 

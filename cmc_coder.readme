@@ -19,11 +19,6 @@ From my ec laptop in mobaxterm
 
 /home/mobaxterm $ ssh ppp[3|4]
 
-If you dont have these links in your ~/.conda/envs, make them
-
-[sbf000@eccc2-ppp4 ~] $ cd .conda/envs
-[sbf000@eccc2-ppp4 ~] $ ln -s /home/sgci800/.conda/envs/vscode
-
 Get a computing node
 
 [sbf000@eccc2-ppp4 ~] $ ~for000/bin/g2cm
@@ -38,6 +33,7 @@ This script starts jupyter lab ans gives me the info for the port fowarding.
 Make a copy for yourself and change the port to something else than 5053 
 In doubt, just increment it
 Also change the pythonpath for fstpy and spookiy for your personal work directories
+or use the ssm packages
 
 [sbf000@cs4be-197p34 ~] $ public/start_jupyter_dev.sh 
 
