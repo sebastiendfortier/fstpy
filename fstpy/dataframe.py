@@ -31,7 +31,7 @@ def get_path_and_key_from_array(darr:'da.core.Array'):
 def add_path_and_key_columns(df: pd.DataFrame):
     """adds the path and key columns to the dataframe
 
-    :param df:dataframe
+    :param df: dataframe
     :type df: pd.DataFrame
     :return: path and key for each row
     :rtype: pd.DataFrame
@@ -78,7 +78,7 @@ def parse_typvar(typvar: str):
 def add_flag_values(df: pd.DataFrame):
     """adds the correct flag values derived from parsing the typvar
 
-    :param df:dataframe
+    :param df: dataframe
     :type df: pd.DataFrame
     :return: flag values set according to second character of typvar if present
     :rtype: pd.DataFrame
@@ -179,7 +179,7 @@ def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
 def add_forecast_hour_column(df: pd.DataFrame):
     """adds the forecast_hour column derived from the deet and npas columns
 
-    :param df:dataframe
+    :param df: dataframe
     :type df: pd.DataFrame
     :return: forecast_hour column added to the dataframe
     :rtype: pd.DataFrame
