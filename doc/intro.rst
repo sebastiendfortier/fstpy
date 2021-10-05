@@ -34,13 +34,13 @@ Dask
 Dask is the type of array that is used by fstpy to wrap numpy arrays for 
 parallelisation purposes. You can use most of numpy’s API directly on 
 these types of arrays. The only difference is that until array.compute() 
-is done, the dask array strores tasks instead of actually doing the 
+is done, the dask array stores tasks instead of actually doing the 
 computations.
 
 
 Xarray's
 --------
 
-They are used to analyse grouped and indexed data. They are espceially
+They are used to analyse grouped and indexed data. They are especially
 good for working with n-dimensional meteorological data. They also offer
 a great variety of built-in plotting functions.

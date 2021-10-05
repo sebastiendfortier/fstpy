@@ -32,7 +32,7 @@ One dimension arrays
 ~~~~~~~~~~~~~~~~~~~~
 
 When working with arrays of shape (1, x)  or (x, 1), dask seems to interpret then as beeing 1d.   
-My woraround for this is to compute() the dask arrays to obtain numpy arrays for operations   
+My workaround for this is to compute() the dask arrays to obtain numpy arrays for operations   
 that need to be done on them.   
 
 arg functions
@@ -40,7 +40,7 @@ arg functions
 
 numpy.argmax and the others of that family seem to be a little bit of a problem for dask.     
 Dask does supply its own versions that can be called with dask.array.argmax as an example.       
-My woraround for this is to compute() the dask arrays to obtain numpy arrays for these     
+My workaround for this is to compute() the dask arrays to obtain numpy arrays for these     
 operations.
 
 Printing the dataframe
