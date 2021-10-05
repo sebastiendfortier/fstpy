@@ -186,3 +186,52 @@ def to_dask(arr:"np.ndarray|da.core.Array") -> da.core.Array:
         return da.from_array(arr).astype(np.float32)        
     else:    
         raise ConversionError('to_dask - Array is not an array of type numpy or dask')    
+
+
+
+
+class FstPrecision:
+
+    datyp_priority = {-1:-1,0:0,1:5,2:1,4:3,5:7,6:4,7:0,8:9,130:2,133:8,134:6}
+
+    def __init__(self, datyp:int, nbits:int):
+        self.nbits = nbits
+        self.datyp = self.datyp_priority[datyp]    
+
+
+    def max(self,other):
+        nbits = self.nbits if self.nbits >= other.nbits else other.nbits
+        datyp = self.datyp if self.datyp >= other.datyp else other.datyp
+        return datyp,nbits
+
+
+        # // Help find the most precise DATA_TYPE to store value, compressed is prefered for same DATA_TYPE.
+        # // The bigger the returned value is, the better the DATA_TYPE is.
+        # static int getDataTypePrecisionRanking(DATA_TYPE_T dataType)
+        # {
+        #     switch (dataType)
+        #     {
+        #     case DATA_TYPE_NOT_SET:
+        #         return -1;
+        #     case STRING:
+        #         return 0; // should not be use to store value
+        #     case RAW:
+        #         return 0; // not sure maybe it's the one that will hold the best precision??
+        #     case UNSIGNED:
+        #         return 1;
+        #     case COMPRESSED_UNSIGNED:
+        #         return 2;
+        #     case INTEGER:
+        #         return 3;
+        #     case FLOAT_FOR_COMPRESSOR:
+        #         return 4;
+        #     case FLOAT:
+        #         return 5;
+        #     case COMPRESSED_FLOAT:
+        #         return 6;
+        #     case IEEE:
+        #         return 7;
+        #     case COMPRESSED_IEEE:
+        #         return 8;
+        #     case COMPLEX_IEEE:
+        #         return 9;

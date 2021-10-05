@@ -12,5 +12,5 @@ from .std_reader import StandardFileReader, compute, to_cmc_xarray
 from .std_writer import StandardFileWriter
 from .unit import get_converter, unit_convert, unit_convert_array
 from .utils import (column_descriptions, delete_file, get_num_rows_for_reading,
-                    to_dask, to_numpy)
+                    to_dask, to_numpy, FstPrecision)
 from .xarray_utils import convert_to_cmc_xarray

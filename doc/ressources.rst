@@ -29,4 +29,4 @@ http://xarray.pydata.org/en/stable/
 Xarray examples
 ---------------
 
-http://xarray.pydata.org/en/stable/examples.html
+http://xarray.pydata.org/en/stable/tutorials-and-videos.html
