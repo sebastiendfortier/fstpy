@@ -58,7 +58,7 @@ def create_encoded_npas_and_ip2(forecast_hour: datetime.timedelta, deet: int) ->
 
 
 def create_encoded_ip1(level: float, ip1_kind: int) -> int:
-    """returns an ecoded ip1 from level and kind
+    """returns an encoded ip1 from level and kind
 
     :param level: level value
     :type level: float
@@ -73,12 +73,12 @@ def create_encoded_ip1(level: float, ip1_kind: int) -> int:
 
 
 def create_encoded_ip2(level: float, ip2_kind: int) -> int:
-    """returns an ecoded ip1 from level and kind
+    """returns an encoded ip2 from level and kind
 
     :param level: level value
     :type level: float
     :param ip2_kind: kind value as int
-    :type ip3_kind: int
+    :type ip2_kind: int
     :return: encoded ip2
     :rtype: int
     """
