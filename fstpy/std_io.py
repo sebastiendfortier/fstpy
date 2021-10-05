@@ -160,8 +160,11 @@ def get_2d_lat_lon(df: pd.DataFrame) -> pd.DataFrame:
     :rtype: pd.DataFrame
     :raises StandardFileError: no records to process
     """
+    from fstpy.dataframe import add_path_and_key_columns
     if df.empty:
         raise Get2dLatLonError('get_2d_lat_lon- no records to process')
+
+    df = add_path_and_key_columns(df)
 
     # remove record wich have X grid type
     without_x_grid_df = df.loc[df.grtyp != "X"]
@@ -728,6 +731,6 @@ def get_basic_dataframe(path):
     df = df.loc[df.dltf == 0]
     df = df.drop(labels=['dltf', 'lng', 'ubc'], axis=1)
 
-    df['shape'] = pd.Series(zip(df.ni.to_numpy(),df.nj.to_numpy()))
+    df['shape'] = pd.Series(zip(df.ni.to_numpy(),df.nj.to_numpy()),dtype='object').to_numpy()
 
     return df
