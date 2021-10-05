@@ -6,13 +6,13 @@ Dask comes with some subtle requirements.
 The d column
 ------------
 
-In the 'd' column of the dataframe you wil notice the stored arrays are of dask.array type   
+In the 'd' column of the dataframe, you will notice the stored arrays are of dask.array type   
 upon reading the file.  
 
 Obtain a numpy array
 --------------------
 
-To obtain a numpy array, most of the time all you need to do is use the compute member function    
+To obtain a numpy array, most of the time, all you need to do is use the compute member function    
 
 Getting the right type of array
 -------------------------------
@@ -26,7 +26,7 @@ Otherwise, a .compute() is done to obtain the numpy array from the dask array.
 Numpy operations exceptions
 ---------------------------
 
-Most numpy operations will be working out of the box, here are the exceptions i found.   
+Most numpy operations will be working out of the box, here are the exceptions I found.   
 
 One dimension arrays
 ~~~~~~~~~~~~~~~~~~~~
