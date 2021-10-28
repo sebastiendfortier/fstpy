@@ -28,12 +28,12 @@ easily to different types of formats.
 Dask is the type of array that is used by fstpy to wrap numpy arrays for
 parallelisation purposes. You can use most of numpy's API directly on
 these types of arrays. The only difference is that until array.compute()
-is done, the dask array strores tasks instead of actually doing the
+is done, the dask array stores tasks instead of actually doing the
 computations.
 
 ## Xarray's
 
-They are used to analyse grouped and indexed data. They are espceially
+They are used to analyse grouped and indexed data. They are especially
 good for working with n-dimensional meteorological data. They also offer
 a great variety of built-in plotting functions.
 
@@ -59,6 +59,8 @@ a great variety of built-in plotting functions.
 -   sphinx-gallery>=0.9.0
 -   sphinx-rtd-theme>=1.0.0
 -   nbsphinx>=0.8.7
+-   ipython>=7.12.0
+-   jupyterlab>=3.1.13
 
 ## Surgepy
 
@@ -73,7 +75,7 @@ that contains a wide variety of packages
 
 Use the ssm package
 
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.9/
+    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.10/
 
 Use the git repository package: at your own risk ;)
 
@@ -89,7 +91,7 @@ Use the git repository package: at your own risk ;)
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.9/
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.10/
 ```
 
 ### Use fstpy

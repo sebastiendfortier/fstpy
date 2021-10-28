@@ -27,9 +27,11 @@ class Interval:
         return f'{self.ip}:{self.low}{self.pkind}@{self.high}{self.pkind}'
 
 
-def get_interval(ip3, ip1: int, i1v1: float, i1v2: float, i1kind: int, ip2: int, i2v1: float, i2v2: float, i2kind: int) -> 'Interval|None':
+def get_interval(ip3: int, ip1: int, i1v1: float, i1v2: float, i1kind: int, ip2: int, i2v1: float, i2v2: float, i2kind: int) -> 'Interval|None':
     """Gets interval if exists from ip values
 
+    :param ip3: ip1 value
+    :type ip3: int
     :param ip1: ip1 value
     :type ip1: int
     :param i1v1: ip1 low decoded value
@@ -143,8 +145,8 @@ def get_unit_and_description(nomvar):
     :return: unit name and description
     :rtype: str,str
 
-    >>> unit,description = get_unit_and_description('TT')
-    'Air Temperature,celsius'
+    >>> get_unit_and_description('TT')
+    'Air Temperature' 'celsius'
     """
     unit = STDVAR.loc[STDVAR['nomvar'] == f'{nomvar}']['unit'].values
     description = STDVAR.loc[STDVAR['nomvar'] == f'{nomvar}']['description_en'].values

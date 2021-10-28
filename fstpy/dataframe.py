@@ -225,7 +225,7 @@ def add_ip_info_columns(df: pd.DataFrame):
 
 
 
-def add_columns(df: pd.DataFrame, columns: 'list[str]' = ['flags', 'etiket', 'unit', 'dateo', 'datev', 'forecast_hour', 'datyp', 'ip_info']):
+def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket', 'unit', 'dateo', 'datev', 'forecast_hour', 'datyp', 'ip_info']):
     """If valid columns are provided, they will be added. 
        These include ['flags','etiket','unit','dateo','datev','forecast_hour',
        'datyp','ip_info']
@@ -239,9 +239,10 @@ def add_columns(df: pd.DataFrame, columns: 'list[str]' = ['flags', 'etiket', 'un
                     'datyp','ip_info']
     :type columns: list[str], optional
     """
-
-    cols = ['flags', 'etiket', 'unit', 'dateo',
-            'datev', 'forecast_hour', 'datyp', 'ip_info']
+    cols = ['flags', 'etiket', 'unit', 'dateo', 'datev', 'forecast_hour', 'datyp', 'ip_info']
+    if isinstance(columns,str):
+        columns = [columns]
+    
     for col in columns:
         if col not in cols:
             logging.warning(f'{col} not found in {cols}')

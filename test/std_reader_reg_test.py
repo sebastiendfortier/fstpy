@@ -85,9 +85,8 @@ def test_5(plugin_test_dir):
 
     #compare results
     res = fstcomp(results_file,file_to_compare,e_max=0.13)#,e_c_cor=0.001)
-    # delete_file(results_file)
+    delete_file(results_file)
     assert(res)
-
 
 def test_6(plugin_test_dir):
     """Test read write sigma12000 pressure"""

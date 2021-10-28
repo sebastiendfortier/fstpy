@@ -222,7 +222,10 @@ def test_7(plugin_test_dir):
     source0 = plugin_test_dir + "input_big_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    # meta_df = src_df0.loc[src_df0.nomvar.isin(['!!','^^','>>'])]
+
+    meta_df = src_df0.loc[src_df0.nomvar.isin(['^^','>>'])]
+
+
     tt_df = src_df0.loc[(src_df0.nomvar=="TT") & (src_df0.etiket=="R1558V0N")]
     #compute unit_convert
     tt_df = unit_convert(tt_df,'kelvin')
@@ -240,7 +243,7 @@ def test_7(plugin_test_dir):
     all_df = unit_convert(all_df,standard_unit=True)
 
 
-    others_df = src_df0.loc[src_df0.etiket!="R1558V0N"]
+    others_df = src_df0.loc[(~src_df0.nomvar.isin(['^^','>>'])) & (src_df0.etiket!="R1558V0N")]
 
     #[ReaderStd --ignoreExtended --input {sources[0]}] >>
     # (
@@ -254,7 +257,7 @@ def test_7(plugin_test_dir):
     # ) >>
     # [WriterStd --output {destination_path} --noUnitConversion --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-    all_df = pd.concat([all_df,others_df],ignore_index=True)
+    all_df = pd.concat([all_df,others_df,meta_df],ignore_index=True)
     #write the result
     results_file = TMP_PATH + "test_unitconv_7.std"
     delete_file(results_file)
