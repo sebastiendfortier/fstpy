@@ -161,7 +161,7 @@ def write_dataframe_record_to_file(file_id, df, row, rewrite):
 
     data = row.d
 
-    field_dtype = get_field_dtype(row.datyp, row.nbits, data.dtype)
+    field_dtype = get_field_dtype(row.datyp, row.nbits)
 
     if str(data.dtype) != field_dtype:
         logging.warning(f'For record at index {row.Index}, nomvar:{row.nomvar} datyp:{row.datyp} nbits:{row.nbits} array.dtype:{row.d.dtype}')  
