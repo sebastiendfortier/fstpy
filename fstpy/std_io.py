@@ -571,7 +571,10 @@ def get_field_dtype(datyp, nbits):
     elif (datyp in [1, 5, 6, 133, 134]) and (nbits > 32):
         field_dtype = 'float64'
     elif (datyp in [2, 130]):
-        field_dtype = 'int32'
+        if nbits > 1:
+            field_dtype = 'int32'
+        elif nbits == 1:
+            field_dtype = 'uint32'
     return field_dtype
 
 
