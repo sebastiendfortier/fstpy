@@ -21,6 +21,8 @@ developpement packages
 - sphinx-gallery>=0.9.0 
 - sphinx-rtd-theme>=1.0.0
 - nbsphinx>=0.8.7
+- ipython>=7.12.0
+- jupyterlab>=3.1.13
 
 Surgepy
 -------

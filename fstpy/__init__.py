@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 import os
 import sys
 from pathlib import Path
@@ -306,8 +305,8 @@ def get_unit_by_name(name: str) -> pd.Series:
         return get_constant_row_by_name(UNITS, 'unit', 'name', 'scalar')
 
 
-def get_etikey_by_name(name: str) -> pd.Series:
-    return get_constant_row_by_name(ETIKETS, 'etiket', 'plugin_name', name)
+# def get_etikey_by_name(name: str) -> pd.Series:
+#     return get_constant_row_by_name(ETIKETS, 'etiket', 'plugin_name', name)
 
 
 def get_constant_by_name(name: str) -> pd.Series:

@@ -117,9 +117,6 @@ class StandardFileWriter:
         rmn.fstcloseall(file_id)
 
     def _write(self):
-        if not self.no_meta:             
-            meta_df = get_grid_metadata_fields(self.df)             
-            self.df = pd.concat([self.df,meta_df],ignore_index=True)         
 
         self.df = metadata_cleanup(self.df)
 
@@ -161,15 +158,16 @@ def set_rewrite(df):
 
 
 def write_dataframe_record_to_file(file_id, df, row, rewrite):
-    field_dtype = get_field_dtype(row.datyp, row.nbits)
-    
+
     data = row.d
+
+    field_dtype = get_field_dtype(row.datyp, row.nbits)
 
     if str(data.dtype) != field_dtype:
         logging.warning(f'For record at index {row.Index}, nomvar:{row.nomvar} datyp:{row.datyp} nbits:{row.nbits} array.dtype:{row.d.dtype}')  
         logging.warning('Difference in field dtype detected! - check dataframe nbits datyp and array dtype for mismatch')    
         
-    rmn.fstecr(file_id, data=np.asfortranarray(data.astype(field_dtype)),meta=df.loc[row.Index].to_dict(), rewrite=rewrite)
+    rmn.fstecr(file_id, data=np.asfortranarray(data), meta=df.loc[row.Index].to_dict(), rewrite=rewrite)
 
 
 def identical_destination_and_record_path(record_path, filename):

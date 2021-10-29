@@ -319,65 +319,61 @@ def get_hy_field(df: pd.DataFrame, hybrid_ips: list):
 
 
 def get_grid_deformation_fileds(df: pd.DataFrame, no_meta_df: pd.DataFrame):
+    col_subset = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'ig1', 'ig2', 'ig3', 'ig4']
+
     grid_deformation_fields_df = pd.DataFrame(dtype=object)
 
-    groups = no_meta_df.groupby(['grid', 'dateo', 'deet', 'npas'])
+    groups = no_meta_df.groupby(['grid', 'dateo', 'datev', 'deet', 'npas'])
 
     df_list = []
-    hasDate = False
-    for _, group in groups:
-        grid = group.grid.unique()[0]
-        dateo = group.dateo.unique()[0]
+
+    for (grid, dateo, _, deet, npas), group in groups:
         if len(list(group.ni.unique())) > 1:
             logging.error(f'grid with fields of different sizes for ni {group.ni.unique()}')
         if len(list(group.nj.unique())) > 1:
             logging.error(f'grid with fields of different sizes for nj {group.nj.unique()}')    
-        # ni = group.ni.unique()[0]
-        # nj = group.nj.unique()[0]
-        
-        lat_df = df.loc[(df.nomvar == "^^") & (df.grid == grid) & (df.dateo == dateo)] # & (df.nj == nj)]
-        if lat_df.empty:
-            lat_df = df.loc[(df.nomvar == "^^") & (df.grid == grid)]# & (df.nj == nj)]
 
-        lon_df = df.loc[(df.nomvar == ">>") & (df.grid == grid) & (df.dateo == dateo)] # & (df.ni == ni)]
-        if lon_df.empty:
-            lon_df = df.loc[(df.nomvar == ">>") & (df.grid == grid)]# & (df.ni == ni)]
+        lat_df    = get_specific_meta_field(df, col_subset, "^^", grid, dateo, deet, npas)
+        lon_df    = get_specific_meta_field(df, col_subset, ">>", grid, dateo, deet, npas)
+        tictac_df = get_specific_meta_field(df, col_subset, "^>", grid, dateo, deet, npas)
 
-        tictac_df = df.loc[(df.nomvar == "^>") & (df.grid == grid) & (df.dateo == dateo)]
-        if tictac_df.empty:
-            tictac_df = df.loc[(df.nomvar == "^>") & (df.grid == grid)]
-
-        if not lat_df.empty:
-            hasDate = ((lat_df.deet.unique()[0] != 0))
-        if not lon_df.empty:
-            hasDate = ((lon_df.deet.unique()[0] != 0))
-        if not tictac_df.empty:
-            hasDate = ((tictac_df.deet.unique()[0] != 0))
-
-        if hasDate:
-            deet = group.deet.unique()[0]
-            npas = group.npas.unique()[0]
-            df_list.append(df.loc[(df.nomvar == ">>") & (
-                df.grid == grid) & (df.deet == deet) & (df.npas == npas)])
-            df_list.append(df.loc[(df.nomvar == "^^") & (
-                df.grid == grid) & (df.deet == deet) & (df.npas == npas)])
-            df_list.append(df.loc[(df.nomvar == "^>") & (
-                df.grid == grid) & (df.deet == deet) & (df.npas == npas)])
-        else:
-            df_list.append(lat_df)
-            df_list.append(lon_df)
-            df_list.append(tictac_df)
+        df_list.append(lat_df)
+        df_list.append(lon_df)
+        df_list.append(tictac_df)
 
     if len(df_list):
         grid_deformation_fields_df = pd.concat(df_list, ignore_index=True)
-    if hasDate:
-        grid_deformation_fields_df.drop_duplicates(subset=['grtyp', 'nomvar', 'typvar', 'ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3',
-                                                           'nbits', 'ig1', 'ig2', 'ig3', 'ig4', 'datyp', 'deet', 'npas', 'dateo', 'datev'], inplace=True, ignore_index=True)
-    else:
-        grid_deformation_fields_df.drop_duplicates(subset=['grtyp', 'nomvar', 'typvar', 'ni', 'nj', 'nk',
-                                                           'ip1', 'ip2', 'ip3', 'nbits', 'ig1', 'ig2', 'ig3', 'ig4', 'datyp'], inplace=True, ignore_index=True)
+
+    grid_deformation_fields_df = grid_deformation_fields_df.drop_duplicates(subset=col_subset, ignore_index=True)
+
     return grid_deformation_fields_df
 
+def get_specific_meta_field(df, col_subset, nomvar, grid, dateo, deet, npas):
+    subset = col_subset.copy()
+    # try very strict match
+    field_df = df.loc[(df.nomvar == nomvar) & (df.grid == grid) & (df.dateo == dateo) & (df.deet == deet) & (df.npas == npas)] 
+
+    if field_df.empty:
+        # try a strict match
+        field_df = df.loc[(df.nomvar == nomvar) & (df.grid == grid) & (df.dateo == dateo)]
+        if field_df.empty:
+            # try a loose match
+            field_df = df.loc[(df.nomvar == nomvar) & (df.grid == grid)]
+            if not field_df.empty:
+                # we found something on loose match - remove the duplicates        
+                subset.remove('deet')
+                subset.remove('npas')
+                subset.remove('dateo')
+                field_df = field_df.drop_duplicates(subset = subset)
+        else:    
+            # we found something on strict match - remove the duplicates    
+            subset.remove('deet')
+            subset.remove('npas')
+            field_df = field_df.drop_duplicates(subset = subset)
+    else:
+        # we found something on very strict match - remove the duplicates
+        field_df = field_df.drop_duplicates(subset = subset)
+    return field_df    
 
 def get_p0_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, hybrid_ips: list, sigma_ips: list):
 

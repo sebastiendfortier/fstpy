@@ -25,7 +25,7 @@ def base_dataframe():
 def test_1(base_dataframe):
     """Test kelvin conversion"""
     res_df = unit_convert(base_dataframe,'kelvin')
-    assert res_df['unit'].all() == 'kelvin'
+    assert res_df['unit'].unique()[0] == 'kelvin'
     assert res_df.iloc[0]['unit_converted'] == True
     assert res_df.iloc[1]['unit_converted'] == True
     assert res_df.iloc[2]['unit_converted'] == True
@@ -38,7 +38,7 @@ def test_1(base_dataframe):
 def test_2(base_dataframe):
     """Test celsius conversion"""
     res_df = unit_convert(base_dataframe,'celsius')
-    assert res_df['unit'].all() == 'celsius'
+    assert res_df['unit'].unique()[0] == 'celsius'
     assert res_df.iloc[0]['unit_converted'] == False
     assert res_df.iloc[1]['unit_converted'] == True
     assert res_df.iloc[2]['unit_converted'] == True
@@ -51,7 +51,7 @@ def test_2(base_dataframe):
 def test_3(base_dataframe):
     """Test fahrenheit conversion"""
     res_df = unit_convert(base_dataframe,'fahrenheit')
-    assert res_df['unit'].all() == 'fahrenheit'
+    assert res_df['unit'].unique()[0] == 'fahrenheit'
     assert res_df.iloc[0]['unit_converted'] == True
     assert res_df.iloc[1]['unit_converted'] == False
     assert res_df.iloc[2]['unit_converted'] == True
@@ -64,7 +64,7 @@ def test_3(base_dataframe):
 def test_4(base_dataframe):
     """Test rankine conversion"""
     res_df = unit_convert(base_dataframe,'rankine')
-    assert res_df['unit'].all() == 'rankine'
+    assert res_df['unit'].unique()[0] == 'rankine'
     assert res_df.iloc[0]['unit_converted'] == True
     assert res_df.iloc[1]['unit_converted'] == True
     assert res_df.iloc[2]['unit_converted'] == False

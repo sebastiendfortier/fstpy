@@ -262,8 +262,9 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
                 #print(latlon_df)
 
     if len(df_list):
-        result = pd.concat(df_list,ignore_index=True)
-        return result
+        result_df = pd.concat(df_list,ignore_index=True)
+        result_df = result_df.drop_duplicates(subset = ['nomvar', 'typvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], ignore_index=True)
+        return result_df
     else:
         return pd.DataFrame(dtype=object)
 
@@ -570,7 +571,10 @@ def get_field_dtype(datyp, nbits):
     elif (datyp in [1, 5, 6, 133, 134]) and (nbits > 32):
         field_dtype = 'float64'
     elif (datyp in [2, 130]):
-        field_dtype = 'int32'
+        if nbits > 1:
+            field_dtype = 'int32'
+        elif nbits == 1:
+            field_dtype = 'uint32'
     return field_dtype
 
 
