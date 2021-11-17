@@ -129,6 +129,8 @@ def compute(df: pd.DataFrame,remove_path_and_key=True) -> pd.DataFrame:
     df_list = []
     
     if not no_path_df.empty:
+        for row in no_path_df.itertuples():
+             no_path_df.at[row.Index, 'd'] = to_numpy(row.d)
         df_list.append(no_path_df)
         
     for _, current_df in groups:
