@@ -13,12 +13,15 @@ print_and_do(){
 }
 
 load_runtime_dependencies(){
-    message "Load ci_fstcomp for developpement ..."
+   message "Load ci_fstcomp for developpement ..."
    #  message '. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1'
    #  message '. r.load.dot eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2'
-    message '. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/(check directory for latest version)/'
-    print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1
-    print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
+   message '. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/(check directory for latest version)/'
+   if [[ ! "$PYTHONPATH" == *"rpnpy_2.1.2"* ]]
+   then 
+      print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1
+      print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
+   fi
 }
 
 main
