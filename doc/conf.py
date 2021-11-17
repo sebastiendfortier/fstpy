@@ -39,7 +39,8 @@ extensions = ['sphinx.ext.napoleon',
               'sphinx.ext.doctest', 
               'sphinx_autodoc_typehints',
               'sphinx_gallery.gen_gallery',
-              'nbsphinx']
+              'nbsphinx',
+              'sphinx.ext.viewcode']
 
 napoleon_include_private_with_doc = False
 
