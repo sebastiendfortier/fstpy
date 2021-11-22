@@ -4,6 +4,7 @@ import datetime
 import logging
 import multiprocessing as mp
 import os.path
+import pathlib
 import time
 from ctypes import (POINTER, Structure, c_char_p, c_int, c_int32, c_uint,
                     c_uint32, c_void_p, cast)
@@ -135,7 +136,16 @@ def process_hy(hy_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
 # many small (non-FST) files.  Under certain conditions the file handles are
 # not closed properly, which causes the application to run out of file handles
 # after testing ~1020 small non-FST files.
-def maybeFST(filename):
+def maybeFST(filename:'str|pathlib.Path') -> bool:
+    """Lightweight test to check if file is of FST type (Micheal Neish - fstd2nc)
+
+    :param filename: file to test
+    :type filename: str|pathlib.Path
+    :return: True if isfile and of FST type, else False
+    :rtype: bool
+    """
+    if not os.path.isfile(filename):
+        return False
     with open(filename, 'rb') as f:
         buf = f.read(16)
         if len(buf) < 16:
@@ -540,7 +550,14 @@ def get_data(path, key, cache={}):
         return rmn.fstluk(key)['d']
 
 
-def add_dask_column(df):
+def add_dask_column(df:pd.DataFrame) -> pd.DataFrame:
+    """Adds the 'd' column as dask arrays to a basic dataframe of meta data only, path and key columns have to be present in the DataFrame
+
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :return: modified Dataframe with added 'd' column
+    :rtype: pd.DataFrame
+    """
     arrays = []
     for row in df.itertuples():
         path = row.path
@@ -581,15 +598,20 @@ def get_field_dtype(datyp, nbits):
 class GetBasicDataFrameError(Exception):
     pass
 
+# Extract parameters for *all* records.
+# Returns a dictionary similar to fstprm, only the entries are
+# vectorized over all records instead of 1 record at a time.
+# NOTE: This includes deleted records as well.  You can filter them out using
+# the 'dltf' flag.
 
-def get_basic_dataframe(path):
-    '''
-    Extract parameters for *all* records.
-    Returns a dictionary similar to fstprm, only the entries are
-    vectorized over all records instead of 1 record at a time.
-    NOTE: This includes deleted records as well.  You can filter them out using
-        the 'dltf' flag.
-    '''
+def get_basic_dataframe(path:str) -> pd.DataFrame:
+    """Creates a dataframe of all non deleted records in an FST file, does not include data 'd'
+
+    :param path: path of file to load
+    :type path: str
+    :return: dataframe of all non deleted records in an FST file
+    :rtype: pd.DataFrame
+    """
     # file_id, f_mod_time = rmn.fstopenall(path)
     file_id = open_fst(path, rmn.FST_RO, 'get_basic_dataframe', 'GetBasicDataFrameError')
 
