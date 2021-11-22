@@ -152,3 +152,17 @@ def modifiers_to_typvar2(zapped: bool, filtered: bool, interpolated: bool, unit_
         # more than one modification has been done. Force M
         typvar2 = 'M'
     return typvar2
+
+def encode_ip2_and_ip3_as_time_interval(df):
+    for row in df.itertuples():
+        if row.nomvar in ['>>', '^^', '^>', '!!', 'P0', 'PT']:
+            continue
+        ip2 = row.ip2
+        ip3 = row.ip3
+        rp1a = rmn.FLOAT_IP(0., 0., rmn.LEVEL_KIND_PMB)
+        rp2a = rmn.FLOAT_IP( ip2,  ip3, rmn.TIME_KIND_HR)
+        rp3a = rmn.FLOAT_IP( ip2-ip3,  0, rmn.TIME_KIND_HR)
+        (_, ip2, ip3) = rmn.EncodeIp(rp1a, rp2a, rp3a)
+        df.at[row.Index,'ip2'] = ip2
+        df.at[row.Index,'ip3'] = ip3
+    return df    
