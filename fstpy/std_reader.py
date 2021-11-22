@@ -3,8 +3,9 @@ import copy
 import itertools
 import multiprocessing as mp
 import os
-
+from tqdm import tqdm
 import pandas as pd
+from . import FSTPY_PROGRESS
 
 from fstpy.xarray_utils import convert_to_cmc_xarray
 
@@ -84,18 +85,18 @@ class StandardFileReader:
         """
 
         if isinstance(self.filenames, list):
-            if len(self.filenames) < 100:
-                df_list = []
-                for f in self.filenames:
-                    df = get_dataframe_from_file(f, self.query)
-                    df_list.append(df)
-                df = pd.concat(df_list,ignore_index=True)    
-            else:    
-                # convert to list of tuple (path,query)
-                self.filenames = list(zip(self.filenames, itertools.repeat(self.query)))
+            # if len(self.filenames) < 100:
+            df_list = []
+            for f in tqdm(self.filenames, desc = 'Reading files') if FSTPY_PROGRESS else self.filenames:
+                df = get_dataframe_from_file(f, self.query)
+                df_list.append(df)
+            df = pd.concat(df_list,ignore_index=True)    
+            # else:    
+            #     # convert to list of tuple (path,query)
+            #     self.filenames = list(zip(self.filenames, itertools.repeat(self.query)))
 
-                df = parallel_get_dataframe_from_file(
-                    self.filenames,  get_dataframe_from_file, n_cores=min(mp.cpu_count(), len(self.filenames)))
+            #     df = parallel_get_dataframe_from_file(
+            #         self.filenames,  get_dataframe_from_file, n_cores=min(mp.cpu_count(), len(self.filenames)))
 
         else:
             df = get_dataframe_from_file(self.filenames, self.query)
@@ -115,7 +116,16 @@ def to_cmc_xarray(df):
     return convert_to_cmc_xarray(df)
     
 
-def compute(df: pd.DataFrame,remove_path_and_key=True) -> pd.DataFrame:
+def compute(df: pd.DataFrame,remove_path_and_key:bool=True) -> pd.DataFrame:
+    """Converts all dask arrays contained in the 'd' column, by numpy arrays
+
+    :param df: input DataFrame
+    :type df: pd.DataFrame
+    :param remove_path_and_key: remove path and key column after conversion, defaults to True
+    :type remove_path_and_key: bool, optional
+    :return: modified dataframe with numpy arrays instead of dask arrays
+    :rtype: pd.DataFrame
+    """
     from .std_io import remove_column
     from .dataframe import add_path_and_key_columns
     new_df = copy.deepcopy(df)
