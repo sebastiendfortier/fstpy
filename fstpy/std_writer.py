@@ -152,8 +152,7 @@ def set_rewrite(df):
 
     if original_df_length != dropped_df_length:
         rewrite = False
-        logging.warning(
-            'StandardFileWriter - duplicates found, activating rewrite')
+        logging.warning('StandardFileWriter - duplicates found, activating rewrite')
     return rewrite
 
 
