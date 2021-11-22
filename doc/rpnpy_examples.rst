@@ -1,7 +1,7 @@
-Tutorial
---------
+Rpnpy examples with Fstpy
+------------------------
 
-:download:`Jupyter notebook </Tutorial.ipynb>`
+:download:`Jupyter notebook </rpnpy_examples.ipynb>`
 
 Setting up the environment to run the notebook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -18,4 +18,4 @@ Setting up the environment to run the notebook
    :maxdepth: 2
    :caption: Contents:
 
-   Tutorial.ipynb
+   rpnpy_examples.ipynb

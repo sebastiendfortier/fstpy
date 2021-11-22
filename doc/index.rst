@@ -70,9 +70,10 @@ Documentation
 .. toctree::
    :maxdepth: 1
    :hidden:
-   :caption: Tutorial
+   :caption: Tutorial and examples
 
    tutorial
+   rpnpy_examples
 
 
 **Misc**
