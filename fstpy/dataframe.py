@@ -5,13 +5,21 @@ import logging
 import dask.array as da
 import numpy as np
 import pandas as pd
+import rpnpy.librmn.all as rmn
 
 from .std_dec import (convert_rmndate_to_datetime, get_grid_identifier,
                       get_parsed_etiket, get_unit_and_description)
 from .std_io import remove_column
 
 
-def add_grid_column(df: pd.DataFrame):
+def add_grid_column(df: pd.DataFrame) -> pd.DataFrame:
+    """Adds the grid column to the dataframe. The grid column is a simple identifier composed of ip1+ip2 or ig1+ig2 depending on the type of record (>>,^^,^>) vs regular field. 
+
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :return: modified dataframe with the 'grid' column added
+    :rtype: pd.DataFrame
+    """
     vcreate_grid_identifier = np.vectorize(get_grid_identifier, otypes=['str'])
     df['grid'] = vcreate_grid_identifier(df['nomvar'].values, df['ip1'].values, df['ip2'].values, df['ig1'].values, df['ig2'].values)
     return df
@@ -218,10 +226,11 @@ def add_ip_info_columns(df: pd.DataFrame):
     :rtype: pd.DataFrame
     """
     from .std_dec import get_ip_info
+    new_df = copy.deepcopy(df)
     vcreate_ip_info = np.vectorize(get_ip_info, otypes=[
                                    'float32', 'int32', 'str', 'float32', 'int32', 'str', 'float32', 'int32', 'str', 'bool', 'bool', 'bool', 'object'])
-    df['level'], df['ip1_kind'], df['ip1_pkind'], df['ip2_dec'], df['ip2_kind'], df['ip2_pkind'], df['ip3_dec'], df['ip3_kind'], df['ip3_pkind'], df['surface'], df['follow_topography'], df['ascending'], df['interval'] = vcreate_ip_info(df['ip1'].values, df['ip2'].values, df['ip3'].values)
-    return df
+    new_df['level'], new_df['ip1_kind'], new_df['ip1_pkind'], new_df['ip2_dec'], new_df['ip2_kind'], new_df['ip2_pkind'], new_df['ip3_dec'], new_df['ip3_kind'], new_df['ip3_pkind'], new_df['surface'], new_df['follow_topography'], new_df['ascending'], new_df['interval'] = vcreate_ip_info(new_df['ip1'].values, new_df['ip2'].values, new_df['ip3'].values)
+    return new_df
 
 
 
@@ -363,3 +372,31 @@ def get_meta_fields_exists(grid):
 def meta_exists(grid, nomvar) -> bool:
     df = grid.loc[grid.nomvar == nomvar]
     return not df.empty
+
+def create_empty_dataframe(num_rows):
+    record = {
+        'nomvar': ' ',
+        'typvar': 'P',
+        'etiket': ' ',
+        'ni': 1,
+        'nj': 1,
+        'nk': 1,
+        'dateo': 0,
+        'ip1': 0,
+        'ip2': 0,
+        'ip3': 0,
+        'deet': 0,
+        'npas': 0,
+        'datyp': 133,
+        'nbits': 16,
+        'grtyp': 'G',
+        'ig1': 0,
+        'ig2': 0,
+        'ig3': 0,
+        'ig4': 0,
+        'datev': 0,
+        'd':None
+        }
+    df =  pd.DataFrame([record for _ in range(num_rows)])
+    return df
+
