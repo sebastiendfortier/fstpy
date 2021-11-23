@@ -72,6 +72,7 @@ Documentation
    :hidden:
    :caption: Tutorial and examples
 
+   main_functions
    tutorial
    rpnpy_examples
 
