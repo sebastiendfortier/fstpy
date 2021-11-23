@@ -163,14 +163,16 @@ STATIONSFB = _stationsfb  # : :meta hide-value:
 :return: FB stations table
 :rtype: pd.DataFrame
 :meta hide-value:
+
 >>> fstpy.STATIONSFB
-     StationIntlId StationAlphaId  CanRegCode                 StationName   Latitude   Longitude  StationElevation  TerrainElevation  FictiveStationFlag      SpookiStationKey ProductName
+    StationIntlId StationAlphaId  CanRegCode                 StationName   Latitude   Longitude  StationElevation  TerrainElevation  FictiveStationFlag      SpookiStationKey ProductName
 0            71000           CYGW         2.0        'KUUJJUARAPIK A  QC'  55.453333  -78.200000              10.0              10.0                   0   71000CYGW5517N7745W        [FB]
 1            71000           CYAB         4.0         'ARCTIC BAY  NU CA'  73.000000  -85.053333              22.0              22.0                   0   71000CYAB7300N8502W        [FB]
 2            71000           CYSC         2.0         'SHERBROOKE  QC CA'  45.693333  -72.093333             241.0             241.0                   0   71000CYSC4526N7141W        [FB]
 3            71000           CYDL         6.0  'DEASE LAKE LWIS BC (AU5)'  58.666667 -130.053333               NaN             793.0                   0  71000CYDL5825N13002W        [FB]
 4            71000           CYLT         5.0      'ALERT AIRPORT  NT CA'  82.826667  -62.453333              31.0              31.0                   0   71000CYLT8231N6217W        [FB]
 ...
+
 """
 
 VCTYPES = _vctypes  # : :meta hide-value:
@@ -179,19 +181,22 @@ VCTYPES = _vctypes  # : :meta hide-value:
 :return: vertical coordinate type information table
 :rtype: pd.DataFrame
 :meta hide-value:
+
 >>> fstpy.VCTYPES
     ip1_kind  toctoc     P0     E1     PT     HY     SF  vcode                vctype
 0          5    True   True  False  False  False  False   5002      HYBRID_STAGGERED
 1          5    True   True  False  False  False  False   5001                HYBRID
 2          5    True   True  False  False  False  False   5005           HYBRID_5005
 ...
+
 """
 STDVAR = _stdvar  # : :meta hide-value:
 """Like the o.dict standard file dictionnary table
 
-:return: dataframe
-:rtype: pd.DataFrame
-:meta hide-value:
+    :return: dataframe
+    :rtype: pd.DataFrame
+    :meta hide-value:
+
 >>> fstpy.STDVAR
     nomvar                                     description_fr                        description_en              unit
 0       !!                 Descripteur de coordonnée vericale        Vertical coordinate descriptor            scalar
@@ -207,6 +212,7 @@ STDVAR = _stdvar  # : :meta hide-value:
 927     ^>        Position horizontale dans une grille Y ou Z  Horizontal position in a Y or Z grid            scalar
 
 [928 rows x 4 columns]
+
 """
 UNITS = _units  # : :meta hide-value:
 """Units table for conversions
@@ -214,6 +220,7 @@ UNITS = _units  # : :meta hide-value:
 :return: dataframe
 :rtype: pd.DataFrame
 :meta hide-value:
+
 >>> fstpy.UNITS
                        name      symbol               expression  bias        factor  mass  length  time  electricCurrent  temperature  amountOfSubstance  luminousIntensity
 0                  kilogram          kg                       kg   0.0  1.000000e+00     1       0     0                0            0                  0                  0
@@ -229,6 +236,7 @@ UNITS = _units  # : :meta hide-value:
 157  potentialVorticityUnit  Km2/(kg·s)  K·m^(2)·(kg^(-1)·s(-1))   0.0  1.000000e+00    -1       2    -1                0            1                  0                  0
 
 [158 rows x 12 columns]
+
 """
 # ETIKETS = _etikets #: :meta hide-value:
 # """Etikets table
@@ -281,6 +289,7 @@ THERMO_CONSTANTS = _thermoconstants
 :return: dataframe
 :rtype: pd.DataFrame
 :meta hide-value:
+
 >>> fstpy.THERMO_CONSTANTS
         name      value
 0     'AEw1'    6.10940
@@ -290,6 +299,7 @@ THERMO_CONSTANTS = _thermoconstants
 4     'AEi2'   22.58700
 5     'AEi3'  273.86000
 6  'epsilon'    0.62198
+
 """
 
 

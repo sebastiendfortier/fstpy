@@ -17,41 +17,30 @@ class StandardFileReaderError(Exception):
 
 
 class StandardFileReader:
-    """Class to handle fst files.  
-        Opens, reads the contents of an fst file or files   
-        into a pandas dataframe and closes.   
-        Extra metadata columns are added to the dataframe if specified.    
+    """Class to handle fst files. Opens, reads the contents of an fst file or files into a pandas dataframe and closes. Extra metadata columns are added to the dataframe if specified.    
 
         :param filenames: path to file or list of paths to files  
         :type filenames: str|list[str], does not accept wildcards (numpy has 
-                         many tools for this)
+                         many tools for this)  
         :param decode_metadata: adds extra columns, defaults to False  
             'unit':str, unit name   
             'unit_converted':bool  
             'description':str, field description   
-            'date_of_observation':datetime, of the date of 
-                                    observation   
-            'date_of_validity': datetime, of the date of 
-                                validity   
+            'date_of_observation':datetime, of the date of observation   
+            'date_of_validity': datetime, of the date of validity   
             'level':float32, decoded ip1 level   
             'ip1_kind':int32, decoded ip1 kind   
             'ip1_pkind':str, string repr of ip1_kind int   
             'data_type_str':str, string repr of data type   
             'label':str, label derived from etiket   
             'run':str, run derived from etiket   
-            'implementation': str, implementation derived 
-                                from etiket   
-            'ensemble_member': str, ensemble member derived 
-                                from etiket   
-            'surface':bool, True if the level is a 
-                        surface level   
-            'follow_topography':bool, indicates if this type 
-                                of level follows topography   
-            'ascending':bool, indicates if this type of 
-                        level is in ascending order   
+            'implementation': str, implementation derived from etiket   
+            'ensemble_member': str, ensemble member derived from etiket   
+            'surface':bool, True if the level is a surface level   
+            'follow_topography':bool, indicates if this type of level follows topography   
+            'ascending':bool, indicates if this type of level is in ascending order   
             'vctype':str, vertical level type   
-            'forecast_hour': timedelta, forecast hour 
-                            obtained from deet * npas / 3600   
+            'forecast_hour': timedelta, forecast hour obtained from deet * npas / 3600   
             'ip2_dec':value of decoded ip2    
             'ip2_kind':kind of decoded ip2    
             'ip2_pkind':printable kind of decoded ip2   
@@ -59,8 +48,7 @@ class StandardFileReader:
             'ip3_kind':kind of decoded ip3   
             'ip3_pkind':printable kind of decoded ip3   
         :type decode_metadata: bool, optional  
-        :param query: parameter to pass to dataframe.query method, to select 
-                      specific records  
+        :param query: parameter to pass to dataframe.query method, to select specific records  
         :type query: str, optional  
     """
     meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1", "PN"]
