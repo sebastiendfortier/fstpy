@@ -151,23 +151,28 @@ def fststat(df: pd.DataFrame):
     compute_stats(df)
 
 def compute_stats(df: pd.DataFrame):
-    pd.options.display.float_format = '{:0.6E}'.format
+    pd.options.display.float_format = '{:8.6E}'.format
     df['min'] = None
     df['max'] = None
     df['mean'] = None
     df['std'] = None
     df['min_pos'] = None
     df['max_pos'] = None
-    print(f"        {'nomvar':>6s} {'typvar':>6s} {'level':>8s} {'ip1':>9s} {'ip2':>4s} {'ip3':>4s} {'dateo':>10s} {'etiket':>14s} {'mean':>8s} {'std':>8s} {'min_pos':>12s} {'min':>8s} {'max_pos':>12s} {'max':>8s}")
-    i  = 0
+    # print(f"        {'nomvar':6s} {'typvar':6s} {'level':8s} {'ip1':9s} {'ip2':4s} {'ip3':4s} {'dateo':10s} {'etiket':14s} {'mean':8s} {'std':8s} {'min_pos':12s} {'min':8s} {'max_pos':12s} {'max':8s}")
+    # i  = 0
     for row in df.itertuples():
         d = to_numpy(row.d)
         min_pos = np.unravel_index(np.argmin(d), (row.ni, row.nj))
-        min_pos = (min_pos[0] + 1, min_pos[1]+1)
+        df.at[row.Index,'min_pos'] = (min_pos[0] + 1, min_pos[1]+1)
         max_pos = np.unravel_index(np.argmax(d), (row.ni, row.nj))
-        max_pos = (max_pos[0] + 1, max_pos[1]+1)
-        print(f'{i:>5d} - {row.nomvar:>6s} {row.typvar:>6s} {row.level:>.6f} {row.ip1:>9d} {row.ip2:>4d} {row.ip3:>4d} {row.dateo:>10d} {row.etiket:>14s} {np.mean(d):>.6f} {np.std(d):>.6f} {str(min_pos):>12s} {np.min(d):>.6f} {str(max_pos):>12s} {np.max(d):>.6f}')
-        i = i+1
+        df.at[row.Index,'max_pos'] = (max_pos[0] + 1, max_pos[1]+1)
+        df.at[row.Index,'min'] = np.min(d)
+        df.at[row.Index,'max'] = np.max(d)
+        df.at[row.Index,'mean'] = np.mean(d)
+        df.at[row.Index,'std'] = np.std(d)
+        # print(f'{i:5d} - {row.nomvar:6s} {row.typvar:6s} {row.level:8.6f} {row.ip1:9d} {row.ip2:4d} {row.ip3:4d} {row.dateo:10d} {row.etiket:14s} {np.mean(d):8.6f} {np.std(d):8.6f} {str(min_pos):12s} {np.min(d):8.6f} {str(max_pos):12s} {np.max(d):8.6f}')
+        # i = i+1
+    print(df[['nomvar','typvar','level','ip1','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string())    
     
 
 

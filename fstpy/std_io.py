@@ -136,6 +136,7 @@ def process_hy(hy_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
 # many small (non-FST) files.  Under certain conditions the file handles are
 # not closed properly, which causes the application to run out of file handles
 # after testing ~1020 small non-FST files.
+
 def maybeFST(filename:'str|pathlib.Path') -> bool:
     """Lightweight test to check if file is of FST type (Micheal Neish - fstd2nc)
 
