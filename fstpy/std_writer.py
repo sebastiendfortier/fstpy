@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import copy
+import tqdm
 import logging
 import math
 import os
+from fstpy import FSTPY_PROGRESS
 
 import numpy as np
 import pandas as pd
@@ -128,13 +130,14 @@ class StandardFileWriter:
         num_rows = get_num_rows_for_reading(self.df)
         
         df_list = np.array_split(self.df, math.ceil(len(self.df.index)/num_rows))  # of records per block
-        
+         
         for df in df_list:
             df = compute(df,False)
 
             file_id = rmn.fstopenall(self.filename, rmn.FST_RW)
 
-            for row in df.itertuples():
+            for row in tqdm(df.itertuples(), desc = 'Writing rows') if FSTPY_PROGRESS else df.itertuples():
+            # for row in df.itertuples():
                 record_path = row.path
                 if identical_destination_and_record_path(record_path, self.filename):
                     logging.warning(
@@ -152,8 +155,7 @@ def set_rewrite(df):
 
     if original_df_length != dropped_df_length:
         rewrite = False
-        logging.warning(
-            'StandardFileWriter - duplicates found, activating rewrite')
+        logging.warning('StandardFileWriter - duplicates found, activating rewrite')
     return rewrite
 
 

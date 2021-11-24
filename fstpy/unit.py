@@ -304,8 +304,8 @@ def unit_convert(df: pd.DataFrame, to_unit_name='scalar', standard_unit=False) -
 
     res_df = pd.concat([res_df,meta_df],ignore_index=True)
     if not standard_unit:
-        if 'level'not in res_df.columns:
-            df = add_columns(res_df, columns=['ip_info'])
+        if 'level' not in res_df.columns:
+            res_df = add_columns(res_df, columns=['ip_info'])
 
         res_df = res_df.sort_values(by='level', ascending=res_df.ascending.unique()[0]).reset_index(drop=True)
 

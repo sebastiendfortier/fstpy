@@ -126,7 +126,7 @@ def voir(df: pd.DataFrame, style=False):
         res_df = reorder_columns(res_df, ordered=['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'datev', 'level',
                                                   ' ', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'])
     else:
-        res_df = res_df.drop(columns=['datev', 'grid', 'run', 'implementation', 'ensemble_member', 'd', 'ip1_kind', 'ip2_dec', 'ip2_kind', 'ip2_pkind',
+        res_df = res_df.drop(columns=['datev', 'grid', 'run', 'implementation', 'ensemble_member', 'd', 'ip1_kind', 'ip2_dec', 'ip2_kind', 'ip2_pkind', 'path', 'key', 'shape',
                                       'ip3_dec', 'ip3_kind', 'ip3_pkind', 'date_of_observation', 'date_of_validity', 'forecast_hour', 'd', 'surface', 'follow_topography', 'ascending', 'interval','label','unit','description','zapped','filtered','interpolated','unit_converted','bounded','missing_data','ensemble_extra_info','vctype','data_type_str','level','ip1_pkind','multiple_modifications'], errors='ignore')
 
     #print('    NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s) FORECASTHOUR      IP1        LEVEL        IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
@@ -151,23 +151,28 @@ def fststat(df: pd.DataFrame):
     compute_stats(df)
 
 def compute_stats(df: pd.DataFrame):
-    pd.options.display.float_format = '{:0.6E}'.format
+    pd.options.display.float_format = '{:8.6E}'.format
     df['min'] = None
     df['max'] = None
     df['mean'] = None
     df['std'] = None
     df['min_pos'] = None
     df['max_pos'] = None
-    print(f"        {'nomvar':>6s} {'typvar':>6s} {'level':>8s} {'ip1':>9s} {'ip2':>4s} {'ip3':>4s} {'dateo':>10s} {'etiket':>14s} {'mean':>8s} {'std':>8s} {'min_pos':>12s} {'min':>8s} {'max_pos':>12s} {'max':>8s}")
-    i  = 0
+    # print(f"        {'nomvar':6s} {'typvar':6s} {'level':8s} {'ip1':9s} {'ip2':4s} {'ip3':4s} {'dateo':10s} {'etiket':14s} {'mean':8s} {'std':8s} {'min_pos':12s} {'min':8s} {'max_pos':12s} {'max':8s}")
+    # i  = 0
     for row in df.itertuples():
         d = to_numpy(row.d)
         min_pos = np.unravel_index(np.argmin(d), (row.ni, row.nj))
-        min_pos = (min_pos[0] + 1, min_pos[1]+1)
+        df.at[row.Index,'min_pos'] = (min_pos[0] + 1, min_pos[1]+1)
         max_pos = np.unravel_index(np.argmax(d), (row.ni, row.nj))
-        max_pos = (max_pos[0] + 1, max_pos[1]+1)
-        print(f'{i:>5d} - {row.nomvar:>6s} {row.typvar:>6s} {row.level:>.6f} {row.ip1:>9d} {row.ip2:>4d} {row.ip3:>4d} {row.dateo:>10d} {row.etiket:>14s} {np.mean(d):>.6f} {np.std(d):>.6f} {str(min_pos):>12s} {np.min(d):>.6f} {str(max_pos):>12s} {np.max(d):>.6f}')
-        i = i+1
+        df.at[row.Index,'max_pos'] = (max_pos[0] + 1, max_pos[1]+1)
+        df.at[row.Index,'min'] = np.min(d)
+        df.at[row.Index,'max'] = np.max(d)
+        df.at[row.Index,'mean'] = np.mean(d)
+        df.at[row.Index,'std'] = np.std(d)
+        # print(f'{i:5d} - {row.nomvar:6s} {row.typvar:6s} {row.level:8.6f} {row.ip1:9d} {row.ip2:4d} {row.ip3:4d} {row.dateo:10d} {row.etiket:14s} {np.mean(d):8.6f} {np.std(d):8.6f} {str(min_pos):12s} {np.min(d):8.6f} {str(max_pos):12s} {np.max(d):8.6f}')
+        # i = i+1
+    print(df[['nomvar','typvar','level','ip1','ip2','ip3','dateo','etiket','mean','std','min_pos','min','max_pos','max']].to_string())    
     
 
 

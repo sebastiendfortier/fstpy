@@ -176,7 +176,7 @@ def to_dask(arr:"np.ndarray|da.core.Array") -> da.core.Array:
     :type arr: np.ndarray|da.core.Array
     :raises ConversionError: Raised if not a numpy or dask array
     :return: a dask array
-    :rtype:da.core.Array
+    :rtype: da.core.Array
     """
     if arr is None:
         return arr

@@ -83,7 +83,7 @@ def get_forecast_hour(deet: int, npas: int) -> datetime.timedelta:
 
     :param deet: This is the length of a time step used during a model integration, in seconds.
     :type deet: int
-    :param npas:This is the time step number at which the field was written during an integration. The number of the initial time step is 0.
+    :param npas: This is the time step number at which the field was written during an integration. The number of the initial time step is 0.
     :type npas: int
     :return: time delta in seconds
     :rtype: datetime.timedelta

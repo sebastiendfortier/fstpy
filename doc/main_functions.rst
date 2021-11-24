@@ -1,7 +1,7 @@
-Tutorial
---------
+Main Fstpy functions
+--------------------
 
-:download:`Jupyter notebook </Tutorial.ipynb>`
+:download:`Jupyter notebook </Main_functions.ipynb>`
 
 Setting up the environment to run the notebook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -16,4 +16,4 @@ Setting up the environment to run the notebook
    :maxdepth: 2
    :caption: Contents:
 
-   Tutorial.ipynb
+   Main_functions.ipynb
