@@ -195,6 +195,12 @@ uv_da = np.hypot(ds.UU,ds.VV)
 
 ---
 
+### Dataset xarray de TT
+![image](dataset.jpg)
+
+---
+
+
 ### Notes
 - Documention sur les dataframe -> Google
 - Aide -> Google/Stackoverflow
