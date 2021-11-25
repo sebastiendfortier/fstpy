@@ -20,6 +20,11 @@ Sébastien Fortier 2021
 
 ---
 
+### Variables dans fichier FST
+![image](cube.jpg)
+
+---
+
 ### Origine
 - Besoin d'une interface python pour Spooki
 - Besoin d'une nouvelle structure de mémoire pour les métadonnées de fichiers FST
@@ -193,7 +198,7 @@ uv_da = np.hypot(ds.UU,ds.VV)
 ### Notes
 - Documention sur les dataframe -> Google
 - Aide -> Google/Stackoverflow
-- Dataframe  -> netCDF avec fstd2nc direct avec Buffer.from_fstpy(df).to_nc()
+- Dataframe  -> netCDF avec fstd2nc direct avec Buffer.from_fstpy(df).to_netcdf("some_met_data.nc")
 - Dataframe  -> Xarray avec fstd2nc direct avec Buffer.from_fstpy(df).to_xarray()
 
 ---
@@ -207,8 +212,11 @@ uv_da = np.hypot(ds.UU,ds.VV)
 ---
 
 ### Liens
-- Documentation <http://web.science.gc.ca/~spst900/fstpy/master/>
+- Documentation Fstpy <http://web.science.gc.ca/~spst900/fstpy/master/>
 - Gitlab <https://gitlab.science.gc.ca/CMDS/fstpy>
+- Documentation fstd2nc [Réseau EC] <https://wiki.cmc.ec.gc.ca/wiki/Fstd2nc>
+- Documentation rpnpy [Réseau EC] <https://wiki.cmc.ec.gc.ca/wiki/Rpnpy>
+- Outil Maestro dask cluster <https://gitlab.science.gc.ca/mde000/maestro-dask-cluster>
 
 ---
 
