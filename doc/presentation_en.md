@@ -107,7 +107,7 @@ Sébastien Fortier 2021
 ---
 
 ### Variables in FST file
-![image] (cube.jpg)
+![image](cube.jpg)
 
 ---
 
@@ -197,7 +197,7 @@ uv_da = np.hypot (ds.UU, ds.VV)
 ---
 
 ### TT xarray dataset
-! [image] (dataset.jpg)
+! [image](dataset.jpg)
 
 ---
 
