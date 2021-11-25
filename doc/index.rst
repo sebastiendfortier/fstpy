@@ -90,7 +90,7 @@ Documentation
    :hidden:
    :caption: Misc
 
-   presentation_fr
+   presentation_fr.md
    caveats
    ressources
    acknowledgements

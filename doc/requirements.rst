@@ -23,6 +23,7 @@ developpement packages
 - nbsphinx>=0.8.7
 - ipython>=7.12.0
 - jupyterlab>=3.1.13
+- myst-parser>=0.15.2
 
 Surgepy
 -------
