@@ -35,6 +35,9 @@ release = version
 # ones.
 #       'sphinx.ext.coverage',
 #extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
+# nbsphinx for jupyter notebooks
+# sphinx.ext.viewcode for code links
+# myst_parser for markdown
 extensions = ['sphinx.ext.napoleon',
               'sphinx.ext.doctest', 
               'sphinx_autodoc_typehints',

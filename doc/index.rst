@@ -79,6 +79,7 @@ Documentation
 
 **Misc**
 
+* :doc:`presentation_fr`
 * :doc:`caveats`
 * :doc:`ressources`
 * :doc:`acknowledgements`
@@ -89,6 +90,7 @@ Documentation
    :hidden:
    :caption: Misc
 
+   presentation_fr
    caveats
    ressources
    acknowledgements
