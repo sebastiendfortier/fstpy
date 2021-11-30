@@ -184,8 +184,8 @@ VCTYPES = _vctypes  # : :meta hide-value:
 
 >>> fstpy.VCTYPES
     ip1_kind  toctoc     P0     E1     PT     HY     SF  vcode                vctype
-0          5    True   True  False  False  False  False   5002      HYBRID_STAGGERED
-1          5    True   True  False  False  False  False   5001                HYBRID
+0          5    True   True  False  False  False  False   5002           HYBRID_5002
+1          5    True   True  False  False  False  False   5001           HYBRID_5001
 2          5    True   True  False  False  False  False   5005           HYBRID_5005
 ...
 

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import copy
 import logging
-
 import dask.array as da
+from .std_vgrid import set_vertical_coordinate_type
 import numpy as np
 import pandas as pd
-import rpnpy.librmn.all as rmn
+# import rpnpy.librmn.all as rmn
 
 from .std_dec import (convert_rmndate_to_datetime, get_grid_identifier,
                       get_parsed_etiket, get_unit_and_description)
@@ -299,56 +299,6 @@ def reorder_columns(df):
         ordered.extend(list(extra_columns))
 
     df = df[ordered]
-
-
-
-def set_vertical_coordinate_type(df):
-    from fstpy import VCTYPES
-    if 'level' not in df.columns:
-        df = add_ip_info_columns(df)
-    newdfs = []
-    df.loc[:,'vctype'] = 'UNKNOWN'
-    grid_groups = df.groupby(df.grid)
-
-    for _, grid in grid_groups:
-        toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(grid)
-        this_vcode = vcode[0]
-        ip1_kind_groups = grid.groupby(grid.ip1_kind)
-        for _, ip1_kind_group in ip1_kind_groups:
-            # these ip1_kinds are not defined
-            without_meta = ip1_kind_group.loc[(~ip1_kind_group.ip1_kind.isin(
-                [-1, 3, 6])) & (~ip1_kind_group.nomvar.isin(["!!", "HY", "P0", "PT", ">>", "^^", "PN"]))]
-            if not without_meta.empty:
-                ip1_kind = without_meta.iloc[0]['ip1_kind']
-                # print(vcode)
-                if len(vcode) > 1:
-                    for vc in vcode:
-                        d, _ = divmod(vc, 1000)
-                        if ip1_kind == d:
-                            this_vcode = vc
-                            continue
-
-                ip1_kind_group['vctype'] = 'UNKNOWN'
-                #vctype_dict = {'ip1_kind':ip1_kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
-                # print(VCTYPES)
-                # print(VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(5,False,True,False,False,False,False,-1)))
-                # print('\n(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
-                # vctyte_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
-                vctyte_df = VCTYPES.loc[(VCTYPES.ip1_kind == ip1_kind) & (VCTYPES.toctoc == toctoc) & (VCTYPES.P0 == p0) & (
-                    VCTYPES.E1 == e1) & (VCTYPES.PT == pt) & (VCTYPES.HY == hy) & (VCTYPES.SF == sf) & (VCTYPES.vcode == this_vcode)]
-                # print(vctyte_df)
-                if not vctyte_df.empty:
-                    if len(vctyte_df.index) > 1:
-                        logging.warning('set_vertical_coordinate_type - more than one match!!!')
-                    ip1_kind_group['vctype'] = vctyte_df.iloc[0]['vctype']
-            newdfs.append(ip1_kind_group)
-
-    df = pd.concat(newdfs, ignore_index=True)
-
-    df.loc[df.nomvar.isin([">>", "^^", "!!", "P0", "PT","HY", "PN", "!!SF"]), "vctype"] = "UNKNOWN"
-    
-    return df
-
 
 
 def get_meta_fields_exists(grid):

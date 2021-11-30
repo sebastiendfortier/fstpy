@@ -39,12 +39,16 @@ Documentation
 **Modules**
 
 * :doc:`all`
-* :doc:`std_reader`
-* :doc:`std_writer`
+* :doc:`dataframe_utils`
+* :doc:`dataframe`
+* :doc:`log`
+* :doc:`quick_pressure`
 * :doc:`std_dec`
 * :doc:`std_enc`
-* :doc:`dataframe`
-* :doc:`dataframe_utils`
+* :doc:`std_grid`
+* :doc:`std_reader`
+* :doc:`std_vgrid`
+* :doc:`std_writer`
 * :doc:`unit`
 * :doc:`utils`
 
@@ -54,12 +58,17 @@ Documentation
    :caption: Modules
 
    all
-   std_reader
-   std_writer
+   dataframe_utils
+   dataframe
+   log
+   quick_pressure
    std_dec
    std_enc
-   dataframe
-   dataframe_utils
+   std_grid
+   std_io
+   std_reader
+   std_vgrid
+   std_writer
    unit
    utils
 
