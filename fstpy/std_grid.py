@@ -4,6 +4,13 @@ import pandas as pd
 import rpnpy.vgd.all as vgd
 
 def get_df_from_grid(grid_params:dict) -> pd.DataFrame:
+    """For grid types Z, Y or U, produces a DataFrame of >>,^^ or ^> fields
+
+    :param grid_params: horizontal grid definition dictionnary
+    :type grid_params: dict
+    :return: DataFrame of >>,^^ or ^> fields
+    :rtype: pd.DataFrame
+    """
     g = grid_params
     if (g['grtyp'] == 'Z') or (g['grtyp'] == 'Y'):
         meta_df = pd.DataFrame([{'nomvar':'>>', 'typvar':'X', 'etiket':'', 'ni':g['ni'], 'nj':1, 'nk':1, 'dateo':0, 'ip1':g['ig1'], 'ip2':g['ig2'], 'ip3':0, 'deet':0, 'npas':0, 'datyp':5, 'nbits':32, 'grtyp':g['grref'], 'ig1':g['ig1ref'], 'ig2':g['ig2ref'], 'ig3':g['ig3ref'], 'ig4':g['ig4ref'], 'datev':0, 'd':g['ax']},
@@ -14,22 +21,22 @@ def get_df_from_grid(grid_params:dict) -> pd.DataFrame:
         meta_df = pd.DataFrame(dtype=object)    
     return meta_df
 
-def get_df_from_vgrid(vgrid_descriptor, ip1, ip2) -> pd.DataFrame:
-    v = vgrid_descriptor
-    vcoord = vertical_coord_to_dict(v)
-    vers = str(vcoord['VERSION']).zfill(3)
-    ig1 = int(''.join([str(vcoord['KIND']),vers]))
-    data = vcoord['VTBL']
-    meta_df = pd.DataFrame([{'nomvar':'!!', 'typvar':'X', 'etiket':'', 'ni':data.shape[0], 'nj':data.shape[1], 'nk':1, 'dateo':0, 'ip1':ip1, 'ip2':ip2, 'ip3':0, 'deet':0, 'npas':0, 'datyp':5, 'nbits':64, 'grtyp':'X', 'ig1':ig1, 'ig2':0, 'ig3':0, 'ig4':0, 'datev':0, 'd':data}])
-    return meta_df
+# def get_df_from_vgrid(vgrid_descriptor: vgd.VGridDescriptor, ip1: int, ip2: int) -> pd.DataFrame:
+#     v = vgrid_descriptor
+#     vcoord = vertical_coord_to_dict(v)
+#     vers = str(vcoord['VERSION']).zfill(3)
+#     ig1 = int(''.join([str(vcoord['KIND']),vers]))
+#     data = vcoord['VTBL']
+#     meta_df = pd.DataFrame([{'nomvar':'!!', 'typvar':'X', 'etiket':'', 'ni':data.shape[0], 'nj':data.shape[1], 'nk':1, 'dateo':0, 'ip1':ip1, 'ip2':ip2, 'ip3':0, 'deet':0, 'npas':0, 'datyp':5, 'nbits':64, 'grtyp':'X', 'ig1':ig1, 'ig2':0, 'ig3':0, 'ig4':0, 'datev':0, 'd':data}])
+#     return meta_df
 
-def vertical_coord_to_dict(vgrid_descriptor) -> dict:
-    myvgd = vgrid_descriptor
-    vcoord={}
-    vcoord['KIND'] = vgd.vgd_get(myvgd,'KIND')
-    vcoord['VERSION'] = vgd.vgd_get(myvgd,'VERSION')
-    vcoord['VTBL'] = np.asfortranarray(np.squeeze(vgd.vgd_get(myvgd,'VTBL')))
-    return vcoord
+# def vertical_coord_to_dict(vgrid_descriptor) -> dict:
+#     myvgd = vgrid_descriptor
+#     vcoord={}
+#     vcoord['KIND'] = vgd.vgd_get(myvgd,'KIND')
+#     vcoord['VERSION'] = vgd.vgd_get(myvgd,'VERSION')
+#     vcoord['VTBL'] = np.asfortranarray(np.squeeze(vgd.vgd_get(myvgd,'VTBL')))
+#     return vcoord
 
 # gp = {
 #     'grtyp' : 'Z',
