@@ -291,24 +291,24 @@ def get_toctoc_fields(df: pd.DataFrame, no_meta_df:pd.DataFrame, hybrid_ips: lis
 
     return toctoc_fields_df
 
-def numeric_vctype_to_string(vctypes):
-    vctype_list = []
-    for vctype in vctypes:
-        if vctype == 5002:
-            vctype_list.append('HYBRID_STAGGERED')
-        elif vctype == 5001:
-            vctype_list.append('HYBRID')
-        elif vctype == 5005:
-            vctype_list.append('HYBRID_5005')
-        elif vctype == 2001:
-            vctype_list.append('PRESSURE')
-        elif vctype == 1002:
-            vctype_list.append('ETA')
-        elif vctype == 1001:
-            vctype_list.append('SIGMA')
-        else:
-            vctype_list.append('UNKNOWN')
-    return vctype_list        
+# def numeric_vctype_to_string(vctypes):
+#     vctype_list = []
+#     for vctype in vctypes:
+#         if vctype == 5002:
+#             vctype_list.append('HYBRID_5002')
+#         elif vctype == 5001:
+#             vctype_list.append('HYBRID_5001')
+#         elif vctype == 5005:
+#             vctype_list.append('HYBRID_5005')
+#         elif vctype == 2001:
+#             vctype_list.append('PRESSURE_2001')
+#         elif vctype == 1002:
+#             vctype_list.append('ETA_1002')
+#         elif vctype == 1001:
+#             vctype_list.append('SIGMA_1001')
+#         else:
+#             vctype_list.append('UNKNOWN')
+#     return vctype_list        
 
 
 def get_hy_field(df: pd.DataFrame, hybrid_ips: list):
