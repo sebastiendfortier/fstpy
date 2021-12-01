@@ -10,6 +10,7 @@ from .utils import initializer
 
 STANDARD_ATMOSPHERE = 1013.25
 
+
 class QuickPressureError(Exception):
     pass
 
@@ -24,7 +25,7 @@ class QuickPressure():
     """
 
     @initializer
-    def __init__( self, df: pd.DataFrame, standard_atmosphere: bool = False):
+    def __init__(self, df: pd.DataFrame, standard_atmosphere: bool = False):
         self.validate_input()
 
     def validate_input(self):
@@ -37,7 +38,7 @@ class QuickPressure():
         if 'grid' not in self.df.columns:
             self.df = add_grid_column(self.df)
         if 'ip1_kind' not in self.df.columns:
-            self.df = add_columns(self.df,'ip_info')
+            self.df = add_columns(self.df, 'ip_info')
         if 'path' not in self.df.columns:
             self.df = add_path_and_key_columns(self.df)
 
@@ -48,7 +49,7 @@ class QuickPressure():
             grid_groups = path_df.groupby(['grid'])
 
             for _, grid_df in grid_groups:
-                grids_meta_df = grid_df.loc[grid_df.nomvar.isin(["!!", "P0", "PT","!!SF"])].reset_index(drop=True)
+                grids_meta_df = grid_df.loc[grid_df.nomvar.isin(["!!", "P0", "PT", "!!SF"])].reset_index(drop=True)
                 vctypes_groups = grid_df.groupby(['vctype'])
 
                 for vctype, vt_df in vctypes_groups:
@@ -57,8 +58,9 @@ class QuickPressure():
 
                     datev_groups = vt_df.groupby(['datev'])
                     for _, dv_df in datev_groups:
-                        without_meta_df = dv_df.loc[(dv_df.ip1 != 0) & (~dv_df.nomvar.isin(["!!", "HY", "P0", "PT", ">>", "^^", "PN", "PX", "PXSA"]))]
-                        
+                        without_meta_df = dv_df.loc[(dv_df.ip1 != 0) & (~dv_df.nomvar.isin(
+                            ["!!", "HY", "P0", "PT", ">>", "^^", "PN", "PX", "PXSA"]))]
+
                         if without_meta_df.empty:
                             continue
                         else:
@@ -70,9 +72,8 @@ class QuickPressure():
                                 px_df = vcoord.pressure()
                             if not px_df.empty:
                                 df_list.append(px_df)
-                                
-        df_list.append(self.meta_df)                        
+
+        df_list.append(self.meta_df)
         res_df = pd.concat(df_list, ignore_index=True)
         res_df = metadata_cleanup(res_df)
         return res_df
-
