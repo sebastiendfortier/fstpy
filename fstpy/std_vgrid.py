@@ -6,11 +6,11 @@ import logging
 import math
 import numpy as np
 import pandas as pd
-from typing import Tuple
+from typing import Tuple, Final
 import rpnpy.librmn.all as rmn
 import rpnpy.vgd.all as vgd
 
-STANDARD_ATMOSPHERE = 1013.25
+STANDARD_ATMOSPHERE: Final[float] = 1013.25
 """Standard Atmosphere constant"""
 
 ###############################################################
@@ -22,18 +22,18 @@ class VerticalCoordType(Enum):
     :param Enum: coordinate name, value pairs
     :type Enum: Enum
     """
-    SIGMA_1001 = 1001
-    ETA_1002 = 1002
-    HYBRID_NORMALIZED_1003 = 1003
-    PRESSURE_2001 = 2001
-    HYBRID_5001 = 5001
-    HYBRID_5002 = 5002
-    HYBRID_5003 = 5003
-    HYBRID_5004 = 5004
-    HYBRID_5005 = 5005
-    METER_SEA_LEVEL = 0
-    METER_GROUND_LEVEL = 4
-    UNKNOWN = 9999
+    SIGMA_1001: Final[int] = 1001
+    ETA_1002: Final[int] = 1002
+    HYBRID_NORMALIZED_1003: Final[int] = 1003
+    PRESSURE_2001: Final[int] = 2001
+    HYBRID_5001: Final[int] = 5001
+    HYBRID_5002: Final[int] = 5002
+    HYBRID_5003: Final[int] = 5003
+    HYBRID_5004: Final[int] = 5004
+    HYBRID_5005: Final[int] = 5005
+    METER_SEA_LEVEL: Final[int] = 0
+    METER_GROUND_LEVEL: Final[int] = 4
+    UNKNOWN: Final[int] = 9999
 
     def __lt__(self, other):
         """Defined for grouping in dataframe

@@ -158,10 +158,11 @@ def add_unit_and_description_columns(df: pd.DataFrame):
         remove_column(to_modify_df,'description')
         to_modify_df['unit'], to_modify_df['description'] = vget_unit_and_description(to_modify_df['nomvar'].values)
         others_df = copy.deepcopy(df.loc[~df.unit.isna()])
-        df = pd.concat([to_modify_df,others_df]).sort_index()
+        new_df = pd.concat([to_modify_df,others_df]).sort_index()
     else:    
-        df['unit'], df['description'] = vget_unit_and_description(df['nomvar'].values)
-    return df
+        new_df = copy.deepcopy(df)
+        new_df['unit'], new_df['description'] = vget_unit_and_description(new_df['nomvar'].values)
+    return new_df
 
 
 def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
