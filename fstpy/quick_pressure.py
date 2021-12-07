@@ -59,7 +59,7 @@ class QuickPressure():
                     datev_groups = vt_df.groupby(['datev'])
                     for _, dv_df in datev_groups:
                         without_meta_df = dv_df.loc[(dv_df.ip1 != 0) & (~dv_df.nomvar.isin(
-                            ["!!", "HY", "P0", "PT", ">>", "^^", "PN", "PX", "PXSA"]))]
+                            ["!!", "HY", "P0", "PT", ">>", "^^", "PX", "PXSA"]))]
 
                         if without_meta_df.empty:
                             continue
