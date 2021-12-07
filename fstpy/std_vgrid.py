@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
+import copy
 import dask.array as da
 from enum import Enum
 import logging
@@ -579,11 +580,14 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
     """
     from .dataframe import add_ip_info_columns, get_meta_fields_exists
     from . import VCTYPES
+
     if 'level' not in df.columns:
-        df = add_ip_info_columns(df)
+        new_df = add_ip_info_columns(df)
+    else:
+        new_df = copy.deepcopy(df)
     newdfs = []
-    df.loc[:, 'vctype'] = vctype_dict['UNKNOWN']
-    grid_groups = df.groupby(df.grid)
+    new_df['vctype'] = vctype_dict['UNKNOWN']
+    grid_groups = new_df.groupby(new_df.grid)
 
     for _, grid in grid_groups:
         toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(grid)
@@ -592,7 +596,7 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
         for _, ip1_kind_group in ip1_kind_groups:
             # these ip1_kinds are not defined
             without_meta = ip1_kind_group.loc[(~ip1_kind_group.ip1_kind.isin(
-                [-1, 3, 6])) & (~ip1_kind_group.nomvar.isin(["!!", "HY", "P0", "PT", ">>", "^^", "PN"]))]
+                [-1, 3, 6])) & (~ip1_kind_group.nomvar.isin(["!!", "HY", "P0", "PT", ">>", "^^"]))]
             if not without_meta.empty:
                 ip1_kind = without_meta.iloc[0]['ip1_kind']
                 # print(vcode)
@@ -618,11 +622,11 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
                     ip1_kind_group['vctype'] = vctype_dict[vctyte_df.iloc[0]['vctype']]
             newdfs.append(ip1_kind_group)
 
-    df = pd.concat(newdfs, ignore_index=True)
+    res_df = pd.concat(newdfs, ignore_index=True)
 
-    df.loc[df.nomvar.isin([">>", "^^", "!!", "P0", "PT", "HY", "PN", "!!SF"]), "vctype"] = vctype_dict['UNKNOWN']
+    res_df.loc[res_df.nomvar.isin([">>", "^^", "!!", "P0", "PT", "HY", "!!SF"]), "vctype"] = vctype_dict['UNKNOWN']
 
-    return df
+    return res_df
 
 
 def get_df_from_vgrid(vgrid_descriptor: vgd.VGridDescriptor, ip1: int, ip2: int) -> pd.DataFrame:
