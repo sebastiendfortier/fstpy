@@ -278,7 +278,7 @@ def test_8(plugin_test_dir):
     """Test a case with complete roundtrip conversion celcius -> kelvin -> celsius"""
     # open and read source
     source0 = plugin_test_dir + "TTES_fileSrc.std"
-    src_df0 = StandardFileReader(source0).to_pandas()
+    src_df0 = StandardFileReader(source0, decode_metadata=True).to_pandas()
 
     es_df = src_df0.loc[src_df0.nomvar=="ES"]
     tt_df = src_df0.loc[src_df0.nomvar=="TT"]
