@@ -8,7 +8,7 @@ import pathlib
 import time
 from ctypes import (POINTER, Structure, c_char_p, c_int, c_int32, c_uint,
                     c_uint32, c_void_p, cast)
-from typing import Type
+from typing import Tuple, Type
 
 import numpy as np
 import pandas as pd
@@ -51,15 +51,10 @@ def get_dataframe_from_file(path: str, query: str = None):
 
     df = add_dask_column(df)
 
-    remove_column(df,'key')
-    remove_column(df,'path')
-    remove_column(df,'shape')
-    
+    df = df.drop(['key', 'path', 'shape'], axis=1, errors='ignore')
+
     return df
 
-def remove_column(df,name):
-    if name in df.columns:
-        df.pop(name)
         
                
 def open_fst(path: str, mode: str, caller_class: str, error_class: Type):
@@ -78,15 +73,12 @@ class GetRecordsFromFile(Exception):
 
 
 def add_metadata_to_query_results(df, query_result_df, hy_df) -> pd.DataFrame:
-    meta_df = df.loc[df.nomvar.isin(
-        ["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1", "PN"])]
+    meta_df = df.loc[df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1"])]
 
-    query_result_metadata_df = meta_df.loc[meta_df.grid.isin(
-        list(query_result_df.grid.unique()))]
+    query_result_metadata_df = meta_df.loc[meta_df.grid.isin(list(query_result_df.grid.unique()))]
 
     if (not query_result_df.empty) and (not query_result_metadata_df.empty):
-        df = pd.concat(
-            [query_result_df, query_result_metadata_df], ignore_index=True)
+        df = pd.concat([query_result_df, query_result_metadata_df], ignore_index=True)
     elif (not query_result_df.empty) and (query_result_metadata_df.empty):
         df = query_result_df
     elif query_result_df.empty:
@@ -167,7 +159,7 @@ def get_lat_lon(df):
 def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vertical_descriptors=True) -> pd.DataFrame:
     from fstpy.dataframe import add_path_and_key_columns
     new_df = copy.deepcopy(df)
-    df = add_path_and_key_columns(new_df)
+    new_df = add_path_and_key_columns(new_df)
     path_groups = new_df.groupby(new_df.path)
     df_list = []
     #for each files in the df
@@ -211,7 +203,7 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
 def get_all_grid_metadata_fields_from_std_file(path):
     from .dataframe import add_grid_column
     df = get_basic_dataframe(path)
-    df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "HY", "!!SF", "E1", "P0", "PT", "PN"])]
+    df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "HY", "!!SF", "E1", "P0", "PT"])]
     df = add_grid_column(df)
     df = add_dask_column(df)
     return df
@@ -689,3 +681,67 @@ def get_basic_dataframe(path:str) -> pd.DataFrame:
     df['shape'] = pd.Series(zip(df.ni.to_numpy(),df.nj.to_numpy()),dtype='object').to_numpy()
 
     return df
+
+class DecodeIpError(Exception):
+    pass
+
+def kind_to_string(kind:int) -> str:
+    return '' if kind in [-1, 3, 15, 17, 100] else rmn.kindToString(kind).strip()
+
+def decode_ip123(nomvar:str, ip1: int, ip2: int, ip3: int) -> 'Tuple(dict, dict, dict)':
+    ip_info = {'v1': 0., 'v2': 0., 'kind': -1, 'kinds': ''}
+    
+    if nomvar in ['>>', '^^', '^>', '!!']:
+        ip1_info = copy.deepcopy(ip_info)
+        ip1_info['v1'] = float(ip1)
+        ip1_info['v2'] = float(ip1)
+        ip1_info['kind'] = 100
+
+        ip2_info = copy.deepcopy(ip_info)
+        ip2_info['v1'] = float(ip2)
+        ip2_info['v2'] = float(ip2)
+        ip2_info['kind'] = 100
+
+        ip3_info = copy.deepcopy(ip_info)
+        ip3_info['v1'] = float(ip3)
+        ip3_info['v2'] = float(ip3)
+        ip3_info['kind'] = 100
+        
+    else:
+        ip1_info = copy.deepcopy(ip_info)
+        ip1_info['v1'], ip1_info['kind'] = rmn.convertIp(rmn.CONVIP_DECODE, ip1)
+        ip1_info['v2'] = ip1_info['v1']
+        ip1_info['kinds'] = kind_to_string(ip1_info['kind'])
+
+        ip2_info = copy.deepcopy(ip_info)
+        ip2_info['v1'], ip2_info['kind'] = rmn.convertIp(rmn.CONVIP_DECODE, ip2)
+        ip2_info['v2'] = ip2_info['v1']
+        ip2_info['kinds'] = kind_to_string(ip2_info['kind'])
+        if (ip2 >= 32768): # Verifie si IP2 est encode
+            if (ip2_info['kind'] != 10):
+                raise DecodeIpError(f'Invalid kind value for ip2 {ip2_info["kind"]} != 10')
+        else:
+            ip2_info['kind'] = 10
+            ip2_info['kinds'] = kind_to_string(ip2_info['kind'])
+
+        ip3_info = copy.deepcopy(ip_info)
+        ip3_info['v1'], ip3_info['kind'] = rmn.convertIp(rmn.CONVIP_DECODE, ip3)
+        ip3_info['v2'] = ip3_info['v1']
+        ip3_info['kinds'] = kind_to_string(ip3_info['kind'])
+        if (ip3 < 32768): # Verifie si IP3 est encode
+            ip3_info['kind'] = 100
+            ip3_info['kinds'] = kind_to_string(ip3_info['kind'])
+
+        if nomvar not in ['>>', '^^', '^>', '!!', 'HY', 'P0', 'PT']:
+            # Nous n'avons pas de champs speciaux
+            if (ip3 >= 32768):
+                if (ip3_info['kind'] == ip2_info['kind']):
+                    # On a un intervalle de temps
+                    ip2_info['v1'] = ip3_info['v1']
+                    ip2_info['v2'] = ip2_info['v1']
+                elif (ip3_info['kind'] == ip1_info['kind']):
+                    # On a un intervalle sur les hauteurs
+                    ip1_info['v1'] = ip1_info['v1']
+                    ip1_info['v2'] = ip2_info['v1']
+
+    return ip1_info, ip2_info, ip3_info
