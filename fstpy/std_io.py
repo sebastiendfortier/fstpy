@@ -689,33 +689,28 @@ def kind_to_string(kind:int) -> str:
     return '' if kind in [-1, 3, 15, 17, 100] else rmn.kindToString(kind).strip()
 
 def decode_ip123(nomvar:str, ip1: int, ip2: int, ip3: int) -> 'Tuple(dict, dict, dict)':
-    ip_info = {'v1': 0., 'v2': 0., 'kind': -1, 'kinds': ''}
+    ip_info = {'v1': 0., 'kind': -1, 'kinds': ''}
     
     if nomvar in ['>>', '^^', '^>', '!!']:
         ip1_info = copy.deepcopy(ip_info)
         ip1_info['v1'] = float(ip1)
-        ip1_info['v2'] = float(ip1)
         ip1_info['kind'] = 100
 
         ip2_info = copy.deepcopy(ip_info)
         ip2_info['v1'] = float(ip2)
-        ip2_info['v2'] = float(ip2)
         ip2_info['kind'] = 100
 
         ip3_info = copy.deepcopy(ip_info)
         ip3_info['v1'] = float(ip3)
-        ip3_info['v2'] = float(ip3)
         ip3_info['kind'] = 100
         
     else:
         ip1_info = copy.deepcopy(ip_info)
         ip1_info['v1'], ip1_info['kind'] = rmn.convertIp(rmn.CONVIP_DECODE, ip1)
-        ip1_info['v2'] = ip1_info['v1']
         ip1_info['kinds'] = kind_to_string(ip1_info['kind'])
 
         ip2_info = copy.deepcopy(ip_info)
         ip2_info['v1'], ip2_info['kind'] = rmn.convertIp(rmn.CONVIP_DECODE, ip2)
-        ip2_info['v2'] = ip2_info['v1']
         ip2_info['kinds'] = kind_to_string(ip2_info['kind'])
         if (ip2 >= 32768): # Verifie si IP2 est encode
             if (ip2_info['kind'] != 10):
@@ -726,7 +721,6 @@ def decode_ip123(nomvar:str, ip1: int, ip2: int, ip3: int) -> 'Tuple(dict, dict,
 
         ip3_info = copy.deepcopy(ip_info)
         ip3_info['v1'], ip3_info['kind'] = rmn.convertIp(rmn.CONVIP_DECODE, ip3)
-        ip3_info['v2'] = ip3_info['v1']
         ip3_info['kinds'] = kind_to_string(ip3_info['kind'])
         if (ip3 < 32768): # Verifie si IP3 est encode
             ip3_info['kind'] = 100
@@ -735,13 +729,15 @@ def decode_ip123(nomvar:str, ip1: int, ip2: int, ip3: int) -> 'Tuple(dict, dict,
         if nomvar not in ['>>', '^^', '^>', '!!', 'HY', 'P0', 'PT']:
             # Nous n'avons pas de champs speciaux
             if (ip3 >= 32768):
-                if (ip3_info['kind'] == ip2_info['kind']):
-                    # On a un intervalle de temps
-                    ip2_info['v1'] = ip3_info['v1']
-                    ip2_info['v2'] = ip2_info['v1']
-                elif (ip3_info['kind'] == ip1_info['kind']):
-                    # On a un intervalle sur les hauteurs
-                    ip1_info['v1'] = ip1_info['v1']
-                    ip1_info['v2'] = ip2_info['v1']
+                if (ip3_info['kind'] == ip2_info['kind']): # On a un intervalle de temps
+                    v1 = ip3_info['v1']
+                    v2 = ip2_info['v1']
+                    ip2_info['v1'] = v1
+                    ip2_info['v2'] = v2
+                elif (ip3_info['kind'] == ip1_info['kind']): # On a un intervalle sur les hauteurs
+                    v1 = ip1_info['v1']
+                    v2 = ip2_info['v1']
+                    ip1_info['v1'] = v1
+                    ip1_info['v2'] = v2
 
     return ip1_info, ip2_info, ip3_info
