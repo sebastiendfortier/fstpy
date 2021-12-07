@@ -97,10 +97,10 @@ def metadata_cleanup(df: pd.DataFrame, strict_toctoc=True) -> pd.DataFrame:
     # get !!'s strict
     toctoc_fields_df = get_toctoc_fields(df, no_meta_df, hybrid_ips, sigma_ips, pressure_ips, strict_toctoc)
 
-    df = pd.concat([no_meta_df, grid_deformation_fields_df, p0_fields_df,
+    new_df = pd.concat([no_meta_df, grid_deformation_fields_df, p0_fields_df,
                     pt_fields_df, hy_field_df, toctoc_fields_df], ignore_index=True)
 
-    return df
+    return new_df
 
 
 class VoirError(Exception):
