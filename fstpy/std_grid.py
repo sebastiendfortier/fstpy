@@ -160,8 +160,8 @@ def get_2d_lat_lon_df(df: pd.DataFrame) -> pd.DataFrame:
             if no_meta_df.empty:
                 continue
 
-            tictic_df = copy.deepcopy(no_meta_df)
-            tactac_df = copy.deepcopy(no_meta_df)
+            tictic_df = pd.DataFrame([no_meta_df.iloc[0].to_dict()])
+            tactac_df = pd.DataFrame([no_meta_df.iloc[0].to_dict()])
 
             df_list = []
             grtyp_groups = no_meta_df.groupby('grtyp')

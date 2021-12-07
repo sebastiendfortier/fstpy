@@ -1,29 +1,38 @@
 # -*- coding: utf-8 -*-
 import copy
 import logging
+from typing import Final
 import dask.array as da
 from .std_vgrid import set_vertical_coordinate_type
 import numpy as np
 import pandas as pd
 # import rpnpy.librmn.all as rmn
 
-from .std_dec import (convert_rmndate_to_datetime, get_grid_identifier,
-                      get_parsed_etiket, get_unit_and_description)
-from .std_io import remove_column
+from .std_dec import (VCONVERT_RMNDATE_TO_DATETIME, VCREATE_DATA_TYPE_STR, VCREATE_FORECAST_HOUR, VCREATE_GRID_IDENTIFIER, VCREATE_IP_INFO, VGET_UNIT_AND_DESCRIPTION, VPARSE_ETIKET)
+
+
+
+class MissingColumnError(Exception):
+    pass
 
 
 def add_grid_column(df: pd.DataFrame) -> pd.DataFrame:
     """Adds the grid column to the dataframe. The grid column is a simple identifier composed of ip1+ip2 or ig1+ig2 depending on the type of record (>>,^^,^>) vs regular field. 
+    Replaces original column(s) if present.
 
     :param df: input dataframe
     :type df: pd.DataFrame
     :return: modified dataframe with the 'grid' column added
     :rtype: pd.DataFrame
     """
-    vcreate_grid_identifier = np.vectorize(get_grid_identifier, otypes=['str'])
-    df['grid'] = vcreate_grid_identifier(df['nomvar'].values, df['ip1'].values, df['ip2'].values, df['ig1'].values, df['ig2'].values)
-    return df
-    
+    for col in ['nomvar', 'ip1', 'ip2', 'ig1', 'ig2']:
+        if col not in df.columns:
+            raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add grid column!')
+
+    new_df = copy.deepcopy(df.drop('grid', axis=1, errors='ignore'))
+    new_df['grid'] = VCREATE_GRID_IDENTIFIER(new_df.nomvar, new_df.ip1, new_df.ip2, new_df.ig1, new_df.ig2)
+    return new_df
+
 def get_path_and_key_from_array(darr:'da.core.Array'):
     if not isinstance(darr,da.core.Array):
         return None, None
@@ -35,22 +44,26 @@ def get_path_and_key_from_array(darr:'da.core.Array'):
         return path_and_key[0], path_and_key[1]
     else:
         return None, None
-        
+
+VPARSE_TASK_LIST = np.vectorize(get_path_and_key_from_array, otypes=['object','object'])
+
 def add_path_and_key_columns(df: pd.DataFrame):
-    """adds the path and key columns to the dataframe
+    """Adds the path and key columns to the dataframe.
+    Replaces original column(s) if present.
 
     :param df: dataframe
     :type df: pd.DataFrame
     :return: path and key for each row
     :rtype: pd.DataFrame
     """
-    df['path'] = None
-    df['key'] = None
-    vparse_task_list = np.vectorize(get_path_and_key_from_array, otypes=['object','object'])
-    df['path'], df['key'] = vparse_task_list(df['d'].values)
-    return df
+    if 'd' not in df.columns:
+        raise MissingColumnError(f'"d" is missing from DataFrame columns, cannot add path and key column!') 
 
-    
+    new_df = copy.deepcopy(df.drop(['path','key'], axis=1, errors='ignore'))
+    new_df['path'], new_df['key'] = VPARSE_TASK_LIST(new_df.d)
+    return new_df
+
+
 # get modifier information from the second character of typvar
 def parse_typvar(typvar: str):
     multiple_modifications = False
@@ -82,24 +95,28 @@ def parse_typvar(typvar: str):
             ensemble_extra_info = True
     return multiple_modifications, zapped, filtered, interpolated, unit_converted, bounded, missing_data, ensemble_extra_info
 
-  
+VPARSE_TYPVAR: Final = np.vectorize(parse_typvar, otypes=['bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'])  
+
 def add_flag_values(df: pd.DataFrame):
-    """adds the correct flag values derived from parsing the typvar
+    """Adds the correct flag values derived from parsing the typvar.
+    Replaces original column(s) if present.
 
     :param df: dataframe
     :type df: pd.DataFrame
     :return: flag values set according to second character of typvar if present
     :rtype: pd.DataFrame
     """
-    # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
-    vparse_typvar = np.vectorize(parse_typvar, otypes=['bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'])
-    df['multiple_modifications'], df['zapped'], df['filtered'], df['interpolated'], df['unit_converted'], df['bounded'], df['missing_data'], df['ensemble_extra_info'] = vparse_typvar(df['typvar'].values)
-    return df
+    if 'typvar' not in df.columns:
+        raise MissingColumnError(f'"typvar" is missing from DataFrame columns, cannot add flags columns!') 
+
+    new_df = copy.deepcopy(df.drop(['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info'], axis=1, errors='ignore'))
+    new_df['multiple_modifications'], new_df['zapped'], new_df['filtered'], new_df['interpolated'], new_df['unit_converted'], new_df['bounded'], new_df['missing_data'], new_df['ensemble_extra_info'] = VPARSE_TYPVAR(new_df.typvar)
+    return new_df
 
 
 
 def drop_duplicates(df: pd.DataFrame):
-    """Removes duplicate rows from dataframe
+    """Removes duplicate rows from dataframe.
 
     :param df: original dataframe
     :type df: pd.DataFrame
@@ -121,14 +138,9 @@ def drop_duplicates(df: pd.DataFrame):
 
 
 
-def add_shape_column(df):
-    df['shape'] = pd.Series(zip(df.ni.to_numpy(),df.nj.to_numpy()),dtype='object').to_numpy()
-    return df
-
-
-def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """adds label,run,implementation and ensemble_member columns from the parsed 
-       etikets to a dataframe
+def add_shape_column(df: pd.DataFrame) -> pd.DataFrame:
+    """Adds the shape column from the ni and nj to a dataframe.
+    Replaces original column(s) if present.
 
     :param df: dataframe
     :type df: pd.DataFrame
@@ -136,37 +148,53 @@ def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
              added
     :rtype: pd.DataFrame
     """
-    # df.at[i,'label'],df.at[i,'run'],df.at[i,'implementation'],df.at[i,'ensemble_member'] = get_parsed_etiket(df.at[i,'etiket'])
-    vparse_etiket = np.vectorize(get_parsed_etiket, otypes=['str', 'str', 'str', 'str'])
-    df['label'], df['run'], df['implementation'], df['ensemble_member'] = vparse_etiket(df['etiket'].values)
-    return df
+    for col in ['ni', 'nj']:
+        if col not in df.columns:
+            raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add shape column!') 
+
+    new_df = copy.deepcopy(df.drop('shape', axis=1, errors='ignore'))
+    new_df['shape'] = pd.Series(zip(new_df.ni.to_numpy(), new_df.nj.to_numpy()),dtype='object').to_numpy()
+    return new_df
+
+
+def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Adds label,run,implementation and ensemble_member columns from the parsed etikets to a dataframe.
+    Replaces original column(s) if present.
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: dataframe with label,run,implementation and ensemble_member columns 
+             added
+    :rtype: pd.DataFrame
+    """
+    if 'etiket' not in df.columns:
+        raise MissingColumnError(f'"etiket" is missing from DataFrame columns, cannot add parsed etiket columns!') 
+
+    new_df = copy.deepcopy(df.drop(['label', 'run', 'implementation', 'ensemble_member'], axis=1, errors='ignore'))
+    new_df['label'], new_df['run'], new_df['implementation'], new_df['ensemble_member'] = VPARSE_ETIKET(new_df.etiket)
+    return new_df
 
 
 def add_unit_and_description_columns(df: pd.DataFrame):
-    """adds unit and description from the nomvars to a dataframe
+    """Adds unit and description from the nomvars to a dataframe.
+    Replaces original column(s) if present.
 
     :param df: dataframe
     :type df: pd.DataFrame
     :return: dataframe with unit and description columns added
     :rtype: pd.DataFrame
     """
-    df.reset_index(drop=True,inplace=True)
-    vget_unit_and_description = np.vectorize(get_unit_and_description, otypes=['str', 'str'])
-    if 'unit' in df.columns:
-        to_modify_df = copy.deepcopy(df.loc[df.unit.isna()])
-        remove_column(to_modify_df,'unit')
-        remove_column(to_modify_df,'description')
-        to_modify_df['unit'], to_modify_df['description'] = vget_unit_and_description(to_modify_df['nomvar'].values)
-        others_df = copy.deepcopy(df.loc[~df.unit.isna()])
-        new_df = pd.concat([to_modify_df,others_df]).sort_index()
-    else:    
-        new_df = copy.deepcopy(df)
-        new_df['unit'], new_df['description'] = vget_unit_and_description(new_df['nomvar'].values)
+    if 'nomvar' not in df.columns:
+        raise MissingColumnError(f'"nomvar" is missing from DataFrame columns, cannot add unit and description columns!') 
+
+    new_df = copy.deepcopy(df.drop(['unit', 'description'], axis=1, errors='ignore'))
+    new_df['unit'], new_df['description'] = VGET_UNIT_AND_DESCRIPTION(new_df.nomvar)
     return new_df
 
 
 def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
-    """adds the decoded dateo or datev column to the dataframe
+    """Adds the decoded dateo or datev column to the dataframe.
+    Replaces original column(s) if present.
 
     :param df: dataframe
     :type df: pd.DataFrame
@@ -176,49 +204,63 @@ def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
              dataframe
     :rtype: pd.DataFrame
     """
-    vconvert_rmndate_to_datetime = np.vectorize(convert_rmndate_to_datetime)  # ,otypes=['datetime64']
+
     if attr == 'dateo':
-        df['date_of_observation'] = vconvert_rmndate_to_datetime(df['dateo'].values)
+        if 'dateo' not in df.columns:
+            raise MissingColumnError(f'"dateo" is missing from DataFrame columns, cannot add date_of_observation column!') 
+
+        new_df = copy.deepcopy(df.drop('date_of_observation', axis=1, errors='ignore'))
+        new_df['date_of_observation'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.dateo)
     else:
-        df['date_of_validity'] = vconvert_rmndate_to_datetime(df['datev'].values)
-    return df    
+        if 'datev' not in df.columns:
+            raise MissingColumnError(f'"datev" is missing from DataFrame columns, cannot add date_of_validity column!') 
+
+        new_df = copy.deepcopy(df.drop('date_of_validity', axis=1, errors='ignore'))
+        new_df['date_of_validity'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.datev)
+    return new_df    
 
 
 
 def add_forecast_hour_column(df: pd.DataFrame):
-    """adds the forecast_hour column derived from the deet and npas columns
+    """Adds the forecast_hour column derived from the deet and npas columns.
+    Replaces original column(s) if present.
 
     :param df: dataframe
     :type df: pd.DataFrame
     :return: forecast_hour column added to the dataframe
     :rtype: pd.DataFrame
     """
-    from .std_dec import get_forecast_hour
+    for col in ['deet', 'npas']:
+        if col not in df.columns:
+            raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add forecast_hour column!') 
 
-    # df.at[i,'forecast_hour'] = datetime.timedelta(seconds=int((df.at[i,'npas'] * df.at[i,'deet'])))
-    vcreate_forecast_hour = np.vectorize(get_forecast_hour)  # ,otypes=['timedelta64[ns]']
-    df['forecast_hour'] = vcreate_forecast_hour(df['deet'].values, df['npas'].values)
-    return df
+    new_df = copy.deepcopy(df.drop('forecast_hour', axis=1, errors='ignore'))
+    new_df['forecast_hour'] = VCREATE_FORECAST_HOUR(new_df.deet, new_df.npas)
+    return new_df
     
 
 
 def add_data_type_str_column(df: pd.DataFrame) -> pd.DataFrame:
-    """adds the data type decoded to string value column to the dataframe
+    """Adds the data type decoded to string value column to the dataframe.
+    Replaces original column(s) if present.
 
     :param df: dataframe
     :type df: pd.DataFrame
     :return: data_type_str column added to the dataframe
     :rtype: pd.DataFrame
     """
-    from .std_dec import get_data_type_str
-    vcreate_data_type_str = np.vectorize(get_data_type_str, otypes=['str'])
-    df['data_type_str'] = vcreate_data_type_str(df['datyp'].values)
-    return df
+    if 'datyp' not in df.columns:
+            raise MissingColumnError(f'"datyp" is missing from DataFrame columns, cannot add data_type_str column!') 
+
+    new_df = copy.deepcopy(df.drop('data_type_str', axis=1, errors='ignore'))
+    new_df['data_type_str'] = VCREATE_DATA_TYPE_STR(new_df.datyp)
+    return new_df
     
 
 
 def add_ip_info_columns(df: pd.DataFrame):
-    """adds all relevant level info from the ip1 column values
+    """Adds all relevant level info from the ip1 column values.
+    Replaces original column(s) if present.
 
     :param df: dataframe
     :type df: pd.DataFrame
@@ -226,11 +268,12 @@ def add_ip_info_columns(df: pd.DataFrame):
              added to the dataframe.
     :rtype: pd.DataFrame
     """
-    from .std_dec import get_ip_info
-    new_df = copy.deepcopy(df)
-    vcreate_ip_info = np.vectorize(get_ip_info, otypes=[
-                                   'float32', 'int32', 'str', 'float32', 'int32', 'str', 'float32', 'int32', 'str', 'bool', 'bool', 'bool', 'object'])
-    new_df['level'], new_df['ip1_kind'], new_df['ip1_pkind'], new_df['ip2_dec'], new_df['ip2_kind'], new_df['ip2_pkind'], new_df['ip3_dec'], new_df['ip3_kind'], new_df['ip3_pkind'], new_df['surface'], new_df['follow_topography'], new_df['ascending'], new_df['interval'] = vcreate_ip_info(new_df['ip1'].values, new_df['ip2'].values, new_df['ip3'].values)
+    for col in ['nomvar', 'ip1', 'ip2', 'ip3']:
+        if col not in df.columns:
+            raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add ip info columns!') 
+
+    new_df = copy.deepcopy(df.drop(['level', 'ip1_kind', 'ip1_pkind', 'ip2_dec', 'ip2_kind', 'ip2_pkind', 'ip3_dec', 'ip3_kind', 'ip3_pkind', 'surface', 'follow_topography', 'ascending', 'interval'], axis=1, errors='ignore'))
+    new_df['level'], new_df['ip1_kind'], new_df['ip1_pkind'], new_df['ip2_dec'], new_df['ip2_kind'], new_df['ip2_pkind'], new_df['ip3_dec'], new_df['ip3_kind'], new_df['ip3_pkind'], new_df['surface'], new_df['follow_topography'], new_df['ascending'], new_df['interval'] = VCREATE_IP_INFO(new_df.nomvar, new_df.ip1, new_df.ip2, new_df.ip3)
     return new_df
 
 
@@ -239,6 +282,7 @@ def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket',
     """If valid columns are provided, they will be added. 
        These include ['flags','etiket','unit','dateo','datev','forecast_hour',
        'datyp','ip_info']
+    Replaces original column(s) if present.   
 
     :param df: dataframe to modify (meta data needs to be present in dataframe)
     :type df: pd.DataFrame

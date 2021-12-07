@@ -272,7 +272,8 @@ def unit_convert(df: pd.DataFrame, to_unit_name='scalar', standard_unit=False) -
     :return: a dataframe containing the converted data
     :rtype: pd.DataFrame
     """
-    df = add_unit_and_description_columns(df)
+    if 'unit' not in df.columns:
+        df = add_unit_and_description_columns(df)
 
     meta_df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
     # remove meta data from DataFrame

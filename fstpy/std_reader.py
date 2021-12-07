@@ -3,9 +3,15 @@ import copy
 import itertools
 import multiprocessing as mp
 import os
-from tqdm import tqdm
-import pandas as pd
 from . import FSTPY_PROGRESS
+
+try:
+    from tqdm import tqdm
+except ModuleNotFoundError as e:
+    FSTPY_PROGRESS = False
+    
+import pandas as pd
+
 
 from fstpy.xarray_utils import convert_to_cmc_xarray
 
@@ -51,7 +57,7 @@ class StandardFileReader:
         :param query: parameter to pass to dataframe.query method, to select specific records  
         :type query: str, optional  
     """
-    meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1", "PN"]
+    meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
 
     @initializer
     def __init__(self, filenames, decode_metadata=False, query=None):
@@ -64,7 +70,7 @@ class StandardFileReader:
             raise StandardFileReaderError('Filenames must be str or list\n')
 
     def to_pandas(self) -> pd.DataFrame:
-        from .std_io import get_dataframe_from_file, parallel_get_dataframe_from_file
+        from .std_io import get_dataframe_from_file
         from .dataframe import add_columns, drop_duplicates
         """creates the dataframe from the provided file metadata
 
@@ -114,11 +120,10 @@ def compute(df: pd.DataFrame,remove_path_and_key:bool=True) -> pd.DataFrame:
     :return: modified dataframe with numpy arrays instead of dask arrays
     :rtype: pd.DataFrame
     """
-    from .std_io import remove_column
     from .dataframe import add_path_and_key_columns
     new_df = copy.deepcopy(df)
     
-    df = add_path_and_key_columns(new_df)
+    new_df = add_path_and_key_columns(new_df)
     
     no_path_df = new_df.loc[new_df.path.isna()]
 
@@ -143,8 +148,6 @@ def compute(df: pd.DataFrame,remove_path_and_key:bool=True) -> pd.DataFrame:
     new_df = pd.concat(df_list).sort_index()
     
     if remove_path_and_key:
-        remove_column(new_df,'key')
-        remove_column(new_df,'path')
-
+        new_df = new_df.drop(['path','key'], axis=1, errors='ignore')
     
     return new_df

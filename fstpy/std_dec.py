@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
+from typing import Final
+from .std_io import decode_ip123
 
 import numpy as np
 import rpnpy.librmn.all as rmn
@@ -14,8 +16,7 @@ class Interval:
         self.low = low
         self.high = high
         self.kind = kind
-        self.pkind = '' if kind in [-1, 3, 15,
-                                    17] else rmn.kindToString(kind).strip()
+        self.pkind = '' if kind in [-1, 3, 15, 17, 100] else rmn.kindToString(kind).strip()
         pass
 
     def delta(self):
@@ -27,39 +28,32 @@ class Interval:
         return f'{self.ip}:{self.low}{self.pkind}@{self.high}{self.pkind}'
 
 
-def get_interval(ip3: int, ip1: int, i1v1: float, i1v2: float, i1kind: int, ip2: int, i2v1: float, i2v2: float, i2kind: int) -> 'Interval|None':
+def get_interval(ip1: int, ip2: int, ip3: int, i1: dict, i2: dict, i3: dict) -> 'Interval|None':
     """Gets interval if exists from ip values
 
-    :param ip3: ip1 value
-    :type ip3: int
     :param ip1: ip1 value
     :type ip1: int
-    :param i1v1: ip1 low decoded value
-    :type i1v1: float
-    :param i1v2: ip1 high decoded value
-    :type i1v2: float
-    :param i1kind: ip1 kind
-    :type i1kind: int
     :param ip2: ip2 value
     :type ip2: int
-    :param i2v1: ip2 low decoded value
-    :type i2v1: float
-    :param i2v2: ip2 high decoded value
-    :type i2v2: float
-    :param i2kind: ip2 kind
-    :type i2kind: int
-    :return: decoded interval
+    :param ip3: ip3 value
+    :type ip3: int
+    :param i1: decoded ip1 values
+    :type i1: dict
+    :param i2: decoded ip2 values
+    :type i2: dict
+    :param i3: decoded ip2 values
+    :type i3: dict
+    :return: Interval
     :rtype: Interval
     """
     if ip3 > 32768:
-        if (ip1 > 32768) and (i1v1 != i1v2):
-            return Interval('ip1', i1v1, i1v2, i1kind)
-        elif (ip2 > 32768) and (i2v1 != i2v2):
-            return Interval('ip2', i2v1, i2v2, i2kind)
+        if (ip1 > 32768) and (i1['kind'] == i3['kind']):
+            return Interval('ip1', i1['v1'], i1['v2'], i1['kind'])
+        elif (ip2 > 32768) and (i2['kind'] == i3['kind']):
+            return Interval('ip2', i2['v1'], i2['v2'], i2['kind'])
         else:
             return None
     return None
-
 
 def get_level_sort_order(kind: int) -> bool:
     """returns the level sort order
@@ -78,6 +72,7 @@ def get_level_sort_order(kind: int) -> bool:
     return False
 
 
+
 def get_forecast_hour(deet: int, npas: int) -> datetime.timedelta:
     """creates a timedelta object in seconds from deet * npas
 
@@ -92,6 +87,7 @@ def get_forecast_hour(deet: int, npas: int) -> datetime.timedelta:
         return datetime.timedelta(seconds=int(npas * deet))
     return datetime.timedelta(0)
 
+VCREATE_FORECAST_HOUR: Final = np.vectorize(get_forecast_hour)  # ,otypes=['timedelta64[ns]']
 
 def get_data_type_str(datyp: int):
     """gets the data type string from the datyp int
@@ -103,8 +99,10 @@ def get_data_type_str(datyp: int):
     """
     return DATYP_DICT[datyp]
 
+VCREATE_DATA_TYPE_STR: Final = np.vectorize(get_data_type_str, otypes=['str'])
 
-def get_ip_info(ip1: int, ip2: int, ip3: int):
+
+def get_ip_info(nomvar:str, ip1: int, ip2: int, ip3: int):
     """gets all relevant level info from the ip1 int value
 
     :param ip1: encoded value stored in ip1
@@ -112,29 +110,24 @@ def get_ip_info(ip1: int, ip2: int, ip3: int):
     :return: level value, kind and kind str obtained from decoding ip1 and bools representing if the level is a surface level, if it follows topography and its sort order.
     :rtype: float,int,str,bool,bool,bool
     """
-    i1, i2, i3 = rmn.DecodeIp(ip1, ip2, ip3)
-    ip1_pkind = '' if i1.kind in [-1, 3, 15,
-                                  17] else rmn.kindToString(i1.kind).strip()
-    level = i1.v1
-    ip1_kind = i1.kind
+    # iii1, iii2, iii3 = rmn.DecodeIp(ip1,ip2,ip3)
+    i1, i2, i3 = decode_ip123(nomvar, ip1, ip2, ip3) 
+    # if nomvar not in ['>>','^^','!!','^>']:
+    #     print(nomvar,iii1,i1,iii2,i2,iii3,i3)
 
-    ip2_pkind = '' if i2.kind in [-1, 3, 15,
-                                  17] else rmn.kindToString(i2.kind).strip()
-    ip2_dec = i2.v1
-    ip2_kind = i2.kind
+    #     print(nomvar ,[(iii1.v1,i1['v1']) if (iii1.v1 != i1['v1']) else True, (iii2.v1,i2['v1']) if (iii2.v1 != i2['v1']) else True, (iii3.v1,i3['v1']) if (iii3.v1 != i3['v1']) else True])
 
-    ip3_pkind = '' if i3.kind in [-1, 3, 15,
-                                  17] else rmn.kindToString(i3.kind).strip()
-    ip3_dec = i3.v1
-    ip3_kind = i3.kind
+    surface = is_surface(i1['kind'], i1['v1'])
 
-    surface = is_surface(ip1_kind, level)
-    follow_topography = level_type_follows_topography(ip1_kind)
-    ascending = get_level_sort_order(ip1_kind)
+    follow_topography = level_type_follows_topography(i1['kind'])
 
-    interval = get_interval(ip3, ip1, i1.v1, i1.v2,
-                            i1.kind, ip2, i2.v1, i2.v2, i2.kind)
-    return level, ip1_kind, ip1_pkind, ip2_dec, ip2_kind, ip2_pkind, ip3_dec, ip3_kind, ip3_pkind, surface, follow_topography, ascending, interval
+    ascending = get_level_sort_order(i1['kind'])
+
+    interval = get_interval(ip1, ip2, ip3, i1, i2, i3)
+
+    return i1['v1'], i1['kind'], i1['kinds'], i2['v1'], i2['kind'], i2['kinds'], i3['v1'], i3['kind'], i3['kinds'], surface, follow_topography, ascending, interval
+
+VCREATE_IP_INFO: Final = np.vectorize(get_ip_info, otypes=['float32', 'int32', 'str', 'float32', 'int32', 'str', 'float32', 'int32', 'str', 'bool', 'bool', 'bool', 'object'])
 
 
 def get_unit_and_description(nomvar):
@@ -160,9 +153,9 @@ def get_unit_and_description(nomvar):
         unit = 'scalar'
     return unit, description
 
+VGET_UNIT_AND_DESCRIPTION: Final = np.vectorize(get_unit_and_description, otypes=['str', 'str'])
+
 # written by Micheal Neish creator of fstd2nc
-
-
 def convert_rmndate_to_datetime(date: int) -> 'datetime.datetime|None':
     """returns a datetime object of the decoded RMNDate int
 
@@ -180,6 +173,7 @@ def convert_rmndate_to_datetime(date: int) -> 'datetime.datetime|None':
     else:
         return None
 
+VCONVERT_RMNDATE_TO_DATETIME: Final = np.vectorize(convert_rmndate_to_datetime)  # ,otypes=['datetime64']
 
 def is_surface(ip1_kind: int, level: float) -> bool:
     """Return a bool that tell us if the level is a surface level
@@ -256,6 +250,7 @@ def get_grid_identifier(nomvar: str, ip1: int, ip2: int, ig1: int, ig2: int) -> 
         grid = "".join([str(ig1), str(ig2)])
     return grid
 
+VCREATE_GRID_IDENTIFIER: Final = np.vectorize(get_grid_identifier, otypes=['str'])
 
 def get_parsed_etiket(raw_etiket: str):
     """parses the etiket of a standard file to get label, run, implementation and ensemble member if available
@@ -313,3 +308,5 @@ def get_parsed_etiket(raw_etiket: str):
     else:
         label = raw_etiket
     return label, run, implementation, ensemble_member
+
+VPARSE_ETIKET: Final = np.vectorize(get_parsed_etiket, otypes=['str', 'str', 'str', 'str'])

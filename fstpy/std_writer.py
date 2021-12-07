@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 import copy
-import tqdm
 import logging
 import math
 import os
 from fstpy import FSTPY_PROGRESS
+
+try:
+    from tqdm import tqdm
+except ModuleNotFoundError as e:
+    FSTPY_PROGRESS = False
 
 import numpy as np
 import pandas as pd
@@ -14,7 +18,7 @@ from fstpy.dataframe import add_path_and_key_columns
 from fstpy.std_reader import compute
 
 from .dataframe_utils import metadata_cleanup
-from .std_io import get_field_dtype, get_grid_metadata_fields
+from .std_io import get_field_dtype
 from .utils import get_num_rows_for_reading, initializer, to_numpy
 
 
@@ -37,7 +41,7 @@ class StandardFileWriter:
                 modified. In 'write' mode, the data will be loaded, metadata 
                 fields like '>>' will be added if not present default 'write'
     :type mode: str
-    :param no_meta: if true these fields ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1","PN"] will be removed from the dataframe
+    :param no_meta: if true these fields ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"] will be removed from the dataframe
     :type no_meta: bool
     :param overwrite: if True and dataframe inputfile is the same as the output file, records will be added to the file, defaults to False
     :type overwrite: bool, optional
@@ -73,7 +77,7 @@ class StandardFileWriter:
         # remove meta
         if self.no_meta:
             self.df = self.df.loc[~self.df.nomvar.isin(
-                ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1", "PN"])]
+                ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"])]
 
         if self.mode == 'dump':
             self._dump()
@@ -93,6 +97,7 @@ class StandardFileWriter:
         rmn.fstcloseall(file_id)
 
     def _update(self):
+        self.overwrite = True
         if not self.file_exists:
             raise StandardFileWriterError(
                 'StandardFileWriter - file does not exist, cant update records')
