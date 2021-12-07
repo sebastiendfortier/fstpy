@@ -28,7 +28,7 @@ class Interval:
         return f'{self.ip}:{self.low}{self.pkind}@{self.high}{self.pkind}'
 
 
-def get_interval(ip1: int, ip2: int, ip3: int, i1: dict, i2: dict) -> 'Interval|None':
+def get_interval(ip1: int, ip2: int, ip3: int, i1: dict, i2: dict, i3: dict) -> 'Interval|None':
     """Gets interval if exists from ip values
 
     :param ip1: ip1 value
@@ -41,13 +41,15 @@ def get_interval(ip1: int, ip2: int, ip3: int, i1: dict, i2: dict) -> 'Interval|
     :type i1: dict
     :param i2: decoded ip2 values
     :type i2: dict
+    :param i3: decoded ip2 values
+    :type i3: dict
     :return: Interval
     :rtype: Interval
     """
     if ip3 > 32768:
-        if (ip1 > 32768) and (i1['v1'] != i1['v2']):
+        if (ip1 > 32768) and (i1['kind'] == i3['kind']):
             return Interval('ip1', i1['v1'], i1['v2'], i1['kind'])
-        elif (ip2 > 32768) and (i2['v1'] != i2['v2']):
+        elif (ip2 > 32768) and (i2['kind'] == i3['kind']):
             return Interval('ip2', i2['v1'], i2['v2'], i2['kind'])
         else:
             return None
@@ -108,7 +110,12 @@ def get_ip_info(nomvar:str, ip1: int, ip2: int, ip3: int):
     :return: level value, kind and kind str obtained from decoding ip1 and bools representing if the level is a surface level, if it follows topography and its sort order.
     :rtype: float,int,str,bool,bool,bool
     """
+    # iii1, iii2, iii3 = rmn.DecodeIp(ip1,ip2,ip3)
     i1, i2, i3 = decode_ip123(nomvar, ip1, ip2, ip3) 
+    # if nomvar not in ['>>','^^','!!','^>']:
+    #     print(nomvar,iii1,i1,iii2,i2,iii3,i3)
+
+    #     print(nomvar ,[(iii1.v1,i1['v1']) if (iii1.v1 != i1['v1']) else True, (iii2.v1,i2['v1']) if (iii2.v1 != i2['v1']) else True, (iii3.v1,i3['v1']) if (iii3.v1 != i3['v1']) else True])
 
     surface = is_surface(i1['kind'], i1['v1'])
 
@@ -116,7 +123,7 @@ def get_ip_info(nomvar:str, ip1: int, ip2: int, ip3: int):
 
     ascending = get_level_sort_order(i1['kind'])
 
-    interval = get_interval(ip1, ip2, ip3, i1, i2)
+    interval = get_interval(ip1, ip2, ip3, i1, i2, i3)
 
     return i1['v1'], i1['kind'], i1['kinds'], i2['v1'], i2['kind'], i2['kinds'], i3['v1'], i3['kind'], i3['kinds'], surface, follow_topography, ascending, interval
 
