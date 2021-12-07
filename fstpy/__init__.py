@@ -47,9 +47,9 @@ def fstpy_log_level_catast():
 
 
 FSTPY_LOG_LEVEL = os.environ.get('FSTPY_LOG_LEVEL')
-fstpy_peogress =  os.environ.get('FSTPY_PROGRESS')
+fstpy_progress =  os.environ.get('FSTPY_PROGRESS')
 FSTPY_PROGRESS = False
-if not (fstpy_peogress is None):
+if (not (fstpy_progress is None)) and (fstpy_progress == "True"):
     FSTPY_PROGRESS = True
 
 
