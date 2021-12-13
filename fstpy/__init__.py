@@ -3,6 +3,7 @@ import os
 import sys
 from pathlib import Path
 from threading import RLock, stack_size
+from typing import Final
 
 import pandas as pd
 import rpnpy.librmn.all as rmn
@@ -350,3 +351,5 @@ def get_column_value_from_row(row, column):
 #     # Connect to the local cluster.
 #     # We store the connection in the client variable, but we shouldn't need that variable anymore.
 #     _ = dask.distributed.Client(cluster)
+
+BASE_COLUMNS = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'grid', 'd']
