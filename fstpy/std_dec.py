@@ -46,10 +46,10 @@ def get_interval(ip1: int, ip2: int, ip3: int, i1: dict, i2: dict, i3: dict) -> 
     :return: Interval
     :rtype: Interval
     """
-    if ip3 > 32768:
-        if (ip1 > 32768) and (i1['kind'] == i3['kind']):
+    if ip3 >= 32768:
+        if (ip1 >= 32768) and (i1['kind'] == i3['kind']):
             return Interval('ip1', i1['v1'], i1['v2'], i1['kind'])
-        elif (ip2 > 32768) and (i2['kind'] == i3['kind']):
+        elif (ip2 >= 32768) and (i2['kind'] == i3['kind']):
             return Interval('ip2', i2['v1'], i2['v2'], i2['kind'])
         else:
             return None

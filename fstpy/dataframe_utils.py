@@ -71,13 +71,13 @@ def metadata_cleanup(df: pd.DataFrame, strict_toctoc=True) -> pd.DataFrame:
 
     if df.empty:
         return df
+    if 'level' not in df.columns:
+        df = add_columns(df,['ip_info'])
 
-    df = add_columns(df,['ip_info'])
-    
     no_meta_df = df.loc[~df.nomvar.isin(["!!", "P0", "PT", ">>", "^^", "^>", "HY", "!!SF"])]
 
     # get deformation fields
-    grid_deformation_fields_df = get_grid_deformation_fileds(df, no_meta_df)
+    grid_deformation_fields_df = get_grid_deformation_fields(df, no_meta_df)
 
     sigma_ips = get_sigma_ips(no_meta_df)
 
@@ -323,7 +323,7 @@ def get_hy_field(df: pd.DataFrame, hybrid_ips: list):
     return hy_field_df
 
 
-def get_grid_deformation_fileds(df: pd.DataFrame, no_meta_df: pd.DataFrame):
+def get_grid_deformation_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame):
     col_subset = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'ig1', 'ig2', 'ig3', 'ig4']
 
     grid_deformation_fields_df = pd.DataFrame(dtype=object)
