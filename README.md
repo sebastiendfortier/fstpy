@@ -10,7 +10,7 @@ independent.
 
 ## Fstpy philosophy
 
-The idea of ​​using a dataframe is to have a pythonic way of working
+The idea of using a dataframe is to have a pythonic way of working
 with standard files without having to know the mechanics of rmnlib.
 Since many people come here with numpy, pandas and xarray knowledge, the
 learning curve is much less steep.
@@ -61,6 +61,7 @@ a great variety of built-in plotting functions.
 -   nbsphinx>=0.8.7
 -   ipython>=7.12.0
 -   jupyterlab>=3.1.13
+-   myst-parser>=0.15.2
 
 ## Surgepy
 
