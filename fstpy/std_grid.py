@@ -6,8 +6,6 @@ import math
 import numpy as np
 import pandas as pd
 from typing import Tuple
-import rpnpy.vgd.all as vgd
-from .utils import to_numpy
 import rpnpy.librmn.proto as pt
 from .dataframe import add_path_and_key_columns
 import rpnpy.librmn.all as rmn
@@ -218,7 +216,7 @@ def is_global_grid(grid_params: dict, lon: np.ndarray, epsilon: float = 0.001) -
     elif (grtyp == "B"):
         global_grid = True
         repetition = True
-        
+
     else:
         lon_data = lon.flatten(order='F')
 
@@ -237,10 +235,12 @@ def is_global_grid(grid_params: dict, lon: np.ndarray, epsilon: float = 0.001) -
                 nb_points = ni * dlon
 
                 # On couvre plus que 360 deg et longitude[dernier point] <= (nb_points+dlon)-360
-                if ((_greater_or_equal(nb_points, 360.0, epsilon)) and (_lower_or_equal(lon_data[-1], ((nb_points + dlon) - 360.0)), epsilon)):
+                if ((_greater_or_equal(nb_points, 360.0, epsilon)) and (_lower_or_equal(lon_data[-1], ((nb_points + dlon) - 360.0), epsilon)) ):
+                    # Cas 2 : on fait le tour MAIS la valeur du point qui se repete est differente du point 0
                     logging.warning("Global grid with the first longitude repeated at the end of the grid but with a different longitude!  will be treated as a non global grid!")
                     repetition = True
                 elif ((_greater_or_equal(nb_points, 360.0, epsilon)) and (_lower_than(lon_data[-1], 360.0, epsilon))):
+                    # Cas 3 : on fait le tour -- dernier point ne se repete pas - pas de distance egale entre le dernier point et 0 degre 
                     global_grid = True
                     repetition = False
 
