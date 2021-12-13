@@ -280,17 +280,14 @@ def add_ip_info_columns(df: pd.DataFrame):
 
 def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket', 'unit', 'dateo', 'datev', 'forecast_hour', 'datyp', 'ip_info']):
     """If valid columns are provided, they will be added. 
-       These include ['flags','etiket','unit','dateo','datev','forecast_hour',
-       'datyp','ip_info']
-    Replaces original column(s) if present.   
+       These include ['flags','etiket','unit','dateo','datev','forecast_hour', 'datyp','ip_info']
+       Replaces original column(s) if present.   
 
     :param df: dataframe to modify (meta data needs to be present in dataframe)
     :type df: pd.DataFrame
     :param decode: if decode is True, add the specified columns
     :type decode: bool
-    :param columns: [description], defaults to 
-                    ['flags','etiket','unit','dateo','datev','forecast_hour',
-                    'datyp','ip_info']
+    :param columns: [description], defaults to  ['flags','etiket','unit','dateo','datev','forecast_hour', 'datyp','ip_info']
     :type columns: list[str], optional
     """
     cols = ['flags', 'etiket', 'unit', 'dateo', 'datev', 'forecast_hour', 'datyp', 'ip_info']
