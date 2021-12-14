@@ -218,7 +218,7 @@ uv_da = np.hypot (ds.UU, ds.VV)
 
 ---
 
-### Connections
+### Links
 - Fstpy documentation <http://web.science.gc.ca/~spst900/fstpy/master/>
 - Gitlab <https://gitlab.science.gc.ca/CMDS/fstpy>
 - fstd2nc documentation [EC Network] <https://wiki.cmc.ec.gc.ca/wiki/Fstd2nc>
