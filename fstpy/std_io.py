@@ -736,7 +736,7 @@ def decode_ip123(nomvar:str, ip1: int, ip2: int, ip3: int) -> 'Tuple(dict, dict,
                     ip2_info['v2'] = v2
                 elif (ip3_info['kind'] == ip1_info['kind']): # On a un intervalle sur les hauteurs
                     v1 = ip1_info['v1']
-                    v2 = ip2_info['v1']
+                    v2 = ip3_info['v1']
                     ip1_info['v1'] = v1
                     ip1_info['v2'] = v2
 
