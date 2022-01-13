@@ -21,7 +21,15 @@ def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_me
     :return: an etiket composed of supplied parameters
     :rtype: str
     """
-    etiket = label + run + implementation + ensemble_member
+    etiket =  label
+
+    if run != 'None':
+        etiket = run + label
+    if implementation != 'None':
+        etiket = etiket + implementation
+    if ensemble_member != 'None':
+        etiket = etiket + ensemble_member
+
     return etiket
 
 
