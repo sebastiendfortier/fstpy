@@ -116,7 +116,7 @@ def voir(df: pd.DataFrame, style=False):
     to_print_df['datyp'] = to_print_df['datyp'].map(DATYP_DICT)
     to_print_df['datev'] = to_print_df['datev'].apply(convert_rmndate_to_datetime)
     to_print_df['dateo'] = to_print_df['dateo'].apply(convert_rmndate_to_datetime)
-    df = add_ip_info_columns(to_print_df)
+    to_print_df = add_ip_info_columns(to_print_df)
 
     res_df = to_print_df.sort_values(by=['nomvar', 'level'], ascending=[True, False])
 
