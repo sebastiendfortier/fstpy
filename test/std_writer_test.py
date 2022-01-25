@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 from test import TMP_PATH, TEST_PATH
+from pathlib import Path
 import tempfile
 pytestmark = [pytest.mark.std_writer, pytest.mark.unit_tests]
 
@@ -9,10 +10,10 @@ pytestmark = [pytest.mark.std_writer, pytest.mark.unit_tests]
 def input_file():
     return TEST_PATH + 'ReaderStd/testsFiles/source_data_5005.std'
 
-@pytest.fixture
-def tmp_file():
+@pytest.fixture(scope="module", params=[str, Path])
+def tmp_file(request):
     temp_name = next(tempfile._get_candidate_names())
-    return TMP_PATH + temp_name
+    return request.param(TMP_PATH + temp_name)
 #filename:str, df:pd.DataFrame, add_meta_fields=True, overwrite=False, load_data=False
 
 # def test_read_write_noload(input_file,tmp_file):
