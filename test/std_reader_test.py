@@ -10,7 +10,7 @@ pytestmark = [pytest.mark.std_reader, pytest.mark.unit_tests]
 def input_file(path_type):
     return path_type.param(TEST_PATH + '/ReaderStd/testsFiles/source_data_5005.std')
 
-@pytest.fixture
+@pytest.fixture(params=[str, Path])
 def input_file2(path_type):
     return path_type.param(TEST_PATH + '/ReaderStd/testsFiles/input_big_fileSrc.std')
     
