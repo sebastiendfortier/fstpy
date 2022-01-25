@@ -6,11 +6,11 @@ from test import TEST_PATH
 
 pytestmark = [pytest.mark.std_reader, pytest.mark.unit_tests]
 
-@pytest.fixture(params=[str, Path])
+@pytest.fixture(scope="module", params=[str, Path])
 def input_file(path_type):
     return path_type.param(TEST_PATH + '/ReaderStd/testsFiles/source_data_5005.std')
 
-@pytest.fixture(params=[str, Path])
+@pytest.fixture(scope="module", params=[str, Path])
 def input_file2(path_type):
     return path_type.param(TEST_PATH + '/ReaderStd/testsFiles/input_big_fileSrc.std')
     
