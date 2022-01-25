@@ -11,7 +11,7 @@ def input_file(path_type):
     return path_type.param(TEST_PATH + '/ReaderStd/testsFiles/source_data_5005.std')
 
 @pytest.fixture
-def input_file2():
+def input_file2(path_type):
     return path_type.param(TEST_PATH + '/ReaderStd/testsFiles/input_big_fileSrc.std')
     
 def test_1(input_file):
