@@ -6,13 +6,13 @@ from test import TEST_PATH
 
 pytestmark = [pytest.mark.std_reader, pytest.mark.unit_tests]
 
-@pytest.fixture
-def input_file():
-    return TEST_PATH + '/ReaderStd/testsFiles/source_data_5005.std'
+@pytest.fixture(params=[str, Path])
+def input_file(path_type):
+    return path_type.param(TEST_PATH + '/ReaderStd/testsFiles/source_data_5005.std')
 
 @pytest.fixture
 def input_file2():
-    return TEST_PATH + '/ReaderStd/testsFiles/input_big_fileSrc.std'
+    return path_type.param(TEST_PATH + '/ReaderStd/testsFiles/input_big_fileSrc.std')
     
 def test_1(input_file):
     """Test open a file"""
