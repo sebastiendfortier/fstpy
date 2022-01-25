@@ -64,7 +64,7 @@ class StandardFileReader:
     def __init__(self, filenames, decode_metadata=False, query=None):
         """init instance"""
         if isinstance(self.filenames, Path):
-            self.filenames = str(self.filenames.absolute)
+            self.filenames = str(self.filenames.absolute())
         elif isinstance(self.filenames, str):
             self.filenames = os.path.abspath(str(self.filenames))
         elif isinstance(self.filenames, list):
