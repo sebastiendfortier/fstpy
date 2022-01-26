@@ -169,7 +169,7 @@ def convert_rmndate_to_datetime(date: int) -> 'datetime.datetime|None':
     """
     dummy_stamps = (0, 10101011)
     if date not in dummy_stamps:
-        return RPNDate(int(date)).toDateTime().replace(tzinfo=None)
+        return RPNDate(int(date)).toDateTime()
     else:
         return None
 
