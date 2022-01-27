@@ -1,7 +1,10 @@
-
+# -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 from fstpy import std_enc
 from rpnpy.librmn import all as rmn
+import pytest
+
+pytestmark = [pytest.mark.unit_tests]
 
 def test_1():
     """Test creation of encoded npas and ip2"""

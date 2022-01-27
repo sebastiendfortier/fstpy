@@ -1,14 +1,22 @@
 # -*- coding: utf-8 -*-
 import copy
+import datetime
 import logging
 from typing import Final
+
 import dask.array as da
-from .std_vgrid import set_vertical_coordinate_type
 import numpy as np
 import pandas as pd
+import pytz
+
+from .std_dec import (VCONVERT_RMNDATE_TO_DATETIME, VCREATE_DATA_TYPE_STR,
+                      VCREATE_FORECAST_HOUR, VCREATE_GRID_IDENTIFIER,
+                      VCREATE_IP_INFO, VGET_UNIT_AND_DESCRIPTION,
+                      VPARSE_ETIKET)
+from .std_vgrid import set_vertical_coordinate_type
+
 # import rpnpy.librmn.all as rmn
 
-from .std_dec import (VCONVERT_RMNDATE_TO_DATETIME, VCREATE_DATA_TYPE_STR, VCREATE_FORECAST_HOUR, VCREATE_GRID_IDENTIFIER, VCREATE_IP_INFO, VGET_UNIT_AND_DESCRIPTION, VPARSE_ETIKET)
 
 
 
@@ -97,7 +105,64 @@ def parse_typvar(typvar: str):
 
 VPARSE_TYPVAR: Final = np.vectorize(parse_typvar, otypes=['bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'])  
 
-def add_flag_values(df: pd.DataFrame):
+
+class InvalidTimezoneError(Exception):
+    pass
+
+
+
+def convert_date_to_timezone(date: datetime.datetime, timezone: str) -> datetime.datetime:
+    """Converts an utc date into the provided timezone
+
+    :param date: input utc date
+    :type date: datetime.datetime
+    :param timezone: timezone string to convert date to
+    :type timezone: str
+    :raises InvalidTimezoneError: raised if given timezone is not valid
+    :return: converted date
+    :rtype: datetime.datetime
+    """
+    if timezone not in pytz.all_timezones:
+        raise InvalidTimezoneError(f'Invalid timezone! valid timezones are\n{pytz.all_timezones}')
+    else:
+        if not pd.isnull(date):
+            utc_timezone = pytz.timezone("UTC")
+            with_timezone = utc_timezone.localize(pd.to_datetime(date))
+            return with_timezone.astimezone(pytz.timezone(timezone)).replace(tzinfo=None)
+        else:
+            return date
+
+VCONVERT_DATE_TO_TIMEZONE: Final = np.vectorize(convert_date_to_timezone)  # ,otypes=['datetime64']
+
+class IndvalidDateColumnError(Exception):
+    pass
+
+def add_timezone_column(df: pd.DataFrame, source_column: str, timezone:str) -> pd.DataFrame:
+    """Adds a timezone adjusted column for provided date (date_of_validity or date_of_observation)
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :param source_column: either date_of_validity or date_of_observation
+    :type source_column: str
+    :param timezone: timezone name (valid timezone can be obtained from pytz.all_timezones)
+    :type timezone: str
+    :raises IndvalidDateColumnError: raised if source_column not in 'date_of_validity' or 'date_of_observation'
+    :raises MissingColumnError: raised if source_column is not in dataframe
+    :return: a new date adjusted timezone column
+    :rtype: pd.DataFrame
+    """
+    if source_column not in ['date_of_validity', 'date_of_observation']:
+        raise IndvalidDateColumnError(f'"{source_column}" not in {["date_of_validity", "date_of_observation"]}!') 
+
+    if source_column not in df.columns:
+        raise MissingColumnError(f'"{source_column}" is missing from DataFrame columns, cannot add timezone column!') 
+
+    new_column = ''.join([source_column,'_',timezone])
+    new_column = new_column.replace('/','_')
+    new_df = copy.deepcopy(df.drop([new_column], axis=1, errors='ignore'))
+    new_df[new_column] = VCONVERT_DATE_TO_TIMEZONE(new_df[source_column],timezone)
+    return new_df
+
+def add_flag_values(df: pd.DataFrame) -> pd.DataFrame:
     """Adds the correct flag values derived from parsing the typvar.
     Replaces original column(s) if present.
 
