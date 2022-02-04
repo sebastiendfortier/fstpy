@@ -51,5 +51,29 @@ class CsvFileReader :
         pass  
 
     def reader_csv(self):
+        for row in self.df.itertuples():
+            print(row)
+            b= row.d
+            a = np.array([[float(j) for j in i.split(',')] for i in b.split(';')],dtype=np.float32, order='F')
+            print("array = " + f'{a}')
+
+        if(a.ndim == 1):
+            ni = np.shape(a)[0]
+            nj=0
+            nk=1
+
+        if(a.ndim == 2):
+            ni = np.shape(a)[0] 
+            nj = np.shape(a)[1]
+            nk = 1
+
+        if(a.ndim == 3):
+            print("Le tableau est 3d et il ne devrait pas letre")
+            pass
+
+        self.df.at[row.Index,"ni"] = ni
+        self.df.at[row.Index,"nj"] = nj
+        self.df.at[row.Index,"nk"] = nk
+
         pass
 
