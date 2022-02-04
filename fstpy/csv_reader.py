@@ -1,7 +1,12 @@
+# -*- coding: utf-8 -*-
+import copy
+import itertools
+import multiprocessing as mp
 from mimetypes import init
 import pandas as pd
 import os
-from fstpy.utils import initializer 
+import numpy as np
+from .utils import initializer
 
 
 #BASE_COLUMNS = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas','datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'grid', 'd']
@@ -30,16 +35,21 @@ from fstpy.utils import initializer
 class CsvFileReaderError(Exception):
     pass
 
-meta_data = ["^>", ">>", "^^", "!!", "!!SF", "HY", "P0", "PT", "E1"]
 
 class CsvFileReader :
+    
     @initializer
-    def __init__(self,filenames,decode_metadata = False, query = None):
-        if isinstance(self.filenames,list):
-            self.filenames = os.path.abspath(str(self.filenames))
-        elif isinstance(self.filenames, list):
-            self.filenames = [os.path.abspath(str(f)) for f in filenames]
+    def __init__(self,path):
+        if os.path.exists(path):
+        #path = '/home/zak000/src/notebooks/readerCsv_notebook/test2_src.csv'
+            self.df = pd.read_csv(path)
         else:
-            raise CsvFileReaderError('Filenames must be string or list\n')
-
+            raise CsvFileReaderError('Path must not exist\n')
         pass
+
+    def to_pandas(self) -> pd.DataFrame:
+        pass  
+
+    def reader_csv(self):
+        pass
+
