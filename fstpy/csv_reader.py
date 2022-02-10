@@ -68,6 +68,9 @@ class CsvFileReader :
 
     def verificationHeaders(self):
         return self.hasHeader() and self.hasMinimumHeaders() and self.checkHeadersAllValid()
+    
+    def checkColumns(self):
+        return self.checkNbits() and self.checkDatyp() and self.checkDateO() and self.checkEticket() and self.checkGrTyp() and self.checkIg() and self.checkIp2EtIp3() and self.checkLevel()
 
     def hasHeader(self):
             self.sniffer = csv.Sniffer()
@@ -140,11 +143,11 @@ class CsvFileReader :
         else:
             self.df["dateo"] = dateo_encoded
 
-    def checkIp1(self):
-        if(self.colExists("ip1")):
-            self.df.ip1.replace(np.nan,3).apply(np.int64)
-        else:
-            self.df["ip1"] = 3
+    #def checkIp1(self):
+     #   if(self.colExists("ip1")):
+       #     self.df.ip1.replace(np.nan,3).apply(np.int64)
+      #  else:
+      #      self.df["ip1"] = 3
 
     def checkIp2EtIp3(self):
         if(self.colExists("ip2")):
@@ -241,6 +244,7 @@ class CsvArray:
             self.df.at[row.Index,"nj"] = nj
             self.df.at[row.Index,"nk"] = nk
             pass
+        
 
     def from_array(self):
         
