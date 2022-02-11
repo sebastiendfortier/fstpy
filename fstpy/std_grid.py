@@ -108,6 +108,20 @@ def get_grid_definition_params(df):
 
     return grid_id
 
+class GetSubGridsError(Exception):
+    pass
+
+def get_subgrids(grid_params: dict):
+    keys = list(grid_params.keys())
+    if 'subgrid' not in keys:
+        raise GetSubGridsError('No subgrids found!')
+    else:    
+        if len(grid_params['subgrid']) != 2:
+            raise GetSubGridsError('For U type grid, there should only be 2 subgrids!')
+        gd1 = grid_params['subgrid'][0]
+        gd2 = grid_params['subgrid'][1]
+        return gd1, gd2
+
 class Get2DLatLonError(Exception):
     pass
 
