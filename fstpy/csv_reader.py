@@ -11,7 +11,7 @@ import numpy as np
 from .utils import initializer
 import csv
 import datetime
-import std_enc
+from fstpy import std_enc
 
 
 BASE_COLUMNS = ['nomvar','level','typvar', 'etiket', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'ig1', 'ig2', 'ig3', 'ig4', 'd']
@@ -58,12 +58,15 @@ class CsvFileReader :
     def __init__(self,path):
         if os.path.exists(path):
         #path = '/home/zak000/src/notebooks/readerCsv_notebook/test2_src.csv'
-            self.df = pd.read_csv(path,comment="#")
+            self.path = path
         else:
             raise CsvFileReaderError('Path does not exist\n')
         pass
 
-    def to_pandas(self) -> pd.DataFrame:
+    def to_pandas(self):
+        self.df = pd.read_csv(self.path,comment="#")
+        if(self.verificationHeaders()):
+            return self.df
         pass  
 
     def verificationHeaders(self):
@@ -119,14 +122,14 @@ class CsvFileReader :
     # Remplace toutes les valeurs nbits nulles par 24 en int
     def checkNbits(self):
         if(self.colExists("nbits")):
-            self.df.nbits.replace(np.nan,24).apply(np.int64)
+            self.df.nbits.replace(np.nan,24).apply(np.int32)
         else:
             self.df["nbits"] = 24
         
 
     def checkDatyp(self):
         if(self.colExists("datyp")):
-            self.df.datyp.replace(np.nan,1).apply(np.int64)
+            self.df.datyp.replace(np.nan,1).apply(np.int32)
         else:
             self.df["datyp"] = 1
 
@@ -145,39 +148,39 @@ class CsvFileReader :
 
     #def checkIp1(self):
      #   if(self.colExists("ip1")):
-       #     self.df.ip1.replace(np.nan,3).apply(np.int64)
+       #     self.df.ip1.replace(np.nan,3).apply(np.int32)
       #  else:
       #      self.df["ip1"] = 3
 
     def checkIp2EtIp3(self):
         if(self.colExists("ip2")):
-            self.df.ip2.replace(np.nan,0).apply(np.int64)
+            self.df.ip2.replace(np.nan,0).apply(np.int32)
         else:
             self.df["ip2"] = 0
 
         if(self.colExists("ip3")):
-            self.df.ip3.replace(np.nan,0).apply(np.int64)
+            self.df.ip3.replace(np.nan,0).apply(np.int32)
         else:
             self.df["ip3"] = 0
 
     def checkIg(self):
         if(self.colExists("ig1")):
-            self.df.ig1.replace(np.nan,0).apply(np.int64)
+            self.df.ig1.replace(np.nan,0).apply(np.int32)
         else:
             self.df["ig1"] = 0
 
         if(self.colExists("ig2")):
-            self.df.ig2.replace(np.nan,0).apply(np.int64)
+            self.df.ig2.replace(np.nan,0).apply(np.int32)
         else:
             self.df["ig2"] = 0
 
         if(self.colExists("ig3")):
-            self.df.ig3.replace(np.nan,0).apply(np.int64)
+            self.df.ig3.replace(np.nan,0).apply(np.int32)
         else:
             self.df["ig3"] = 0
 
         if(self.colExists("ig4")):
-            self.df.ig4.replace(np.nan,0).apply(np.int64)
+            self.df.ig4.replace(np.nan,0).apply(np.int32)
         else:
             self.df["ig4"] = 0
     
@@ -211,21 +214,24 @@ class CsvArray:
     def __init__(self,array):
         self.array=array
         if isinstance(self.array,str):
-            self.to_array(self)
+            self.to_numpy_array(self)
             pass
 
         elif isinstance(self.array,np.array):
-            self.from_array(self)
+            self.to_str_array(self)
             pass
 
         else:
             raise ArrayIsNotNumpyStrError('The array you provided does not contains strings or numpy arrays')
 
-    def to_array(self):
+    def to_numpy_array(self):
+        array_list = []
+
         for row in self.df.itertuples():
             #print(row)
             self.array= row.d
             a = np.array([[float(j) for j in i.split(',')] for i in array.split(';')],dtype=np.float32, order='F')
+            array_list.append(a)
             # print("array = " + f'{a}')
             if(a.ndim == 1):
                 ni = np.shape(a)[0]
@@ -238,16 +244,16 @@ class CsvArray:
 
             if(a.ndim == 3):
                 raise ArrayIs3dError('The numpy array you created from the string array is 3D and it should not be 3d')
-                pass
 
             self.df.at[row.Index,"ni"] = ni
             self.df.at[row.Index,"nj"] = nj
             self.df.at[row.Index,"nk"] = nk
-            pass
-        
+        self.df["d"] = array_list
 
-    def from_array(self):
-        
+    def to_str_array(self):
+        for row in self.df.itertuples(): 
+            self.array = row.d 
+            a = array.tostring
         pass
 
 
