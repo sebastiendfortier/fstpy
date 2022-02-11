@@ -10,7 +10,7 @@ run time packages
 
 developpement packages
 ----------------------
-- ci_fstcomp>=1.0.2
+- ci_fstcomp>=1.0.6
 - pandas>=1.2.4
 - numpy>=1.19.5
 - xarray>=0.19.0

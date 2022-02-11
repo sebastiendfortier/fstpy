@@ -15,11 +15,6 @@ from .std_dec import (VCONVERT_RMNDATE_TO_DATETIME, VCREATE_DATA_TYPE_STR,
                       VPARSE_ETIKET)
 from .std_vgrid import set_vertical_coordinate_type
 
-# import rpnpy.librmn.all as rmn
-
-
-
-
 class MissingColumnError(Exception):
     pass
 
@@ -108,7 +103,6 @@ VPARSE_TYPVAR: Final = np.vectorize(parse_typvar, otypes=['bool', 'bool', 'bool'
 
 class InvalidTimezoneError(Exception):
     pass
-
 
 
 def convert_date_to_timezone(date: datetime.datetime, timezone: str) -> datetime.datetime:
