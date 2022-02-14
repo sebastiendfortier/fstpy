@@ -1,5 +1,8 @@
 from array import array
+from ast import Try
 import copy
+from email import header
+from importlib.resources import path
 import itertools
 from lib2to3.pgen2.pgen import DFAState
 import multiprocessing as mp
@@ -20,10 +23,79 @@ pytestmark = [pytest.mark.csv_reader, pytest.mark.unit_tests]
 @pytest.fixture
 def input_file():
     return '/home/zak000/src/notebooks/readerCsv_notebook/test2_src.csv'
+@pytest.fixture
+def input_file2():
+    return '/home/zak000/src/notebooks/readerCv_notebook/test2_src.csv'
+
+@pytest.fixture
+def input_file_without_minimum_cl():
+    return '/home/zak000/src/notebooks/readerCsv_notebook/test4_src.csv'
+@pytest.fixture
+def input_file_with_wrong_column_name():
+    return '/home/zak000/src/notebooks/readerCsv_notebook/test5_src.csv'
+@pytest.fixture
+def input_file_nbits_void():
+    return '/home/zak000/src/notebooks/readerCsv_notebook/test6_src.csv'
+@pytest.fixture
+def input_file_nbits_24bits():
+    return '/home/zak000/src/notebooks/readerCsv_notebook/test6_src_2.csv'
+
+@pytest.fixture
+def df1():
+    df = pd.read_csv('/home/zak000/src/notebooks/readerCsv_notebook/test2_src.csv',comment="#")
+    return df
 
 
-def test_1():
-    csv_file = fstpy.csv_reader.CsvFileReader('/home/zak000/src/notebooks/readerCsv_notebook/test2_src.csv')
-    return csv_file.to_pandas()
+    
+"""Test if my to_pandas function works and if my class CsvFileReader works"""
+def test_1(input_file,df1):
+    csv_file = fstpy.csv_reader.CsvFileReader(path = input_file )
+    assert (type(csv_file) == fstpy.csv_reader.CsvFileReader)
+    assert (df1.equals(csv_file.to_pandas_no_condition()))
+
+""" Test the exception CsvFileReaderError"""
+def test_2(input_file2):
+    with pytest.raises(fstpy.csv_reader.CsvFileReaderError):
+        csv_file = fstpy.csv_reader.CsvFileReader(path = input_file2)
+
+""" Test the exception NoHeaderInFileError"""
+def test_3(input_file):
+    with pytest.raises(fstpy.csv_reader.NoHeaderInFileError):
+        csv_file = fstpy.csv_reader.CsvFileReader(path = input_file)
+        csv_file.to_pandas_no_hdr()
+
+""" Test the exception MinimumHeadersError"""
+def test_4(input_file_without_minimum_cl):
+    with pytest.raises(fstpy.csv_reader.MinimumHeadersError):
+        csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_without_minimum_cl)
+        csv_file.to_pandas()
+
+""" Test the exception HeadersAreNotValidError"""
+def test_5(input_file_with_wrong_column_name):
+    with pytest.raises(fstpy.csv_reader.HeadersAreNotValidError):
+        csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_with_wrong_column_name)
+        csv_file.to_pandas()
+
+""" Test checkNbits Function"""
+def test_6(input_file_nbits_void,input_file_nbits_24bits):
+    assert(False)
+        # csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_void)
+        # csv_file.to_pandas()
+        # csv_file.checkNbits()
+        # csv_file2 = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_24bits)
+        # csv_file2 = csv_file2.to_pandas()
+        # assert (csv_file.equals(csv_file2))
+
+    
+
+
+
+
+
+
+    
+            
+
+
 
 

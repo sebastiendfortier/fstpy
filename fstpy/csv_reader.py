@@ -14,8 +14,8 @@ import datetime
 from fstpy import std_enc
 
 
-BASE_COLUMNS = ['nomvar','level','typvar', 'etiket', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'ig1', 'ig2', 'ig3', 'ig4', 'd']
-#key – Positioning information to the record. Obtained with fstinf or fstinl.
+BASE_COLUMNS = ['nomvar','level','typvar','etiket','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','ig1','ig2','ig3','ig4','d']
+#key–Positioning information to the record. Obtained with fstinf or fstinl.
 #dateo – date of origin (date time stamp) Cannot change dateo and datev.
 #datev – date of validity (date time stamp) Cannot change dateo and datev.
 #deet – Length of a time step in seconds datev constant unless keep_dateo
@@ -39,9 +39,6 @@ BASE_COLUMNS = ['nomvar','level','typvar', 'etiket', 'dateo', 'ip1', 'ip2', 'ip3
 
 class CsvFileReaderError(Exception):
     pass
-
-class NoHeaderError(Exception):
-    pass
 class MinimumHeadersError(Exception):
     pass
 class HeadersAreNotValidError(Exception):
@@ -54,36 +51,54 @@ class ip1andLevelExistsError(Exception):
     pass
 
 class CsvFileReader :   
-    @initializer
+
     def __init__(self,path):
         if os.path.exists(path):
         #path = '/home/zak000/src/notebooks/readerCsv_notebook/test2_src.csv'
             self.path = path
         else:
             raise CsvFileReaderError('Path does not exist\n')
-        pass
 
     def to_pandas(self):
         self.df = pd.read_csv(self.path,comment="#")
-        if(self.verificationHeaders()):
+        if(self.verifyHeaders()):
             return self.df
-        pass  
+    def to_pandas_no_condition(self):
+        self.df = pd.read_csv(self.path,comment="#")
+        return self.df
 
-    def verificationHeaders(self):
+    def to_pandas_no_hdr(self):
+        self.df = pd.read_csv(self.path,comment="#",header=None)
+        if(self.verifyHeaders( )):
+            return self.df
+            
+
+
+
+    def verifyHeaders(self):
         return self.hasHeader() and self.hasMinimumHeaders() and self.checkHeadersAllValid()
     
     def checkColumns(self):
         return self.checkNbits() and self.checkDatyp() and self.checkDateO() and self.checkEticket() and self.checkGrTyp() and self.checkIg() and self.checkIp2EtIp3() and self.checkLevel()
-
+    
+    
+    """Verify that the csv file has a header
+    """
     def hasHeader(self):
-            self.sniffer = csv.Sniffer()
-            self.sample_bytes = 32
-            if(self.sniffer.has_header(open(self.path).read(self.sample_bytes))):
+            if(self.df.columns.dtype == object):
                 return True
             else:
                 raise NoHeaderInFileError('Your file does not have a csv file with headers')
 
     def hasMinimumHeaders(self):
+        """_summary_
+
+        :raises MinimumHeadersError: _description_
+        :return: _description_
+        :rtype: _type_
+
+        """
+
         list_of_hdr_names = self.df.columns.tolist()
         if set(['nomvar', 'd','level']).issubset(list_of_hdr_names) or set(['nomvar', 'd','ip1']).issubset(list_of_hdr_names):
                 return True
@@ -100,17 +115,24 @@ class CsvFileReader :
 
         set1 = set(list_of_hdr_names)
         set2 = set(BASE_COLUMNS)
+        sorted(set1)
+        sorted(set2)
 
         if(len(list_of_hdr_names) < len(BASE_COLUMNS)):
             is_subset = set1.issubset(set2)
-            return is_subset
-
+            if(is_subset):
+                return True
+            else:
+                raise HeadersAreNotValidError('The headers in the csv file are not valid. Makes sure that the columns names'
+                                                            + 'are present in BASE_COLUMNS')
         if(len(list_of_hdr_names) == len(BASE_COLUMNS)):
-            return all_the_cols == list_of_hdr_names
-
+            if(all_the_cols == list_of_hdr_names):
+                return True
+            else:
+                raise HeadersAreNotValidError('The headers in the csv file are not valid. Makes sure that the columns names'
+                                                            + 'are present in BASE_COLUMNS')
         else:
-            raise HeadersAreNotValidError('The headers in the csv file are not valid. Makes sure that the columns names'
-                                                            + 'are present in BASE_COLUMNS or you have too many columns')
+            raise HeadersAreNotValidError('The headers in the csv file are not valid you have too many columns')
 
     def colExists(self,col):
         if col in self.df.columns:
@@ -118,11 +140,13 @@ class CsvFileReader :
         else:
             return False
 
+
+
     # DEFAULT VALUES
     # Remplace toutes les valeurs nbits nulles par 24 en int
     def checkNbits(self):
         if(self.colExists("nbits")):
-            self.df.nbits.replace(np.nan,24).apply(np.int32)
+            self.df.nbits.replace(np.nan,24).apply(np.int64)
         else:
             self.df["nbits"] = 24
         
