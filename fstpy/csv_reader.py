@@ -59,7 +59,7 @@ class CsvFileReader :
         else:
             raise CsvFileReaderError('Path does not exist\n')
 
-    def to_pandas(self):
+    def to_pandas(self)-> pd.DataFrame:
         self.df = pd.read_csv(self.path,comment="#")
         if(self.verifyHeaders()):
             return self.df
@@ -69,10 +69,9 @@ class CsvFileReader :
 
     def to_pandas_no_hdr(self):
         self.df = pd.read_csv(self.path,comment="#",header=None)
-        if(self.verifyHeaders( )):
+        if(self.verifyHeaders()):
             return self.df
             
-
 
 
     def verifyHeaders(self):
@@ -143,12 +142,17 @@ class CsvFileReader :
 
 
     # DEFAULT VALUES
+    
+    def checkDataColumn(self):
+        pass
+
     # Remplace toutes les valeurs nbits nulles par 24 en int
     def checkNbits(self):
-        if(self.colExists("nbits")):
-            self.df.nbits.replace(np.nan,24).apply(np.int64)
+        if(not self.colExists("nbits")):
+            self.df["nbits"] = 24 # le int est 64 bits non 32
+            return self.df
         else:
-            self.df["nbits"] = 24
+            return self.df
         
 
     def checkDatyp(self):

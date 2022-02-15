@@ -78,13 +78,16 @@ def test_5(input_file_with_wrong_column_name):
 
 """ Test checkNbits Function"""
 def test_6(input_file_nbits_void,input_file_nbits_24bits):
-    assert(False)
-        # csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_void)
-        # csv_file.to_pandas()
-        # csv_file.checkNbits()
-        # csv_file2 = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_24bits)
-        # csv_file2 = csv_file2.to_pandas()
-        # assert (csv_file.equals(csv_file2))
+    csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_void)
+    csv_file.to_pandas()
+    csv_file.checkNbits()
+    print(csv_file.df)
+    csv_file2 = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_24bits)
+    csv_file2.to_pandas()
+    print(csv_file2.df)
+    assert (csv_file.df.equals(csv_file2.df))
+
+
 
     
 
