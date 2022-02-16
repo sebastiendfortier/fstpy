@@ -76,16 +76,48 @@ def test_5(input_file_with_wrong_column_name):
         csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_with_wrong_column_name)
         csv_file.to_pandas()
 
-""" Test checkNbits Function"""
+""" Test checkColumns Functions"""
 def test_6(input_file_nbits_void,input_file_nbits_24bits):
     csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_void)
-    csv_file.to_pandas()
+    csv_file.to_pandas_no_condition()
     csv_file.checkNbits()
+    csv_file.checkDatyp()
+    csv_file.checkTypVar()
+    csv_file.checkIp2EtIp3()
+    csv_file.checkIg()
+    csv_file.checkEticket()
+    csv_file.checkLevel()
     print(csv_file.df)
     csv_file2 = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_24bits)
-    csv_file2.to_pandas()
+    csv_file2.to_pandas_no_condition()
     print(csv_file2.df)
     assert (csv_file.df.equals(csv_file2.df))
+
+""" Test checkColumns Function"""
+def test_7(input_file_nbits_void,input_file_nbits_24bits):
+    csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_void)
+    csv_file.to_pandas_no_condition()
+    csv_file.checkColumns()
+    print(csv_file.df)
+    csv_file2 = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_24bits)
+    csv_file2.to_pandas_no_condition()
+    print(csv_file2.df)
+    assert (csv_file.df.equals(csv_file2.df))
+
+""" Test to_pandas Function with check columns and verify headers"""
+def test_7(input_file_nbits_void,input_file_nbits_24bits):
+    csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_void)
+    csv_file.to_pandas()
+    print(csv_file.df)
+    csv_file2 = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_24bits)
+    csv_file2.to_pandas_no_condition()
+    print(csv_file2.df)
+    assert (csv_file.df.equals(csv_file2.df))
+
+
+
+
+
 
 
 

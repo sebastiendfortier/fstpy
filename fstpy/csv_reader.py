@@ -15,6 +15,7 @@ from fstpy import std_enc
 
 
 BASE_COLUMNS = ['nomvar','level','typvar','etiket','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','ig1','ig2','ig3','ig4','d']
+IP1_KIND = 3
 #key–Positioning information to the record. Obtained with fstinf or fstinl.
 #dateo – date of origin (date time stamp) Cannot change dateo and datev.
 #datev – date of validity (date time stamp) Cannot change dateo and datev.
@@ -62,7 +63,9 @@ class CsvFileReader :
     def to_pandas(self)-> pd.DataFrame:
         self.df = pd.read_csv(self.path,comment="#")
         if(self.verifyHeaders()):
+            self.checkColumns()
             return self.df
+            
     def to_pandas_no_condition(self):
         self.df = pd.read_csv(self.path,comment="#")
         return self.df
@@ -78,7 +81,13 @@ class CsvFileReader :
         return self.hasHeader() and self.hasMinimumHeaders() and self.checkHeadersAllValid()
     
     def checkColumns(self):
-        return self.checkNbits() and self.checkDatyp() and self.checkDateO() and self.checkEticket() and self.checkGrTyp() and self.checkIg() and self.checkIp2EtIp3() and self.checkLevel()
+        self.checkNbits()
+        self.checkDatyp()
+        self.checkTypVar()
+        self.checkIp2EtIp3()
+        self.checkIg()
+        self.checkEticket()
+        self.checkLevel()
     
     
     """Verify that the csv file has a header
@@ -150,29 +159,29 @@ class CsvFileReader :
     def checkNbits(self):
         if(not self.colExists("nbits")):
             self.df["nbits"] = 24 # le int est 64 bits non 32
-            return self.df
-        else:
-            return self.df
+        return self.df
         
 
     def checkDatyp(self):
-        if(self.colExists("datyp")):
-            self.df.datyp.replace(np.nan,1).apply(np.int32)
-        else:
+        if(not self.colExists("datyp")):
             self.df["datyp"] = 1
+        return self.df
 
-    def checkGrTyp(self):
-        if(self.colExists("grtyp")):
-            self.df.grtyp.replace(np.nan,"X")
-        else:
-            self.df["grtyp"] = "X"
+           
+
+    def checkTypVar(self):
+        if(not self.colExists("typvar")):
+            self.df["typvar"] = "X"
+        return self.df
+
+            
 
     def checkDateO(self):
         dateo_encoded = std_enc.create_encoded_dateo(datetime.utcnow())
-        if(self.colExists("dateo")):
-            self.df.dateo.replace(np.nan,dateo_encoded)
-        else:
+        if(not self.colExists("dateo")):
             self.df["dateo"] = dateo_encoded
+        return self.df
+            
 
     #def checkIp1(self):
      #   if(self.colExists("ip1")):
@@ -181,48 +190,39 @@ class CsvFileReader :
       #      self.df["ip1"] = 3
 
     def checkIp2EtIp3(self):
-        if(self.colExists("ip2")):
-            self.df.ip2.replace(np.nan,0).apply(np.int32)
-        else:
+        if(not self.colExists("ip2")):
             self.df["ip2"] = 0
-
-        if(self.colExists("ip3")):
-            self.df.ip3.replace(np.nan,0).apply(np.int32)
-        else:
+        if(not self.colExists("ip3")):
             self.df["ip3"] = 0
+        else:
+            return self.df
+        return self.df
 
     def checkIg(self):
-        if(self.colExists("ig1")):
-            self.df.ig1.replace(np.nan,0).apply(np.int32)
-        else:
-            self.df["ig1"] = 0
+        if(not self.colExists("ig1")):
+            self.df["ig1"] = 0        
 
-        if(self.colExists("ig2")):
-            self.df.ig2.replace(np.nan,0).apply(np.int32)
-        else:
+        if(not self.colExists("ig2")):
             self.df["ig2"] = 0
 
-        if(self.colExists("ig3")):
-            self.df.ig3.replace(np.nan,0).apply(np.int32)
-        else:
+        if(not self.colExists("ig3")):
             self.df["ig3"] = 0
 
-        if(self.colExists("ig4")):
-            self.df.ig4.replace(np.nan,0).apply(np.int32)
-        else:
+        if(not self.colExists("ig4")):
             self.df["ig4"] = 0
+
+        return self.df
     
     def checkEticket(self):
-        if(self.colExists("etiket")):
-            self.df.eticket.replace(np.nan, "CSVREADER") 
-        else:
+        if(not self.colExists("etiket")):
             self.df["eticket"] = "CSVREADER"
+        return self.df
 
     def checkLevel(self):
         if(self.colExists("level") and not self.colExists("ip1")):
             for row in self.df.itertuples():
                 level = float (row.level)
-                ip1 = std_enc.create_encoded_ip1(level=level,ip1_kind=3)
+                ip1 = std_enc.create_encoded_ip1(level=level,ip1_kind=IP1_KIND)
                 self.df.at[row.Index,"ip1"] = ip1
         # Remove level after we added ip1 column
             self.df.drop(["level"],axis = 1,inplace = True)
