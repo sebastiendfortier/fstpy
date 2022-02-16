@@ -191,7 +191,7 @@ def add_timezone_column(df: pd.DataFrame, source_column: str, timezone:str) -> p
     else:
         new_df.loc[new_df[new_column].isna(),new_column] = VCONVERT_DATE_TO_TIMEZONE(new_df.loc[new_df[new_column].isna()][source_column],timezone)
 
-    new_df[new_column] = new_df[new_column].astype('datetime64[ns]')
+    # new_df[new_column] = new_df[new_column].astype('datetime64[ns]')
 
     return new_df
 
@@ -374,7 +374,7 @@ def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
         else:
             new_df.loc[new_df.date_of_observation.isna(),'date_of_observation'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.loc[new_df.date_of_observation.isna()].dateo)
 
-        new_df['date_of_observation'] = new_df['date_of_observation'].astype('datetime64[ns]')
+        # new_df['date_of_observation'] = new_df['date_of_observation'].astype('datetime64[ns]')
     else:
         if 'datev' not in df.columns:
             raise MissingColumnError(f'"datev" is missing from DataFrame columns, cannot add date_of_validity column!') 
@@ -389,7 +389,7 @@ def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
         else:
             new_df.loc[new_df.date_of_validity.isna(),'date_of_validity'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.loc[new_df.date_of_validity.isna()].datev)
 
-        new_df['date_of_validity'] = new_df['date_of_validity'].astype('datetime64[ns]')
+        # new_df['date_of_validity'] = new_df['date_of_validity'].astype('datetime64[ns]')
     return new_df    
 
 
@@ -418,7 +418,7 @@ def add_forecast_hour_column(df: pd.DataFrame):
     else:
         new_df.loc[new_df.forecast_hour.isna(),'forecast_hour'] = VCREATE_FORECAST_HOUR(new_df.loc[new_df.forecast_hour.isna()].deet,new_df.loc[new_df.forecast_hour.isna()].npas)
 
-    new_df['forecast_hour'] = new_df['forecast_hour'].astype('timedelta64[ns]')
+    # new_df['forecast_hour'] = new_df['forecast_hour'].astype('timedelta64[ns]')
     return new_df
     
 
