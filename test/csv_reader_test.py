@@ -16,6 +16,7 @@ import datetime
 from fstpy import std_enc
 import pytest
 import fstpy.csv_reader
+import fstpy.all as fstpy
 
 pytestmark = [pytest.mark.csv_reader, pytest.mark.unit_tests]
 
@@ -49,36 +50,36 @@ def df1():
     
 """Test if my to_pandas function works and if my class CsvFileReader works"""
 def test_1(input_file,df1):
-    csv_file = fstpy.csv_reader.CsvFileReader(path = input_file )
-    assert (type(csv_file) == fstpy.csv_reader.CsvFileReader)
+    csv_file = fstpy.CsvFileReader(path = input_file )
+    assert (type(csv_file) == fstpy.CsvFileReader)
     assert (df1.equals(csv_file.to_pandas_no_condition()))
 
 """ Test the exception CsvFileReaderError"""
 def test_2(input_file2):
-    with pytest.raises(fstpy.csv_reader.CsvFileReaderError):
-        csv_file = fstpy.csv_reader.CsvFileReader(path = input_file2)
+    with pytest.raises(fstpy.CsvFileReaderError):
+        csv_file = fstpy.CsvFileReader(path = input_file2)
 
 """ Test the exception NoHeaderInFileError"""
 def test_3(input_file):
-    with pytest.raises(fstpy.csv_reader.NoHeaderInFileError):
-        csv_file = fstpy.csv_reader.CsvFileReader(path = input_file)
+    with pytest.raises(fstpy.NoHeaderInFileError):
+        csv_file = fstpy.CsvFileReader(path = input_file)
         csv_file.to_pandas_no_hdr()
 
 """ Test the exception MinimumHeadersError"""
 def test_4(input_file_without_minimum_cl):
-    with pytest.raises(fstpy.csv_reader.MinimumHeadersError):
-        csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_without_minimum_cl)
+    with pytest.raises(fstpy.MinimumHeadersError):
+        csv_file = fstpy.CsvFileReader(path = input_file_without_minimum_cl)
         csv_file.to_pandas()
 
 """ Test the exception HeadersAreNotValidError"""
 def test_5(input_file_with_wrong_column_name):
-    with pytest.raises(fstpy.csv_reader.HeadersAreNotValidError):
-        csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_with_wrong_column_name)
+    with pytest.raises(fstpy.HeadersAreNotValidError):
+        csv_file = fstpy.CsvFileReader(path = input_file_with_wrong_column_name)
         csv_file.to_pandas()
 
 """ Test checkColumns Functions"""
 def test_6(input_file_nbits_void,input_file_nbits_24bits):
-    csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_void)
+    csv_file = fstpy.CsvFileReader(path = input_file_nbits_void)
     csv_file.to_pandas_no_condition()
     csv_file.checkNbits()
     csv_file.checkDatyp()
@@ -88,32 +89,33 @@ def test_6(input_file_nbits_void,input_file_nbits_24bits):
     csv_file.checkEticket()
     csv_file.checkLevel()
     print(csv_file.df)
-    csv_file2 = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_24bits)
+    csv_file2 = fstpy.CsvFileReader(path = input_file_nbits_24bits)
     csv_file2.to_pandas_no_condition()
     print(csv_file2.df)
     assert (csv_file.df.equals(csv_file2.df))
 
 """ Test checkColumns Function"""
 def test_7(input_file_nbits_void,input_file_nbits_24bits):
-    csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_void)
+    csv_file2 = fstpy.CsvFileReader(path = input_file_nbits_24bits)
+    csv_file2.to_pandas_no_condition()
+    csv_file2.df["dateo"] = fstpy.create_encoded_dateo(datetime.datetime.utcnow())
+    csv_file = fstpy.CsvFileReader(path = input_file_nbits_void)
     csv_file.to_pandas_no_condition()
     csv_file.checkColumns()
     print(csv_file.df)
-    csv_file2 = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_24bits)
-    csv_file2.to_pandas_no_condition()
     print(csv_file2.df)
     assert (csv_file.df.equals(csv_file2.df))
 
 """ Test to_pandas Function with check columns and verify headers"""
-def test_7(input_file_nbits_void,input_file_nbits_24bits):
-    csv_file = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_void)
+def test_8(input_file_nbits_void,input_file_nbits_24bits):
+    csv_file2 = fstpy.CsvFileReader(path = input_file_nbits_24bits)
+    csv_file2.to_pandas_no_condition()
+    csv_file2.df["dateo"] = fstpy.create_encoded_dateo(datetime.datetime.utcnow())
+    csv_file = fstpy.CsvFileReader(path = input_file_nbits_void)
     csv_file.to_pandas()
     print(csv_file.df)
-    csv_file2 = fstpy.csv_reader.CsvFileReader(path = input_file_nbits_24bits)
-    csv_file2.to_pandas_no_condition()
     print(csv_file2.df)
     assert (csv_file.df.equals(csv_file2.df))
-
 
 
 

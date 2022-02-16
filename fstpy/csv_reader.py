@@ -65,7 +65,7 @@ class CsvFileReader :
         if(self.verifyHeaders()):
             self.checkColumns()
             return self.df
-            
+
     def to_pandas_no_condition(self):
         self.df = pd.read_csv(self.path,comment="#")
         return self.df
@@ -88,15 +88,16 @@ class CsvFileReader :
         self.checkIg()
         self.checkEticket()
         self.checkLevel()
+        self.checkDateO()
     
     
-    """Verify that the csv file has a header
-    """
+    
     def hasHeader(self):
-            if(self.df.columns.dtype == object):
-                return True
-            else:
-                raise NoHeaderInFileError('Your file does not have a csv file with headers')
+        """Verify that the csv file has a header"""
+        if(self.df.columns.dtype == object):
+            return True
+        else:
+            raise NoHeaderInFileError('Your file does not have a csv file with headers')
 
     def hasMinimumHeaders(self):
         """_summary_
@@ -148,12 +149,10 @@ class CsvFileReader :
         else:
             return False
 
-
-
     # DEFAULT VALUES
     
     def checkDataColumn(self):
-        pass
+        CsvArray(df["d"])
 
     # Remplace toutes les valeurs nbits nulles par 24 en int
     def checkNbits(self):
@@ -166,28 +165,19 @@ class CsvFileReader :
         if(not self.colExists("datyp")):
             self.df["datyp"] = 1
         return self.df
-
-           
+     
 
     def checkTypVar(self):
         if(not self.colExists("typvar")):
             self.df["typvar"] = "X"
         return self.df
-
-            
+     
 
     def checkDateO(self):
-        dateo_encoded = std_enc.create_encoded_dateo(datetime.utcnow())
+        dateo_encoded = std_enc.create_encoded_dateo(datetime.datetime.utcnow())
         if(not self.colExists("dateo")):
             self.df["dateo"] = dateo_encoded
         return self.df
-            
-
-    #def checkIp1(self):
-     #   if(self.colExists("ip1")):
-       #     self.df.ip1.replace(np.nan,3).apply(np.int32)
-      #  else:
-      #      self.df["ip1"] = 3
 
     def checkIp2EtIp3(self):
         if(not self.colExists("ip2")):
@@ -243,11 +233,9 @@ class CsvArray:
         self.array=array
         if isinstance(self.array,str):
             self.to_numpy_array(self)
-            pass
 
         elif isinstance(self.array,np.array):
             self.to_str_array(self)
-            pass
 
         else:
             raise ArrayIsNotNumpyStrError('The array you provided does not contains strings or numpy arrays')
@@ -277,6 +265,7 @@ class CsvArray:
             self.df.at[row.Index,"nj"] = nj
             self.df.at[row.Index,"nk"] = nk
         self.df["d"] = array_list
+        return self.df
 
     def to_str_array(self):
         for row in self.df.itertuples(): 
