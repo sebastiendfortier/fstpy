@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from array import array
 import copy
 import itertools
 import multiprocessing as mp
 from mimetypes import init
 import re
+from this import d
 import pandas as pd
 import os
 import numpy as np
@@ -12,9 +12,11 @@ from .utils import initializer
 import csv
 import datetime
 from fstpy import std_enc
+import rpnpy.librmn.all as rmn
 
 
-BASE_COLUMNS = ['nomvar','level','typvar','etiket','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','ig1','ig2','ig3','ig4','d']
+
+BASE_COLUMNS = ['nomvar','level','typvar','etiket','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','ig1','ig2','ig3','ig4','d','datev']
 IP1_KIND = 3
 #key–Positioning information to the record. Obtained with fstinf or fstinl.
 #dateo – date of origin (date time stamp) Cannot change dateo and datev.
@@ -51,6 +53,9 @@ class ip1HasAmissingValueError(Exception):
 class ip1andLevelExistsError(Exception):
     pass
 
+class DimensionError(Exception):
+    pass
+
 class CsvFileReader :   
 
     def __init__(self,path):
@@ -78,17 +83,24 @@ class CsvFileReader :
 
 
     def verifyHeaders(self):
-        return self.hasHeader() and self.hasMinimumHeaders() and self.checkHeadersAllValid()
+        return self.hasHeader() and self.hasMinimumHeaders() and self.addHeadersAllValid()
     
     def checkColumns(self):
-        self.checkNbits()
-        self.checkDatyp()
-        self.checkTypVar()
-        self.checkIp2EtIp3()
-        self.checkIg()
-        self.checkEticket()
-        self.checkLevel()
-        self.checkDateO()
+        self.add_n_bits()
+        self.add_datyp()
+        self.add_typ_var()
+        self.add_ip2_ip3()
+        self.add_ig()
+        self.add_eticket()
+        self.add_level()
+        self.add_n_dimensions()
+        self.add_deet()
+        self.add_npas()
+        self.add_dateo()
+        self.add_datev()
+        self.to_numpy_array()
+        self.change_columns_type()
+        self.check_dimension_meme_etiket()
     
     
     
@@ -115,7 +127,7 @@ class CsvFileReader :
             raise MinimumHeadersError('Your csv file doesnt have the necessary columns to proceed! Check that you '
                                         + 'have at least nomvar,d and level or ip1 as columns in your csv file')
 
-    def checkHeadersAllValid(self):
+    def addHeadersAllValid(self):
         all_the_cols = BASE_COLUMNS
         all_the_cols.sort()
 
@@ -143,116 +155,22 @@ class CsvFileReader :
         else:
             raise HeadersAreNotValidError('The headers in the csv file are not valid you have too many columns')
 
-    def colExists(self,col):
+    def col_exists(self,col):
         if col in self.df.columns:
             return True
         else:
             return False
 
     # DEFAULT VALUES
-    
-    def checkDataColumn(self):
-        CsvArray(df["d"])
-
-    # Remplace toutes les valeurs nbits nulles par 24 en int
-    def checkNbits(self):
-        if(not self.colExists("nbits")):
-            self.df["nbits"] = 24 # le int est 64 bits non 32
-        return self.df
-        
-
-    def checkDatyp(self):
-        if(not self.colExists("datyp")):
-            self.df["datyp"] = 1
-        return self.df
-     
-
-    def checkTypVar(self):
-        if(not self.colExists("typvar")):
-            self.df["typvar"] = "X"
-        return self.df
-     
-
-    def checkDateO(self):
-        dateo_encoded = std_enc.create_encoded_dateo(datetime.datetime.utcnow())
-        if(not self.colExists("dateo")):
-            self.df["dateo"] = dateo_encoded
-        return self.df
-
-    def checkIp2EtIp3(self):
-        if(not self.colExists("ip2")):
-            self.df["ip2"] = 0
-        if(not self.colExists("ip3")):
-            self.df["ip3"] = 0
-        else:
-            return self.df
-        return self.df
-
-    def checkIg(self):
-        if(not self.colExists("ig1")):
-            self.df["ig1"] = 0        
-
-        if(not self.colExists("ig2")):
-            self.df["ig2"] = 0
-
-        if(not self.colExists("ig3")):
-            self.df["ig3"] = 0
-
-        if(not self.colExists("ig4")):
-            self.df["ig4"] = 0
-
-        return self.df
-    
-    def checkEticket(self):
-        if(not self.colExists("etiket")):
-            self.df["eticket"] = "CSVREADER"
-        return self.df
-
-    def checkLevel(self):
-        if(self.colExists("level") and not self.colExists("ip1")):
-            for row in self.df.itertuples():
-                level = float (row.level)
-                ip1 = std_enc.create_encoded_ip1(level=level,ip1_kind=IP1_KIND)
-                self.df.at[row.Index,"ip1"] = ip1
-        # Remove level after we added ip1 column
-            self.df.drop(["level"],axis = 1,inplace = True)
-        else:
-            raise ip1andLevelExistsError("IP1 AND LEVEL EXISTS IN THE CSV FILE")
-    
-            
-        
-
-class ArrayIsNotNumpyStrError(Exception):
-    pass
-
-class ArrayIs3dError(Exception):
-    pass
-
-class CsvArray:
-    def __init__(self,array):
-        self.array=array
-        if isinstance(self.array,str):
-            self.to_numpy_array(self)
-
-        elif isinstance(self.array,np.array):
-            self.to_str_array(self)
-
-        else:
-            raise ArrayIsNotNumpyStrError('The array you provided does not contains strings or numpy arrays')
-
-    def to_numpy_array(self):
-        array_list = []
-
+    def add_n_dimensions(self):
         for row in self.df.itertuples():
-            #print(row)
-            self.array= row.d
+            array= row.d
             a = np.array([[float(j) for j in i.split(',')] for i in array.split(';')],dtype=np.float32, order='F')
-            array_list.append(a)
-            # print("array = " + f'{a}')
             if(a.ndim == 1):
                 ni = np.shape(a)[0]
                 nj=0
                 nk=1
+
             if(a.ndim == 2):
                 ni = np.shape(a)[0] 
                 nj = np.shape(a)[1]
@@ -260,17 +178,156 @@ class CsvArray:
 
             if(a.ndim == 3):
                 raise ArrayIs3dError('The numpy array you created from the string array is 3D and it should not be 3d')
-
             self.df.at[row.Index,"ni"] = ni
             self.df.at[row.Index,"nj"] = nj
             self.df.at[row.Index,"nk"] = nk
-        self.df["d"] = array_list
         return self.df
 
-    def to_str_array(self):
-        for row in self.df.itertuples(): 
-            self.array = row.d 
-            a = array.tostring
+
+    # Remplace toutes les valeurs nbits nulles par 24 en int
+    def add_n_bits(self):
+        if(not self.col_exists("nbits")):
+            self.df["nbits"] = 24
+    # le int est 64 bits non 32
+        
+
+    def add_datyp(self):
+        if(not self.col_exists("datyp")):
+            self.df["datyp"] = 1
+     
+
+    def add_typ_var(self):
+        if(not self.col_exists("typvar")):
+            self.df["typvar"] = "X"
+     
+
+    def add_dateo(self):
+        dateo_encoded = std_enc.create_encoded_dateo(datetime.datetime.utcnow())
+        if(not self.col_exists("dateo")):
+            self.df["dateo"] = dateo_encoded
+
+    def add_ip2_ip3(self):
+        if(not self.col_exists("ip2")):
+            self.df["ip2"] = 0
+        if(not self.col_exists("ip3")):
+            self.df["ip3"] = 0
+
+    def add_ig(self):
+        if(not self.col_exists("ig1")):
+            self.df["ig1"] = 0        
+
+        if(not self.col_exists("ig2")):
+            self.df["ig2"] = 0
+
+        if(not self.col_exists("ig3")):
+            self.df["ig3"] = 0
+
+        if(not self.col_exists("ig4")):
+            self.df["ig4"] = 0
+    
+    def add_eticket(self):
+        if(not self.col_exists("etiket")):
+            self.df["eticket"] = "CSVREADER"
+    
+    def add_level(self):
+        if(self.col_exists("level") and not self.col_exists("ip1")):
+            for row in self.df.itertuples():
+                level = float (row.level)
+                ip1 = std_enc.create_encoded_ip1(level=level,ip1_kind=IP1_KIND,mode =rmn.CONVIP_ENCODE)
+                self.df.at[row.Index,"ip1"] = ip1
+            self.df["ip1"] = self.df["ip1"].astype("int32")
+        # Remove level after we added ip1 column
+            self.df.drop(["level"],axis = 1,inplace = True)
+        else:
+            raise ip1andLevelExistsError("IP1 AND LEVEL EXISTS IN THE CSV FILE")
+    
+    def add_deet(self):
+        if(not self.col_exists("deet")):
+            self.df["deet"] = 0
+
+    def add_npas(self):
+        if(not self.col_exists("npas")):
+            self.df["npas"] = 0
+
+
+    def add_datev(self):
+        if(not self.col_exists("datev")):
+            self.df["datev"] = None
+
+    def check_dimension_meme_etiket(self):
+        # Check if etiket is the same as the previous row to compare dimension if its the same etiket
+        groups = self.df.groupby(['nomvar','typvar','etiket','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','ig1','ig2','ig3','ig4'])
+        for _,df in groups:
+            if df.ni.unique().size != 1:
+                raise DimensionError("Array with the same var and etiket dont have the same dimension ")
+            if df.nj.unique().size != 1:
+                raise DimensionError("Array with the same var and etiket dont have the same dimension ")
+
+
+    def to_numpy_array(self):
+        array_list = []
+        for i in self.df.index:
+            a =CsvArray(self.df.at[i,"d"]).to_numpy()
+            print(a)
+            array_list.append(a)
+        self.df["d"] = array_list
+
+
+    def change_columns_type(self):
+        self.df = self.df.astype({'ni':'int32','nj':'int32','nk':'int32','nomvar':"str",'typvar':'str','etiket':'str','dateo':'int32','ip1':'int32','ip2':'int32','ip3':'int32','datyp':'int32','nbits':'int32','ig1':'int32','ig2':'int32','ig3':'int32','ig4':'int32','deet':'int32','npas':'int32'})
+    
+    
+class ArrayIsNotNumpyStrError(Exception):
+    pass
+
+class ArrayIs3dError(Exception):
+    pass
+
+class ArrayIsNotStringOrNp(Exception):
+    pass
+
+
+# 1- ta classe cvsarry ne doit rien faire a part initialiser ses variables d'instances dans le init
+# dans tes methode to... tu verifie le type de self.array et tu retourne celui qui a rapport avec la methode
+# to_str ... devrais faire un check sur le type de self.array, si c'est un numpy alors converti en str et 
+# retourne la string, sinon retourne self.array
+# dans ton csvReader
+# for i in df.index:
+#   df.at[i,'d'] = CsVArray(df.at[i,'d']).to_numpy...
+class CsvArray:
+    def __init__(self,array):
+        self.array=array
+        if(self.validate_array()):
+            pass
+        else:
+            raise ArrayIsNotStringOrNp("The array is not a string or a numpy aray")
+
+    def validate_array(self):
+        #Verifier que larray est une string ou np.ndarray
+        if(type(self.array) == np.ndarray or type(self.array) == str):
+            return True
+        else:
+            return False
+            
+
+    def to_numpy(self):
+        if isinstance(self.array,str):
+            b = self.array
+            a = np.array([[float(j) for j in i.split(',')] for i in b.split(';')],dtype=np.float32, order='F')
+            if(a.ndim == 3):
+                raise ArrayIs3dError('The numpy array you created from the string array is 3D and it should not be 3d')
+            return a
+        else:
+            return self.array
+
+
+    def to_str(self):
+        if isinstance(self.array,np.ndarray):
+            b=self.array
+            #Transformer en string
+            pass
+        else:
+            return self.array
         pass
 
 

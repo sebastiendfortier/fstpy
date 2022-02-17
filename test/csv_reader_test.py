@@ -1,23 +1,10 @@
-from array import array
-from ast import Try
-import copy
-from email import header
-from importlib.resources import path
-import itertools
-from lib2to3.pgen2.pgen import DFAState
-import multiprocessing as mp
-from mimetypes import init
-import re
+# -*- coding: utf-8 -*-
 import pandas as pd
-import os
-import numpy as np
-import csv
 import datetime
-from fstpy import std_enc
 import pytest
-import fstpy.csv_reader
 import fstpy.all as fstpy
-
+from ci_fstcomp import fstcomp
+from test import TEST_PATH, TMP_PATH
 pytestmark = [pytest.mark.csv_reader, pytest.mark.unit_tests]
 
 
@@ -45,6 +32,10 @@ def input_file_nbits_24bits():
 def df1():
     df = pd.read_csv('/home/zak000/src/notebooks/readerCsv_notebook/test2_src.csv',comment="#")
     return df
+
+@pytest.fixture
+def plugin_test_dir():
+    return TEST_PATH +"ReaderCsv/testsFiles/"
 
 
     
@@ -77,33 +68,19 @@ def test_5(input_file_with_wrong_column_name):
         csv_file = fstpy.CsvFileReader(path = input_file_with_wrong_column_name)
         csv_file.to_pandas()
 
-""" Test checkColumns Functions"""
-def test_6(input_file_nbits_void,input_file_nbits_24bits):
-    csv_file = fstpy.CsvFileReader(path = input_file_nbits_void)
-    csv_file.to_pandas_no_condition()
-    csv_file.checkNbits()
-    csv_file.checkDatyp()
-    csv_file.checkTypVar()
-    csv_file.checkIp2EtIp3()
-    csv_file.checkIg()
-    csv_file.checkEticket()
-    csv_file.checkLevel()
-    print(csv_file.df)
-    csv_file2 = fstpy.CsvFileReader(path = input_file_nbits_24bits)
-    csv_file2.to_pandas_no_condition()
-    print(csv_file2.df)
-    assert (csv_file.df.equals(csv_file2.df))
-
 """ Test checkColumns Function"""
 def test_7(input_file_nbits_void,input_file_nbits_24bits):
     csv_file2 = fstpy.CsvFileReader(path = input_file_nbits_24bits)
-    csv_file2.to_pandas_no_condition()
-    csv_file2.df["dateo"] = fstpy.create_encoded_dateo(datetime.datetime.utcnow())
+    file2_df= csv_file2.to_pandas_no_condition()
+    file2_df["dateo"] = fstpy.create_encoded_dateo(datetime.datetime.utcnow())
     csv_file = fstpy.CsvFileReader(path = input_file_nbits_void)
     csv_file.to_pandas_no_condition()
+    # print(dfd.to_string())
     csv_file.checkColumns()
-    print(csv_file.df)
-    print(csv_file2.df)
+    #csv_file.change_columns_type()
+    print(csv_file.df.to_string())
+    print(csv_file2.df.to_string())
+    print(csv_file.df.dtypes)
     assert (csv_file.df.equals(csv_file2.df))
 
 """ Test to_pandas Function with check columns and verify headers"""
@@ -118,6 +95,23 @@ def test_8(input_file_nbits_void,input_file_nbits_24bits):
     assert (csv_file.df.equals(csv_file2.df))
 
 
+def test_9(plugin_test_dir):
+    src = "/home/sbf000/csv/pds1_level2.new.csv.format"
+    df = fstpy.CsvFileReader(src).to_pandas()
+    df["dateo"] =  360451883
+    df = fstpy.add_grid_column(df)
+    print(df.to_string())
+    print(df.dtypes)
+    
+    results_file = TMP_PATH + "test_9.std"
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file,df).to_fst()
+    #open and read comparison file
+    file_to_compare = plugin_test_dir + "pds1_level2_file2cmp.std"
+    #compare results
+    res = fstcomp(results_file,file_to_compare)
+    fstpy.delete_file(results_file)
+    assert(res)
 
 
 

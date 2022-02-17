@@ -57,7 +57,7 @@ def create_encoded_npas_and_ip2(forecast_hour: datetime.timedelta, deet: int) ->
     return npas, ip2_code
 
 
-def create_encoded_ip1(level: float, ip1_kind: int) -> int:
+def create_encoded_ip1(level: float, ip1_kind: int,mode:int=rmn.CONVIP_ENCODE) -> int:
     """returns an encoded ip1 from level and kind
 
     :param level: level value
@@ -68,7 +68,7 @@ def create_encoded_ip1(level: float, ip1_kind: int) -> int:
     :rtype: int
     """
   
-    return rmn.convertIp(rmn.CONVIP_ENCODE,level,ip1_kind)
+    return rmn.convertIp(mode,level,ip1_kind)
 
 
 def create_encoded_ip2(level: float, ip2_kind: int) -> int:
