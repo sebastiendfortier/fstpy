@@ -31,10 +31,10 @@ class ApplyMask():
     def get_dataframes(self):
         """creates self.meta_df and self.no_meta_df"""
         self.meta_df = self.df.loc[self.df.nomvar.isin(
-            ["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])]#.reset_index(drop=True)
+            ["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
 
         self.no_meta_df = self.df.loc[~self.df.nomvar.isin(
-            ["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])]#.reset_index(drop=True)
+            ["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
 
         self.masked_df = self.no_meta_df.loc[self.no_meta_df.typvar.str.contains('@')]
         self.not_masked_df = self.no_meta_df.loc[~self.no_meta_df.typvar.str.contains('@')]
@@ -74,7 +74,7 @@ class ApplyMask():
             raise ApplyMaskError('No results were produced')
 
         # merge all results together
-        res_df = pd.concat(new_list)#, ignore_index=True)
+        res_df = pd.concat(new_list, ignore_index=True)
 
         res_df = metadata_cleanup(res_df)
 

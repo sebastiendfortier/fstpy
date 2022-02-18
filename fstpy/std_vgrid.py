@@ -622,7 +622,7 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
                     ip1_kind_group['vctype'] = vctype_dict[vctyte_df.iloc[0]['vctype']]
             newdfs.append(ip1_kind_group)
 
-    res_df = pd.concat(newdfs)#, ignore_index=True)
+    res_df = pd.concat(newdfs, ignore_index=True)
 
     res_df.loc[res_df.nomvar.isin([">>", "^^", "!!", "P0", "PT", "HY", "!!SF"]), "vctype"] = vctype_dict['UNKNOWN']
 

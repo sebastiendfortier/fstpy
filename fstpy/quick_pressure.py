@@ -49,7 +49,7 @@ class QuickPressure():
             grid_groups = path_df.groupby(['grid'])
 
             for _, grid_df in grid_groups:
-                grids_meta_df = grid_df.loc[grid_df.nomvar.isin(["!!", "P0", "PT", "!!SF"])]#.reset_index(drop=True)
+                grids_meta_df = grid_df.loc[grid_df.nomvar.isin(["!!", "P0", "PT", "!!SF"])].reset_index(drop=True)
                 vctypes_groups = grid_df.groupby(['vctype'])
 
                 for vctype, vt_df in vctypes_groups:
@@ -74,6 +74,6 @@ class QuickPressure():
                                 df_list.append(px_df)
 
         df_list.append(self.meta_df)
-        res_df = pd.concat(df_list)#, ignore_index=True)
+        res_df = pd.concat(df_list, ignore_index=True)
         res_df = metadata_cleanup(res_df)
         return res_df
