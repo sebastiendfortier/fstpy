@@ -39,10 +39,12 @@ Documentation
 **Modules**
 
 * :doc:`all`
+* :doc:`apply_mask`
 * :doc:`dataframe_utils`
 * :doc:`dataframe`
 * :doc:`log`
 * :doc:`quick_pressure`
+* :doc:`recover_mask`
 * :doc:`std_dec`
 * :doc:`std_enc`
 * :doc:`std_grid`
@@ -58,10 +60,12 @@ Documentation
    :caption: Modules
 
    all
+   apply_mask
    dataframe_utils
    dataframe
    log
    quick_pressure
+   recover_mask
    std_dec
    std_enc
    std_grid
