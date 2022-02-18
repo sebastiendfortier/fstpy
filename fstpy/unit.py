@@ -275,9 +275,9 @@ def unit_convert(df: pd.DataFrame, to_unit_name='scalar', standard_unit=False) -
     if 'unit' not in df.columns:
         df = add_unit_and_description_columns(df)
 
-    meta_df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
+    meta_df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])]#.reset_index(drop=True)
     # remove meta data from DataFrame
-    df = df.loc[~df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
+    df = df.loc[~df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])]#.reset_index(drop=True)
     
     res_df = df.copy(deep=True)
     unit_to = get_unit_by_name(to_unit_name)
@@ -303,11 +303,11 @@ def unit_convert(df: pd.DataFrame, to_unit_name='scalar', standard_unit=False) -
                 res_df.at[row.Index, 'unit'] = to_unit_name
                 res_df.at[row.Index, 'unit_converted'] = True
 
-    res_df = pd.concat([res_df,meta_df],ignore_index=True)
+    res_df = pd.concat([res_df,meta_df])#,ignore_index=True)
     if not standard_unit:
         if 'level' not in res_df.columns:
             res_df = add_columns(res_df, columns=['ip_info'])
 
-        res_df = res_df.sort_values(by='level', ascending=res_df.ascending.unique()[0]).reset_index(drop=True)
+        res_df = res_df.sort_values(by='level', ascending=res_df.ascending.unique()[0])#.reset_index(drop=True)
 
     return res_df

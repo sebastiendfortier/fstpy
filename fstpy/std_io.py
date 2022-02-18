@@ -24,7 +24,7 @@ def parallel_get_dataframe_from_file(files, get_records_func, n_cores):
     with mp.Pool(processes=n_cores) as pool:
         df_list = pool.starmap(get_records_func, [file for file in files])
 
-    df = pd.concat(df_list, ignore_index=True)
+    df = pd.concat(df_list)#, ignore_index=True)
     return df
 
 
@@ -78,14 +78,14 @@ def add_metadata_to_query_results(df, query_result_df, hy_df) -> pd.DataFrame:
     query_result_metadata_df = meta_df.loc[meta_df.grid.isin(list(query_result_df.grid.unique()))]
 
     if (not query_result_df.empty) and (not query_result_metadata_df.empty):
-        df = pd.concat([query_result_df, query_result_metadata_df], ignore_index=True)
+        df = pd.concat([query_result_df, query_result_metadata_df])#, ignore_index=True)
     elif (not query_result_df.empty) and (query_result_metadata_df.empty):
         df = query_result_df
     elif query_result_df.empty:
         df = query_result_df
 
     if (not df.empty) and (not hy_df.empty):
-        df = pd.concat([df, hy_df], ignore_index=True)
+        df = pd.concat([df, hy_df])#, ignore_index=True)
 
     return df
 
@@ -116,7 +116,7 @@ def process_hy(hy_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
         grid = df.grid.unique()[0]
         hy_df['grid'] = grid
 
-        df = pd.concat([df, hy_df], ignore_index=True)
+        df = pd.concat([df, hy_df])#, ignore_index=True)
     return df
 
 
@@ -193,8 +193,8 @@ def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vert
                 #print(latlon_df)
 
     if len(df_list):
-        result_df = pd.concat(df_list,ignore_index=True)
-        result_df = result_df.drop_duplicates(subset = ['nomvar', 'typvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], ignore_index=True)
+        result_df = pd.concat(df_list)#,ignore_index=True)
+        result_df = result_df.drop_duplicates(subset = ['nomvar', 'typvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'])#, ignore_index=True)
         return result_df
     else:
         return pd.DataFrame(dtype=object)

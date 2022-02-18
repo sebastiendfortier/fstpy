@@ -167,7 +167,7 @@ def get_2d_lat_lon_df(df: pd.DataFrame) -> pd.DataFrame:
         
         grid_groups = path_df.groupby(['grid'])
         for _, grid_df in grid_groups:
-            no_meta_df = grid_df.loc[~grid_df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
+            no_meta_df = grid_df.loc[~grid_df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])]#.reset_index(drop=True)
 
             if no_meta_df.empty:
                 continue
