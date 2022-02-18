@@ -5,10 +5,14 @@ import fstpy.all as fstpy
 import pytest
 import copy
 import numpy as np
+from ci_fstcomp import fstcomp
 
 pytestmark = [pytest.mark.regressions]
 
 
+@pytest.fixture
+def test_data0():
+    return TEST_PATH + "ReaderStd_WriterStd/testsFiles/UUVV5x5_fileSrc.std"
 
 @pytest.fixture
 def test_data1():
@@ -59,15 +63,11 @@ def test_3(test_data2):
     # open and read source
     source0 = test_data2
     src_df0 = fstpy.StandardFileReader(source0).to_pandas()
-    
-    # src_df0 = src_df0.loc[src_df0.nomvar.isin(['>>','^^','LA','LO','UD'])]
-    # print(src_df0.drop('d',axis=1))
-    # src_nb_rows = len(src_df0.index) - 4
 
     df = fstpy.ApplyMask(src_df0).compute()
-    # print(df.drop('d',axis=1))
+
     new_df = fstpy.RecoverMask(df).compute()
-    # print(df.drop('d',axis=1))
+
     # write the result
     results_file = TMP_PATH + "test_3.std"
     fstpy.delete_file(results_file)
@@ -94,4 +94,27 @@ def test_3(test_data2):
     
     fstpy.delete_file(results_file)
 
+
+def test_4(test_data0):
+    """Test application d'un fichier avec masque, donnees regulieres et metas donnees"""
+    # open and read source
+    source0 = test_data0
+    new_df = src_df0 = fstpy.StandardFileReader(source0).to_pandas()
+
+    df = fstpy.ApplyMask(src_df0).compute()
+
+    new_df = fstpy.RecoverMask(df).compute()
+
+    # write the result
+    results_file = TMP_PATH + "test_4.std"
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, new_df).to_fst()
+
+    # open and read comparison file
+    file_to_compare = test_data0
+
+    # compare results
+    res = fstcomp(results_file, file_to_compare, e_max=0.001)
+    fstpy.delete_file(results_file)
+    assert(res)
 
