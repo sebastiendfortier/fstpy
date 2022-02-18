@@ -14,8 +14,20 @@ class ApplyMaskError(Exception):
 
 
 class ApplyMask():
+    """Applies the masks when available to the data. If a field has a mask, identified by the typvar (often @@), 
+       then the resulting dataframe will have the mask rows removed and the mask applied to the arrays 
+       (np.array -> np.ma.array).
+
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :param mask_typvar: typvar to identify mask field, defaults to '@@'
+    :type mask_typvar: str, optional
+    :param keep_value: bool as int that indicates the mask values to keep, defaults to 1
+    :type keep_value: int, optional
+    """
     @initializer
     def __init__(self, df: pd.DataFrame, mask_typvar: str = '@@', keep_value: int = 1):
+
         self.validate_typvar()
         self.validate_value()
         self.get_dataframes()
