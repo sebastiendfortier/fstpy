@@ -16,7 +16,7 @@ import rpnpy.librmn.all as rmn
 
 
 
-BASE_COLUMNS = ['nomvar','level','typvar','etiket','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','ig1','ig2','ig3','ig4','d','datev']
+BASE_COLUMNS = ['nomvar', 'typvar', 'etiket', 'level', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd']
 IP1_KIND = 3
 #key–Positioning information to the record. Obtained with fstinf or fstinl.
 #dateo – date of origin (date time stamp) Cannot change dateo and datev.
@@ -57,15 +57,23 @@ class DimensionError(Exception):
     pass
 
 class CsvFileReader :   
+    """Read a csv file and convert it to a readable csv file.
+    :param path: path of the csv file i want to read
+    :type path:str
+    """
 
-    def __init__(self,path):
+    def __init__(self,path,encode_ip1):
+        self.encode_ip1:bool = True
         if os.path.exists(path):
-        #path = '/home/zak000/src/notebooks/readerCsv_notebook/test2_src.csv'
             self.path = path
         else:
             raise CsvFileReaderError('Path does not exist\n')
 
     def to_pandas(self)-> pd.DataFrame:
+        """Read the csv file and verify that I have headers and add the missing columns
+        :return: df
+        :rtype: pd.DataFrame
+        """
         self.df = pd.read_csv(self.path,comment="#")
         if(self.verifyHeaders()):
             self.checkColumns()
@@ -83,21 +91,27 @@ class CsvFileReader :
 
 
     def verifyHeaders(self):
+        """Verify Headers with the 3 functions that does it
+        :return: self.hasHeader() and self.hasMinimumHeaders() and self.addHeadersAllValid()
+        :rtype: Boolean
+        """
         return self.hasHeader() and self.hasMinimumHeaders() and self.addHeadersAllValid()
     
     def checkColumns(self):
+        """Add the missings columns in the dataframe 
+        """
         self.add_n_bits()
         self.add_datyp()
+        self.add_grtyp()
         self.add_typ_var()
         self.add_ip2_ip3()
         self.add_ig()
         self.add_eticket()
-        self.add_level()
+        self.add_ip1()
         self.add_n_dimensions()
         self.add_deet()
         self.add_npas()
-        self.add_dateo()
-        self.add_datev()
+        self.add_date()
         self.to_numpy_array()
         self.change_columns_type()
         self.check_dimension_meme_etiket()
@@ -105,19 +119,17 @@ class CsvFileReader :
     
     
     def hasHeader(self):
-        """Verify that the csv file has a header"""
+        """Verify that the csv file has a single header"""
         if(self.df.columns.dtype == object):
             return True
         else:
             raise NoHeaderInFileError('Your file does not have a csv file with headers')
 
     def hasMinimumHeaders(self):
-        """_summary_
-
-        :raises MinimumHeadersError: _description_
-        :return: _description_
-        :rtype: _type_
-
+        """Verify that I have the minimum amount of headers 
+        :raises MinimumHeadersError: I dont have the necessary headers to change the dataframe of the csv file.
+        :return: True
+        :rtype: Boolean
         """
 
         list_of_hdr_names = self.df.columns.tolist()
@@ -128,6 +140,11 @@ class CsvFileReader :
                                         + 'have at least nomvar,d and level or ip1 as columns in your csv file')
 
     def addHeadersAllValid(self):
+        """Check that all the headers I have are valid and are present in the BASE_COLUMN list of headers availables
+        :raises HeadersAreNotValidError: Raise an error when the columns names are not valid
+        :return: True
+        :rtype: Boolean
+        """
         all_the_cols = BASE_COLUMNS
         all_the_cols.sort()
 
@@ -156,13 +173,24 @@ class CsvFileReader :
             raise HeadersAreNotValidError('The headers in the csv file are not valid you have too many columns')
 
     def col_exists(self,col):
+        """Check if the column exists in a dataframe
+        :param col: The column I want to check
+        :type col: dataframe column
+        :return: return true if the column exists
+        :rtype: Boolean
+        """
         if col in self.df.columns:
             return True
         else:
             return False
 
-    # DEFAULT VALUES
+    
     def add_n_dimensions(self):
+        """add ni,nj and nk column with the help of the d column in the dataframe 
+        :raises ArrayIs3dError: the array present in the d column is 3D and we do not work on 3d arrays for now
+        :return: df
+        :rtype: dataframe
+        """
         for row in self.df.itertuples():
             array= row.d
             a = np.array([[float(j) for j in i.split(',')] for i in array.split(';')],dtype=np.float32, order='F')
@@ -184,35 +212,52 @@ class CsvFileReader :
         return self.df
 
 
-    # Remplace toutes les valeurs nbits nulles par 24 en int
     def add_n_bits(self):
+        """Add a colomn nbits in the dataframe with a default value of 24
+        """
         if(not self.col_exists("nbits")):
             self.df["nbits"] = 24
-    # le int est 64 bits non 32
+    
         
 
     def add_datyp(self):
+        """Add a colomn datyp in the dataframe with a default value of 1
+        """
         if(not self.col_exists("datyp")):
             self.df["datyp"] = 1
      
+    def add_grtyp(self):
+        """Add a colomn grtyp in the dataframe with a default value of X
+        """
+        if(not self.col_exists("grtyp")):
+            self.df["grtyp"] = "X"
 
     def add_typ_var(self):
+        """Add a colomn typvar in the dataframe with a default value of X
+        """
         if(not self.col_exists("typvar")):
             self.df["typvar"] = "X"
      
 
-    def add_dateo(self):
+    def add_date(self):
+        """Add a colomn dateo and datev in the dataframe with a default value of a encoded value for both column
+        """
         dateo_encoded = std_enc.create_encoded_dateo(datetime.datetime.utcnow())
-        if(not self.col_exists("dateo")):
+        if(not self.col_exists("dateo") and not self.col_exists("datev")):
             self.df["dateo"] = dateo_encoded
+            self.df["datev"] = self.df["dateo"]
 
     def add_ip2_ip3(self):
+        """Add a colomn ip2 and ip3 in the dataframe with a default value of 0
+        """
         if(not self.col_exists("ip2")):
             self.df["ip2"] = 0
         if(not self.col_exists("ip3")):
             self.df["ip3"] = 0
 
     def add_ig(self):
+        """Add a colomn ig1,ig2,ig3,ig4 in the dataframe with a default value of 0
+        """
         if(not self.col_exists("ig1")):
             self.df["ig1"] = 0        
 
@@ -226,22 +271,35 @@ class CsvFileReader :
             self.df["ig4"] = 0
     
     def add_eticket(self):
+        """Add a colomn etiket in the dataframe with a default value of CSVREADER
+        """
         if(not self.col_exists("etiket")):
             self.df["eticket"] = "CSVREADER"
     
-    def add_level(self):
-        if(self.col_exists("level") and not self.col_exists("ip1")):
+    def add_ip1(self):
+        """Add a colomn ip1 found with the help of the level column in the dataframe which is encoded and put in the ip1 column.
+        The level column is deleted after the data been encoded and put on the ip1 column
+        :raises ip1andLevelExistsError: ip1 and level column exists in the given dataframe
+        """
+        if(self.col_exists("level") and not self.col_exists("ip1") and self.encode_ip1 == True):
             for row in self.df.itertuples():
                 level = float (row.level)
                 ip1 = std_enc.create_encoded_ip1(level=level,ip1_kind=IP1_KIND,mode =rmn.CONVIP_ENCODE)
                 self.df.at[row.Index,"ip1"] = ip1
-            self.df["ip1"] = self.df["ip1"].astype("int32")
-        # Remove level after we added ip1 column
-            self.df.drop(["level"],axis = 1,inplace = True)
-        else:
+        if(self.col_exists("level") and not self.col_exists("ip1") and self.encode_ip1 == False):
+            for row in self.df.itertuples():
+                level = float (row.level)
+                ip1 = level
+                self.df.at[row.Index,"ip1"] = ip1
+
+        elif(not self.col_exists("ip1") and not self.col_exists("level")):
             raise ip1andLevelExistsError("IP1 AND LEVEL EXISTS IN THE CSV FILE")
+        # Remove level after we added ip1 column
+        self.df.drop(["level"],axis = 1,inplace = True)
     
     def add_deet(self):
+        """Add a colomn grtyp in the dataframe with a default value of X
+        """
         if(not self.col_exists("deet")):
             self.df["deet"] = 0
 
@@ -249,14 +307,10 @@ class CsvFileReader :
         if(not self.col_exists("npas")):
             self.df["npas"] = 0
 
-
-    def add_datev(self):
-        if(not self.col_exists("datev")):
-            self.df["datev"] = None
-
     def check_dimension_meme_etiket(self):
         # Check if etiket is the same as the previous row to compare dimension if its the same etiket
-        groups = self.df.groupby(['nomvar','typvar','etiket','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','ig1','ig2','ig3','ig4'])
+        groups = self.df.groupby(['nomvar','typvar','etiket','dateo','ip1','ip2','ip3','deet','npas','datyp',
+                                    'nbits','ig1','ig2','ig3','ig4'])
         for _,df in groups:
             if df.ni.unique().size != 1:
                 raise DimensionError("Array with the same var and etiket dont have the same dimension ")
@@ -267,14 +321,16 @@ class CsvFileReader :
     def to_numpy_array(self):
         array_list = []
         for i in self.df.index:
-            a =CsvArray(self.df.at[i,"d"]).to_numpy()
+            a =CsvArray(self.df.at[i,"d"])
+            a= a.to_numpy()
             print(a)
             array_list.append(a)
         self.df["d"] = array_list
 
-
     def change_columns_type(self):
-        self.df = self.df.astype({'ni':'int32','nj':'int32','nk':'int32','nomvar':"str",'typvar':'str','etiket':'str','dateo':'int32','ip1':'int32','ip2':'int32','ip3':'int32','datyp':'int32','nbits':'int32','ig1':'int32','ig2':'int32','ig3':'int32','ig4':'int32','deet':'int32','npas':'int32'})
+        self.df = self.df.astype({'ni':'int32','nj':'int32','nk':'int32','nomvar':"str",'typvar':'str','etiket':'str',
+        'dateo':'int32','ip1':'int32','ip2':'int32','ip3':'int32','datyp':'int32','nbits':'int32','ig1':'int32','ig2'
+        :'int32','ig3':'int32','ig4':'int32','deet':'int32','npas':'int32','grtyp':'str','datev':'int32'})
     
     
 class ArrayIsNotNumpyStrError(Exception):
@@ -286,19 +342,11 @@ class ArrayIs3dError(Exception):
 class ArrayIsNotStringOrNp(Exception):
     pass
 
-
-# 1- ta classe cvsarry ne doit rien faire a part initialiser ses variables d'instances dans le init
-# dans tes methode to... tu verifie le type de self.array et tu retourne celui qui a rapport avec la methode
-# to_str ... devrais faire un check sur le type de self.array, si c'est un numpy alors converti en str et 
-# retourne la string, sinon retourne self.array
-# dans ton csvReader
-# for i in df.index:
-#   df.at[i,'d'] = CsVArray(df.at[i,'d']).to_numpy...
 class CsvArray:
     def __init__(self,array):
         self.array=array
         if(self.validate_array()):
-            pass
+            print("good")
         else:
             raise ArrayIsNotStringOrNp("The array is not a string or a numpy aray")
 
