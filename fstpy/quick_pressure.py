@@ -16,7 +16,7 @@ class QuickPressureError(Exception):
 
 
 class QuickPressure():
-    """creates a pressure field associated to a level for each identified vertical coordinate type
+    """Creates a pressure field associated to a level for each identified vertical coordinate type
 
     :param df: input dataframe
     :type df: pd.DataFrame
