@@ -5,7 +5,7 @@ import pytest
 import fstpy.all as fstpy
 from ci_fstcomp import fstcomp
 from test import TEST_PATH, TMP_PATH
-pytestmark = [pytest.mark.csv_reader, pytest.mark.unit_tests]
+pytestmark = [pytest.mark.unit_tests]
 
 
 @pytest.fixture
@@ -42,33 +42,47 @@ def plugin_test_dir():
 
 
 def test_1(plugin_test_dir):
-    src = plugin_test_dir + 'pds1_level2.new.csv'
-    df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-    df = fstpy.add_grid_column(df)
-    df['dateo'] =  360451883
-    df['datev'] =  360451883
-    #df['ip1'] =[0,1]
-    #df['etiket'] = '__CSVREAX'
-    print(df.to_string())
-    print(df.dtypes)
-    results_file = TMP_PATH + 'test_1.std'
-    fstpy.delete_file(results_file)
-    fstpy.StandardFileWriter(results_file,df).to_fst()
-    #open and read comparison file
-    file_to_compare = plugin_test_dir + 'pds1_level2_file2cmp.std'
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
-    fstpy.delete_file(results_file)
-    assert(res)
+	src = plugin_test_dir + 'pds1_level2.new.csv'
+	df = fstpy.CsvFileReader(path=src,encode_ip1=False).to_pandas()
+	print(df.to_string())
+	assert(df.nomvar.unique().size == 1)
+	assert(df.nomvar.unique()[0] == "CSV")
+	assert(df.etiket.unique().size == 1)
+	assert(df.etiket.unique()[0] == "CSVREADER")
+	assert(df.nbits.unique().size == 1)
+	assert(df.nbits.unique()[0] == 24)
+	assert(df.datyp.unique().size == 1)
+	assert(df.datyp.unique()[0] == 1)
+	assert(df.grtyp.unique().size == 1)
+	assert(df.grtyp.unique()[0] == "X")
+	assert(df.typvar.unique().size == 1)
+	assert(df.typvar.unique()[0] == "X")
+	assert(df.ip2.unique().size == 1)
+	assert(df.ip2.unique()[0] == 0)
+	assert(df.ip3.unique().size == 1)
+	assert(df.ip3.unique()[0] == 0)
+	assert(df.ig1.unique().size == 1)
+	assert(df.ig1.unique()[0] == 0)
+	assert(df.ig2.unique().size == 1)
+	assert(df.ig2.unique()[0] == 0)
+	assert(df.ig3.unique().size == 1)
+	assert(df.ig3.unique()[0] == 0)
+	assert(df.ig4.unique().size == 1)
+	assert(df.ig4.unique()[0] == 0)
+	assert(df.ip1.unique().size == 2)
+	assert(df.ip1.unique()[0] == 1)
+	assert(df.ip1.unique()[1] == 0)
+	assert(df.ni.unique().size == 1)
+	assert(df.nj.unique()[0] == 0)
+
 
 
 def test_2(plugin_test_dir):
 	src = plugin_test_dir + 'gds1_pds1_level2.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	df = fstpy.add_grid_column(df)
-	df['dateo'] =  455375527
-	df['datev'] =  455375527
-	df['etiket'] = '__CSVREAX'
+	df['dateo'] =  360451883 
+	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
 	results_file = TMP_PATH + 'test_2.std'
@@ -86,9 +100,8 @@ def test_3(plugin_test_dir):
 	src = plugin_test_dir + 'missing_eol_at_last_line_of_data.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	df = fstpy.add_grid_column(df)
-	df['dateo'] =  455375527
-	df['datev'] =  455375527
-	df['etiket'] = '__CSVREAX'
+	df['dateo'] =  360451883 
+	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
 	results_file = TMP_PATH + 'test_3.std'
@@ -106,9 +119,8 @@ def test_4(plugin_test_dir):
 	src = plugin_test_dir + 'pds1_level2_inversed_level_order.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	df = fstpy.add_grid_column(df)
-	df['dateo'] =  455375527
-	df['datev'] =  455375527
-	df['etiket'] = '__CSVREAX'
+	df['dateo'] =  360451883 
+	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
 	results_file = TMP_PATH + 'test_4.std'
@@ -126,19 +138,6 @@ def test_5(plugin_test_dir):
 	src = plugin_test_dir + 'with_space.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	df = fstpy.add_grid_column(df)
-	df['dateo'] =  455375527
-	df['datev'] =  455375527
-	df['etiket'] = '__CSVREAX'
-	print(df.to_string())
-	print(df.dtypes)
-	results_file = TMP_PATH + 'test_5.std'
-	fstpy.delete_file(results_file)
-	fstpy.StandardFileWriter(results_file,df).to_fst()
-	#open and read comparison file
-	file_to_compare = plugin_test_dir + 'pds1_level2_file2cmp.std'
-	#compare results
-	res = fstcomp(results_file,file_to_compare)
-	fstpy.delete_file(results_file)
 	assert(res)
 
 
@@ -146,9 +145,8 @@ def test_6(plugin_test_dir):
 	src = plugin_test_dir + 'with_comments.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	df = fstpy.add_grid_column(df)
-	df['dateo'] =  455375527
-	df['datev'] =  455375527
-	df['etiket'] = '__CSVREAX'
+	df['dateo'] =  360451883 
+	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
 	results_file = TMP_PATH + 'test_6.std'
@@ -166,9 +164,8 @@ def test_7(plugin_test_dir):
 	src = plugin_test_dir + 'pds2.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	df = fstpy.add_grid_column(df)
-	df['dateo'] =  455375527
-	df['datev'] =  455375527
-	df['etiket'] = '__CSVREAX'
+	df['dateo'] =  360451883 
+	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
 	results_file = TMP_PATH + 'test_7.std'
@@ -186,29 +183,21 @@ def test_8(plugin_test_dir):
 	src = plugin_test_dir + 'not_all_same_number_of_lines_in_a_pds.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	df = fstpy.add_grid_column(df)
-	df['dateo'] =  455375527
-	df['datev'] =  455375527
-	df['etiket'] = '__CSVREAX'
+	df['dateo'] =  360451883 
+	df['datev'] =  360451883
 	print(df.to_string())
 	print(df.dtypes)
-	results_file = TMP_PATH + 'test_8.std'
-	fstpy.delete_file(results_file)
-	fstpy.StandardFileWriter(results_file,df).to_fst()
+	assert(False)
 	#open and read comparison file
-	file_to_compare = plugin_test_dir + 'REMOVE '
 	#compare results
-	res = fstcomp(results_file,file_to_compare)
-	fstpy.delete_file(results_file)
-	assert(res)
 
 
 def test_9(plugin_test_dir):
 	src = plugin_test_dir + 'not_all_same_number_of_items_in_lines_of_a_pds.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	df = fstpy.add_grid_column(df)
-	df['dateo'] =  455375527
-	df['datev'] =  455375527
-	df['etiket'] = '__CSVREAX'
+	df['dateo'] =  360451883 
+	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
 	results_file = TMP_PATH + 'test_9.std'
@@ -226,9 +215,8 @@ def test_10(plugin_test_dir):
 	src = plugin_test_dir + 'only_1_line_per_level.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	df = fstpy.add_grid_column(df)
-	df['dateo'] =  455375527
-	df['datev'] =  455375527
-	df['etiket'] = '__CSVREAX'
+	df['dateo'] =  360451883 
+	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
 	results_file = TMP_PATH + 'test_10.std'
@@ -246,9 +234,8 @@ def test_11(plugin_test_dir):
 	src = plugin_test_dir + 'only_1_item_per_line.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	df = fstpy.add_grid_column(df)
-	df['dateo'] =  455375527
-	df['datev'] =  455375527
-	df['etiket'] = '__CSVREAX'
+	df['dateo'] =  360451883 
+	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
 	results_file = TMP_PATH + 'test_11.std'
@@ -266,9 +253,8 @@ def test_12(plugin_test_dir):
 	src = plugin_test_dir + 'missingvalue.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	df = fstpy.add_grid_column(df)
-	df['dateo'] =  455375527
-	df['datev'] =  455375527
-	df['etiket'] = '__CSVREAX'
+	df['dateo'] =  360451883 
+	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
 	results_file = TMP_PATH + 'test_12.std'
@@ -286,9 +272,8 @@ def test_13(plugin_test_dir):
     src = plugin_test_dir + 'missingvalue2.new.csv'
     df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
     df = fstpy.add_grid_column(df)
-    df['dateo'] =  455375527
-    df['datev'] =  455375527
-    df['etiket'] = '__CSVREAX'
+    df['dateo'] =  360451883 
+    df['datev'] =  360451883 
     print(df.to_string())
     print(df.dtypes)
     results_file = TMP_PATH + 'test_13.std'

@@ -1,17 +1,11 @@
 # -*- coding: utf-8 -*-
-import copy
-import itertools
-import multiprocessing as mp
-from mimetypes import init
-import re
-from this import d
 import pandas as pd
 import os
 import numpy as np
-from .utils import initializer
-import csv
 import datetime
+from .std_enc import create_encoded_dateo, create_encoded_ip1
 from fstpy import std_enc
+from .dataframe import add_grid_column
 import rpnpy.librmn.all as rmn
 
 
@@ -61,12 +55,10 @@ class CsvFileReader :
     :param path: path of the csv file i want to read
     :type path:str
     """
-
-    def __init__(self,path,encode_ip1):
-        self.encode_ip1:bool = True
-        if os.path.exists(path):
-            self.path = path
-        else:
+    def __init__(self,path,encode_ip1=True):
+        self.path = path
+        self.encode_ip1 = encode_ip1
+        if not os.path.exists(self.path):
             raise CsvFileReaderError('Path does not exist\n')
 
     def to_pandas(self)-> pd.DataFrame:
@@ -77,6 +69,7 @@ class CsvFileReader :
         self.df = pd.read_csv(self.path,comment="#")
         if(self.verifyHeaders()):
             self.checkColumns()
+            self.df = add_grid_column(self.df)
             return self.df
 
     def to_pandas_no_condition(self):
@@ -281,21 +274,24 @@ class CsvFileReader :
         The level column is deleted after the data been encoded and put on the ip1 column
         :raises ip1andLevelExistsError: ip1 and level column exists in the given dataframe
         """
-        if(self.col_exists("level") and not self.col_exists("ip1") and self.encode_ip1 == True):
+        print(self.encode_ip1)
+        if self.col_exists("level") and (not self.col_exists("ip1")) and self.encode_ip1:
+            print("encode == true")
             for row in self.df.itertuples():
                 level = float (row.level)
                 ip1 = std_enc.create_encoded_ip1(level=level,ip1_kind=IP1_KIND,mode =rmn.CONVIP_ENCODE)
                 self.df.at[row.Index,"ip1"] = ip1
-        if(self.col_exists("level") and not self.col_exists("ip1") and self.encode_ip1 == False):
+        elif self.col_exists("level") and (not self.col_exists("ip1")) and (not self.encode_ip1):
+            print("encode == false")
             for row in self.df.itertuples():
                 level = float (row.level)
                 ip1 = level
                 self.df.at[row.Index,"ip1"] = ip1
 
-        elif(not self.col_exists("ip1") and not self.col_exists("level")):
+        elif (not self.col_exists("ip1")) and (not self.col_exists("level")):
             raise ip1andLevelExistsError("IP1 AND LEVEL EXISTS IN THE CSV FILE")
         # Remove level after we added ip1 column
-        self.df.drop(["level"],axis = 1,inplace = True)
+        self.df.drop(["level"],axis = 1,inplace = True,errors="ignore")
     
     def add_deet(self):
         """Add a colomn grtyp in the dataframe with a default value of X
