@@ -67,8 +67,8 @@ class CsvFileReader :
         :rtype: pd.DataFrame
         """
         self.df = pd.read_csv(self.path,comment="#")
-        if(self.verifyHeaders()):
-            self.checkColumns()
+        if(self.verify_headers()):
+            self.check_columns()
             self.df = add_grid_column(self.df)
             return self.df
 
@@ -78,19 +78,19 @@ class CsvFileReader :
 
     def to_pandas_no_hdr(self):
         self.df = pd.read_csv(self.path,comment="#",header=None)
-        if(self.verifyHeaders()):
+        if(self.verify_headers()):
             return self.df
             
 
 
-    def verifyHeaders(self):
+    def verify_headers(self):
         """Verify Headers with the 3 functions that does it
-        :return: self.hasHeader() and self.hasMinimumHeaders() and self.addHeadersAllValid()
+        :return: self.has_header() and self.has_minimum_headers() and self.has_headers_all_valid()
         :rtype: Boolean
         """
-        return self.hasHeader() and self.hasMinimumHeaders() and self.addHeadersAllValid()
+        return self.has_header() and self.has_minimum_headers() and self.has_headers_all_valid()
     
-    def checkColumns(self):
+    def check_columns(self):
         """Add the missings columns in the dataframe 
         """
         self.add_n_bits()
@@ -111,14 +111,14 @@ class CsvFileReader :
     
     
     
-    def hasHeader(self):
+    def has_header(self):
         """Verify that the csv file has a single header"""
         if(self.df.columns.dtype == object):
             return True
         else:
             raise NoHeaderInFileError('Your file does not have a csv file with headers')
 
-    def hasMinimumHeaders(self):
+    def has_minimum_headers(self):
         """Verify that I have the minimum amount of headers 
         :raises MinimumHeadersError: I dont have the necessary headers to change the dataframe of the csv file.
         :return: True
@@ -132,7 +132,7 @@ class CsvFileReader :
             raise MinimumHeadersError('Your csv file doesnt have the necessary columns to proceed! Check that you '
                                         + 'have at least nomvar,d and level or ip1 as columns in your csv file')
 
-    def addHeadersAllValid(self):
+    def has_headers_all_valid(self):
         """Check that all the headers I have are valid and are present in the BASE_COLUMN list of headers availables
         :raises HeadersAreNotValidError: Raise an error when the columns names are not valid
         :return: True

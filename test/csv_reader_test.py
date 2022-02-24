@@ -2,6 +2,7 @@
 import pandas as pd
 import datetime
 import pytest
+import numpy as np
 import fstpy.all as fstpy
 from ci_fstcomp import fstcomp
 from test import TEST_PATH, TMP_PATH
@@ -45,6 +46,10 @@ def test_1(plugin_test_dir):
 	src = plugin_test_dir + 'pds1_level2.new.csv'
 	df = fstpy.CsvFileReader(path=src,encode_ip1=False).to_pandas()
 	print(df.to_string())
+	print(df.dtypes)
+	NI = 3
+	NJ = 2
+	NK = 1
 	assert(df.nomvar.unique().size == 1)
 	assert(df.nomvar.unique()[0] == "CSV")
 	assert(df.etiket.unique().size == 1)
@@ -73,218 +78,544 @@ def test_1(plugin_test_dir):
 	assert(df.ip1.unique()[0] == 1)
 	assert(df.ip1.unique()[1] == 0)
 	assert(df.ni.unique().size == 1)
-	assert(df.nj.unique()[0] == 0)
+	assert(df.ni.unique()[0] == NI)
+	assert(df.nj.unique().size == 1)
+	assert(df.nj.unique()[0] == NJ)
+	assert(df.nk.unique().size == 1)
+	assert(df.nk.unique()[0] == NK)
+	assert(df.npas.unique().size == 1)
+	assert(df.npas.unique()[0] == 0)
+	assert(df.grid.unique().size == 1)
+	assert(df.grid.unique()[0] == '00')
 
-
+	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
+	d2 = df.d[0]
+	comparison = d1 == d2
+	equal_array1 = comparison.all()
+	assert(equal_array1)
+	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
+	d4 = df.d[1]
+	comparison = d3 == d4
+	equal_array2 = comparison.all()
+	assert(equal_array2)
+	assert(df.d.size == 2)
+	
 
 def test_2(plugin_test_dir):
 	src = plugin_test_dir + 'gds1_pds1_level2.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	df = fstpy.add_grid_column(df)
-	df['dateo'] =  360451883 
-	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
-	results_file = TMP_PATH + 'test_2.std'
-	fstpy.delete_file(results_file)
-	fstpy.StandardFileWriter(results_file,df).to_fst()
-	#open and read comparison file
-	file_to_compare = plugin_test_dir + 'gds1_pds1_level2_file2cmp.std'
-	#compare results
-	res = fstcomp(results_file,file_to_compare)
-	fstpy.delete_file(results_file)
-	assert(res)
+
+	NI = 3
+	NJ = 2
+	NK = 1
+	assert(df.nomvar.unique().size == 1)
+	assert(df.nomvar.unique()[0] == "CSV")
+	assert(df.etiket.unique().size == 1)
+	assert(df.etiket.unique()[0] == "CSVREADER")
+	assert(df.nbits.unique().size == 1)
+	assert(df.nbits.unique()[0] == 24)
+	assert(df.datyp.unique().size == 1)
+	assert(df.datyp.unique()[0] == 1)
+	assert(df.grtyp.unique().size == 1)
+	assert(df.grtyp.unique()[0] == "X")
+	assert(df.typvar.unique().size == 1)
+	assert(df.typvar.unique()[0] == "X")
+	assert(df.ip2.unique().size == 1)
+	assert(df.ip2.unique()[0] == 0)
+	assert(df.ip3.unique().size == 1)
+	assert(df.ip3.unique()[0] == 0)
+	assert(df.ig1.unique().size == 1)
+	assert(df.ig1.unique()[0] == 0)
+	assert(df.ig2.unique().size == 1)
+	assert(df.ig2.unique()[0] == 0)
+	assert(df.ig3.unique().size == 1)
+	assert(df.ig3.unique()[0] == 0)
+	assert(df.ig4.unique().size == 1)
+	assert(df.ig4.unique()[0] == 0)
+	assert(df.ip1.unique().size == 2)
+	assert(df.ip1.unique()[0] == 1)
+	assert(df.ip1.unique()[1] == 0)
+	assert(df.ni.unique().size == 1)
+	assert(df.ni.unique()[0] == NI)
+	assert(df.nj.unique().size == 1)
+	assert(df.nj.unique()[0] == NJ)
+	assert(df.nk.unique().size == 1)
+	assert(df.nk.unique()[0] == NK)
+	assert(df.npas.unique().size == 1)
+	assert(df.npas.unique()[0] == 0)
+	assert(df.grid.unique().size == 1)
+	assert(df.grid.unique()[0] == '00')
+	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
+	d2 = df.d[0]
+	comparison = d1 == d2
+	equal_array1 = comparison.all()
+	assert(equal_array1)
+	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
+	d4 = df.d[1]
+	comparison = d3 == d4
+	equal_array2 = comparison.all()
+	assert(equal_array2)
+	assert(df.d.size == 2)
 
 
 def test_3(plugin_test_dir):
 	src = plugin_test_dir + 'missing_eol_at_last_line_of_data.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	df = fstpy.add_grid_column(df)
-	df['dateo'] =  360451883 
-	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
-	results_file = TMP_PATH + 'test_3.std'
-	fstpy.delete_file(results_file)
-	fstpy.StandardFileWriter(results_file,df).to_fst()
-	#open and read comparison file
-	file_to_compare = plugin_test_dir + 'pds1_level2_file2cmp.std'
-	#compare results
-	res = fstcomp(results_file,file_to_compare)
-	fstpy.delete_file(results_file)
-	assert(res)
+
+	NI = 3
+	NJ = 2
+	NK = 1
+	assert(df.nomvar.unique().size == 1)
+	assert(df.nomvar.unique()[0] == "CSV")
+	assert(df.etiket.unique().size == 1)
+	assert(df.etiket.unique()[0] == "CSVREADER")
+	assert(df.nbits.unique().size == 1)
+	assert(df.nbits.unique()[0] == 24)
+	assert(df.datyp.unique().size == 1)
+	assert(df.datyp.unique()[0] == 1)
+	assert(df.grtyp.unique().size == 1)
+	assert(df.grtyp.unique()[0] == "X")
+	assert(df.typvar.unique().size == 1)
+	assert(df.typvar.unique()[0] == "X")
+	assert(df.ip2.unique().size == 1)
+	assert(df.ip2.unique()[0] == 0)
+	assert(df.ip3.unique().size == 1)
+	assert(df.ip3.unique()[0] == 0)
+	assert(df.ig1.unique().size == 1)
+	assert(df.ig1.unique()[0] == 0)
+	assert(df.ig2.unique().size == 1)
+	assert(df.ig2.unique()[0] == 0)
+	assert(df.ig3.unique().size == 1)
+	assert(df.ig3.unique()[0] == 0)
+	assert(df.ig4.unique().size == 1)
+	assert(df.ig4.unique()[0] == 0)
+	assert(df.ip1.unique().size == 2)
+	assert(df.ip1.unique()[0] == 1)
+	assert(df.ip1.unique()[1] == 0)
+	assert(df.ni.unique().size == 1)
+	assert(df.ni.unique()[0] == NI)
+	assert(df.nj.unique().size == 1)
+	assert(df.nj.unique()[0] == NJ)
+	assert(df.nk.unique().size == 1)
+	assert(df.nk.unique()[0] == NK)
+	assert(df.npas.unique().size == 1)
+	assert(df.npas.unique()[0] == 0)
+	assert(df.grid.unique().size == 1)
+	assert(df.grid.unique()[0] == '00')
+	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
+	d2 = df.d[0]
+	comparison = d1 == d2
+	equal_array1 = comparison.all()
+	assert(equal_array1)
+	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
+	d4 = df.d[1]
+	comparison = d3 == d4
+	equal_array2 = comparison.all()
+	assert(equal_array2)
+	assert(df.d.size == 2)
 
 
 def test_4(plugin_test_dir):
 	src = plugin_test_dir + 'pds1_level2_inversed_level_order.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	df = fstpy.add_grid_column(df)
-	df['dateo'] =  360451883 
-	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
-	results_file = TMP_PATH + 'test_4.std'
-	fstpy.delete_file(results_file)
-	fstpy.StandardFileWriter(results_file,df).to_fst()
-	#open and read comparison file
-	file_to_compare = plugin_test_dir + 'pds1_level2_file2cmp.std'
-	#compare results
-	res = fstcomp(results_file,file_to_compare)
-	fstpy.delete_file(results_file)
-	assert(res)
 
+	NI = 3
+	NJ = 2
+	NK = 1
+	assert(df.nomvar.unique().size == 1)
+	assert(df.nomvar.unique()[0] == "CSV")
+	assert(df.etiket.unique().size == 1)
+	assert(df.etiket.unique()[0] == "CSVREADER")
+	assert(df.nbits.unique().size == 1)
+	assert(df.nbits.unique()[0] == 24)
+	assert(df.datyp.unique().size == 1)
+	assert(df.datyp.unique()[0] == 1)
+	assert(df.grtyp.unique().size == 1)
+	assert(df.grtyp.unique()[0] == "X")
+	assert(df.typvar.unique().size == 1)
+	assert(df.typvar.unique()[0] == "X")
+	assert(df.ip2.unique().size == 1)
+	assert(df.ip2.unique()[0] == 0)
+	assert(df.ip3.unique().size == 1)
+	assert(df.ip3.unique()[0] == 0)
+	assert(df.ig1.unique().size == 1)
+	assert(df.ig1.unique()[0] == 0)
+	assert(df.ig2.unique().size == 1)
+	assert(df.ig2.unique()[0] == 0)
+	assert(df.ig3.unique().size == 1)
+	assert(df.ig3.unique()[0] == 0)
+	assert(df.ig4.unique().size == 1)
+	assert(df.ig4.unique()[0] == 0)
+	assert(df.ip1.unique().size == 2)
+	assert(df.ip1.unique()[0] == 0)
+	assert(df.ip1.unique()[1] == 1)
+	assert(df.ni.unique().size == 1)
+	assert(df.ni.unique()[0] == NI)
+	assert(df.nj.unique().size == 1)
+	assert(df.nj.unique()[0] == NJ)
+	assert(df.nk.unique().size == 1)
+	assert(df.nk.unique()[0] == NK)
+	assert(df.npas.unique().size == 1)
+	assert(df.npas.unique()[0] == 0)
+	assert(df.grid.unique().size == 1)
+	assert(df.grid.unique()[0] == '00')
+	d1 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32) 
+	d2 = df.d[0]
+	comparison1 = d1 == d2
+	equal_array1 = comparison1.all()
+	assert(equal_array1)
+	d3 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32)
+	d4 = df.d[1]
+	comparison2 = d3 == d4
+	equal_array2 = comparison2.all()
+	assert(equal_array2)
+	assert(df.d.size == 2)
 
 def test_5(plugin_test_dir):
 	src = plugin_test_dir + 'with_space.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	df = fstpy.add_grid_column(df)
-	assert(res)
+	print(df.to_string())
+	print(df.dtypes)
+
+	NI = 3
+	NJ = 2
+	NK = 1
+	assert(df.nomvar.unique().size == 1)
+	assert(df.nomvar.unique()[0] == "CSV")
+	assert(df.etiket.unique().size == 1)
+	assert(df.etiket.unique()[0] == "CSVREADER")
+	assert(df.nbits.unique().size == 1)
+	assert(df.nbits.unique()[0] == 24)
+	assert(df.datyp.unique().size == 1)
+	assert(df.datyp.unique()[0] == 1)
+	assert(df.grtyp.unique().size == 1)
+	assert(df.grtyp.unique()[0] == "X")
+	assert(df.typvar.unique().size == 1)
+	assert(df.typvar.unique()[0] == "X")
+	assert(df.ip2.unique().size == 1)
+	assert(df.ip2.unique()[0] == 0)
+	assert(df.ip3.unique().size == 1)
+	assert(df.ip3.unique()[0] == 0)
+	assert(df.ig1.unique().size == 1)
+	assert(df.ig1.unique()[0] == 0)
+	assert(df.ig2.unique().size == 1)
+	assert(df.ig2.unique()[0] == 0)
+	assert(df.ig3.unique().size == 1)
+	assert(df.ig3.unique()[0] == 0)
+	assert(df.ig4.unique().size == 1)
+	assert(df.ig4.unique()[0] == 0)
+	assert(df.ip1.unique().size == 2)
+	assert(df.ip1.unique()[0] == 1)
+	assert(df.ip1.unique()[1] == 0)
+	assert(df.ni.unique().size == 1)
+	assert(df.ni.unique()[0] == NI)
+	assert(df.nj.unique().size == 1)
+	assert(df.nj.unique()[0] == NJ)
+	assert(df.nk.unique().size == 1)
+	assert(df.nk.unique()[0] == NK)
+	assert(df.npas.unique().size == 1)
+	assert(df.npas.unique()[0] == 0)
+	assert(df.grid.unique().size == 1)
+	assert(df.grid.unique()[0] == '00')
+	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
+	d2 = df.d[0]
+	comparison1 = d1 == d2
+	equal_array1 = comparison1.all()
+	assert(equal_array1)
+	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
+	d4 = df.d[1]
+	comparison2 = d3 == d4
+	equal_array2 = comparison2.all()
+	assert(equal_array2)
+	assert(df.d.size == 2)
 
 
 def test_6(plugin_test_dir):
 	src = plugin_test_dir + 'with_comments.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	df = fstpy.add_grid_column(df)
-	df['dateo'] =  360451883 
-	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
-	results_file = TMP_PATH + 'test_6.std'
-	fstpy.delete_file(results_file)
-	fstpy.StandardFileWriter(results_file,df).to_fst()
-	#open and read comparison file
-	file_to_compare = plugin_test_dir + 'pds1_level2_file2cmp.std'
-	#compare results
-	res = fstcomp(results_file,file_to_compare)
-	fstpy.delete_file(results_file)
-	assert(res)
+
+	NI = 3
+	NJ = 2
+	NK = 1
+	assert(df.nomvar.unique().size == 1)
+	assert(df.nomvar.unique()[0] == "CSV")
+	assert(df.etiket.unique().size == 1)
+	assert(df.etiket.unique()[0] == "CSVREADER")
+	assert(df.nbits.unique().size == 1)
+	assert(df.nbits.unique()[0] == 24)
+	assert(df.datyp.unique().size == 1)
+	assert(df.datyp.unique()[0] == 1)
+	assert(df.grtyp.unique().size == 1)
+	assert(df.grtyp.unique()[0] == "X")
+	assert(df.typvar.unique().size == 1)
+	assert(df.typvar.unique()[0] == "X")
+	assert(df.ip2.unique().size == 1)
+	assert(df.ip2.unique()[0] == 0)
+	assert(df.ip3.unique().size == 1)
+	assert(df.ip3.unique()[0] == 0)
+	assert(df.ig1.unique().size == 1)
+	assert(df.ig1.unique()[0] == 0)
+	assert(df.ig2.unique().size == 1)
+	assert(df.ig2.unique()[0] == 0)
+	assert(df.ig3.unique().size == 1)
+	assert(df.ig3.unique()[0] == 0)
+	assert(df.ig4.unique().size == 1)
+	assert(df.ig4.unique()[0] == 0)
+	assert(df.ip1.unique().size == 2)
+	assert(df.ip1.unique()[0] == 1)
+	assert(df.ip1.unique()[1] == 0)
+	assert(df.ni.unique().size == 1)
+	assert(df.ni.unique()[0] == NI)
+	assert(df.nj.unique().size == 1)
+	assert(df.nj.unique()[0] == NJ)
+	assert(df.nk.unique().size == 1)
+	assert(df.nk.unique()[0] == NK)
+	assert(df.npas.unique().size == 1)
+	assert(df.npas.unique()[0] == 0)
+	assert(df.grid.unique().size == 1)
+	assert(df.grid.unique()[0] == '00')
+	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
+	d2 = df.d[0]
+	comparison1 = d1 == d2
+	equal_array1 = comparison1.all()
+	assert(equal_array1)
+	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
+	d4 = df.d[1]
+	comparison2 = d3 == d4
+	equal_array2 = comparison2.all()
+	assert(equal_array2)
+	assert(df.d.size == 2)
+
 
 
 def test_7(plugin_test_dir):
 	src = plugin_test_dir + 'pds2.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	df = fstpy.add_grid_column(df)
-	df['dateo'] =  360451883 
-	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
-	results_file = TMP_PATH + 'test_7.std'
-	fstpy.delete_file(results_file)
-	fstpy.StandardFileWriter(results_file,df).to_fst()
-	#open and read comparison file
-	file_to_compare = plugin_test_dir + 'pds1_level2_file2cmp.std'
-	#compare results
-	res = fstcomp(results_file,file_to_compare)
-	fstpy.delete_file(results_file)
-	assert(res)
+	NI = 3
+	NJ = 2
+	NK = 1
+	assert(df.nomvar.unique().size == 2)
+	assert(df.nomvar.unique()[0] == "CSV")
+	assert(df.nomvar.unique()[1] == "CSV2")
+	assert(df.etiket.unique().size == 2)
+	assert(df.etiket.unique()[0] == "CSVREADER")
+	assert(df.etiket.unique()[1] == "CSVREADER2")
+	assert(df.nbits.unique().size == 1)
+	assert(df.nbits.unique()[0] == 24)
+	assert(df.datyp.unique().size == 1)
+	assert(df.datyp.unique()[0] == 1)
+	assert(df.grtyp.unique().size == 1)
+	assert(df.grtyp.unique()[0] == "X")
+	assert(df.typvar.unique().size == 1)
+	assert(df.typvar.unique()[0] == "X")
+	assert(df.ip2.unique().size == 1)
+	assert(df.ip2.unique()[0] == 0)
+	assert(df.ip3.unique().size == 1)
+	assert(df.ip3.unique()[0] == 0)
+	assert(df.ig1.unique().size == 1)
+	assert(df.ig1.unique()[0] == 0)
+	assert(df.ig2.unique().size == 1)
+	assert(df.ig2.unique()[0] == 0)
+	assert(df.ig3.unique().size == 1)
+	assert(df.ig3.unique()[0] == 0)
+	assert(df.ig4.unique().size == 1)
+	assert(df.ig4.unique()[0] == 0)
+	assert(df.ip1.unique().size == 3)
+	assert(df.ip1.unique()[0] == 1)
+	assert(df.ip1.unique()[1] == 0)
+	assert(df.ip1.unique()[2] == 99)
+	assert(df.ni.unique().size == 2)
+	assert(df.ni.unique()[0] == NI)
+	assert(df.ni.unique()[1] == 2)
+	assert(df.nj.unique().size == 2)
+	assert(df.nj.unique()[0] == NJ)
+	assert(df.nj.unique()[1] == 3)
+	assert(df.nk.unique().size == 1)
+	assert(df.nk.unique()[0] == NK)
+	assert(df.npas.unique().size == 1)
+	assert(df.npas.unique()[0] == 0)
+	assert(df.grid.unique().size == 1)
+	assert(df.grid.unique()[0] == '00')
+	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
+	d2 = df.d[0]
+	comparison1 = d1 == d2
+	equal_array1 = comparison1.all()
+	assert(equal_array1)
+	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
+	d4 = df.d[1]
+	comparison2 = d3 == d4
+	equal_array2 = comparison2.all()
+	assert(equal_array2)
+	d5 = np.array([[1.2, 2.3, 3.4], [4.5, 5.6, 6.7]],dtype=np.float32)
+	d6 = df.d[2]
+	comparison3 = d5 == d6
+	equal_array3 = comparison3.all()
+	assert(equal_array3)
+	assert(df.d.size == 3)
 
 
 def test_8(plugin_test_dir):
+	""" Test the csv reader with a file that should not return a dataframe because the dimensions of d are different
+		and they have the same etiket and nomvar"""
 	src = plugin_test_dir + 'not_all_same_number_of_lines_in_a_pds.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	df = fstpy.add_grid_column(df)
-	df['dateo'] =  360451883 
-	df['datev'] =  360451883
 	print(df.to_string())
 	print(df.dtypes)
 	assert(False)
-	#open and read comparison file
-	#compare results
+
 
 
 def test_9(plugin_test_dir):
 	src = plugin_test_dir + 'not_all_same_number_of_items_in_lines_of_a_pds.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	df = fstpy.add_grid_column(df)
-	df['dateo'] =  360451883 
-	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
-	results_file = TMP_PATH + 'test_9.std'
-	fstpy.delete_file(results_file)
-	fstpy.StandardFileWriter(results_file,df).to_fst()
-	#open and read comparison file
-	file_to_compare = plugin_test_dir + 'REMOVE '
-	#compare results
-	res = fstcomp(results_file,file_to_compare)
-	fstpy.delete_file(results_file)
-	assert(res)
 
 
 def test_10(plugin_test_dir):
 	src = plugin_test_dir + 'only_1_line_per_level.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	df = fstpy.add_grid_column(df)
-	df['dateo'] =  360451883 
-	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
-	results_file = TMP_PATH + 'test_10.std'
-	fstpy.delete_file(results_file)
-	fstpy.StandardFileWriter(results_file,df).to_fst()
-	#open and read comparison file
-	file_to_compare = plugin_test_dir + 'only_1_line_per_level_file2cmp.std'
-	#compare results
-	res = fstcomp(results_file,file_to_compare)
-	fstpy.delete_file(results_file)
-	assert(res)
+
+	NI = 1
+	NJ = 6
+	NK = 1
+	assert(df.nomvar.unique().size == 1)
+	assert(df.nomvar.unique()[0] == "CSV")
+	assert(df.etiket.unique().size == 1)
+	assert(df.etiket.unique()[0] == "CSVREADER")
+	assert(df.nbits.unique().size == 1)
+	assert(df.nbits.unique()[0] == 24)
+	assert(df.datyp.unique().size == 1)
+	assert(df.datyp.unique()[0] == 1)
+	assert(df.grtyp.unique().size == 1)
+	assert(df.grtyp.unique()[0] == "X")
+	assert(df.typvar.unique().size == 1)
+	assert(df.typvar.unique()[0] == "X")
+	assert(df.ip2.unique().size == 1)
+	assert(df.ip2.unique()[0] == 0)
+	assert(df.ip3.unique().size == 1)
+	assert(df.ip3.unique()[0] == 0)
+	assert(df.ig1.unique().size == 1)
+	assert(df.ig1.unique()[0] == 0)
+	assert(df.ig2.unique().size == 1)
+	assert(df.ig2.unique()[0] == 0)
+	assert(df.ig3.unique().size == 1)
+	assert(df.ig3.unique()[0] == 0)
+	assert(df.ig4.unique().size == 1)
+	assert(df.ig4.unique()[0] == 0)
+	assert(df.ip1.unique().size == 2)
+	assert(df.ip1.unique()[0] == 1)
+	assert(df.ip1.unique()[1] == 0)
+	assert(df.ni.unique().size == 1)
+	assert(df.ni.unique()[0] == NI)
+	assert(df.nj.unique().size == 1)
+	assert(df.nj.unique()[0] == NJ)
+	assert(df.nk.unique().size == 1)
+	assert(df.nk.unique()[0] == NK)
+	assert(df.npas.unique().size == 1)
+	assert(df.npas.unique()[0] == 0)
+	assert(df.grid.unique().size == 1)
+	assert(df.grid.unique()[0] == '00')
+	d1 = np.array([[11.1, 22.2, 33.3, 44.4, 55.5, 66.6]],dtype=np.float32) 
+	d2 = df.d[0]
+	comparison1 = d1 == d2
+	equal_array1 = comparison1.all()
+	assert(equal_array1)
+	d3 = np.array([[77.7, 88.8, 99.9, 100.1, 110.11, 120.12]],dtype=np.float32)
+	d4 = df.d[1]
+	comparison2 = d3 == d4
+	equal_array2 = comparison2.all()
+	assert(equal_array2)
+	assert(df.d.size == 2)
 
 
 def test_11(plugin_test_dir):
 	src = plugin_test_dir + 'only_1_item_per_line.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	df = fstpy.add_grid_column(df)
-	df['dateo'] =  360451883 
-	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
-	results_file = TMP_PATH + 'test_11.std'
-	fstpy.delete_file(results_file)
-	fstpy.StandardFileWriter(results_file,df).to_fst()
-	#open and read comparison file
-	file_to_compare = plugin_test_dir + 'REMOVE '
-	#compare results
-	res = fstcomp(results_file,file_to_compare)
-	fstpy.delete_file(results_file)
-	assert(res)
+
+	NI = 3
+	NJ = 1
+	NK = 1
+	assert(df.nomvar.unique().size == 1)
+	assert(df.nomvar.unique()[0] == "CSV")
+	assert(df.etiket.unique().size == 1)
+	assert(df.etiket.unique()[0] == "CSVREADER")
+	assert(df.nbits.unique().size == 1)
+	assert(df.nbits.unique()[0] == 24)
+	assert(df.datyp.unique().size == 1)
+	assert(df.datyp.unique()[0] == 1)
+	assert(df.grtyp.unique().size == 1)
+	assert(df.grtyp.unique()[0] == "X")
+	assert(df.typvar.unique().size == 1)
+	assert(df.typvar.unique()[0] == "X")
+	assert(df.ip2.unique().size == 1)
+	assert(df.ip2.unique()[0] == 0)
+	assert(df.ip3.unique().size == 1)
+	assert(df.ip3.unique()[0] == 0)
+	assert(df.ig1.unique().size == 1)
+	assert(df.ig1.unique()[0] == 0)
+	assert(df.ig2.unique().size == 1)
+	assert(df.ig2.unique()[0] == 0)
+	assert(df.ig3.unique().size == 1)
+	assert(df.ig3.unique()[0] == 0)
+	assert(df.ig4.unique().size == 1)
+	assert(df.ig4.unique()[0] == 0)
+	assert(df.ip1.unique().size == 2)
+	assert(df.ip1.unique()[0] == 1)
+	assert(df.ip1.unique()[1] == 0)
+	assert(df.ni.unique().size == 1)
+	assert(df.ni.unique()[0] == NI)
+	assert(df.nj.unique().size == 1)
+	assert(df.nj.unique()[0] == NJ)
+	assert(df.nk.unique().size == 1)
+	assert(df.nk.unique()[0] == NK)
+	assert(df.npas.unique().size == 1)
+	assert(df.npas.unique()[0] == 0)
+	assert(df.grid.unique().size == 1)
+	assert(df.grid.unique()[0] == '00')
+	d1 = np.array([[11.1], [33.3], [55.5]],dtype=np.float32) 
+	d2 = df.d[0]
+	comparison1 = d1 == d2
+	equal_array1 = comparison1.all()
+	assert(equal_array1)
+	d3 = np.array([[77.7], [99.9], [110.11]],dtype=np.float32)
+	d4 = df.d[1]
+	comparison2 = d3 == d4
+	equal_array2 = comparison2.all()
+	assert(equal_array2)
+	assert(df.d.size == 2)
 
 
 def test_12(plugin_test_dir):
+	"""Test with a missing value in an array. The dataframe should not be returned. It should return an error"""
 	src = plugin_test_dir + 'missingvalue.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	df = fstpy.add_grid_column(df)
-	df['dateo'] =  360451883 
-	df['datev'] =  360451883 
 	print(df.to_string())
 	print(df.dtypes)
-	results_file = TMP_PATH + 'test_12.std'
-	fstpy.delete_file(results_file)
-	fstpy.StandardFileWriter(results_file,df).to_fst()
-	#open and read comparison file
-	file_to_compare = plugin_test_dir + 'REMOVE '
-	#compare results
-	res = fstcomp(results_file,file_to_compare)
-	fstpy.delete_file(results_file)
-	assert(res)
+	
 
 
 def test_13(plugin_test_dir):
-    src = plugin_test_dir + 'missingvalue2.new.csv'
-    df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-    df = fstpy.add_grid_column(df)
-    df['dateo'] =  360451883 
-    df['datev'] =  360451883 
-    print(df.to_string())
-    print(df.dtypes)
-    results_file = TMP_PATH + 'test_13.std'
-    fstpy.delete_file(results_file)
-    fstpy.StandardFileWriter(results_file,df).to_fst()
-    #open and read comparison file
-    file_to_compare = plugin_test_dir + 'REMOVE'
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
-    fstpy.delete_file(results_file)
-    assert(res)
+	"""Test with a missing value in an array. The dataframe should not be returned. It should return an error"""
+	src = plugin_test_dir + 'missingvalue2.new.csv'
+	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
+	print(df.to_string())
+	print(df.dtypes)
+
 
 
 
