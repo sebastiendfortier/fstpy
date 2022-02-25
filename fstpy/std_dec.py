@@ -8,6 +8,7 @@ import rpnpy.librmn.all as rmn
 from rpnpy.rpndate import RPNDate
 
 from fstpy import DATYP_DICT, STDVAR
+from fstpy.utils import vectorize
 
 
 class Interval:
@@ -87,7 +88,7 @@ def get_forecast_hour(deet: int, npas: int) -> datetime.timedelta:
         return datetime.timedelta(seconds=int(npas * deet))
     return datetime.timedelta(0)
 
-VCREATE_FORECAST_HOUR: Final = np.vectorize(get_forecast_hour, otypes=['timedelta64[ns]'])  # ,otypes=['timedelta64[ns]']
+VCREATE_FORECAST_HOUR: Final = vectorize(get_forecast_hour, otypes=['timedelta64[ns]'])  # ,otypes=['timedelta64[ns]']
 
 def get_data_type_str(datyp: int):
     """gets the data type string from the datyp int
@@ -99,7 +100,7 @@ def get_data_type_str(datyp: int):
     """
     return DATYP_DICT[datyp]
 
-VCREATE_DATA_TYPE_STR: Final = np.vectorize(get_data_type_str, otypes=['str'])
+VCREATE_DATA_TYPE_STR: Final = vectorize(get_data_type_str, otypes=['str'])
 
 
 def get_ip_info(nomvar:str, ip1: int, ip2: int, ip3: int):
@@ -153,7 +154,7 @@ def get_unit_and_description(nomvar):
         unit = 'scalar'
     return unit, description
 
-VGET_UNIT_AND_DESCRIPTION: Final = np.vectorize(get_unit_and_description, otypes=['str', 'str'])
+VGET_UNIT_AND_DESCRIPTION: Final = vectorize(get_unit_and_description, otypes=['str', 'str'])
 
 # written by Micheal Neish creator of fstd2nc
 def convert_rmndate_to_datetime(date: int) -> 'datetime.datetime|None':
@@ -173,7 +174,7 @@ def convert_rmndate_to_datetime(date: int) -> 'datetime.datetime|None':
     else:
         return None
 
-VCONVERT_RMNDATE_TO_DATETIME: Final = np.vectorize(convert_rmndate_to_datetime, otypes=['datetime64'])  # ,otypes=['datetime64']
+VCONVERT_RMNDATE_TO_DATETIME: Final = vectorize(convert_rmndate_to_datetime, otypes=['datetime64'])  # ,otypes=['datetime64']
 
 def is_surface(ip1_kind: int, level: float) -> bool:
     """Return a bool that tell us if the level is a surface level
@@ -309,4 +310,4 @@ def get_parsed_etiket(raw_etiket: str):
         label = raw_etiket
     return label, run, implementation, ensemble_member
 
-VPARSE_ETIKET: Final = np.vectorize(get_parsed_etiket, otypes=['str', 'str', 'str', 'str'])
+VPARSE_ETIKET: Final = vectorize(get_parsed_etiket, otypes=['str', 'str', 'str', 'str'])
