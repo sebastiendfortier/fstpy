@@ -5,6 +5,7 @@ import pytest
 import numpy as np
 import fstpy.all as fstpy
 from ci_fstcomp import fstcomp
+from fstpy.csv_reader import DimensionError
 from test import TEST_PATH, TMP_PATH
 pytestmark = [pytest.mark.unit_tests]
 
@@ -38,11 +39,16 @@ def df1():
 def plugin_test_dir():
    return TEST_PATH + '/ReaderCsv/testsFiles/'
 
-    
+@pytest.fixture
+def plugin_test_dir2():
+   return "/home/zak000/src/ReaderCsv/testsFiles/"
+
+
 
 
 
 def test_1(plugin_test_dir):
+	"""Test with pds1_level2.new.csv. It should return a DataFrame"""
 	src = plugin_test_dir + 'pds1_level2.new.csv'
 	df = fstpy.CsvFileReader(path=src,encode_ip1=False).to_pandas()
 	print(df.to_string())
@@ -50,43 +56,16 @@ def test_1(plugin_test_dir):
 	NI = 3
 	NJ = 2
 	NK = 1
-	assert(df.nomvar.unique().size == 1)
-	assert(df.nomvar.unique()[0] == "CSV")
-	assert(df.etiket.unique().size == 1)
-	assert(df.etiket.unique()[0] == "CSVREADER")
-	assert(df.nbits.unique().size == 1)
-	assert(df.nbits.unique()[0] == 24)
-	assert(df.datyp.unique().size == 1)
-	assert(df.datyp.unique()[0] == 1)
-	assert(df.grtyp.unique().size == 1)
-	assert(df.grtyp.unique()[0] == "X")
-	assert(df.typvar.unique().size == 1)
-	assert(df.typvar.unique()[0] == "X")
-	assert(df.ip2.unique().size == 1)
-	assert(df.ip2.unique()[0] == 0)
-	assert(df.ip3.unique().size == 1)
-	assert(df.ip3.unique()[0] == 0)
-	assert(df.ig1.unique().size == 1)
-	assert(df.ig1.unique()[0] == 0)
-	assert(df.ig2.unique().size == 1)
-	assert(df.ig2.unique()[0] == 0)
-	assert(df.ig3.unique().size == 1)
-	assert(df.ig3.unique()[0] == 0)
-	assert(df.ig4.unique().size == 1)
-	assert(df.ig4.unique()[0] == 0)
+	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
+	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
+	   'nj':(1,NJ),'nk':(1,NK)}
+	for k,v in d.items():
+		assert(df[k].unique().size == v[0])
+		assert(df[k].unique()[0] == v[1])
+		
 	assert(df.ip1.unique().size == 2)
 	assert(df.ip1.unique()[0] == 1)
 	assert(df.ip1.unique()[1] == 0)
-	assert(df.ni.unique().size == 1)
-	assert(df.ni.unique()[0] == NI)
-	assert(df.nj.unique().size == 1)
-	assert(df.nj.unique()[0] == NJ)
-	assert(df.nk.unique().size == 1)
-	assert(df.nk.unique()[0] == NK)
-	assert(df.npas.unique().size == 1)
-	assert(df.npas.unique()[0] == 0)
-	assert(df.grid.unique().size == 1)
-	assert(df.grid.unique()[0] == '00')
 
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
@@ -102,6 +81,7 @@ def test_1(plugin_test_dir):
 	
 
 def test_2(plugin_test_dir):
+	"""Test with the gds1_pds1_level2.new.csv. It should return a DataFrame"""
 	src = plugin_test_dir + 'gds1_pds1_level2.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	print(df.to_string())
@@ -110,43 +90,17 @@ def test_2(plugin_test_dir):
 	NI = 3
 	NJ = 2
 	NK = 1
-	assert(df.nomvar.unique().size == 1)
-	assert(df.nomvar.unique()[0] == "CSV")
-	assert(df.etiket.unique().size == 1)
-	assert(df.etiket.unique()[0] == "CSVREADER")
-	assert(df.nbits.unique().size == 1)
-	assert(df.nbits.unique()[0] == 24)
-	assert(df.datyp.unique().size == 1)
-	assert(df.datyp.unique()[0] == 1)
-	assert(df.grtyp.unique().size == 1)
-	assert(df.grtyp.unique()[0] == "X")
-	assert(df.typvar.unique().size == 1)
-	assert(df.typvar.unique()[0] == "X")
-	assert(df.ip2.unique().size == 1)
-	assert(df.ip2.unique()[0] == 0)
-	assert(df.ip3.unique().size == 1)
-	assert(df.ip3.unique()[0] == 0)
-	assert(df.ig1.unique().size == 1)
-	assert(df.ig1.unique()[0] == 0)
-	assert(df.ig2.unique().size == 1)
-	assert(df.ig2.unique()[0] == 0)
-	assert(df.ig3.unique().size == 1)
-	assert(df.ig3.unique()[0] == 0)
-	assert(df.ig4.unique().size == 1)
-	assert(df.ig4.unique()[0] == 0)
+	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
+	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
+	   'nj':(1,NJ),'nk':(1,NK)}
+	for k,v in d.items():
+		assert(df[k].unique().size == v[0])
+		assert(df[k].unique()[0] == v[1])
+
 	assert(df.ip1.unique().size == 2)
 	assert(df.ip1.unique()[0] == 1)
 	assert(df.ip1.unique()[1] == 0)
-	assert(df.ni.unique().size == 1)
-	assert(df.ni.unique()[0] == NI)
-	assert(df.nj.unique().size == 1)
-	assert(df.nj.unique()[0] == NJ)
-	assert(df.nk.unique().size == 1)
-	assert(df.nk.unique()[0] == NK)
-	assert(df.npas.unique().size == 1)
-	assert(df.npas.unique()[0] == 0)
-	assert(df.grid.unique().size == 1)
-	assert(df.grid.unique()[0] == '00')
+	
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
 	comparison = d1 == d2
@@ -161,6 +115,8 @@ def test_2(plugin_test_dir):
 
 
 def test_3(plugin_test_dir):
+	"""Test with the missing_eol_at_last_line_of_data.new.csv. 
+		It should return a DataFrame"""
 	src = plugin_test_dir + 'missing_eol_at_last_line_of_data.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	print(df.to_string())
@@ -169,43 +125,17 @@ def test_3(plugin_test_dir):
 	NI = 3
 	NJ = 2
 	NK = 1
-	assert(df.nomvar.unique().size == 1)
-	assert(df.nomvar.unique()[0] == "CSV")
-	assert(df.etiket.unique().size == 1)
-	assert(df.etiket.unique()[0] == "CSVREADER")
-	assert(df.nbits.unique().size == 1)
-	assert(df.nbits.unique()[0] == 24)
-	assert(df.datyp.unique().size == 1)
-	assert(df.datyp.unique()[0] == 1)
-	assert(df.grtyp.unique().size == 1)
-	assert(df.grtyp.unique()[0] == "X")
-	assert(df.typvar.unique().size == 1)
-	assert(df.typvar.unique()[0] == "X")
-	assert(df.ip2.unique().size == 1)
-	assert(df.ip2.unique()[0] == 0)
-	assert(df.ip3.unique().size == 1)
-	assert(df.ip3.unique()[0] == 0)
-	assert(df.ig1.unique().size == 1)
-	assert(df.ig1.unique()[0] == 0)
-	assert(df.ig2.unique().size == 1)
-	assert(df.ig2.unique()[0] == 0)
-	assert(df.ig3.unique().size == 1)
-	assert(df.ig3.unique()[0] == 0)
-	assert(df.ig4.unique().size == 1)
-	assert(df.ig4.unique()[0] == 0)
+	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
+	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
+	   'nj':(1,NJ),'nk':(1,NK)}
+	for k,v in d.items():
+		assert(df[k].unique().size == v[0])
+		assert(df[k].unique()[0] == v[1])
+
 	assert(df.ip1.unique().size == 2)
 	assert(df.ip1.unique()[0] == 1)
 	assert(df.ip1.unique()[1] == 0)
-	assert(df.ni.unique().size == 1)
-	assert(df.ni.unique()[0] == NI)
-	assert(df.nj.unique().size == 1)
-	assert(df.nj.unique()[0] == NJ)
-	assert(df.nk.unique().size == 1)
-	assert(df.nk.unique()[0] == NK)
-	assert(df.npas.unique().size == 1)
-	assert(df.npas.unique()[0] == 0)
-	assert(df.grid.unique().size == 1)
-	assert(df.grid.unique()[0] == '00')
+	
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
 	comparison = d1 == d2
@@ -220,6 +150,8 @@ def test_3(plugin_test_dir):
 
 
 def test_4(plugin_test_dir):
+	"""Test with the pds1_level2_inversed_level_order.new.csv. 
+		It should return a DataFrame"""
 	src = plugin_test_dir + 'pds1_level2_inversed_level_order.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	print(df.to_string())
@@ -228,43 +160,17 @@ def test_4(plugin_test_dir):
 	NI = 3
 	NJ = 2
 	NK = 1
-	assert(df.nomvar.unique().size == 1)
-	assert(df.nomvar.unique()[0] == "CSV")
-	assert(df.etiket.unique().size == 1)
-	assert(df.etiket.unique()[0] == "CSVREADER")
-	assert(df.nbits.unique().size == 1)
-	assert(df.nbits.unique()[0] == 24)
-	assert(df.datyp.unique().size == 1)
-	assert(df.datyp.unique()[0] == 1)
-	assert(df.grtyp.unique().size == 1)
-	assert(df.grtyp.unique()[0] == "X")
-	assert(df.typvar.unique().size == 1)
-	assert(df.typvar.unique()[0] == "X")
-	assert(df.ip2.unique().size == 1)
-	assert(df.ip2.unique()[0] == 0)
-	assert(df.ip3.unique().size == 1)
-	assert(df.ip3.unique()[0] == 0)
-	assert(df.ig1.unique().size == 1)
-	assert(df.ig1.unique()[0] == 0)
-	assert(df.ig2.unique().size == 1)
-	assert(df.ig2.unique()[0] == 0)
-	assert(df.ig3.unique().size == 1)
-	assert(df.ig3.unique()[0] == 0)
-	assert(df.ig4.unique().size == 1)
-	assert(df.ig4.unique()[0] == 0)
+	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
+	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
+	   'nj':(1,NJ),'nk':(1,NK)}
+	for k,v in d.items():
+		assert(df[k].unique().size == v[0])
+		assert(df[k].unique()[0] == v[1])
+		
 	assert(df.ip1.unique().size == 2)
 	assert(df.ip1.unique()[0] == 0)
 	assert(df.ip1.unique()[1] == 1)
-	assert(df.ni.unique().size == 1)
-	assert(df.ni.unique()[0] == NI)
-	assert(df.nj.unique().size == 1)
-	assert(df.nj.unique()[0] == NJ)
-	assert(df.nk.unique().size == 1)
-	assert(df.nk.unique()[0] == NK)
-	assert(df.npas.unique().size == 1)
-	assert(df.npas.unique()[0] == 0)
-	assert(df.grid.unique().size == 1)
-	assert(df.grid.unique()[0] == '00')
+	
 	d1 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32) 
 	d2 = df.d[0]
 	comparison1 = d1 == d2
@@ -278,6 +184,7 @@ def test_4(plugin_test_dir):
 	assert(df.d.size == 2)
 
 def test_5(plugin_test_dir):
+	"""Test with the with_space.new.csv It should return a DataFrame"""
 	src = plugin_test_dir + 'with_space.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	print(df.to_string())
@@ -286,43 +193,17 @@ def test_5(plugin_test_dir):
 	NI = 3
 	NJ = 2
 	NK = 1
-	assert(df.nomvar.unique().size == 1)
-	assert(df.nomvar.unique()[0] == "CSV")
-	assert(df.etiket.unique().size == 1)
-	assert(df.etiket.unique()[0] == "CSVREADER")
-	assert(df.nbits.unique().size == 1)
-	assert(df.nbits.unique()[0] == 24)
-	assert(df.datyp.unique().size == 1)
-	assert(df.datyp.unique()[0] == 1)
-	assert(df.grtyp.unique().size == 1)
-	assert(df.grtyp.unique()[0] == "X")
-	assert(df.typvar.unique().size == 1)
-	assert(df.typvar.unique()[0] == "X")
-	assert(df.ip2.unique().size == 1)
-	assert(df.ip2.unique()[0] == 0)
-	assert(df.ip3.unique().size == 1)
-	assert(df.ip3.unique()[0] == 0)
-	assert(df.ig1.unique().size == 1)
-	assert(df.ig1.unique()[0] == 0)
-	assert(df.ig2.unique().size == 1)
-	assert(df.ig2.unique()[0] == 0)
-	assert(df.ig3.unique().size == 1)
-	assert(df.ig3.unique()[0] == 0)
-	assert(df.ig4.unique().size == 1)
-	assert(df.ig4.unique()[0] == 0)
+	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
+	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
+	   'nj':(1,NJ),'nk':(1,NK)}
+	for k,v in d.items():
+		assert(df[k].unique().size == v[0])
+		assert(df[k].unique()[0] == v[1])
+		
 	assert(df.ip1.unique().size == 2)
 	assert(df.ip1.unique()[0] == 1)
 	assert(df.ip1.unique()[1] == 0)
-	assert(df.ni.unique().size == 1)
-	assert(df.ni.unique()[0] == NI)
-	assert(df.nj.unique().size == 1)
-	assert(df.nj.unique()[0] == NJ)
-	assert(df.nk.unique().size == 1)
-	assert(df.nk.unique()[0] == NK)
-	assert(df.npas.unique().size == 1)
-	assert(df.npas.unique()[0] == 0)
-	assert(df.grid.unique().size == 1)
-	assert(df.grid.unique()[0] == '00')
+	
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
 	comparison1 = d1 == d2
@@ -336,8 +217,9 @@ def test_5(plugin_test_dir):
 	assert(df.d.size == 2)
 
 
-def test_6(plugin_test_dir):
-	src = plugin_test_dir + 'with_comments.new.csv'
+def test_6(plugin_test_dir2):
+	"""Test with the with_comments.new.csv It should return a DataFrame"""
+	src = plugin_test_dir2 + 'with_comments.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	print(df.to_string())
 	print(df.dtypes)
@@ -345,43 +227,17 @@ def test_6(plugin_test_dir):
 	NI = 3
 	NJ = 2
 	NK = 1
-	assert(df.nomvar.unique().size == 1)
-	assert(df.nomvar.unique()[0] == "CSV")
-	assert(df.etiket.unique().size == 1)
-	assert(df.etiket.unique()[0] == "CSVREADER")
-	assert(df.nbits.unique().size == 1)
-	assert(df.nbits.unique()[0] == 24)
-	assert(df.datyp.unique().size == 1)
-	assert(df.datyp.unique()[0] == 1)
-	assert(df.grtyp.unique().size == 1)
-	assert(df.grtyp.unique()[0] == "X")
-	assert(df.typvar.unique().size == 1)
-	assert(df.typvar.unique()[0] == "X")
-	assert(df.ip2.unique().size == 1)
-	assert(df.ip2.unique()[0] == 0)
-	assert(df.ip3.unique().size == 1)
-	assert(df.ip3.unique()[0] == 0)
-	assert(df.ig1.unique().size == 1)
-	assert(df.ig1.unique()[0] == 0)
-	assert(df.ig2.unique().size == 1)
-	assert(df.ig2.unique()[0] == 0)
-	assert(df.ig3.unique().size == 1)
-	assert(df.ig3.unique()[0] == 0)
-	assert(df.ig4.unique().size == 1)
-	assert(df.ig4.unique()[0] == 0)
+	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
+	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
+	   'nj':(1,NJ),'nk':(1,NK)}
+	for k,v in d.items():
+		assert(df[k].unique().size == v[0])
+		assert(df[k].unique()[0] == v[1])
+		
 	assert(df.ip1.unique().size == 2)
 	assert(df.ip1.unique()[0] == 1)
 	assert(df.ip1.unique()[1] == 0)
-	assert(df.ni.unique().size == 1)
-	assert(df.ni.unique()[0] == NI)
-	assert(df.nj.unique().size == 1)
-	assert(df.nj.unique()[0] == NJ)
-	assert(df.nk.unique().size == 1)
-	assert(df.nk.unique()[0] == NK)
-	assert(df.npas.unique().size == 1)
-	assert(df.npas.unique()[0] == 0)
-	assert(df.grid.unique().size == 1)
-	assert(df.grid.unique()[0] == '00')
+	
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
 	comparison1 = d1 == d2
@@ -396,7 +252,9 @@ def test_6(plugin_test_dir):
 
 
 
+
 def test_7(plugin_test_dir):
+	"""Test with the pds2.new.csv It should return a DataFrame"""
 	src = plugin_test_dir + 'pds2.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	print(df.to_string())
@@ -404,48 +262,18 @@ def test_7(plugin_test_dir):
 	NI = 3
 	NJ = 2
 	NK = 1
-	assert(df.nomvar.unique().size == 2)
-	assert(df.nomvar.unique()[0] == "CSV")
+	d={'nomvar':(2,"CSV"),'etiket':(2,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
+	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(2,NI),
+	   'nj':(2,NJ),'nk':(1,NK)}
+
 	assert(df.nomvar.unique()[1] == "CSV2")
-	assert(df.etiket.unique().size == 2)
-	assert(df.etiket.unique()[0] == "CSVREADER")
 	assert(df.etiket.unique()[1] == "CSVREADER2")
-	assert(df.nbits.unique().size == 1)
-	assert(df.nbits.unique()[0] == 24)
-	assert(df.datyp.unique().size == 1)
-	assert(df.datyp.unique()[0] == 1)
-	assert(df.grtyp.unique().size == 1)
-	assert(df.grtyp.unique()[0] == "X")
-	assert(df.typvar.unique().size == 1)
-	assert(df.typvar.unique()[0] == "X")
-	assert(df.ip2.unique().size == 1)
-	assert(df.ip2.unique()[0] == 0)
-	assert(df.ip3.unique().size == 1)
-	assert(df.ip3.unique()[0] == 0)
-	assert(df.ig1.unique().size == 1)
-	assert(df.ig1.unique()[0] == 0)
-	assert(df.ig2.unique().size == 1)
-	assert(df.ig2.unique()[0] == 0)
-	assert(df.ig3.unique().size == 1)
-	assert(df.ig3.unique()[0] == 0)
-	assert(df.ig4.unique().size == 1)
-	assert(df.ig4.unique()[0] == 0)
 	assert(df.ip1.unique().size == 3)
 	assert(df.ip1.unique()[0] == 1)
 	assert(df.ip1.unique()[1] == 0)
 	assert(df.ip1.unique()[2] == 99)
-	assert(df.ni.unique().size == 2)
-	assert(df.ni.unique()[0] == NI)
 	assert(df.ni.unique()[1] == 2)
-	assert(df.nj.unique().size == 2)
-	assert(df.nj.unique()[0] == NJ)
 	assert(df.nj.unique()[1] == 3)
-	assert(df.nk.unique().size == 1)
-	assert(df.nk.unique()[0] == NK)
-	assert(df.npas.unique().size == 1)
-	assert(df.npas.unique()[0] == 0)
-	assert(df.grid.unique().size == 1)
-	assert(df.grid.unique()[0] == '00')
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
 	comparison1 = d1 == d2
@@ -466,23 +294,25 @@ def test_7(plugin_test_dir):
 
 def test_8(plugin_test_dir):
 	""" Test the csv reader with a file that should not return a dataframe because the dimensions of d are different
-		and they have the same etiket and nomvar"""
+		and they have the same etiket and nomvar. Will return the DimensionError"""
 	src = plugin_test_dir + 'not_all_same_number_of_lines_in_a_pds.new.csv'
-	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
-	assert(False)
+	with pytest.raises(DimensionError):
+		fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 
 
 
 def test_9(plugin_test_dir):
+	""" Test the csv reader with a file that should not return a dataframe because the dimensions of d are different
+		and they have the same etiket and nomvar. Will return the ValueError"""
 	src = plugin_test_dir + 'not_all_same_number_of_items_in_lines_of_a_pds.new.csv'
-	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
+	with pytest.raises(ValueError):
+		fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
+	
 
 
 def test_10(plugin_test_dir):
+	"""Test to see if I can read a csv file with only a single line per level. 
+	   Should return a DataFrame """
 	src = plugin_test_dir + 'only_1_line_per_level.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	print(df.to_string())
@@ -491,43 +321,17 @@ def test_10(plugin_test_dir):
 	NI = 1
 	NJ = 6
 	NK = 1
-	assert(df.nomvar.unique().size == 1)
-	assert(df.nomvar.unique()[0] == "CSV")
-	assert(df.etiket.unique().size == 1)
-	assert(df.etiket.unique()[0] == "CSVREADER")
-	assert(df.nbits.unique().size == 1)
-	assert(df.nbits.unique()[0] == 24)
-	assert(df.datyp.unique().size == 1)
-	assert(df.datyp.unique()[0] == 1)
-	assert(df.grtyp.unique().size == 1)
-	assert(df.grtyp.unique()[0] == "X")
-	assert(df.typvar.unique().size == 1)
-	assert(df.typvar.unique()[0] == "X")
-	assert(df.ip2.unique().size == 1)
-	assert(df.ip2.unique()[0] == 0)
-	assert(df.ip3.unique().size == 1)
-	assert(df.ip3.unique()[0] == 0)
-	assert(df.ig1.unique().size == 1)
-	assert(df.ig1.unique()[0] == 0)
-	assert(df.ig2.unique().size == 1)
-	assert(df.ig2.unique()[0] == 0)
-	assert(df.ig3.unique().size == 1)
-	assert(df.ig3.unique()[0] == 0)
-	assert(df.ig4.unique().size == 1)
-	assert(df.ig4.unique()[0] == 0)
+	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
+	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
+	   'nj':(1,NJ),'nk':(1,NK)}
+	for k,v in d.items():
+		assert(df[k].unique().size == v[0])
+		assert(df[k].unique()[0] == v[1])
+		
 	assert(df.ip1.unique().size == 2)
 	assert(df.ip1.unique()[0] == 1)
 	assert(df.ip1.unique()[1] == 0)
-	assert(df.ni.unique().size == 1)
-	assert(df.ni.unique()[0] == NI)
-	assert(df.nj.unique().size == 1)
-	assert(df.nj.unique()[0] == NJ)
-	assert(df.nk.unique().size == 1)
-	assert(df.nk.unique()[0] == NK)
-	assert(df.npas.unique().size == 1)
-	assert(df.npas.unique()[0] == 0)
-	assert(df.grid.unique().size == 1)
-	assert(df.grid.unique()[0] == '00')
+	
 	d1 = np.array([[11.1, 22.2, 33.3, 44.4, 55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
 	comparison1 = d1 == d2
@@ -542,6 +346,8 @@ def test_10(plugin_test_dir):
 
 
 def test_11(plugin_test_dir):
+	"""Test to see if I can read a csv file with only a single item per line. 
+	   Should return a DataFrame """
 	src = plugin_test_dir + 'only_1_item_per_line.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	print(df.to_string())
@@ -550,43 +356,17 @@ def test_11(plugin_test_dir):
 	NI = 3
 	NJ = 1
 	NK = 1
-	assert(df.nomvar.unique().size == 1)
-	assert(df.nomvar.unique()[0] == "CSV")
-	assert(df.etiket.unique().size == 1)
-	assert(df.etiket.unique()[0] == "CSVREADER")
-	assert(df.nbits.unique().size == 1)
-	assert(df.nbits.unique()[0] == 24)
-	assert(df.datyp.unique().size == 1)
-	assert(df.datyp.unique()[0] == 1)
-	assert(df.grtyp.unique().size == 1)
-	assert(df.grtyp.unique()[0] == "X")
-	assert(df.typvar.unique().size == 1)
-	assert(df.typvar.unique()[0] == "X")
-	assert(df.ip2.unique().size == 1)
-	assert(df.ip2.unique()[0] == 0)
-	assert(df.ip3.unique().size == 1)
-	assert(df.ip3.unique()[0] == 0)
-	assert(df.ig1.unique().size == 1)
-	assert(df.ig1.unique()[0] == 0)
-	assert(df.ig2.unique().size == 1)
-	assert(df.ig2.unique()[0] == 0)
-	assert(df.ig3.unique().size == 1)
-	assert(df.ig3.unique()[0] == 0)
-	assert(df.ig4.unique().size == 1)
-	assert(df.ig4.unique()[0] == 0)
+	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
+	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
+	   'nj':(1,NJ),'nk':(1,NK)}
+	for k,v in d.items():
+		assert(df[k].unique().size == v[0])
+		assert(df[k].unique()[0] == v[1])
+		
 	assert(df.ip1.unique().size == 2)
 	assert(df.ip1.unique()[0] == 1)
 	assert(df.ip1.unique()[1] == 0)
-	assert(df.ni.unique().size == 1)
-	assert(df.ni.unique()[0] == NI)
-	assert(df.nj.unique().size == 1)
-	assert(df.nj.unique()[0] == NJ)
-	assert(df.nk.unique().size == 1)
-	assert(df.nk.unique()[0] == NK)
-	assert(df.npas.unique().size == 1)
-	assert(df.npas.unique()[0] == 0)
-	assert(df.grid.unique().size == 1)
-	assert(df.grid.unique()[0] == '00')
+	
 	d1 = np.array([[11.1], [33.3], [55.5]],dtype=np.float32) 
 	d2 = df.d[0]
 	comparison1 = d1 == d2
@@ -601,20 +381,20 @@ def test_11(plugin_test_dir):
 
 
 def test_12(plugin_test_dir):
-	"""Test with a missing value in an array. The dataframe should not be returned. It should return an error"""
+	"""Test with a missing value in an array. The dataframe should not be returned. The assertion is true if the 
+	   function call raises ValueError"""
 	src = plugin_test_dir + 'missingvalue.new.csv'
-	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
+	with pytest.raises(ValueError):
+		fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	
 
-
-def test_13(plugin_test_dir):
-	"""Test with a missing value in an array. The dataframe should not be returned. It should return an error"""
-	src = plugin_test_dir + 'missingvalue2.new.csv'
-	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
+# def test_13(plugin_test_dir2):
+# 	"""Test with a missing value in an array. The dataframe should not be returned.The assertion is true if the 
+# 	   function call raises pandas.errors.ParserError"""
+# 	src = plugin_test_dir2 + 'missingvalue2.new.csv'
+# 	with pytest.raises(pd.errors.ParserError):
+# 		fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
+	
 
 
 
