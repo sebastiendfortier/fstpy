@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import csv
 import pandas as pd
 import datetime
 import pytest
@@ -18,22 +19,8 @@ def input_file2():
     return '/home/zak000/src/notebooks/readerCv_notebook/test2_src.csv'
 
 @pytest.fixture
-def input_file_without_minimum_cl():
-    return '/home/zak000/src/notebooks/readerCsv_notebook/test4_src.csv'
-@pytest.fixture
-def input_file_with_wrong_column_name():
-    return '/home/zak000/src/notebooks/readerCsv_notebook/test5_src.csv'
-@pytest.fixture
-def input_file_nbits_void():
-    return '/home/zak000/src/notebooks/readerCsv_notebook/test6_src.csv'
-@pytest.fixture
-def input_file_nbits_24bits():
-    return '/home/zak000/src/notebooks/readerCsv_notebook/test6_src_2.csv'
-
-@pytest.fixture
-def df1():
-    df = pd.read_csv('/home/zak000/src/notebooks/readerCsv_notebook/test2_src.csv',comment="#")
-    return df
+def input_file_test():
+	return "/home/zak000/src/notebooks/readerCsv_notebook/"
 
 @pytest.fixture
 def plugin_test_dir():
@@ -42,6 +29,7 @@ def plugin_test_dir():
 @pytest.fixture
 def plugin_test_dir2():
    return "/home/zak000/src/ReaderCsv/testsFiles/"
+
 
 
 
@@ -150,7 +138,7 @@ def test_3(plugin_test_dir):
 
 
 def test_4(plugin_test_dir):
-	"""Test with the pds1_level2_inversed_level_order.new.csv. 
+	"""Test with pds1_level2_inversed_level_order.new.csv. 
 		It should return a DataFrame"""
 	src = plugin_test_dir + 'pds1_level2_inversed_level_order.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
@@ -217,9 +205,9 @@ def test_5(plugin_test_dir):
 	assert(df.d.size == 2)
 
 
-def test_6(plugin_test_dir2):
+def test_6(plugin_test_dir):
 	"""Test with the with_comments.new.csv It should return a DataFrame"""
-	src = plugin_test_dir2 + 'with_comments.new.csv'
+	src = plugin_test_dir + 'with_comments.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	print(df.to_string())
 	print(df.dtypes)
@@ -388,48 +376,90 @@ def test_12(plugin_test_dir):
 		fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	
 
-# def test_13(plugin_test_dir2):
-# 	"""Test with a missing value in an array. The dataframe should not be returned.The assertion is true if the 
-# 	   function call raises pandas.errors.ParserError"""
-# 	src = plugin_test_dir2 + 'missingvalue2.new.csv'
-# 	with pytest.raises(pd.errors.ParserError):
-# 		fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
+
+def test_13():
+	""" Test the exception CsvFileReaderError"""
+	with pytest.raises(fstpy.CsvFileReaderError):
+		fstpy.CsvFileReader(path = "ome/ewqewq",encode_ip1=False)
+
+
+
+def test_14(plugin_test_dir):
+	""" Test the exception MinimalColumnsError"""
+	with pytest.raises(fstpy.MinimalColumnsError):
+		csv_file = fstpy.CsvFileReader(plugin_test_dir+ "minimalColumns.csv",encode_ip1=False)
+		csv_file = csv_file.to_pandas()
+		print(csv_file.to_string())
+
+def test_15(plugin_test_dir):
+	""" Test the exception ColumnsNotValidError"""
+	with pytest.raises(fstpy.ColumnsNotValidError):
+		csv_file = fstpy.CsvFileReader(path = plugin_test_dir  + "columnNotValid.csv",encode_ip1=False)
+		csv_file.to_pandas()
+
+def test_16(plugin_test_dir):
+	""" Test the exception fstpy.ip1andLevelExistsError"""
+	with pytest.raises(fstpy.ip1andLevelExistsError):
+		df = fstpy.CsvFileReader(path = plugin_test_dir + "ip1andLevelExists.csv",encode_ip1=False)	
+		df.to_pandas()
+
+
+def test_17(plugin_test_dir):
+	""" Test the exception fstpy.NomVarLengthError"""
+	with pytest.raises(fstpy.NomVarLengthError):
+		df = fstpy.CsvFileReader(path = plugin_test_dir + "nomVarLengthError.csv",encode_ip1=False)	
+		df.to_pandas()
+
+def test_18(plugin_test_dir):
+	""" Test the exception fstpy.TypVarLengthError"""
+	with pytest.raises(fstpy.TypVarLengthError):
+		df = fstpy.CsvFileReader(path = plugin_test_dir + "typVarLengthError.csv",encode_ip1=False)	
+		df.to_pandas()
+
+def test_19(plugin_test_dir):
+	""" Test the exception fstpy.EtiketVarLengthError"""
+	with pytest.raises(fstpy.EtiketVarLengthError):
+		df = fstpy.CsvFileReader(path = plugin_test_dir + "etiketVarLengthError.csv",encode_ip1=False)	
+		df.to_pandas()
+
+
+
+# def test_20(plugin_test_dir):
+# 	"""Test with space_in_the_headers.csv.Ignore the spaces in the headers. It should return a DataFrame"""
+# 	src = plugin_test_dir + 'space_in_the_headers.csv'
+# 	df = fstpy.CsvFileReader(path=src,encode_ip1=False).to_pandas()
+# 	print(df.to_string())
+# 	print(df.dtypes)
+# 	NI = 3
+# 	NJ = 2
+# 	NK = 1
+# 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
+# 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
+# 	   'nj':(1,NJ),'nk':(1,NK)}
+# 	for k,v in d.items():
+# 		assert(df[k].unique().size == v[0])
+# 		assert(df[k].unique()[0] == v[1])
+		
+# 	assert(df.ip1.unique().size == 2)
+# 	assert(df.ip1.unique()[0] == 1)
+# 	assert(df.ip1.unique()[1] == 0)
+
+# 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
+# 	d2 = df.d[0]
+# 	comparison = d1 == d2
+# 	equal_array1 = comparison.all()
+# 	assert(equal_array1)
+# 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
+# 	d4 = df.d[1]
+# 	comparison = d3 == d4
+# 	equal_array2 = comparison.all()
+# 	assert(equal_array2)
+# 	assert(df.d.size == 2)
 	
-
-
-
-
-
-
-
-# """Test if my to_pandas function works and if my class CsvFileReader works"""
-# def test_1(input_file,df1):
-#     csv_file = fstpy.CsvFileReader(path = input_file,encode_ip1=False)
-#     assert (type(csv_file) == fstpy.CsvFileReader)
-#     assert (df1.equals(csv_file.to_pandas_no_condition()))
-
-# """ Test the exception CsvFileReaderError"""
-# def test_2(input_file2):
-#     with pytest.raises(fstpy.CsvFileReaderError):
-#         csv_file = fstpy.CsvFileReader(path = input_file2,encode_ip1=False)
-
-# """ Test the exception NoHeaderInFileError"""
-# def test_3(input_file):
-#     with pytest.raises(fstpy.NoHeaderInFileError):
-#         csv_file = fstpy.CsvFileReader(path = input_file,encode_ip1=False)
-#         csv_file.to_pandas_no_hdr()
-
-# """ Test the exception MinimumHeadersError"""
-# def test_4(input_file_without_minimum_cl):
-#     with pytest.raises(fstpy.MinimumHeadersError):
-#         csv_file = fstpy.CsvFileReader(path = input_file_without_minimum_cl,encode_ip1=False)
-#         csv_file.to_pandas()
-
-# """ Test the exception HeadersAreNotValidError"""
-# def test_5(input_file_with_wrong_column_name):
-#     with pytest.raises(fstpy.HeadersAreNotValidError):
-#         csv_file = fstpy.CsvFileReader(path = input_file_with_wrong_column_name,encode_ip1=False)
-#         csv_file.to_pandas()
+	
+		
+		
+	
 
 # """ Test checkColumns Function"""
 # def test_7(input_file_nbits_void,input_file_nbits_24bits):

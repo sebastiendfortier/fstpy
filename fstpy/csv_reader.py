@@ -47,14 +47,6 @@ class ColumnsNotValidError(Exception):
     pass
 
 
-class NoHeaderInFileError(Exception):
-    pass
-
-
-class ip1HasAmissingValueError(Exception):
-    pass
-
-
 class ip1andLevelExistsError(Exception):
     pass
 
@@ -63,11 +55,37 @@ class DimensionError(Exception):
     pass
 
 
+class NomVarLengthError(Exception):
+    pass
+
+
+class TypVarLengthError(Exception):
+    pass
+
+class EtiketVarLengthError(Exception):
+    pass
+
+
 class CsvFileReader :   
     """Read a csv file and convert it to a readable csv file.
     :param path: path of the csv file i want to read
     :type path:str
+    Algorithm:
+        Reading a file that must have the followed form:
+        COLUMNS/HEADERS NAMES: nomvar,etiket,level,d
+        VALUES:                CSV,CSVREADER,1.0,"11.1,22.2;33.3,44.4;55.5,66.6"
+        VALUES:                CSV,CSVREADER,0.0,"77.7,88.8;99.9,100.10;110.11,120.12"
+
+    - The d column is composed of floats and the ";" means one of the line of the level is done.
+    - One line of a single level represent the x axis (row)
+    - The values inside a single line are the y axis (column)
+    - The number of rows of a matrix d determines ni.
+    - The number of columns of a matrix section determines nj
+    - If 2 arrays of the column d have the same dimension they can have the same variable name and etiket
+    - If you wish to comment a csv file, dont do it in the same line as the values in the csv files. You need to have lines with only comments.
     """
+
+
 
     def __init__(self,path,encode_ip1=True):
         self.path = path
@@ -80,30 +98,54 @@ class CsvFileReader :
         :return: df
         :rtype: pd.DataFrame
         """
-        self.df = pd.read_csv(self.path,comment="#")
+        self.df = pd.read_csv(self.path,comment="#",)
+        self.df.columns = self.df.columns.str.replace(' ', '')
         if(self.verify_headers()):
             self.add_missing_columns()
+            self.check_columns()
             self.df = add_grid_column(self.df)
             return self.df
 
-    def to_pandas_no_condition(self):
-        """Read the csv file for testing purposes
-
-        :return: df
-        :rtype: pd.DataFrame
+    def count_char(self,s):
+        """Count the number of char in a string for every row in one of the column of the dataframe
+        :param s: the name of the column i want to count the characters 
+        :return: list of the count of the number of character of the strings of every row
         """
-        self.df = pd.read_csv(self.path,comment="#")
-        return self.df
+        array_list = []
+        for i in self.df.index:
+            a =len(self.df.at[i,s])
+            # print(a)
+            array_list.append(a)
+        return array_list
 
-    def to_pandas_no_hdr(self):
-        """Read the csv file for testing purposes
-
-        :return: df
-        :rtype: pd.DataFrame
+    def check_nomvar_char_length(self):
+        """Check that the length of the column nomvar is always between 2 and 4 characters for the whole dataframe 
         """
-        self.df = pd.read_csv(self.path,comment="#",header=None)
-        if(self.verify_headers()):
-            return self.df
+
+        a = self.count_char(s="nomvar")
+        for i in a:
+            if (i < 2 or i>4):
+                raise NomVarLengthError("the variable nomvar should have between 2 and 4 characters")
+
+    def check_typvar_char_length(self):
+        """Check that the length of the column typvar is always between 1 and 2 characters for the whole dataframe 
+        """
+        a = self.count_char(s="typvar")
+        for i in a:
+            if (i < 1 or i>2):
+                raise TypVarLengthError("the variable typvar should have between 1 and 2 characters")
+
+
+    def check_etiket_char_length(self):
+        """Check that the length of the column etiket is always between 1 and 12 characters for the whole dataframe 
+        """
+
+        a = self.count_char(s="etiket")
+        for i in a:
+            if (i < 1 or i > 12):
+                raise EtiketVarLengthError("the variable etiket should have between 1 and 12 characters")
+    
+
             
 
 
@@ -131,8 +173,17 @@ class CsvFileReader :
         self.add_npas()
         self.add_date()
         self.to_numpy_array()
+
+        
+    def check_columns(self):
+        """Check the types of the columns, the dimensions of the differents d arrays and the length of the nomvar,etiket
+        and typvar of the dataframe"""
+
         self.change_column_dtypes()
         self.check_array_dimensions()
+        self.check_nomvar_char_length()
+        self.check_typvar_char_length()
+        self.check_etiket_char_length()
     
     
 
@@ -142,7 +193,7 @@ class CsvFileReader :
         :return: True
         :rtype: bool
         """
-
+        
         list_of_hdr_names = self.df.columns.tolist()
 
         if set(['nomvar', 'd','level']).issubset(list_of_hdr_names) or set(['nomvar', 'd','ip1']).issubset(list_of_hdr_names):
@@ -159,14 +210,11 @@ class CsvFileReader :
         """
         all_the_cols = BASE_COLUMNS
         all_the_cols.sort()
-
         list_of_hdr_names = self.df.columns.tolist()
         list_of_hdr_names.sort()
 
         set1 = set(list_of_hdr_names)
         set2 = set(BASE_COLUMNS)
-        sorted(set1)
-        sorted(set2)
 
         if(len(list_of_hdr_names) < len(BASE_COLUMNS)):
             is_subset = set1.issubset(set2)
@@ -183,6 +231,7 @@ class CsvFileReader :
                                                             + 'are present in BASE_COLUMNS')
         else:
             raise ColumnsNotValidError('The headers in the csv file are not valid you have too many columns')
+
 
     def column_exists(self,col):
         """Check if the column exists in a dataframe
@@ -307,7 +356,7 @@ class CsvFileReader :
                 ip1 = level
                 self.df.at[row.Index,"ip1"] = ip1
 
-        elif (not self.column_exists("ip1")) and (not self.column_exists("level")):
+        elif (self.column_exists("ip1")) and (self.column_exists("level")):
             raise ip1andLevelExistsError("IP1 AND LEVEL EXISTS IN THE CSV FILE")
         # Remove level after we added ip1 column
         self.df.drop(columns=["level"],inplace = True,errors="ignore")
