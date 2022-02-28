@@ -40,15 +40,15 @@ def test_1(input_file):
 
 def test_2(simple_df):
     """check that add_grid_column does not replace existing values"""
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df.drop('grid',axis=1,inplace=True)
 
-    assert(len(simple_df.columns) == 21)
+    assert(len(simple_df.columns) == 23)
 
     simple_df = fstpy.add_grid_column(simple_df)
 
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
     assert(simple_df.grid.unique().size == 1)
     assert(simple_df.grid.unique()[0] == '3379277761')
 
@@ -67,14 +67,14 @@ def test_2(simple_df):
 
 def test_3(simple_df, input_file):
     """Check that add_path_and_key_columns does not replace existing values"""
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df.drop(['path','key'],axis=1, inplace=True, errors='ignore')
     
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
     simple_df = fstpy.add_path_and_key_columns(simple_df)
     
-    assert(len(simple_df.columns) == 24)
+    assert(len(simple_df.columns) == 26)
     assert(simple_df.path.unique().size == 1)
     assert(simple_df.key.unique().size == 5)
     
@@ -93,19 +93,19 @@ def test_3(simple_df, input_file):
 
 def test_4(simple_df):
     """Check that add_timezone_column does not replace existing values"""
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
     
     simple_df.drop('date_of_validity_Canada_Eastern',axis=1, inplace=True, errors='ignore')
     
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
     
     simple_df = fstpy.add_columns(simple_df,'datev')
     
-    assert(len(simple_df.columns) == 23)
+    assert(len(simple_df.columns) == 25)
     
     simple_df = fstpy.add_timezone_column(simple_df,'date_of_validity','Canada/Eastern')
     
-    assert(len(simple_df.columns) == 24)
+    assert(len(simple_df.columns) == 26)
     assert('date_of_validity_Canada_Eastern' in simple_df.columns)
     
     simple_df.date_of_validity_Canada_Eastern.unique().size
@@ -128,11 +128,11 @@ def test_4(simple_df):
 
 def test_5(simple_df):
     """Check that add_flag_values does not replace existing values"""
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df = fstpy.add_flag_values(simple_df)
 
-    assert(len(simple_df.columns) == 30)
+    assert(len(simple_df.columns) == 32)
 
     for col in ['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info']:
         assert(col in simple_df.columns)
@@ -154,11 +154,11 @@ def test_5(simple_df):
 
 def test_6(simple_df):
     """Check that add_parsed_etiket_columns does not replace existing values"""
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df = fstpy.add_parsed_etiket_columns(simple_df)
 
-    assert(len(simple_df.columns) == 26)
+    assert(len(simple_df.columns) == 28)
 
     for col in ['label', 'run', 'implementation', 'ensemble_member']:
         assert(col in simple_df.columns)
@@ -180,11 +180,11 @@ def test_6(simple_df):
 
 def test_7(simple_df):
     """Check that add_unit_and_description_columns does not replace existing values"""
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df = fstpy.add_unit_and_description_columns(simple_df)
 
-    assert(len(simple_df.columns) == 24)
+    assert(len(simple_df.columns) == 26)
 
     for col in ['unit', 'description']:
         assert(col in simple_df.columns)
@@ -216,17 +216,17 @@ def test_7(simple_df):
 
 def test_8(simple_df):
     """Check that add_decoded_date_column does not replace existing values"""
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df.drop('date_of_observation',axis=1,errors='ignore',inplace=True)
     simple_df.drop('date_of_validity',axis=1,errors='ignore',inplace=True)
 
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df = fstpy.add_decoded_date_column(simple_df,'dateo')
     simple_df = fstpy.add_decoded_date_column(simple_df,'datev')
 
-    assert(len(simple_df.columns) == 24)
+    assert(len(simple_df.columns) == 26)
     assert(simple_df.date_of_observation.unique().size == 1)
     assert(simple_df.date_of_validity.unique().size == 1)
     assert(simple_df.date_of_observation.unique()[0] == np.datetime64('2020-07-14T12'))
@@ -252,16 +252,16 @@ def test_8(simple_df):
 
 def test_9(simple_df):
     """Check that add_forecats_hour_column does not replace existing values"""
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df.drop('forecast_hour',axis=1,errors='ignore',inplace=True)
 
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df = fstpy.add_forecast_hour_column(simple_df)
 
 
-    assert(len(simple_df.columns) == 23)
+    assert(len(simple_df.columns) == 25)
     assert(simple_df.forecast_hour.unique().size == 1)
 
 
@@ -285,15 +285,15 @@ def test_9(simple_df):
 
 def test_10(simple_df):
     """Check that add_data_type_str_column does not replace existing values"""
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df.drop('data_type_str',axis=1,errors='ignore',inplace=True)
 
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df = fstpy.add_data_type_str_column(simple_df)
 
-    assert(len(simple_df.columns) == 23)
+    assert(len(simple_df.columns) == 25)
     assert(simple_df.data_type_str.unique().size == 1)
     assert(simple_df.data_type_str.unique()[0] == 'f')
 
@@ -311,11 +311,11 @@ def test_10(simple_df):
 
 def test_11(simple_df):
     """Check that add_ip_info_columns does not replace existing values"""
-    assert(len(simple_df.columns) == 22)
+    assert(len(simple_df.columns) == 24)
 
     simple_df = fstpy.add_ip_info_columns(simple_df)
     
-    assert(len(simple_df.columns) == 35)
+    assert(len(simple_df.columns) == 37)
 
     for col,value in {'level':5, 'ip1_kind':1, 'ip1_pkind':1, 'ip2_dec':1, 'ip2_kind':1, 'ip2_pkind':1, 'ip3_dec':1, 'ip3_kind':1, 'ip3_pkind':1, 'surface':1, 'follow_topography':1, 'ascending':1, 'interval':1}.items():
         assert(col in simple_df.columns)
