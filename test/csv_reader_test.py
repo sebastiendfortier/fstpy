@@ -10,29 +10,9 @@ from fstpy.csv_reader import DimensionError
 from test import TEST_PATH, TMP_PATH
 pytestmark = [pytest.mark.unit_tests]
 
-
-@pytest.fixture
-def input_file():
-    return '/home/zak000/src/notebooks/readerCsv_notebook/test2_src.csv'
-@pytest.fixture
-def input_file2():
-    return '/home/zak000/src/notebooks/readerCv_notebook/test2_src.csv'
-
-@pytest.fixture
-def input_file_test():
-	return "/home/zak000/src/notebooks/readerCsv_notebook/"
-
 @pytest.fixture
 def plugin_test_dir():
    return TEST_PATH + '/ReaderCsv/testsFiles/'
-
-@pytest.fixture
-def plugin_test_dir2():
-   return "/home/zak000/src/ReaderCsv/testsFiles/"
-
-
-
-
 
 
 def test_1(plugin_test_dir):
