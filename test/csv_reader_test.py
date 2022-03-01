@@ -37,15 +37,13 @@ def test_1(plugin_test_dir):
 
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
-	comparison = d1 == d2
-	equal_array1 = comparison.all()
-	assert(equal_array1)
 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
-	comparison = d3 == d4
-	equal_array2 = comparison.all()
-	assert(equal_array2)
+	assert(np.array_equal(d1,d2))
+	assert(np.array_equal(d3,d4))
 	assert(df.d.size == 2)
+	
+	
 	
 
 def test_2(plugin_test_dir):
@@ -58,9 +56,11 @@ def test_2(plugin_test_dir):
 	NI = 3
 	NJ = 2
 	NK = 1
+
 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
 	   'nj':(1,NJ),'nk':(1,NK)}
+
 	for k,v in d.items():
 		assert(df[k].unique().size == v[0])
 		assert(df[k].unique()[0] == v[1])
@@ -71,15 +71,12 @@ def test_2(plugin_test_dir):
 	
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
-	comparison = d1 == d2
-	equal_array1 = comparison.all()
-	assert(equal_array1)
 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
-	comparison = d3 == d4
-	equal_array2 = comparison.all()
-	assert(equal_array2)
 	assert(df.d.size == 2)
+	assert(np.array_equal(d1,d2))
+	assert(np.array_equal(d3,d4))
+	
 
 
 def test_3(plugin_test_dir):
@@ -106,15 +103,12 @@ def test_3(plugin_test_dir):
 	
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
-	comparison = d1 == d2
-	equal_array1 = comparison.all()
-	assert(equal_array1)
 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
-	comparison = d3 == d4
-	equal_array2 = comparison.all()
-	assert(equal_array2)
 	assert(df.d.size == 2)
+	assert(np.array_equal(d1,d2))
+	assert(np.array_equal(d3,d4))
+	
 
 
 def test_4(plugin_test_dir):
@@ -141,15 +135,12 @@ def test_4(plugin_test_dir):
 	
 	d1 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32) 
 	d2 = df.d[0]
-	comparison1 = d1 == d2
-	equal_array1 = comparison1.all()
-	assert(equal_array1)
 	d3 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32)
 	d4 = df.d[1]
-	comparison2 = d3 == d4
-	equal_array2 = comparison2.all()
-	assert(equal_array2)
 	assert(df.d.size == 2)
+	assert(np.array_equal(d1,d2))
+	assert(np.array_equal(d3,d4))
+	
 
 def test_5(plugin_test_dir):
 	"""Test with the with_space.new.csv It should return a DataFrame"""
@@ -164,6 +155,7 @@ def test_5(plugin_test_dir):
 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
 	   'nj':(1,NJ),'nk':(1,NK)}
+
 	for k,v in d.items():
 		assert(df[k].unique().size == v[0])
 		assert(df[k].unique()[0] == v[1])
@@ -174,15 +166,12 @@ def test_5(plugin_test_dir):
 	
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
-	comparison1 = d1 == d2
-	equal_array1 = comparison1.all()
-	assert(equal_array1)
 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
-	comparison2 = d3 == d4
-	equal_array2 = comparison2.all()
-	assert(equal_array2)
 	assert(df.d.size == 2)
+	assert(np.array_equal(d1,d2))
+	assert(np.array_equal(d3,d4))
+	
 
 
 def test_6(plugin_test_dir):
@@ -208,15 +197,12 @@ def test_6(plugin_test_dir):
 	
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
-	comparison1 = d1 == d2
-	equal_array1 = comparison1.all()
-	assert(equal_array1)
 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
-	comparison2 = d3 == d4
-	equal_array2 = comparison2.all()
-	assert(equal_array2)
 	assert(df.d.size == 2)
+	assert(np.array_equal(d1,d2))
+	assert(np.array_equal(d3,d4))
+	
 
 
 
@@ -230,9 +216,14 @@ def test_7(plugin_test_dir):
 	NI = 3
 	NJ = 2
 	NK = 1
+
 	d={'nomvar':(2,"CSV"),'etiket':(2,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(2,NI),
 	   'nj':(2,NJ),'nk':(1,NK)}
+
+	for k,v in d.items():
+		assert(df[k].unique().size == v[0])
+		assert(df[k].unique()[0] == v[1])
 
 	assert(df.nomvar.unique()[1] == "CSV2")
 	assert(df.etiket.unique()[1] == "CSVREADER2")
@@ -242,22 +233,18 @@ def test_7(plugin_test_dir):
 	assert(df.ip1.unique()[2] == 99)
 	assert(df.ni.unique()[1] == 2)
 	assert(df.nj.unique()[1] == 3)
+
 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
-	comparison1 = d1 == d2
-	equal_array1 = comparison1.all()
-	assert(equal_array1)
 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
-	comparison2 = d3 == d4
-	equal_array2 = comparison2.all()
-	assert(equal_array2)
 	d5 = np.array([[1.2, 2.3, 3.4], [4.5, 5.6, 6.7]],dtype=np.float32)
 	d6 = df.d[2]
-	comparison3 = d5 == d6
-	equal_array3 = comparison3.all()
-	assert(equal_array3)
+
 	assert(df.d.size == 3)
+	assert(np.array_equal(d1,d2))
+	assert(np.array_equal(d3,d4))
+	assert(np.array_equal(d5,d6))
 
 
 def test_8(plugin_test_dir):
@@ -292,6 +279,7 @@ def test_10(plugin_test_dir):
 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
 	   'nj':(1,NJ),'nk':(1,NK)}
+
 	for k,v in d.items():
 		assert(df[k].unique().size == v[0])
 		assert(df[k].unique()[0] == v[1])
@@ -302,15 +290,12 @@ def test_10(plugin_test_dir):
 	
 	d1 = np.array([[11.1, 22.2, 33.3, 44.4, 55.5, 66.6]],dtype=np.float32) 
 	d2 = df.d[0]
-	comparison1 = d1 == d2
-	equal_array1 = comparison1.all()
-	assert(equal_array1)
 	d3 = np.array([[77.7, 88.8, 99.9, 100.1, 110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
-	comparison2 = d3 == d4
-	equal_array2 = comparison2.all()
-	assert(equal_array2)
 	assert(df.d.size == 2)
+	assert(np.array_equal(d1,d2))
+	assert(np.array_equal(d3,d4))
+	
 
 
 def test_11(plugin_test_dir):
@@ -337,15 +322,12 @@ def test_11(plugin_test_dir):
 	
 	d1 = np.array([[11.1], [33.3], [55.5]],dtype=np.float32) 
 	d2 = df.d[0]
-	comparison1 = d1 == d2
-	equal_array1 = comparison1.all()
-	assert(equal_array1)
 	d3 = np.array([[77.7], [99.9], [110.11]],dtype=np.float32)
 	d4 = df.d[1]
-	comparison2 = d3 == d4
-	equal_array2 = comparison2.all()
-	assert(equal_array2)
 	assert(df.d.size == 2)
+	assert(np.array_equal(d1,d2))
+	assert(np.array_equal(d3,d4))
+	
 
 
 def test_12(plugin_test_dir):
@@ -404,37 +386,37 @@ def test_19(plugin_test_dir):
 
 
 
-# def test_20(plugin_test_dir):
-# 	"""Test with space_in_the_headers.csv.Ignore the spaces in the headers. It should return a DataFrame"""
-# 	src = plugin_test_dir + 'space_in_the_headers.csv'
-# 	df = fstpy.CsvFileReader(path=src,encode_ip1=False).to_pandas()
-# 	print(df.to_string())
-# 	print(df.dtypes)
-# 	NI = 3
-# 	NJ = 2
-# 	NK = 1
-# 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
-# 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
-# 	   'nj':(1,NJ),'nk':(1,NK)}
-# 	for k,v in d.items():
-# 		assert(df[k].unique().size == v[0])
-# 		assert(df[k].unique()[0] == v[1])
-		
-# 	assert(df.ip1.unique().size == 2)
-# 	assert(df.ip1.unique()[0] == 1)
-# 	assert(df.ip1.unique()[1] == 0)
+def test_20(plugin_test_dir):
+	"""Test with space_in_the_headers.csv.Ignore the spaces in the headers. It should return a DataFrame"""
+	src = plugin_test_dir + 'space_in_the_headers.csv'
+	df = fstpy.CsvFileReader(path=src,encode_ip1=False).to_pandas()
+	print(df.to_string())
+	print(df.dtypes)
+	NI = 3
+	NJ = 2
+	NK = 1
+	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
+	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
+	   'nj':(1,NJ),'nk':(1,NK)}
 
-# 	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
-# 	d2 = df.d[0]
-# 	comparison = d1 == d2
-# 	equal_array1 = comparison.all()
-# 	assert(equal_array1)
-# 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
-# 	d4 = df.d[1]
-# 	comparison = d3 == d4
-# 	equal_array2 = comparison.all()
-# 	assert(equal_array2)
-# 	assert(df.d.size == 2)
+	for k,v in d.items():
+		assert(df[k].unique().size == v[0])
+		assert(df[k].unique()[0] == v[1])
+		
+	assert(df.ip1.unique().size == 2)
+	assert(df.ip1.unique()[0] == 1)
+	assert(df.ip1.unique()[1] == 0)
+
+	d1 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32) 
+	d2 = df.d[0]
+
+	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
+	d4 = df.d[1]
+
+	assert(np.array_equal(d1,d2))
+	assert(np.array_equal(d3,d4))
+	assert(df.d.size == 2)
+
 	
 	
 		
