@@ -418,12 +418,12 @@ class ArrayIsNotStringOrNp(Exception):
 class CsvArray:
     """_summary_
 
-    :param array: _description_
-    :type array: _type_
-    :raises ArrayIsNotStringOrNp: _description_
+    :param array: array thats a string or a numpy array
+    :type array: string or numpy array
+    :raises ArrayIsNotStringOrNp: the error is raised when the array is not formed from strings or numpy array
     """
     def __init__(self,array):
-        """_summary_
+        """I initialize an array 
 
         :return: _description_
         :rtype: _type_
@@ -474,15 +474,24 @@ class CsvArray:
         """
         if isinstance(self.array,np.ndarray):
             b=self.array
-            # check that array is 2d only
-            # case for 2d array
-            # dim0 = []
-            # ndim0 = self.array.shape[0]
-            # for i in range(ndim0):
-            #     dim0.append([self.array[i,j] for j in range(self.array.shape[1])])
-            # transform all arrays to strings and concat with ';' ex ';'.join(list of strings)
-            # Transformer en string
-            pass
+            dim0 = []
+            ndim0 = self.array.shape[0]
+            for i in range(ndim0):
+                dim0.append([self.array[i,j] for j in range(self.array.shape[1])])
+
+            dim0 = []
+            ndim0 = array.shape[0]
+            for i in range(ndim0):
+                dim0.append([array[i,j] for j in range(array.shape[1])])
+
+            s=""
+            for i in range(ndim0):
+                s1= str(dim0[i]).replace("[","")
+                s1 = s1.replace("]",";")
+                s +=  s1
+            s = s.replace(" ","")
+            s = s.rstrip(s[-1])
+            return s
         else:
             return self.array
         pass
