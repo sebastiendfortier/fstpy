@@ -244,14 +244,14 @@ def test_8(plugin_test_dir):
 
 
 def test_9(plugin_test_dir):
-    """ Test the csv reader with a file that should not return a dataframe because the dimensions of d are different and they have the same etiket and nomvar. Will return the ValueError"""
+    """Test the csv reader with a file that should not return a dataframe because the dimensions of d are different and they have the same etiket and nomvar. Will return the ValueError"""
     src = plugin_test_dir + 'not_all_same_number_of_items_in_lines_of_a_pds.new.csv'
     with pytest.raises(ValueError):
         fstpy.CsvFileReader(src, encode_ip1=False).to_pandas()
 
 
 def test_10(plugin_test_dir):
-    """ Test to see if I can read a csv file with only a single line per level. 
+    """Test to see if I can read a csv file with only a single line per level. 
        Should return a DataFrame """
     src = plugin_test_dir + 'only_1_line_per_level.new.csv'
     df = fstpy.CsvFileReader(src, encode_ip1=False).to_pandas()
@@ -283,7 +283,7 @@ def test_10(plugin_test_dir):
 
 
 def test_11(plugin_test_dir):
-    """ Test to see if I can read a csv file with only a single item per line. Should return a DataFrame """
+    """Test to see if I can read a csv file with only a single item per line. Should return a DataFrame """
     src = plugin_test_dir + 'only_1_item_per_line.new.csv'
     df = fstpy.CsvFileReader(src, encode_ip1=False).to_pandas()
 
@@ -314,20 +314,20 @@ def test_11(plugin_test_dir):
 
 
 def test_12(plugin_test_dir):
-    """ Test with a missing value in an array. The dataframe should not be returned. The assertion is true if the function call raises ValueError"""
+    """Test with a missing value in an array. The dataframe should not be returned. The assertion is true if the function call raises ValueError"""
     src = plugin_test_dir + 'missingvalue.new.csv'
     with pytest.raises(ValueError):
         fstpy.CsvFileReader(src, encode_ip1=False).to_pandas()
 
 
 def test_13():
-    """ Test the exception CsvFileReaderError"""
+    """Test the exception CsvFileReaderError"""
     with pytest.raises(fstpy.CsvFileReaderError):
         fstpy.CsvFileReader(path="ome/ewqewq", encode_ip1=False)
 
 
 def test_14(plugin_test_dir):
-    """ Test the exception MinimalColumnsError"""
+    """Test the exception MinimalColumnsError"""
     with pytest.raises(fstpy.MinimalColumnsError):
         csv_file = fstpy.CsvFileReader(plugin_test_dir + "minimalColumns.csv", encode_ip1=False)
         csv_file = csv_file.to_pandas()
@@ -335,42 +335,42 @@ def test_14(plugin_test_dir):
 
 
 def test_15(plugin_test_dir):
-    """ Test the exception ColumnsNotValidError"""
+    """Test the exception ColumnsNotValidError"""
     with pytest.raises(fstpy.ColumnsNotValidError):
         csv_file = fstpy.CsvFileReader(path=plugin_test_dir + "columnNotValid.csv", encode_ip1=False)
         csv_file.to_pandas()
 
 
 def test_16(plugin_test_dir):
-    """ Test the exception fstpy.Ip1andLevelExistsError"""
+    """Test the exception fstpy.Ip1andLevelExistsError"""
     with pytest.raises(fstpy.Ip1andLevelExistsError):
         df = fstpy.CsvFileReader(path=plugin_test_dir + "ip1andLevelExists.csv", encode_ip1=False)
         df.to_pandas()
 
 
 def test_17(plugin_test_dir):
-    """ Test the exception fstpy.NomVarLengthError"""
+    """Test the exception fstpy.NomVarLengthError"""
     with pytest.raises(fstpy.NomVarLengthError):
         df = fstpy.CsvFileReader(path=plugin_test_dir + "nomVarLengthError.csv", encode_ip1=False)
         df.to_pandas()
 
 
 def test_18(plugin_test_dir):
-    """ Test the exception fstpy.TypVarLengthError"""
+    """Test the exception fstpy.TypVarLengthError"""
     with pytest.raises(fstpy.TypVarLengthError):
         df = fstpy.CsvFileReader(path=plugin_test_dir + "typVarLengthError.csv", encode_ip1=False)
         df.to_pandas()
 
 
 def test_19(plugin_test_dir):
-    """ Test the exception fstpy.EtiketVarLengthError"""
+    """Test the exception fstpy.EtiketVarLengthError"""
     with pytest.raises(fstpy.EtiketVarLengthError):
         df = fstpy.CsvFileReader(path=plugin_test_dir + "etiketVarLengthError.csv", encode_ip1=False)
         df.to_pandas()
 
 
 def test_20(plugin_test_dir):
-    """ Test with space_in_the_headers.csv.Ignore the spaces in the headers. It should return a DataFrame"""
+    """Test with space_in_the_headers.csv.Ignore the spaces in the headers. It should return a DataFrame"""
     src = plugin_test_dir + 'space_in_the_headers.csv'
     df = fstpy.CsvFileReader(path=src, encode_ip1=False).to_pandas()
 
@@ -401,7 +401,7 @@ def test_20(plugin_test_dir):
     assert(df.d.size == 2)
 
 
-# """ Test checkColumns Function"""
+# """Test checkColumns Function"""
 # def test_7(input_file_nbits_void,input_file_nbits_24bits):
 #     csv_file2 = fstpy.CsvFileReader(path = input_file_nbits_24bits,encode_ip1=False)
 #     file2_df= csv_file2.to_pandas_no_condition()
