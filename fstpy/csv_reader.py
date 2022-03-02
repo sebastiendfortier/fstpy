@@ -480,9 +480,9 @@ class CsvArray:
                 dim0.append([self.array[i,j] for j in range(self.array.shape[1])])
 
             dim0 = []
-            ndim0 = array.shape[0]
+            ndim0 = self.array.shape[0]
             for i in range(ndim0):
-                dim0.append([array[i,j] for j in range(array.shape[1])])
+                dim0.append([self.array[i,j] for j in range(self.array.shape[1])])
 
             s=""
             for i in range(ndim0):

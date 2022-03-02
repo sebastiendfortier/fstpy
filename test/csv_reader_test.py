@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-import csv
+
 import pandas as pd
-import datetime
 import pytest
 import numpy as np
 import fstpy.all as fstpy
 from ci_fstcomp import fstcomp
-from fstpy.csv_reader import DimensionError
 from test import TEST_PATH, TMP_PATH
 pytestmark = [pytest.mark.unit_tests]
 
@@ -251,7 +249,7 @@ def test_8(plugin_test_dir):
 	""" Test the csv reader with a file that should not return a dataframe because the dimensions of d are different
 		and they have the same etiket and nomvar. Will return the DimensionError"""
 	src = plugin_test_dir + 'not_all_same_number_of_lines_in_a_pds.new.csv'
-	with pytest.raises(DimensionError):
+	with pytest.raises(fstpy.DimensionError):
 		fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 
 
