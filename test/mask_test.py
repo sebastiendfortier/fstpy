@@ -87,7 +87,7 @@ def test_3(test_data2):
     df0_arrays = copy.deepcopy(cmp_df0.d)
     df1_arrays = copy.deepcopy(cmp_df1.d)    
 
-    assert(cmp_df1.drop(['d','swa','lng'],axis=1).equals(cmp_df0.drop(['d','swa','lng'],axis=1)))
+    assert(cmp_df1.drop('d',axis=1).equals(cmp_df0.drop('d',axis=1)))
 
     for i in range(len(df1_arrays)):
         assert(np.array_equal(fstpy.to_numpy(df1_arrays[i]),fstpy.to_numpy(df0_arrays[i])))

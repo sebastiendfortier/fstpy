@@ -53,7 +53,7 @@ def get_dataframe_from_file(path: str, query: str = None):
 
     df = add_dask_column(df)
 
-    df = df.drop(['key', 'path', 'shape'], axis=1, errors='ignore')
+    df = df.drop(['key', 'path', 'shape', 'swa', 'lng'], axis=1, errors='ignore')
 
     return df
 
