@@ -79,11 +79,10 @@ class CsvFileReader:
     - You can't provide an ip1 column and a level column at the same time in your dataframe
     - One line of a single level represent the x axis (row)
     - The values inside a single line are the y axis (column)
-    - The number of rows of a matrix d determines ni.
-    - The number of columns of a matrix section determines nj
-    - If 2 arrays of the column d have the same dimension they can have the same variable name and etiket
-    - If you wish to comment a csv file, dont do it in the same line as the values in the csv files. You need to have lines with only comments.
-    - The admissible columns in the dataframe given before being used by the csv reader:
+    - ni and nj will be derived from the provided array shape in the d column
+    - arrays in rows sharing the same metadata columns (same nomvae, etiket, etc.), must have the same dimensions
+    - comments are permitted on separate lines than the csv values 
+    - Admissible columns:
             'nomvar': "str", variable name 
             'typvar': 'str', type of field (forecast, analysis, climatology)
             'etiket': 'str', label
@@ -95,7 +94,7 @@ class CsvFileReader:
             'nbits': 'int32', number of bits kept for the elements of the field
             'grtyp': 'str', type of geographical projection
 
-    - The columns in the dataframe created with the csv reader:
+    - If not already provided these columns will be added:
             'ni': 'int32', first dimension of the data field
             'nj': 'int32', second dimension of the data field
             'nk': 'int32', third dimension of the data field
@@ -390,7 +389,7 @@ class CsvFileReader:
             self.df["npas"] = NPAS_DEFAULT
 
     def check_array_dimensions(self):
-        """Check if etiket is the same as the previous row to compare dimension if its the same etiket and variable name
+        """Check if etiket and name is the same as the previous row to compare dimensions
 
         :raises DimensionError: raise an error when the array with the same var and etiket dont have the same dimension
         """
@@ -404,9 +403,7 @@ class CsvFileReader:
                 raise DimensionError("Array with the same var and etiket dont have the same dimension ")
 
     def to_numpy_array(self):
-        """Takes a line of an array string and transform it to a numpy array
-
-        :return: return an array list of numpy arrays
+        """Takes a string array and transforms it to a numpy array"
         """
         array_list = []
         for i in self.df.index:
@@ -437,7 +434,7 @@ class ArrayIsNotStringOrNp(Exception):
 
 
 class CsvArray:
-    """A class that represents an array with the data in the csv file
+    """A class that represents a csv formatted array
 
     :param array: An array with the data
     :type array: string or numpy array
@@ -452,7 +449,7 @@ class CsvArray:
             raise ArrayIsNotStringOrNp("The array is not a string or a numpy aray")
 
     def validate_array(self):
-        """Validate that the array is either an array string or a numpy string
+        """Validate that the array is either a string or a numpy array
 
         :raises ArrayIs3dError: raises an error when the array provided is 3D
         :rtype: Boolean
@@ -464,7 +461,7 @@ class CsvArray:
             return False
 
     def to_numpy(self):
-        """The string array is transformed to a numpy array
+        """Transform self.array to a numpy array
 
         :raises ArrayIs3dError: raises an error when the array provided is 3D
         :return: numpy array
@@ -479,7 +476,7 @@ class CsvArray:
             return self.array
 
     def to_str(self):
-        """the numpy array is transformed to a string array
+        """Transform self.array to a string
 
         :raises ArrayIs3dError: raises an error when the array provided is 3D
         :return: string array
