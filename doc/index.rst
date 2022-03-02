@@ -38,6 +38,7 @@ Documentation
 
 **Modules**
 
+* :doc:`csv_reader`
 * :doc:`all`
 * :doc:`dataframe_utils`
 * :doc:`dataframe`
@@ -52,11 +53,13 @@ Documentation
 * :doc:`unit`
 * :doc:`utils`
 
+
 .. toctree::
    :maxdepth: 1
    :hidden:
    :caption: Modules
 
+   csv_reader
    all
    dataframe_utils
    dataframe

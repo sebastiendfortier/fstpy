@@ -55,3 +55,7 @@ The following functions and constants are available through ``fstpy.``
    .. automodule:: fstpy.utils       
       :noindex:
       :members:
+
+   .. automodule:: fstpy.csv_reader      
+   :noindex:
+   :members:
