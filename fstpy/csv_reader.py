@@ -220,7 +220,7 @@ class CsvFileReader:
         if set(['nomvar', 'd', 'level']).issubset(list_of_hdr_names) or set(['nomvar', 'd', 'ip1']).issubset(list_of_hdr_names):
             return True
         else:
-            raise MinimalColumnsError('Your csv file doesnt have the necessary columns to proceed! Check that you have at least nomvar,d and level or ip1 as columns in your csv file')
+            raise MinimalColumnsError('Your csv file does not have the necessary columns to proceed! Check that you have at least nomvar,d and level or ip1 as columns in your csv file')
 
     def valid_columns(self):
         """Check that all the provided columns are valid and are present in BASE_COLUMN list
@@ -377,13 +377,13 @@ class CsvFileReader:
         self.df.drop(columns=["level"], inplace=True, errors="ignore")
 
     def add_deet(self):
-        """Add a colomn deet in the dataframe with a default value of 0
+        """Add a column deet in the dataframe with a default value of 0
         """
         if(not self.column_exists("deet")):
             self.df["deet"] = DEET_DEFAULT
 
     def add_npas(self):
-        """Add a colomn npas in the dataframe with a default value of 0
+        """Add a column npas in the dataframe with a default value of 0
         """
         if(not self.column_exists("npas")):
             self.df["npas"] = NPAS_DEFAULT
@@ -398,13 +398,12 @@ class CsvFileReader:
 
         for _, df in groups:
             if df.ni.unique().size != 1:
-                raise DimensionError("Array with the same var and etiket dont have the same dimension ")
+                raise DimensionError("Array with the same nomvar and etiket dont have the same dimension ")
             if df.nj.unique().size != 1:
-                raise DimensionError("Array with the same var and etiket dont have the same dimension ")
+                raise DimensionError("Array with the same nomvar and etiket dont have the same dimension ")
 
     def to_numpy_array(self):
-        """Takes a string array and transforms it to a numpy array"
-        """
+        """Takes a string array and transforms it to a numpy array"""
         array_list = []
         for i in self.df.index:
             a = CsvArray(self.df.at[i, "d"])
