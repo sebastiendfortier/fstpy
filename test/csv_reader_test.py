@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-
-import pandas as pd
 import pytest
 import numpy as np
 import fstpy.all as fstpy
-from ci_fstcomp import fstcomp
-from test import TEST_PATH, TMP_PATH
+from test import TEST_PATH
 pytestmark = [pytest.mark.unit_tests]
 
 @pytest.fixture

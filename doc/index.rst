@@ -38,8 +38,8 @@ Documentation
 
 **Modules**
 
-* :doc:`csv_reader`
 * :doc:`all`
+* :doc:`csv_reader`
 * :doc:`dataframe_utils`
 * :doc:`dataframe`
 * :doc:`log`
@@ -59,8 +59,8 @@ Documentation
    :hidden:
    :caption: Modules
 
-   csv_reader
    all
+   csv_reader
    dataframe_utils
    dataframe
    log

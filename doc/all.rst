@@ -16,6 +16,10 @@ The following functions and constants are available through ``fstpy.``
       :noindex: 
       :members: 
 
+   .. automodule:: fstpy.csv_reader      
+      :noindex:
+      :members:
+
    .. automodule:: fstpy.dataframe_utils 
       :noindex: 
       :members:
@@ -56,6 +60,3 @@ The following functions and constants are available through ``fstpy.``
       :noindex:
       :members:
 
-   .. automodule:: fstpy.csv_reader      
-   :noindex:
-   :members:

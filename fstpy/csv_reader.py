@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import numpy as np
 import datetime
+from typing import Final
 from .std_enc import create_encoded_dateo,create_encoded_ip1
 from .dataframe import add_grid_column
 import rpnpy.librmn.all as rmn
@@ -10,26 +11,26 @@ import rpnpy.librmn.all as rmn
 
 BASE_COLUMNS = ['nomvar', 'typvar', 'etiket', 'level', 'dateo', 'ip1', 'ip2', 'ip3',
                 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd']
-IP1_KIND = 3
-# dateo – date of origin (date time stamp) Cannot change dateo and datev.
-# datev – date of validity (date time stamp) Cannot change dateo and datev.
-# deet – Length of a time step in seconds datev constant unless keep_dateo
-# npas – time step number datev constant unless keep_dateo
-# ni – first dimension of the data field
-# nj – second dimension of the data field
-# nk – third dimension of the data field
-# nbits – number of bits kept for the elements of the field
-# ip1 – vertical level
-# ip2 – forecast hour
-# ip3 – user defined identifier
-# typvar – type of field (forecast, analysis, climatology)
-# nomvar – variable name
-# etiket – label
-# grtyp – type of geographical projection
-# ig1 – first grid descriptor
-# ig2 – second grid descriptor
-# ig3 – third grid descriptor
-# ig4 – fourth grid descriptor/
+IP1_KIND : Final[int] = 3
+NOMVAR_MIN_LEN : Final[int] = 2
+NOMVAR_MAX_LEN : Final[int] = 4
+TYPVAR_MIN_LEN: Final[int] = 1
+TYPVAR_MAX_LEN: Final[int] = 2
+ETIKET_MIN_LEN: Final[int] = 1
+ETIKET_MAX_LEN: Final[int] = 12
+NBITS_DEFAULT: Final[int] = 24
+DATYP_DEFAULT: Final[int] = 1
+GRTYP_DEFAULT: Final[str] = "X"
+TYPVAR_DEFAULT: Final[str] = "X"
+IP2_DEFAULT: Final[int] = 0
+IP3_DEFAULT: Final[int] = 0
+IG1_DEFAULT: Final[int] = 0
+IG2_DEFAULT: Final[int] = 0
+IG3_DEFAULT: Final[int] = 0
+IG4_DEFAULT: Final[int] = 0
+ETIKET_DEFAULT: Final[str] = "CSVREADER"
+DEET_DEFAULT: Final[int] = 0
+NPAS_DEFAULT: Final[int] = 0
 
 
 class CsvFileReaderError(Exception):
@@ -74,13 +75,48 @@ class CsvFileReader:
         VALUES:                CSV,CSVREADER,1.0,"11.1,22.2;33.3,44.4;55.5,66.6"
         VALUES:                CSV,CSVREADER,0.0,"77.7,88.8;99.9,100.10;110.11,120.12"
 
-    - The d column is composed of floats and the ";" means one of the line of the level is done.
+    - The d column is composed of floats and the ";" means one of the line of the level is done
+    - You can't provide an ip1 column and a level column at the same time in your dataframe
     - One line of a single level represent the x axis (row)
     - The values inside a single line are the y axis (column)
     - The number of rows of a matrix d determines ni.
     - The number of columns of a matrix section determines nj
     - If 2 arrays of the column d have the same dimension they can have the same variable name and etiket
     - If you wish to comment a csv file, dont do it in the same line as the values in the csv files. You need to have lines with only comments.
+    - nomvar:string, typvar:string, etiket:string, level:int32, dateo:, ip1, ip2, ip3,deet, npas, datyp, nbits, grtyp, ig1, ig2, ig3, ig4, d are the admissibles columns in the dataframe
+    - The admissible columns in the dataframe given before being used by the csv reader:
+            'nomvar': "str", variable name 
+            'typvar': 'str', type of field (forecast, analysis, climatology)
+            'etiket': 'str', label
+            'level': 'int32', value that helps get ip1
+            'ip1': 'int32', vertical level
+            'ip2': 'int32', forecast hour
+            'ip3': 'int32', user defined identifier
+            'datyp': 'int32', data type 
+            'nbits': 'int32', number of bits kept for the elements of the field
+            'grtyp': 'str', type of geographical projection
+
+    - The columns in the dataframe created with the csv reader:
+            'ni': 'int32', first dimension of the data field
+            'nj': 'int32', second dimension of the data field
+            'nk': 'int32', third dimension of the data field
+            'nomvar': "str", variable name 
+            'typvar': 'str', type of field (forecast, analysis, climatology)
+            'etiket': 'str', label
+            'dateo': 'int32', date of observation  
+            'ip1': 'int32', vertical level
+            'ip2': 'int32', forecast hour
+            'ip3': 'int32', user defined identifier
+            'datyp': 'int32', data type 
+            'nbits': 'int32', number of bits kept for the elements of the field
+            'ig1': 'int32', first grid descriptor
+            'ig2': 'int32', second grid descriptor
+            'ig3': 'int32', third grid descriptor
+            'ig4': 'int32', fourth grid descriptor
+            'deet': 'int32', Length of a time step in seconds datev constant unless keep_dateo 
+            'npas': 'int32', time step number datev constant unless keep_dateo
+            'grtyp': 'str', type of geographical projection 
+            'datev': 'int32', date of validation
     """
 
 
@@ -96,7 +132,7 @@ class CsvFileReader:
         :return: df
         :rtype: pd.DataFrame
         """
-        self.df = pd.read_csv(self.path, comment="#",)
+        self.df = pd.read_csv(self.path, comment="#")
         self.df.columns = self.df.columns.str.replace(' ', '')
         if(self.verify_headers()):
             self.add_missing_columns()
@@ -123,7 +159,7 @@ class CsvFileReader:
 
         a = self.count_char(s="nomvar")
         for i in a:
-            if (i < 2 or i > 4):
+            if (i < NOMVAR_MIN_LEN or i > NOMVAR_MAX_LEN):
                 raise NomVarLengthError("the variable nomvar should have between 2 and 4 characters")
 
 
@@ -132,7 +168,7 @@ class CsvFileReader:
         """
         a = self.count_char(s="typvar")
         for i in a:
-            if (i < 1 or i > 2):
+            if (i < TYPVAR_MIN_LEN or i > TYPVAR_MAX_LEN):
                 raise TypVarLengthError("the variable typvar should have between 1 and 2 characters")
 
 
@@ -142,7 +178,7 @@ class CsvFileReader:
 
         a = self.count_char(s="etiket")
         for i in a:
-            if (i < 1 or i > 12):
+            if (i < ETIKET_MIN_LEN or i > ETIKET_MAX_LEN):
                 raise EtiketVarLengthError("the variable etiket should have between 1 and 12 characters")
 
 
@@ -164,7 +200,7 @@ class CsvFileReader:
         self.add_typvar()
         self.add_ip2_ip3()
         self.add_ig()
-        self.add_eticket()
+        self.add_etiket()
         self.add_ip1()
         self.add_array_dimensions()
         self.add_deet()
@@ -219,15 +255,15 @@ class CsvFileReader:
             if(is_subset):
                 return True
             else:
-                raise ColumnsNotValidError('The headers in the csv file are not valid. Makes sure that the columns names'
-                                           + 'are present in BASE_COLUMNS')
+                raise ColumnsNotValidError(f'The headers in the csv file are not valid. Make sure that the columns names'
+                                           + 'are present in {BASE_COLUMNS}')
 
         if(len(list_of_hdr_names) == len(BASE_COLUMNS)):
             if all_the_cols == list_of_hdr_names:
                 return True
             else:
-                raise ColumnsNotValidError('The headers in the csv file are not valid. Makes sure that the columns names'
-                                           + 'are present in BASE_COLUMNS')
+                raise ColumnsNotValidError(f'The headers in the csv file are not valid. Make sure that the columns names'
+                                           + 'are present in {BASE_COLUMNS}')
         else:
             raise ColumnsNotValidError('The headers in the csv file are not valid you have too many columns')
 
@@ -276,28 +312,28 @@ class CsvFileReader:
         """Add the nbits column in the dataframe with a default value of 24
         """
         if(not self.column_exists("nbits")):
-            self.df["nbits"] = 24
+            self.df["nbits"] = NBITS_DEFAULT
 
 
     def add_datyp(self):
         """Add the datyp column in the dataframe with a default value of 1
         """
         if(not self.column_exists("datyp")):
-            self.df["datyp"] = 1
+            self.df["datyp"] = DATYP_DEFAULT
 
 
     def add_grtyp(self):
         """Add the grtyp column in the dataframe with a default value of X
         """
         if(not self.column_exists("grtyp")):
-            self.df["grtyp"] = "X"
+            self.df["grtyp"] = GRTYP_DEFAULT
 
 
     def add_typvar(self):
         """Add the typvar column in the dataframe with a default value of X
         """
         if(not self.column_exists("typvar")):
-            self.df["typvar"] = "X"
+            self.df["typvar"] = TYPVAR_DEFAULT
 
 
     def add_date(self):
@@ -313,32 +349,32 @@ class CsvFileReader:
         """Add ip2 and ip3 columns in the dataframe with a default value of 0
         """
         if(not self.column_exists("ip2")):
-            self.df["ip2"] = 0
+            self.df["ip2"] = IP2_DEFAULT
         if(not self.column_exists("ip3")):
-            self.df["ip3"] = 0
+            self.df["ip3"] = IP3_DEFAULT
 
 
     def add_ig(self):
         """Add ig1, ig2, ig3, ig4 columns in the dataframe with a default value of 0
         """
         if(not self.column_exists("ig1")):
-            self.df["ig1"] = 0
+            self.df["ig1"] = IG1_DEFAULT
 
         if(not self.column_exists("ig2")):
-            self.df["ig2"] = 0
+            self.df["ig2"] = IG2_DEFAULT
 
         if(not self.column_exists("ig3")):
-            self.df["ig3"] = 0
+            self.df["ig3"] = IG3_DEFAULT
 
         if(not self.column_exists("ig4")):
-            self.df["ig4"] = 0
+            self.df["ig4"] = IG4_DEFAULT
 
 
-    def add_eticket(self):
+    def add_etiket(self):
         """Add the etiket column in the dataframe with a default value of CSVREADER
         """
         if(not self.column_exists("etiket")):
-            self.df["eticket"] = "CSVREADER"
+            self.df["eticket"] = ETIKET_DEFAULT
 
 
     def add_ip1(self):
@@ -370,14 +406,14 @@ class CsvFileReader:
         """Add a colomn deet in the dataframe with a default value of 0
         """
         if(not self.column_exists("deet")):
-            self.df["deet"] = 0
+            self.df["deet"] = DEET_DEFAULT
 
 
     def add_npas(self):
         """Add a colomn npas in the dataframe with a default value of 0
         """
         if(not self.column_exists("npas")):
-            self.df["npas"] = 0
+            self.df["npas"] = NPAS_DEFAULT
 
 
     def check_array_dimensions(self):
