@@ -17,14 +17,15 @@ def test_1(plugin_test_dir):
 	"""Test with pds1_level2.new.csv. It should return a DataFrame"""
 	src = plugin_test_dir + 'pds1_level2.new.csv'
 	df = fstpy.CsvFileReader(path=src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
+
 	NI = 3
 	NJ = 2
 	NK = 1
+
 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
 	   'nj':(1,NJ),'nk':(1,NK)}
+
 	for k,v in d.items():
 		assert(df[k].unique().size == v[0])
 		assert(df[k].unique()[0] == v[1])
@@ -37,6 +38,7 @@ def test_1(plugin_test_dir):
 	d2 = df.d[0]
 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
+
 	assert(np.array_equal(d1,d2))
 	assert(np.array_equal(d3,d4))
 	assert(df.d.size == 2)
@@ -45,11 +47,9 @@ def test_1(plugin_test_dir):
 	
 
 def test_2(plugin_test_dir):
-	"""Test with the gds1_pds1_level2.new.csv. It should return a DataFrame"""
+	"""Test with gds1_pds1_level2.new.csv. It should return a DataFrame"""
 	src = plugin_test_dir + 'gds1_pds1_level2.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
 
 	NI = 3
 	NJ = 2
@@ -71,6 +71,7 @@ def test_2(plugin_test_dir):
 	d2 = df.d[0]
 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
+
 	assert(df.d.size == 2)
 	assert(np.array_equal(d1,d2))
 	assert(np.array_equal(d3,d4))
@@ -78,19 +79,19 @@ def test_2(plugin_test_dir):
 
 
 def test_3(plugin_test_dir):
-	"""Test with the missing_eol_at_last_line_of_data.new.csv. 
+	"""Test with missing_eol_at_last_line_of_data.new.csv. 
 		It should return a DataFrame"""
 	src = plugin_test_dir + 'missing_eol_at_last_line_of_data.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
 
 	NI = 3
 	NJ = 2
 	NK = 1
+
 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
 	   'nj':(1,NJ),'nk':(1,NK)}
+
 	for k,v in d.items():
 		assert(df[k].unique().size == v[0])
 		assert(df[k].unique()[0] == v[1])
@@ -103,6 +104,7 @@ def test_3(plugin_test_dir):
 	d2 = df.d[0]
 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
+
 	assert(df.d.size == 2)
 	assert(np.array_equal(d1,d2))
 	assert(np.array_equal(d3,d4))
@@ -114,15 +116,15 @@ def test_4(plugin_test_dir):
 		It should return a DataFrame"""
 	src = plugin_test_dir + 'pds1_level2_inversed_level_order.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
 
 	NI = 3
 	NJ = 2
 	NK = 1
+
 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
 	   'nj':(1,NJ),'nk':(1,NK)}
+
 	for k,v in d.items():
 		assert(df[k].unique().size == v[0])
 		assert(df[k].unique()[0] == v[1])
@@ -135,21 +137,21 @@ def test_4(plugin_test_dir):
 	d2 = df.d[0]
 	d3 = np.array([[11.1, 22.2], [33.3, 44.4], [55.5, 66.6]],dtype=np.float32)
 	d4 = df.d[1]
+
 	assert(df.d.size == 2)
 	assert(np.array_equal(d1,d2))
 	assert(np.array_equal(d3,d4))
 	
 
 def test_5(plugin_test_dir):
-	"""Test with the with_space.new.csv It should return a DataFrame"""
+	"""Test with with_space.new.csv It should return a DataFrame"""
 	src = plugin_test_dir + 'with_space.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
 
 	NI = 3
 	NJ = 2
 	NK = 1
+
 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
 	   'nj':(1,NJ),'nk':(1,NK)}
@@ -166,6 +168,7 @@ def test_5(plugin_test_dir):
 	d2 = df.d[0]
 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
+
 	assert(df.d.size == 2)
 	assert(np.array_equal(d1,d2))
 	assert(np.array_equal(d3,d4))
@@ -173,18 +176,18 @@ def test_5(plugin_test_dir):
 
 
 def test_6(plugin_test_dir):
-	"""Test with the with_comments.new.csv It should return a DataFrame"""
+	"""Test with with_comments.new.csv It should return a DataFrame"""
 	src = plugin_test_dir + 'with_comments.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
 
 	NI = 3
 	NJ = 2
 	NK = 1
+
 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
 	   'nj':(1,NJ),'nk':(1,NK)}
+
 	for k,v in d.items():
 		assert(df[k].unique().size == v[0])
 		assert(df[k].unique()[0] == v[1])
@@ -197,6 +200,7 @@ def test_6(plugin_test_dir):
 	d2 = df.d[0]
 	d3 = np.array([[77.7, 88.8], [99.9, 100.1], [110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
+
 	assert(df.d.size == 2)
 	assert(np.array_equal(d1,d2))
 	assert(np.array_equal(d3,d4))
@@ -206,11 +210,10 @@ def test_6(plugin_test_dir):
 
 
 def test_7(plugin_test_dir):
-	"""Test with the pds2.new.csv It should return a DataFrame"""
+	"""Test with pds2.new.csv It should return a DataFrame"""
 	src = plugin_test_dir + 'pds2.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
+
 	NI = 3
 	NJ = 2
 	NK = 1
@@ -262,18 +265,16 @@ def test_9(plugin_test_dir):
 		fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	
 
-
 def test_10(plugin_test_dir):
 	"""Test to see if I can read a csv file with only a single line per level. 
 	   Should return a DataFrame """
 	src = plugin_test_dir + 'only_1_line_per_level.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
 
 	NI = 1
 	NJ = 6
 	NK = 1
+
 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
 	   'nj':(1,NJ),'nk':(1,NK)}
@@ -290,26 +291,26 @@ def test_10(plugin_test_dir):
 	d2 = df.d[0]
 	d3 = np.array([[77.7, 88.8, 99.9, 100.1, 110.11, 120.12]],dtype=np.float32)
 	d4 = df.d[1]
+
 	assert(df.d.size == 2)
 	assert(np.array_equal(d1,d2))
 	assert(np.array_equal(d3,d4))
 	
-
 
 def test_11(plugin_test_dir):
 	"""Test to see if I can read a csv file with only a single item per line. 
 	   Should return a DataFrame """
 	src = plugin_test_dir + 'only_1_item_per_line.new.csv'
 	df = fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
 
 	NI = 3
 	NJ = 1
 	NK = 1
+
 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
 	   'nj':(1,NJ),'nk':(1,NK)}
+
 	for k,v in d.items():
 		assert(df[k].unique().size == v[0])
 		assert(df[k].unique()[0] == v[1])
@@ -322,11 +323,11 @@ def test_11(plugin_test_dir):
 	d2 = df.d[0]
 	d3 = np.array([[77.7], [99.9], [110.11]],dtype=np.float32)
 	d4 = df.d[1]
+
 	assert(df.d.size == 2)
 	assert(np.array_equal(d1,d2))
 	assert(np.array_equal(d3,d4))
 	
-
 
 def test_12(plugin_test_dir):
 	"""Test with a missing value in an array. The dataframe should not be returned. The assertion is true if the 
@@ -336,12 +337,10 @@ def test_12(plugin_test_dir):
 		fstpy.CsvFileReader(src,encode_ip1=False).to_pandas()
 	
 
-
 def test_13():
 	""" Test the exception CsvFileReaderError"""
 	with pytest.raises(fstpy.CsvFileReaderError):
 		fstpy.CsvFileReader(path = "ome/ewqewq",encode_ip1=False)
-
 
 
 def test_14(plugin_test_dir):
@@ -351,15 +350,17 @@ def test_14(plugin_test_dir):
 		csv_file = csv_file.to_pandas()
 		print(csv_file.to_string())
 
+
 def test_15(plugin_test_dir):
 	""" Test the exception ColumnsNotValidError"""
 	with pytest.raises(fstpy.ColumnsNotValidError):
 		csv_file = fstpy.CsvFileReader(path = plugin_test_dir  + "columnNotValid.csv",encode_ip1=False)
 		csv_file.to_pandas()
 
+
 def test_16(plugin_test_dir):
-	""" Test the exception fstpy.ip1andLevelExistsError"""
-	with pytest.raises(fstpy.ip1andLevelExistsError):
+	""" Test the exception fstpy.Ip1andLevelExistsError"""
+	with pytest.raises(fstpy.Ip1andLevelExistsError):
 		df = fstpy.CsvFileReader(path = plugin_test_dir + "ip1andLevelExists.csv",encode_ip1=False)	
 		df.to_pandas()
 
@@ -370,11 +371,13 @@ def test_17(plugin_test_dir):
 		df = fstpy.CsvFileReader(path = plugin_test_dir + "nomVarLengthError.csv",encode_ip1=False)	
 		df.to_pandas()
 
+
 def test_18(plugin_test_dir):
 	""" Test the exception fstpy.TypVarLengthError"""
 	with pytest.raises(fstpy.TypVarLengthError):
 		df = fstpy.CsvFileReader(path = plugin_test_dir + "typVarLengthError.csv",encode_ip1=False)	
 		df.to_pandas()
+
 
 def test_19(plugin_test_dir):
 	""" Test the exception fstpy.EtiketVarLengthError"""
@@ -383,16 +386,15 @@ def test_19(plugin_test_dir):
 		df.to_pandas()
 
 
-
 def test_20(plugin_test_dir):
 	"""Test with space_in_the_headers.csv.Ignore the spaces in the headers. It should return a DataFrame"""
 	src = plugin_test_dir + 'space_in_the_headers.csv'
 	df = fstpy.CsvFileReader(path=src,encode_ip1=False).to_pandas()
-	print(df.to_string())
-	print(df.dtypes)
+
 	NI = 3
 	NJ = 2
 	NK = 1
+
 	d={'nomvar':(1,"CSV"),'etiket':(1,'CSVREADER'),'nbits':(1,24),'datyp':(1,1),'grtyp':(1,'X'),'typvar':(1,'X'),
 	   'ip2':(1,0),'ip3':(1,0),'ig1':(1,0),'ig2':(1,0),'ig3':(1,0),'ig4':(1,0),'npas':(1,0),'grid':(1,'00'),'ni':(1,NI),
 	   'nj':(1,NJ),'nk':(1,NK)}
