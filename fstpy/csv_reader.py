@@ -4,16 +4,16 @@ import os
 import numpy as np
 import datetime
 from typing import Final
-from .std_enc import create_encoded_dateo,create_encoded_ip1
+from .std_enc import create_encoded_dateo, create_encoded_ip1
 from .dataframe import add_grid_column
 import rpnpy.librmn.all as rmn
 
 
 BASE_COLUMNS = ['nomvar', 'typvar', 'etiket', 'level', 'dateo', 'ip1', 'ip2', 'ip3',
                 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd']
-IP1_KIND : Final[int] = 3
-NOMVAR_MIN_LEN : Final[int] = 2
-NOMVAR_MAX_LEN : Final[int] = 4
+IP1_KIND: Final[int] = 3
+NOMVAR_MIN_LEN: Final[int] = 2
+NOMVAR_MAX_LEN: Final[int] = 4
 TYPVAR_MIN_LEN: Final[int] = 1
 TYPVAR_MAX_LEN: Final[int] = 2
 ETIKET_MIN_LEN: Final[int] = 1
@@ -83,7 +83,6 @@ class CsvFileReader:
     - The number of columns of a matrix section determines nj
     - If 2 arrays of the column d have the same dimension they can have the same variable name and etiket
     - If you wish to comment a csv file, dont do it in the same line as the values in the csv files. You need to have lines with only comments.
-    - nomvar:string, typvar:string, etiket:string, level:int32, dateo:, ip1, ip2, ip3,deet, npas, datyp, nbits, grtyp, ig1, ig2, ig3, ig4, d are the admissibles columns in the dataframe
     - The admissible columns in the dataframe given before being used by the csv reader:
             'nomvar': "str", variable name 
             'typvar': 'str', type of field (forecast, analysis, climatology)
@@ -119,13 +118,11 @@ class CsvFileReader:
             'datev': 'int32', date of validation
     """
 
-
     def __init__(self, path, encode_ip1=True):
         self.path = path
         self.encode_ip1 = encode_ip1
         if not os.path.exists(self.path):
             raise CsvFileReaderError('Path does not exist\n')
-
 
     def to_pandas(self) -> pd.DataFrame:
         """Read the csv file and verify the existence of headers and add the missing columns if they are missing
@@ -140,7 +137,6 @@ class CsvFileReader:
             self.df = add_grid_column(self.df)
             return self.df
 
-
     def count_char(self, s):
         """Count the number of characters in a string 
         :param s: the name of the column
@@ -152,7 +148,6 @@ class CsvFileReader:
             array_list.append(a)
         return array_list
 
-
     def check_nomvar_char_length(self):
         """Check that the length of the column nomvar is always between 2 and 4 characters for the whole dataframe 
         """
@@ -162,7 +157,6 @@ class CsvFileReader:
             if (i < NOMVAR_MIN_LEN or i > NOMVAR_MAX_LEN):
                 raise NomVarLengthError("the variable nomvar should have between 2 and 4 characters")
 
-
     def check_typvar_char_length(self):
         """Check that the length of the column typvar is always between 1 and 2 characters for the whole dataframe 
         """
@@ -170,7 +164,6 @@ class CsvFileReader:
         for i in a:
             if (i < TYPVAR_MIN_LEN or i > TYPVAR_MAX_LEN):
                 raise TypVarLengthError("the variable typvar should have between 1 and 2 characters")
-
 
     def check_etiket_char_length(self):
         """Check that the length of the column etiket is always between 1 and 12 characters for the whole dataframe 
@@ -181,7 +174,6 @@ class CsvFileReader:
             if (i < ETIKET_MIN_LEN or i > ETIKET_MAX_LEN):
                 raise EtiketVarLengthError("the variable etiket should have between 1 and 12 characters")
 
-
     def verify_headers(self):
         """Verify the file header
 
@@ -189,7 +181,6 @@ class CsvFileReader:
         :rtype: Boolean
         """
         return self.has_minimal_columns() and self.valid_columns()
-
 
     def add_missing_columns(self):
         """Add the missings columns to the dataframe 
@@ -208,7 +199,6 @@ class CsvFileReader:
         self.add_date()
         self.to_numpy_array()
 
-
     def check_columns(self):
         """Check the types of the columns, the dimensions of the differents d arrays and the length of the nomvar,etiket
         and typvar of the dataframe"""
@@ -218,7 +208,6 @@ class CsvFileReader:
         self.check_nomvar_char_length()
         self.check_typvar_char_length()
         self.check_etiket_char_length()
-
 
     def has_minimal_columns(self):
         """Verify that I have the minimum amount of headers 
@@ -232,9 +221,7 @@ class CsvFileReader:
         if set(['nomvar', 'd', 'level']).issubset(list_of_hdr_names) or set(['nomvar', 'd', 'ip1']).issubset(list_of_hdr_names):
             return True
         else:
-            raise MinimalColumnsError('Your csv file doesnt have the necessary columns to proceed! Check that you '
-                                      + 'have at least nomvar,d and level or ip1 as columns in your csv file')
-
+            raise MinimalColumnsError('Your csv file doesnt have the necessary columns to proceed! Check that you have at least nomvar,d and level or ip1 as columns in your csv file')
 
     def valid_columns(self):
         """Check that all the provided columns are valid and are present in BASE_COLUMN list
@@ -267,7 +254,6 @@ class CsvFileReader:
         else:
             raise ColumnsNotValidError('The headers in the csv file are not valid you have too many columns')
 
-
     def column_exists(self, col):
         """Check if the column exists in the dataframe
         :param col: The column to check
@@ -279,7 +265,6 @@ class CsvFileReader:
             return True
         else:
             return False
-
 
     def add_array_dimensions(self):
         """add ni, nj and nk columns with the help of the d column in the dataframe 
@@ -307,13 +292,11 @@ class CsvFileReader:
             self.df.at[row.Index, "nk"] = nk
         return self.df
 
-
     def add_nbits(self):
         """Add the nbits column in the dataframe with a default value of 24
         """
         if(not self.column_exists("nbits")):
             self.df["nbits"] = NBITS_DEFAULT
-
 
     def add_datyp(self):
         """Add the datyp column in the dataframe with a default value of 1
@@ -321,20 +304,17 @@ class CsvFileReader:
         if(not self.column_exists("datyp")):
             self.df["datyp"] = DATYP_DEFAULT
 
-
     def add_grtyp(self):
         """Add the grtyp column in the dataframe with a default value of X
         """
         if(not self.column_exists("grtyp")):
             self.df["grtyp"] = GRTYP_DEFAULT
 
-
     def add_typvar(self):
         """Add the typvar column in the dataframe with a default value of X
         """
         if(not self.column_exists("typvar")):
             self.df["typvar"] = TYPVAR_DEFAULT
-
 
     def add_date(self):
         """Add dateo and datev columns in the dataframe with default values of encoded utcnow
@@ -344,7 +324,6 @@ class CsvFileReader:
             self.df["dateo"] = dateo_encoded
             self.df["datev"] = self.df["dateo"]
 
-
     def add_ip2_ip3(self):
         """Add ip2 and ip3 columns in the dataframe with a default value of 0
         """
@@ -352,7 +331,6 @@ class CsvFileReader:
             self.df["ip2"] = IP2_DEFAULT
         if(not self.column_exists("ip3")):
             self.df["ip3"] = IP3_DEFAULT
-
 
     def add_ig(self):
         """Add ig1, ig2, ig3, ig4 columns in the dataframe with a default value of 0
@@ -369,13 +347,11 @@ class CsvFileReader:
         if(not self.column_exists("ig4")):
             self.df["ig4"] = IG4_DEFAULT
 
-
     def add_etiket(self):
         """Add the etiket column in the dataframe with a default value of CSVREADER
         """
         if(not self.column_exists("etiket")):
             self.df["eticket"] = ETIKET_DEFAULT
-
 
     def add_ip1(self):
         """Add the ip1 column with the help of the level column. 
@@ -401,20 +377,17 @@ class CsvFileReader:
         # Remove level after we added ip1 column
         self.df.drop(columns=["level"], inplace=True, errors="ignore")
 
-
     def add_deet(self):
         """Add a colomn deet in the dataframe with a default value of 0
         """
         if(not self.column_exists("deet")):
             self.df["deet"] = DEET_DEFAULT
 
-
     def add_npas(self):
         """Add a colomn npas in the dataframe with a default value of 0
         """
         if(not self.column_exists("npas")):
             self.df["npas"] = NPAS_DEFAULT
-
 
     def check_array_dimensions(self):
         """Check if etiket is the same as the previous row to compare dimension if its the same etiket and variable name
@@ -429,7 +402,6 @@ class CsvFileReader:
                 raise DimensionError("Array with the same var and etiket dont have the same dimension ")
             if df.nj.unique().size != 1:
                 raise DimensionError("Array with the same var and etiket dont have the same dimension ")
-
 
     def to_numpy_array(self):
         """Takes a line of an array string and transform it to a numpy array
@@ -480,7 +452,7 @@ class CsvArray:
             raise ArrayIsNotStringOrNp("The array is not a string or a numpy aray")
 
     def validate_array(self):
-        """validate that the array is either an array string or a numpy string
+        """Validate that the array is either an array string or a numpy string
 
         :raises ArrayIs3dError: raises an error when the array provided is 3D
         :rtype: Boolean
@@ -492,7 +464,7 @@ class CsvArray:
             return False
 
     def to_numpy(self):
-        """the string array is transformed to a numpy array
+        """The string array is transformed to a numpy array
 
         :raises ArrayIs3dError: raises an error when the array provided is 3D
         :return: numpy array
