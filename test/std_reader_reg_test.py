@@ -296,7 +296,7 @@ def test_14(plugin_test_dir):
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #['[ReaderStd --ignoreExtended --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]']
-
+    src_df0.loc[:, 'typvar'] = 'P'
     #write the result
     results_file = TMP_PATH + "test_read_reg_14.std"
     delete_file(results_file)
@@ -321,7 +321,7 @@ def test_15(plugin_test_dir):
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-
+    src_df0.loc[:, 'typvar'] = 'P'
     #write the result
     results_file = TMP_PATH + "test_read_reg_15.std"
     delete_file(results_file)
@@ -346,7 +346,7 @@ def test_16(plugin_test_dir):
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-
+    src_df0.loc[:, 'typvar'] = 'P'
     #write the result
     results_file = TMP_PATH + "test_read_reg_16.std"
     delete_file(results_file)
@@ -371,7 +371,7 @@ def test_17(plugin_test_dir):
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-
+    src_df0.loc[:, 'typvar'] = 'P'
     #write the result
     results_file = TMP_PATH + "test_read_reg_17.std"
     delete_file(results_file)
@@ -396,6 +396,7 @@ def test_18(plugin_test_dir):
     #compute ReaderStd
     # df = ReaderStd(src_df0)
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    src_df0.loc[:, 'typvar'] = 'P'
 
     #write the result
     results_file = TMP_PATH + "test_read_reg_18.std"
