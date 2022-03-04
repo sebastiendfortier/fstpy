@@ -100,7 +100,7 @@ def metadata_cleanup(df: pd.DataFrame, strict_toctoc=True) -> pd.DataFrame:
     new_df = pd.concat([grid_deformation_fields_df, p0_fields_df,
                     pt_fields_df, hy_field_df, toctoc_fields_df,no_meta_df], ignore_index=True)
 
-    new_df.sort_index(inplace=True)
+    # new_df.sort_index(inplace=True)
     # new_df.reset_index(inplace=True)
 
     return new_df

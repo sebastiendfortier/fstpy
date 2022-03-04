@@ -303,7 +303,7 @@ def unit_convert(df: pd.DataFrame, to_unit_name='scalar', standard_unit=False) -
                 res_df.at[row.Index, 'unit'] = to_unit_name
                 res_df.at[row.Index, 'unit_converted'] = True
 
-    res_df = pd.concat([res_df,meta_df])#,ignore_index=True)
+    res_df = pd.concat([res_df,meta_df],ignore_index=True)
     if not standard_unit:
         if 'level' not in res_df.columns:
             res_df = add_columns(res_df, columns=['ip_info'])

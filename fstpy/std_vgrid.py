@@ -236,6 +236,7 @@ class VerticalCoord(ABC):
         res_df['datyp'] = datyp
         res_df['description'] = description
         res_df['ip1'] = [int(self.lvl_ip_df.loc[self.lvl_ip_df.level == lvl].iloc[0].ip1) for lvl in self.levels]
+        res_df['level'] = self.levels
         return res_df
 
     def create_px_container(self) -> pd.DataFrame:
