@@ -248,3 +248,41 @@ class FstPrecision:
         #         return 8;
         #     case COMPLEX_IEEE:
         #         return 9;
+
+# Decorator for efficiently converting a scalar function to a vectorized
+# function.
+def vectorize (f, otypes=None):
+    from functools import wraps
+    import numpy as np
+    @wraps(f)
+    def vectorized_f (*x):
+        from pandas import Series, unique
+        n = max(len(y) if hasattr(y,'__len__') and not isinstance(y,str) else 1 for y in x)
+        # Degenerate case: input vector has length 0.
+        if n == 0:
+            if otypes is None:
+                return []
+            else:
+                return ([],)*len(otypes)
+        # Expand any scalar arguments.
+        x = [y if hasattr(y,'__len__') and not isinstance(y,str) else (y,)*n for y in x]
+        # Get unique values
+        x = list(zip(*x))
+        inputs = unique(x)
+        outputs = list(map(f,*zip(*inputs)))
+        table = dict(zip(inputs,outputs))
+        result = Series(x).map(table)
+        # Multiple outputs?
+        if isinstance(outputs[0],tuple):
+            result = list(zip(*result.values))
+        else:
+            result = [result.values]
+        if otypes is None:
+            result = tuple(np.array(r) for r in result)
+        else:
+            result = tuple(np.array(r,dtype=o) for r,o in zip(result,otypes))
+        if len(result) == 1: result = result[0]  # Only one output
+        return result
+    return vectorized_f
+# In case of emergency, break glass.
+#from numpy import vectorize

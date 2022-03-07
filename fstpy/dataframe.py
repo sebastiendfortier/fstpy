@@ -11,6 +11,7 @@ import pytz
 
 from fstpy.std_dec import VCREATE_DATA_TYPE_STR, VCREATE_FORECAST_HOUR, VCREATE_GRID_IDENTIFIER, VCONVERT_RMNDATE_TO_DATETIME, VCREATE_IP_INFO, VGET_UNIT_AND_DESCRIPTION, VPARSE_ETIKET
 from fstpy.std_vgrid import set_vertical_coordinate_type
+from fstpy.utils import vectorize
 
 class MissingColumnError(Exception):
     pass
@@ -130,7 +131,7 @@ def parse_typvar(typvar: str):
             ensemble_extra_info = True
     return multiple_modifications, zapped, filtered, interpolated, unit_converted, bounded, missing_data, ensemble_extra_info
 
-VPARSE_TYPVAR: Final = np.vectorize(parse_typvar, otypes=['bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'])  
+VPARSE_TYPVAR: Final = vectorize(parse_typvar, otypes=['bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'])  
 
 
 class InvalidTimezoneError(Exception):
@@ -158,7 +159,7 @@ def convert_date_to_timezone(date: datetime.datetime, timezone: str) -> datetime
         else:
             return date
 
-VCONVERT_DATE_TO_TIMEZONE: Final = np.vectorize(convert_date_to_timezone)  # ,otypes=['datetime64']
+VCONVERT_DATE_TO_TIMEZONE: Final = vectorize(convert_date_to_timezone)  # ,otypes=['datetime64']
 
 class IndvalidDateColumnError(Exception):
     pass
