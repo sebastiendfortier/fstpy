@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
-import copy
-import logging
+
 from typing import Final
+import copy
 import dask.array as da
-from .std_vgrid import set_vertical_coordinate_type
+import datetime
+import logging
 import numpy as np
 import pandas as pd
-# import rpnpy.librmn.all as rmn
+import pytz
 
-from .std_dec import (VCONVERT_RMNDATE_TO_DATETIME, VCREATE_DATA_TYPE_STR, VCREATE_FORECAST_HOUR, VCREATE_GRID_IDENTIFIER, VCREATE_IP_INFO, VGET_UNIT_AND_DESCRIPTION, VPARSE_ETIKET)
-
-
+from fstpy.std_dec import VCREATE_DATA_TYPE_STR, VCREATE_FORECAST_HOUR, VCREATE_GRID_IDENTIFIER, VCONVERT_RMNDATE_TO_DATETIME, VCREATE_IP_INFO, VGET_UNIT_AND_DESCRIPTION, VPARSE_ETIKET
+from fstpy.std_vgrid import set_vertical_coordinate_type
 
 class MissingColumnError(Exception):
     pass
@@ -29,11 +29,26 @@ def add_grid_column(df: pd.DataFrame) -> pd.DataFrame:
         if col not in df.columns:
             raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add grid column!')
 
-    new_df = copy.deepcopy(df.drop('grid', axis=1, errors='ignore'))
-    new_df['grid'] = VCREATE_GRID_IDENTIFIER(new_df.nomvar, new_df.ip1, new_df.ip2, new_df.ig1, new_df.ig2)
+    for col in ['nomvar', 'ip1', 'ip2', 'ig1', 'ig2']:
+        if df[col].isna().any():
+            raise MissingColumnError(f'A "{col}" value is missing from {col} DataFrame column, cannot add grid column!')
+
+
+    new_df = copy.deepcopy(df)
+    if 'grid' not in new_df.columns:
+        new_df['grid'] = VCREATE_GRID_IDENTIFIER(new_df.nomvar, new_df.ip1, new_df.ip2, new_df.ig1, new_df.ig2)
+    else:
+        new_df.loc[new_df.grid.isna(),'grid'] = VCREATE_GRID_IDENTIFIER(new_df.loc[new_df.grid.isna()].nomvar, new_df.loc[new_df.grid.isna()].ip1, new_df.loc[new_df.grid.isna()].ip2, new_df.loc[new_df.grid.isna()].ig1, new_df.loc[new_df.grid.isna()].ig2)
     return new_df
 
 def get_path_and_key_from_array(darr:'da.core.Array'):
+    """Gets the path and key tuple from the dask array
+
+    :param darr: dask array to get info from
+    :type darr: da.core.Array
+    :return: tuple of path and key
+    :rtype: Tuple(str,int)
+    """
     if not isinstance(darr,da.core.Array):
         return None, None
     graph = darr.__dask_graph__()
@@ -59,13 +74,33 @@ def add_path_and_key_columns(df: pd.DataFrame):
     if 'd' not in df.columns:
         raise MissingColumnError(f'"d" is missing from DataFrame columns, cannot add path and key column!') 
 
-    new_df = copy.deepcopy(df.drop(['path','key'], axis=1, errors='ignore'))
-    new_df['path'], new_df['key'] = VPARSE_TASK_LIST(new_df.d)
+    if df.d.isna().any():
+        raise MissingColumnError(f'A "d" value is missing from d DataFrame column, cannot add path and key column!') 
+
+    new_df = copy.deepcopy(df)
+    if ('path' not in new_df.columns) or ('key' not in new_df.columns):
+        new_df['path'], new_df['key'] = VPARSE_TASK_LIST(new_df.d)
+    else:
+        paths, _ = VPARSE_TASK_LIST(new_df.loc[new_df.path.isna()].d)
+        _, keys = VPARSE_TASK_LIST(new_df.loc[new_df.key.isna()].d)
+        new_df.loc[new_df.path.isna(),'path'] = paths
+        new_df.loc[new_df.key.isna(),'key'] = keys
     return new_df
+
+    # # new_df = copy.deepcopy(df.drop(['path','key'], axis=1, errors='ignore'))
+    # new_df['path'], new_df['key'] = VPARSE_TASK_LIST(new_df.d)
+    # return new_df
 
 
 # get modifier information from the second character of typvar
 def parse_typvar(typvar: str):
+    """Get the modifier information from the second character of typvar
+
+    :param typvar: 2 character string
+    :type typvar: str
+    :return: a series of bools corresponding to the second letter interpretation
+    :rtype: list(bool)
+    """
     multiple_modifications = False
     zapped = False
     filtered = False
@@ -97,7 +132,71 @@ def parse_typvar(typvar: str):
 
 VPARSE_TYPVAR: Final = np.vectorize(parse_typvar, otypes=['bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'])  
 
-def add_flag_values(df: pd.DataFrame):
+
+class InvalidTimezoneError(Exception):
+    pass
+
+
+def convert_date_to_timezone(date: datetime.datetime, timezone: str) -> datetime.datetime:
+    """Converts an utc date into the provided timezone
+
+    :param date: input utc date
+    :type date: datetime.datetime
+    :param timezone: timezone string to convert date to
+    :type timezone: str
+    :raises InvalidTimezoneError: raised if given timezone is not valid
+    :return: converted date
+    :rtype: datetime.datetime
+    """
+    if timezone not in pytz.all_timezones:
+        raise InvalidTimezoneError(f'Invalid timezone! valid timezones are\n{pytz.all_timezones}')
+    else:
+        if not pd.isnull(date):
+            utc_timezone = pytz.timezone("UTC")
+            with_timezone = utc_timezone.localize(pd.to_datetime(date))
+            return with_timezone.astimezone(pytz.timezone(timezone)).replace(tzinfo=None)
+        else:
+            return date
+
+VCONVERT_DATE_TO_TIMEZONE: Final = np.vectorize(convert_date_to_timezone)  # ,otypes=['datetime64']
+
+class IndvalidDateColumnError(Exception):
+    pass
+
+def add_timezone_column(df: pd.DataFrame, source_column: str, timezone:str) -> pd.DataFrame:
+    """Adds a timezone adjusted column for provided date (date_of_validity or date_of_observation)
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :param source_column: either date_of_validity or date_of_observation
+    :type source_column: str
+    :param timezone: timezone name (valid timezone can be obtained from pytz.all_timezones)
+    :type timezone: str
+    :raises IndvalidDateColumnError: raised if source_column not in 'date_of_validity' or 'date_of_observation'
+    :raises MissingColumnError: raised if source_column is not in dataframe
+    :return: a new date adjusted timezone column
+    :rtype: pd.DataFrame
+    """
+    if source_column not in ['date_of_validity', 'date_of_observation']:
+        raise IndvalidDateColumnError(f'"{source_column}" not in {["date_of_validity", "date_of_observation"]}!') 
+
+    if source_column not in df.columns:
+        raise MissingColumnError(f'"{source_column}" is missing from DataFrame columns, cannot add timezone column!') 
+
+    new_column = ''.join([source_column,'_',timezone])
+    new_column = new_column.replace('/','_')
+
+    new_df = copy.deepcopy(df)
+    if new_column not in new_df.columns:
+        new_df[new_column] = VCONVERT_DATE_TO_TIMEZONE(new_df[source_column],timezone)
+    else:
+        new_df.loc[new_df[new_column].isna(),new_column] = VCONVERT_DATE_TO_TIMEZONE(new_df.loc[new_df[new_column].isna()][source_column],timezone)
+
+    # new_df[new_column] = new_df[new_column].astype('datetime64[ns]')
+
+    return new_df
+
+
+def add_flag_values(df: pd.DataFrame) -> pd.DataFrame:
     """Adds the correct flag values derived from parsing the typvar.
     Replaces original column(s) if present.
 
@@ -109,9 +208,34 @@ def add_flag_values(df: pd.DataFrame):
     if 'typvar' not in df.columns:
         raise MissingColumnError(f'"typvar" is missing from DataFrame columns, cannot add flags columns!') 
 
-    new_df = copy.deepcopy(df.drop(['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info'], axis=1, errors='ignore'))
-    new_df['multiple_modifications'], new_df['zapped'], new_df['filtered'], new_df['interpolated'], new_df['unit_converted'], new_df['bounded'], new_df['missing_data'], new_df['ensemble_extra_info'] = VPARSE_TYPVAR(new_df.typvar)
+    if df.typvar.isna().any():
+        raise MissingColumnError(f'A "typvar" value is missing from typvar DataFrame column, cannot add flags columns!') 
+
+    new_df = copy.deepcopy(df)
+
+    if any([(col not in new_df.columns) for col in ['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info']]):
+        new_df['multiple_modifications'], new_df['zapped'], new_df['filtered'], new_df['interpolated'], new_df['unit_converted'], new_df['bounded'], new_df['missing_data'], new_df['ensemble_extra_info'] = VPARSE_TYPVAR(new_df.typvar)
+    else:
+        multiple_modifications, _, _, _, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.multiple_modifications.isna()].typvar)
+        _, zapped, _, _, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.zapped.isna()].typvar)
+        _, _, filtered, _, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.filtered.isna()].typvar)
+        _, _, _, interpolated, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.interpolated.isna()].typvar)
+        _, _, _, _, unit_converted, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.unit_converted.isna()].typvar)
+        _, _, _, _, _, bounded, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.bounded.isna()].typvar)
+        _, _, _, _, _, _, missing_data, _ = VPARSE_TYPVAR(new_df.loc[new_df.missing_data.isna()].typvar)
+        _, _, _, _, _, _, _, ensemble_extra_info = VPARSE_TYPVAR(new_df.loc[new_df.ensemble_extra_info.isna()].typvar)
+        new_df.loc[new_df.multiple_modifications.isna(),'multiple_modifications'] = multiple_modifications
+        new_df.loc[new_df.zapped.isna(),'zapped'] = zapped
+        new_df.loc[new_df.filtered.isna(),'filtered'] = filtered
+        new_df.loc[new_df.interpolated.isna(),'interpolated'] = interpolated
+        new_df.loc[new_df.unit_converted.isna(),'unit_converted'] = unit_converted
+        new_df.loc[new_df.bounded.isna(),'bounded'] = bounded
+        new_df.loc[new_df.missing_data.isna(),'missing_data'] = missing_data
+        new_df.loc[new_df.ensemble_extra_info.isna(),'ensemble_extra_info'] = ensemble_extra_info
+
     return new_df
+
+
 
 
 
@@ -152,6 +276,10 @@ def add_shape_column(df: pd.DataFrame) -> pd.DataFrame:
         if col not in df.columns:
             raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add shape column!') 
 
+    for col in ['ni', 'nj']:
+        if df[col].isna().any():
+            raise MissingColumnError(f'A "{col}" value is missing from {col} DataFrame column, cannot add shape column!') 
+
     new_df = copy.deepcopy(df.drop('shape', axis=1, errors='ignore'))
     new_df['shape'] = pd.Series(zip(new_df.ni.to_numpy(), new_df.nj.to_numpy()),dtype='object').to_numpy()
     return new_df
@@ -170,8 +298,24 @@ def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
     if 'etiket' not in df.columns:
         raise MissingColumnError(f'"etiket" is missing from DataFrame columns, cannot add parsed etiket columns!') 
 
-    new_df = copy.deepcopy(df.drop(['label', 'run', 'implementation', 'ensemble_member'], axis=1, errors='ignore'))
-    new_df['label'], new_df['run'], new_df['implementation'], new_df['ensemble_member'] = VPARSE_ETIKET(new_df.etiket)
+    if df.etiket.isna().any():
+        raise MissingColumnError(f'A "etiket" value is missing from nomvar DataFrame column, cannot add parsed etiket columns!') 
+
+    new_df = copy.deepcopy(df)
+
+    if any([(col not in new_df.columns) for col in ['label', 'run', 'implementation', 'ensemble_member']]):
+        new_df['label'], new_df['run'], new_df['implementation'], new_df['ensemble_member'] = VPARSE_ETIKET(new_df.etiket)
+    else:
+        label, _, _, _ = VPARSE_ETIKET(new_df.loc[new_df.label.isna()].etiket)
+        _, run, _, _ = VPARSE_ETIKET(new_df.loc[new_df.run.isna()].etiket)
+        _, _, implementation, _ = VPARSE_ETIKET(new_df.loc[new_df.implementation.isna()].etiket)
+        _, _, _, ensemble_member = VPARSE_ETIKET(new_df.loc[new_df.ensemble_member.isna()].etiket)
+        
+        new_df.loc[new_df.label.isna(),'label'] = label
+        new_df.loc[new_df.run.isna(),'run'] = run
+        new_df.loc[new_df.implementation.isna(),'implementation'] = implementation
+        new_df.loc[new_df.ensemble_member.isna(),'ensemble_member'] = ensemble_member
+        
     return new_df
 
 
@@ -187,10 +331,21 @@ def add_unit_and_description_columns(df: pd.DataFrame):
     if 'nomvar' not in df.columns:
         raise MissingColumnError(f'"nomvar" is missing from DataFrame columns, cannot add unit and description columns!') 
 
-    new_df = copy.deepcopy(df.drop(['unit', 'description'], axis=1, errors='ignore'))
-    new_df['unit'], new_df['description'] = VGET_UNIT_AND_DESCRIPTION(new_df.nomvar)
-    return new_df
+    if df.nomvar.isna().any():
+        raise MissingColumnError(f'A "nomvar" value is missing from nomvar DataFrame column, cannot add unit and description columns!') 
 
+    new_df = copy.deepcopy(df)
+
+    if any([(col not in new_df.columns) for col in ['unit', 'description']]):
+        new_df['unit'], new_df['description'] = VGET_UNIT_AND_DESCRIPTION(new_df.nomvar)
+    else:
+        unit, _ = VGET_UNIT_AND_DESCRIPTION(new_df.loc[new_df.unit.isna()].nomvar)
+        _, description = VGET_UNIT_AND_DESCRIPTION(new_df.loc[new_df.description.isna()].nomvar)
+        
+        new_df.loc[new_df.unit.isna(),'unit'] = unit
+        new_df.loc[new_df.description.isna(),'description'] = description
+        
+    return new_df
 
 def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
     """Adds the decoded dateo or datev column to the dataframe.
@@ -209,14 +364,32 @@ def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
         if 'dateo' not in df.columns:
             raise MissingColumnError(f'"dateo" is missing from DataFrame columns, cannot add date_of_observation column!') 
 
-        new_df = copy.deepcopy(df.drop('date_of_observation', axis=1, errors='ignore'))
-        new_df['date_of_observation'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.dateo)
+        if df.dateo.isna().any():
+            raise MissingColumnError(f'A "dateo" value is missing from dateo DataFrame column, cannot add date_of_observation column!') 
+
+        new_df = copy.deepcopy(df)
+
+        if 'date_of_observation' not in new_df.columns:
+            new_df['date_of_observation'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.dateo)
+        else:
+            new_df.loc[new_df.date_of_observation.isna(),'date_of_observation'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.loc[new_df.date_of_observation.isna()].dateo)
+
+        # new_df['date_of_observation'] = new_df['date_of_observation'].astype('datetime64[ns]')
     else:
         if 'datev' not in df.columns:
             raise MissingColumnError(f'"datev" is missing from DataFrame columns, cannot add date_of_validity column!') 
 
-        new_df = copy.deepcopy(df.drop('date_of_validity', axis=1, errors='ignore'))
-        new_df['date_of_validity'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.datev)
+        if df.datev.isna().any():
+            raise MissingColumnError(f'A "datev" value is missing from datev DataFrame column, cannot add date_of_validity column!') 
+
+        new_df = copy.deepcopy(df)
+
+        if 'date_of_validity' not in new_df.columns:
+            new_df['date_of_validity'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.datev)
+        else:
+            new_df.loc[new_df.date_of_validity.isna(),'date_of_validity'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.loc[new_df.date_of_validity.isna()].datev)
+
+        # new_df['date_of_validity'] = new_df['date_of_validity'].astype('datetime64[ns]')
     return new_df    
 
 
@@ -234,8 +407,18 @@ def add_forecast_hour_column(df: pd.DataFrame):
         if col not in df.columns:
             raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add forecast_hour column!') 
 
-    new_df = copy.deepcopy(df.drop('forecast_hour', axis=1, errors='ignore'))
-    new_df['forecast_hour'] = VCREATE_FORECAST_HOUR(new_df.deet, new_df.npas)
+    for col in ['deet', 'npas']:
+        if df[col].isna().any():
+            raise MissingColumnError(f'A "{col}" value is missing from {col} DataFrame column, cannot add forecast_hour column!') 
+
+    new_df = copy.deepcopy(df)
+
+    if 'forecast_hour' not in new_df.columns:
+        new_df['forecast_hour'] = VCREATE_FORECAST_HOUR(new_df.deet, new_df.npas)
+    else:
+        new_df.loc[new_df.forecast_hour.isna(),'forecast_hour'] = VCREATE_FORECAST_HOUR(new_df.loc[new_df.forecast_hour.isna()].deet,new_df.loc[new_df.forecast_hour.isna()].npas)
+
+    # new_df['forecast_hour'] = new_df['forecast_hour'].astype('timedelta64[ns]')
     return new_df
     
 
@@ -252,8 +435,16 @@ def add_data_type_str_column(df: pd.DataFrame) -> pd.DataFrame:
     if 'datyp' not in df.columns:
             raise MissingColumnError(f'"datyp" is missing from DataFrame columns, cannot add data_type_str column!') 
 
-    new_df = copy.deepcopy(df.drop('data_type_str', axis=1, errors='ignore'))
-    new_df['data_type_str'] = VCREATE_DATA_TYPE_STR(new_df.datyp)
+    if df.datyp.isna().any():
+            raise MissingColumnError(f'A "datyp" value is missing from datyp DataFrame column, cannot add data_type_str column!') 
+
+    new_df = copy.deepcopy(df)
+
+    if 'data_type_str' not in new_df.columns:
+        new_df['data_type_str'] = VCREATE_DATA_TYPE_STR(new_df.datyp)
+    else:
+        new_df.loc[new_df.data_type_str.isna(),'data_type_str'] = VCREATE_DATA_TYPE_STR(new_df.loc[new_df.data_type_str.isna()].datyp)
+
     return new_df
     
 
@@ -272,8 +463,44 @@ def add_ip_info_columns(df: pd.DataFrame):
         if col not in df.columns:
             raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add ip info columns!') 
 
-    new_df = copy.deepcopy(df.drop(['level', 'ip1_kind', 'ip1_pkind', 'ip2_dec', 'ip2_kind', 'ip2_pkind', 'ip3_dec', 'ip3_kind', 'ip3_pkind', 'surface', 'follow_topography', 'ascending', 'interval'], axis=1, errors='ignore'))
-    new_df['level'], new_df['ip1_kind'], new_df['ip1_pkind'], new_df['ip2_dec'], new_df['ip2_kind'], new_df['ip2_pkind'], new_df['ip3_dec'], new_df['ip3_kind'], new_df['ip3_pkind'], new_df['surface'], new_df['follow_topography'], new_df['ascending'], new_df['interval'] = VCREATE_IP_INFO(new_df.nomvar, new_df.ip1, new_df.ip2, new_df.ip3)
+    for col in ['nomvar', 'ip1', 'ip2', 'ip3']:
+        if df[col].isna().any():
+            raise MissingColumnError(f'A "{col}" value is missing from {col} DataFrame column, cannot add ip info columns!') 
+
+    new_df = copy.deepcopy(df)
+
+    if any([(col not in new_df.columns) for col in ['level', 'ip1_kind', 'ip1_pkind', 'ip2_dec', 'ip2_kind', 'ip2_pkind', 'ip3_dec', 'ip3_kind', 'ip3_pkind', 'surface', 'follow_topography', 'ascending', 'interval']]):
+        new_df['level'], new_df['ip1_kind'], new_df['ip1_pkind'], new_df['ip2_dec'], new_df['ip2_kind'], new_df['ip2_pkind'], new_df['ip3_dec'], new_df['ip3_kind'], new_df['ip3_pkind'], new_df['surface'], new_df['follow_topography'], new_df['ascending'], new_df['interval'] = VCREATE_IP_INFO(new_df.nomvar, new_df.ip1, new_df.ip2, new_df.ip3)
+    else:
+
+        level, _, _, _, _, _, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.level.isna()].nomvar, new_df.loc[new_df.level.isna()].ip1, new_df.loc[new_df.level.isna()].ip2, new_df.loc[new_df.level.isna()].ip3)
+        _, ip1_kind, _, _, _, _, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip1_kind.isna()].nomvar, new_df.loc[new_df.ip1_kind.isna()].ip1, new_df.loc[new_df.ip1_kind.isna()].ip2, new_df.loc[new_df.ip1_kind.isna()].ip3)
+        _, _, ip1_pkind, _, _, _, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip1_pkind.isna()].nomvar, new_df.loc[new_df.ip1_pkind.isna()].ip1, new_df.loc[new_df.ip1_pkind.isna()].ip2, new_df.loc[new_df.ip1_pkind.isna()].ip3)
+        _, _, _, ip2_dec, _, _, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip2_dec.isna()].nomvar, new_df.loc[new_df.ip2_dec.isna()].ip1, new_df.loc[new_df.ip2_dec.isna()].ip2, new_df.loc[new_df.ip2_dec.isna()].ip3)
+        _, _, _, _, ip2_kind, _, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip2_kind.isna()].nomvar, new_df.loc[new_df.ip2_kind.isna()].ip1, new_df.loc[new_df.ip2_kind.isna()].ip2, new_df.loc[new_df.ip2_kind.isna()].ip3)
+        _, _, _, _, _, ip2_pkind, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip2_pkind.isna()].nomvar, new_df.loc[new_df.ip2_pkind.isna()].ip1, new_df.loc[new_df.ip2_pkind.isna()].ip2, new_df.loc[new_df.ip2_pkind.isna()].ip3)
+        _, _, _, _, _, _, ip3_dec, _, _, _, _, _, _  = VCREATE_IP_INFO(new_df.loc[new_df.ip3_dec.isna()].nomvar, new_df.loc[new_df.ip3_dec.isna()].ip1, new_df.loc[new_df.ip3_dec.isna()].ip2, new_df.loc[new_df.ip3_dec.isna()].ip3)
+        _, _, _, _, _, _, _, ip3_kind, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip3_kind.isna()].nomvar, new_df.loc[new_df.ip3_kind.isna()].ip1, new_df.loc[new_df.ip3_kind.isna()].ip2, new_df.loc[new_df.ip3_kind.isna()].ip3)
+        _, _, _, _, _, _, _, _, ip3_pkind, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip3_pkind.isna()].nomvar, new_df.loc[new_df.ip3_pkind.isna()].ip1, new_df.loc[new_df.ip3_pkind.isna()].ip2, new_df.loc[new_df.ip3_pkind.isna()].ip3)
+        _, _, _, _, _, _, _, _, _, surface, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.surface.isna()].nomvar, new_df.loc[new_df.surface.isna()].ip1, new_df.loc[new_df.surface.isna()].ip2, new_df.loc[new_df.surface.isna()].ip3)
+        _, _, _, _, _, _, _, _, _, _, follow_topography, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.follow_topography.isna()].nomvar, new_df.loc[new_df.follow_topography.isna()].ip1, new_df.loc[new_df.follow_topography.isna()].ip2, new_df.loc[new_df.follow_topography.isna()].ip3)
+        _, _, _, _, _, _, _, _, _, _, _, ascending, _ = VCREATE_IP_INFO(new_df.loc[new_df.ascending.isna()].nomvar, new_df.loc[new_df.ascending.isna()].ip1, new_df.loc[new_df.ascending.isna()].ip2, new_df.loc[new_df.ascending.isna()].ip3)
+        _, _, _, _, _, _, _, _, _, _, _, _, interval = VCREATE_IP_INFO(new_df.loc[new_df.interval.isna()].nomvar, new_df.loc[new_df.interval.isna()].ip1, new_df.loc[new_df.interval.isna()].ip2, new_df.loc[new_df.interval.isna()].ip3)
+        
+        new_df.loc[new_df.level.isna(),'level'] = level
+        new_df.loc[new_df.ip1_kind.isna(),'ip1_kind'] = ip1_kind
+        new_df.loc[new_df.ip1_pkind.isna(),'ip1_pkind'] = ip1_pkind
+        new_df.loc[new_df.ip2_dec.isna(),'ip2_dec'] = ip2_dec
+        new_df.loc[new_df.ip2_kind.isna(),'ip2_kind'] = ip2_kind
+        new_df.loc[new_df.ip2_pkind.isna(),'ip2_pkind'] = ip2_pkind
+        new_df.loc[new_df.ip3_dec.isna(),'ip3_dec'] = ip3_dec
+        new_df.loc[new_df.ip3_kind.isna(),'ip3_kind'] = ip3_kind
+        new_df.loc[new_df.ip3_pkind.isna(),'ip3_pkind'] = ip3_pkind
+        new_df.loc[new_df.surface.isna(),'surface'] = surface
+        new_df.loc[new_df.follow_topography.isna(),'follow_topography'] = follow_topography
+        new_df.loc[new_df.ascending.isna(),'ascending'] = ascending
+        new_df.loc[new_df.interval.isna(),'interval'] = interval
+
     return new_df
 
 
@@ -329,12 +556,16 @@ def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket',
 
 
 def reorder_columns(df):
+    """Reorders columns for voir like output
+
+    :param df: input dataFrame
+    :type df: pd.DataFrame
+    """
     ordered = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2',
                'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
     if df.empty:
         return 
     all_columns = set(df.columns)
-    # all_columns = set(df.columns.to_list())
 
     extra_columns = all_columns.difference(set(ordered))
     if len(extra_columns) > 0:

@@ -38,6 +38,7 @@ def test_1(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [UnitConvert --unit kilometer_per_hour] >> [WriterStd --output {destination_path} --noUnitConversion]
     df['ip1']=41394464
     df['etiket']='WINDMOX'
+    df.loc[:, 'typvar'] = 'PU'
     #write the result
     results_file = TMP_PATH + "test_unitconv_1.std"
     delete_file(results_file)

@@ -3,6 +3,7 @@ import copy
 import itertools
 import multiprocessing as mp
 import os
+from pathlib import Path
 from . import FSTPY_PROGRESS
 
 try:
@@ -26,7 +27,7 @@ class StandardFileReader:
     """Class to handle fst files. Opens, reads the contents of an fst file or files into a pandas dataframe and closes. Extra metadata columns are added to the dataframe if specified.    
 
         :param filenames: path to file or list of paths to files  
-        :type filenames: str|list[str], does not accept wildcards (numpy has 
+        :type filenames: str|pathlib.Path|list[str], does not accept wildcards (numpy has 
                          many tools for this)  
         :param decode_metadata: adds extra columns, defaults to False  
             'unit':str, unit name   
@@ -62,7 +63,9 @@ class StandardFileReader:
     @initializer
     def __init__(self, filenames, decode_metadata=False, query=None):
         """init instance"""
-        if isinstance(self.filenames, str):
+        if isinstance(self.filenames, Path):
+            self.filenames = str(self.filenames.absolute())
+        elif isinstance(self.filenames, str):
             self.filenames = os.path.abspath(str(self.filenames))
         elif isinstance(self.filenames, list):
             self.filenames = [os.path.abspath(str(f)) for f in filenames]

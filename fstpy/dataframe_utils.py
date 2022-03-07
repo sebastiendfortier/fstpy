@@ -97,8 +97,11 @@ def metadata_cleanup(df: pd.DataFrame, strict_toctoc=True) -> pd.DataFrame:
     # get !!'s strict
     toctoc_fields_df = get_toctoc_fields(df, no_meta_df, hybrid_ips, sigma_ips, pressure_ips, strict_toctoc)
 
-    new_df = pd.concat([no_meta_df, grid_deformation_fields_df, p0_fields_df,
-                    pt_fields_df, hy_field_df, toctoc_fields_df], ignore_index=True)
+    new_df = pd.concat([grid_deformation_fields_df, p0_fields_df,
+                    pt_fields_df, hy_field_df, toctoc_fields_df,no_meta_df], ignore_index=True)
+
+    # new_df.sort_index(inplace=True)
+    # new_df.reset_index(inplace=True)
 
     return new_df
 
@@ -116,7 +119,7 @@ def voir(df: pd.DataFrame, style=False):
     to_print_df['datyp'] = to_print_df['datyp'].map(DATYP_DICT)
     to_print_df['datev'] = to_print_df['datev'].apply(convert_rmndate_to_datetime)
     to_print_df['dateo'] = to_print_df['dateo'].apply(convert_rmndate_to_datetime)
-    df = add_ip_info_columns(to_print_df)
+    to_print_df = add_ip_info_columns(to_print_df)
 
     res_df = to_print_df.sort_values(by=['nomvar', 'level'], ascending=[True, False])
 
@@ -289,6 +292,7 @@ def get_toctoc_fields(df: pd.DataFrame, no_meta_df:pd.DataFrame, hybrid_ips: lis
     toctoc_fields_df = toctoc_fields_df.drop_duplicates(subset=['grtyp', 'nomvar', 'typvar', 'ni', 'nj', 'nk', 'ip1',
                                                                 'ip2', 'ip3', 'deet', 'npas', 'nbits', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'], ignore_index=True)
 
+    # toctoc_fields_df.sort_index(inplace=True)
     return toctoc_fields_df
 
 # def numeric_vctype_to_string(vctypes):
@@ -319,6 +323,7 @@ def get_hy_field(df: pd.DataFrame, hybrid_ips: list):
 
     hy_field_df = hy_field_df.drop_duplicates(subset=['grtyp', 'nomvar', 'typvar', 'ni', 'nj', 'nk', 'ip1', 'ip2',
                                                       'ip3', 'deet', 'npas', 'nbits', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'], ignore_index=True)
+    # hy_field_df.sort_index(inplace=True)
 
     return hy_field_df
 
@@ -350,6 +355,8 @@ def get_grid_deformation_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame):
         grid_deformation_fields_df = pd.concat(df_list, ignore_index=True)
 
     grid_deformation_fields_df = grid_deformation_fields_df.drop_duplicates(subset=col_subset, ignore_index=True)
+
+    # grid_deformation_fields_df.sort_index(inplace=True)
 
     return grid_deformation_fields_df
 
@@ -417,6 +424,8 @@ def get_p0_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, hybrid_ips: list, 
     p0_fields_df.drop_duplicates(subset=['grtyp', 'nomvar', 'typvar', 'ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet',
                                          'npas', 'nbits', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'], inplace=True, ignore_index=True)
 
+    # p0_fields_df.sort_index(inplace=True)
+
     return p0_fields_df
 
 
@@ -440,5 +449,7 @@ def get_pt_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, sigma_ips: list):
 
     pt_fields_df.drop_duplicates(subset=['grtyp', 'nomvar', 'typvar', 'ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet',
                                          'npas', 'nbits', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'], inplace=True, ignore_index=True)
+
+    # pt_fields_df.sort_index(inplace=True)
 
     return pt_fields_df

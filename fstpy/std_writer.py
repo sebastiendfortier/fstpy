@@ -3,6 +3,7 @@ import copy
 import logging
 import math
 import os
+from pathlib import Path
 from fstpy import FSTPY_PROGRESS
 
 try:
@@ -51,7 +52,7 @@ class StandardFileWriter:
     modes = ['write', 'update', 'dump']
 
     @initializer
-    def __init__(self, filename: str, df: pd.DataFrame, mode='write', no_meta=False, overwrite=False, rewrite=None):
+    def __init__(self, filename: str or Path, df: pd.DataFrame, mode='write', no_meta=False, overwrite=False, rewrite=None):
         self.validate_input()
 
     def validate_input(self):
@@ -63,7 +64,7 @@ class StandardFileWriter:
             raise StandardFileWriterError(
                 f'StandardFileWriter - mode must have one of these values {self.modes}, you entered {self.mode}')
 
-        self.filename = os.path.abspath(self.filename)
+        self.filename = os.path.abspath(str(self.filename))
         self.file_exists = os.path.exists(self.filename)
 
         if self.file_exists and self.overwrite == False:

@@ -87,7 +87,7 @@ def get_forecast_hour(deet: int, npas: int) -> datetime.timedelta:
         return datetime.timedelta(seconds=int(npas * deet))
     return datetime.timedelta(0)
 
-VCREATE_FORECAST_HOUR: Final = np.vectorize(get_forecast_hour)  # ,otypes=['timedelta64[ns]']
+VCREATE_FORECAST_HOUR: Final = np.vectorize(get_forecast_hour, otypes=['timedelta64[ns]'])  # ,otypes=['timedelta64[ns]']
 
 def get_data_type_str(datyp: int):
     """gets the data type string from the datyp int
@@ -173,7 +173,7 @@ def convert_rmndate_to_datetime(date: int) -> 'datetime.datetime|None':
     else:
         return None
 
-VCONVERT_RMNDATE_TO_DATETIME: Final = np.vectorize(convert_rmndate_to_datetime)  # ,otypes=['datetime64']
+VCONVERT_RMNDATE_TO_DATETIME: Final = np.vectorize(convert_rmndate_to_datetime, otypes=['datetime64'])  # ,otypes=['datetime64']
 
 def is_surface(ip1_kind: int, level: float) -> bool:
     """Return a bool that tell us if the level is a surface level

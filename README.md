@@ -10,9 +10,9 @@ independent.
 
 ## Fstpy philosophy
 
-The idea of using a dataframe is to have a pythonic way of working
-with standard files without having to know the mechanics of rmnlib.
-Since many people come here with numpy, pandas and xarray knowledge, the
+The idea of ​​using a dataframe is to have a pythonic way of working with
+standard files without having to know the mechanics of rmnlib. Since
+many people come here with numpy, pandas and xarray knowledge, the
 learning curve is much less steep.
 
 ## Dataframes
@@ -41,27 +41,27 @@ a great variety of built-in plotting functions.
 
 ## run time packages
 
--   pandas>=1.2.4
--   numpy>=1.19.5
--   xarray>=0.19.0
--   dask>=2021.8.0
+-   pandas\>=1.2.4
+-   numpy\>=1.19.5
+-   xarray\>=0.19.0
+-   dask\>=2021.8.0
 
 ## developpement packages
 
--   ci_fstcomp>=1.0.2
--   pandas>=1.2.4
--   numpy>=1.19.5
--   xarray>=0.19.0
--   dask>=2021.8.0
--   pytest>=5.3.5
--   Sphinx>=3.4.3
--   sphinx-autodoc-typehints>=1.12.0
--   sphinx-gallery>=0.9.0
--   sphinx-rtd-theme>=1.0.0
--   nbsphinx>=0.8.7
--   ipython>=7.12.0
--   jupyterlab>=3.1.13
--   myst-parser>=0.15.2
+-   ci_fstcomp\>=1.0.6
+-   pandas\>=1.2.4
+-   numpy\>=1.19.5
+-   xarray\>=0.19.0
+-   dask\>=2021.8.0
+-   pytest\>=5.3.5
+-   Sphinx\>=3.4.3
+-   sphinx-autodoc-typehints\>=1.12.0
+-   sphinx-gallery\>=0.9.0
+-   sphinx-rtd-theme\>=1.0.0
+-   nbsphinx\>=0.8.7
+-   ipython\>=7.12.0
+-   jupyterlab\>=3.1.13
+-   myst-parser\>=0.15.2
 
 ## Surgepy
 
@@ -76,7 +76,7 @@ that contains a wide variety of packages
 
 Use the ssm package
 
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.11/
+    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.12/
 
 Use the git repository package: at your own risk ;)
 
@@ -92,7 +92,7 @@ Use the git repository package: at your own risk ;)
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.11/
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.12/
 ```
 
 ### Use fstpy

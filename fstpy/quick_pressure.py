@@ -16,7 +16,7 @@ class QuickPressureError(Exception):
 
 
 class QuickPressure():
-    """creates a pressure field associated to a level for each identified vertical coordinate type
+    """Creates a pressure field associated to a level for each identified vertical coordinate type
 
     :param df: input dataframe
     :type df: pd.DataFrame
@@ -76,4 +76,5 @@ class QuickPressure():
         df_list.append(self.meta_df)
         res_df = pd.concat(df_list, ignore_index=True)
         res_df = metadata_cleanup(res_df)
+        res_df.drop(['path','key'],axis=1,errors='ignore',inplace=True)
         return res_df
