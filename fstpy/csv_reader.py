@@ -67,7 +67,7 @@ class EtiketVarLengthError(Exception):
 
 class CsvFileReader:
     """Read a csv file and convert it to a pandas dataframe.
-    :param path: path of the csv file i want to read
+    :param path: path of the csv file to read
     :type path:str
     Algorithm:
         Reading a file that must have the followed form:
