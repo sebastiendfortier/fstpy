@@ -8,6 +8,8 @@ import pathlib
 import time
 from ctypes import (POINTER, Structure, c_char_p, c_int, c_int32, c_uint,
                     c_uint32, c_void_p, cast)
+import ctypes as ct
+import numpy.ctypeslib as npc
 from typing import Tuple, Type
 
 import numpy as np
@@ -51,7 +53,7 @@ def get_dataframe_from_file(path: str, query: str = None):
 
     df = add_dask_column(df)
 
-    df = df.drop(['key', 'path', 'shape'], axis=1, errors='ignore')
+    df = df.drop(['key', 'path', 'shape', 'swa', 'lng'], axis=1, errors='ignore')
 
     return df
 
@@ -470,6 +472,96 @@ def get_data(path, key, cache={}):
         key = ((key >> 10) << 10) + librmn.file_index(iun)
         return rmn.fstluk(key)['d']
 
+######################################################################
+#
+# Direct reading of FST data without fstluk (which is not thread safe).
+# Allows for better threading performance by avoiding the need to lock.
+#
+
+librmn.compact_float.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.POINTER(ct.c_double))
+librmn.compact_double.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.POINTER(ct.c_double))
+librmn.compact_integer.argtypes = (npc.ndpointer(dtype='int32'), ct.c_void_p, npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int)
+librmn.ieeepak_.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int))
+librmn.compact_char.argtypes = (npc.ndpointer(dtype='int32'), ct.c_void_p, npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int)
+librmn.c_armn_uncompress32.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int)
+librmn.armn_compress.argtypes = (npc.ndpointer(dtype='int32'),ct.c_int,ct.c_int,ct.c_int,ct.c_int,ct.c_int)
+librmn.c_float_unpacker.argtypes = (npc.ndpointer(dtype='int32'),npc.ndpointer(dtype='int32'),npc.ndpointer(dtype='int32'),ct.c_int,ct.POINTER(ct.c_int))
+
+def get_data_fast(path, swa, lng):
+    import rpnpy.librmn.all as rmn
+    import numpy as np
+    with open(path,'rb') as f:
+        f.seek(swa*8-8,0)
+        data = np.fromfile(f,'B',lng*4)
+    data = data.view('>i4').astype('i4')
+    ni, nj, nk = data[3]>>8, data[4]>>8, data[5]>>12
+    nelm = ni*nj*nk
+    datyp = int(data[4]%256) & 191  # Ignore +64 mask.
+    nbits = int(data[2]%256)
+    dtype = rmn.dtype_fst2numpy (datyp, nbits)
+    if nbits <= 32:
+        work = np.empty(nelm,'int32')
+    else:
+        work = np.empty(nelm,'int64').view('int32')
+    # Strip header
+    data = data[20:]
+    # Extend data buffer for in-place decompression.
+    if datyp in (129,130,134):
+        d = np.empty(nelm + 100, dtype='int32')
+        d[:len(data)] = data
+        data = d
+    shape = (nj,ni)
+    ni = ct.c_int(ni)
+    nj = ct.c_int(nj)
+    nk = ct.c_int(nk)
+    nelm = ct.c_int(nelm)
+    npak = ct.c_int(-nbits)
+    nbits = ct.c_int(nbits)
+    zero = ct.c_int(0)
+    one = ct.c_int(1)
+    two = ct.c_int(2)
+    tempfloat = ct.c_double(99999.0)
+
+    if datyp == 0:
+        work = data
+    elif datyp == 1:
+        if nbits.value <= 32:
+            librmn.compact_float(work, data, data[3:], nelm, nbits, 24, 1, 2, 0, ct.byref(tempfloat))
+        else:
+            raise Exception
+            librmn.compact_double(work, data, data[3:], nelm, nbits, 24, 1, 2, 0, ct.byref(tempfloat))
+    elif datyp == 2:
+        librmn.compact_integer(work, None, data, nelm, nbits, 0, 1, 2)
+    elif datyp == 3:
+        raise Exception
+    elif datyp == 4:
+        librmn.compact_integer(work, None, data, nelm, nbits, 0, 1, 4)
+    elif datyp == 5:
+        librmn.ieeepak_(work, data, ct.byref(nelm), ct.byref(one), ct.byref(npak), ct.byref(zero), ct.byref(two))
+    elif datyp == 6:
+        librmn.c_float_unpacker(work, data, data[3:], nelm, ct.byref(nbits));
+    elif datyp == 7:
+        ier = librmn.compact_char(work, None, data, nelm, 8, 0, 1, 10)
+        work = work.view('B')[:len(work)] #& 127
+    elif datyp == 8:
+        raise Exception
+    elif datyp == 129:
+        librmn.armn_compress(data[5:],ni,nj,nk,nbits,2)
+        librmn.compact_float(work,data[1:],data[5:],nelm,nbits.value+64*max(16,nbits.value),0,1,2,0,ct.byref(tempfloat))
+    elif datyp == 130:
+        librmn.armn_compress(data[1:],ni,nj,nk,nbits,2)
+        work[:] = data[1:].astype('>i4').view('>H')[:nelm.value]
+    elif datyp == 133:
+        librmn.c_armn_uncompress32(work, data[1:], ni, nj, nk, nbits)
+    elif datyp == 134:
+        librmn.armn_compress(data[4:],ni,nj,nk,nbits,2);
+        librmn.c_float_unpacker(work,data[1:],data[4:],nelm,ct.byref(nbits))
+    else:
+        raise Exception(datyp)
+    return work.view(dtype)[:nelm.value].reshape(shape).T
+#
+######################################################################
+
 
 def add_dask_column(df:pd.DataFrame) -> pd.DataFrame:
     """Adds the 'd' column as dask arrays to a basic dataframe of meta data only, path and key columns have to be present in the DataFrame
@@ -483,11 +575,13 @@ def add_dask_column(df:pd.DataFrame) -> pd.DataFrame:
     for row in df.itertuples():
         path = row.path
         key = row.key
+        swa = row.swa
+        lng = row.lng
         # Unique identifier for this record.
         name = ''.join([path,":",str(key)])
         # How to read the data for this record.
         shape = row.shape
-        dsk = {(name, 0, 0): (get_data, path, key)}
+        dsk = {(name, 0, 0): (get_data_fast, path, swa, lng)}
         field_dtype = get_field_dtype(row.datyp, row.nbits)
         # Size of the record.
         chunks = [(s,) for s in shape]
@@ -593,7 +687,7 @@ def get_basic_dataframe(path:str) -> pd.DataFrame:
 
     out['lng'] = np.empty(nrecs, dtype='int32')
     out['dltf'] = np.empty(nrecs, dtype='ubyte')
-    # out['swa'] =  np.empty(nrecs, dtype='uint32')
+    out['swa'] =  np.empty(nrecs, dtype='uint32')
     out['ubc'] = np.empty(nrecs, dtype='uint16')
     # out['xtra1'] = np.empty(nrecs, dtype='uint32')
     # out['xtra2'] = np.empty(nrecs, dtype='uint32')
@@ -604,8 +698,9 @@ def get_basic_dataframe(path:str) -> pd.DataFrame:
     temp32 = np.empty(nrecs, dtype='int32')
 
     np.divmod(raw[:, 0, 0], 2**24, temp8, out['lng'])
+    out['lng'] *= 2  # Convert from 64-bit word lengths to 32-bit.
     np.divmod(temp8, 128, out['dltf'], temp8)
-    #   out['swa'][:] = raw[:,0,1]
+    out['swa'][:] = raw[:,0,1]
     np.divmod(raw[:, 1, 0], 256, out['deet'], out['nbits'])
     np.divmod(raw[:, 1, 1], 256, out['ni'], out['grtyp'].view('ubyte'))
     np.divmod(raw[:, 2, 0], 256, out['nj'], out['datyp'])
@@ -676,7 +771,7 @@ def get_basic_dataframe(path:str) -> pd.DataFrame:
     df['path'] = path
 
     df = df.loc[df.dltf == 0]
-    df = df.drop(labels=['dltf', 'lng', 'ubc'], axis=1)
+    df = df.drop(labels=['dltf', 'ubc'], axis=1)
 
     df['shape'] = pd.Series(zip(df.ni.to_numpy(),df.nj.to_numpy()),dtype='object').to_numpy()
 

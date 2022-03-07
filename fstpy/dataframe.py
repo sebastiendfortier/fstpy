@@ -57,7 +57,7 @@ def get_path_and_key_from_array(darr:'da.core.Array'):
     path_and_key = graph_list[0][0]
     if ':' in path_and_key:
         path_and_key = path_and_key.split(':')
-        return path_and_key[0], path_and_key[1]
+        return path_and_key[0], int(path_and_key[1])
     else:
         return None, None
 

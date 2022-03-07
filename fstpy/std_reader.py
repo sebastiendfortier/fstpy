@@ -124,6 +124,7 @@ def compute(df: pd.DataFrame,remove_path_and_key:bool=True) -> pd.DataFrame:
     :rtype: pd.DataFrame
     """
     from .dataframe import add_path_and_key_columns
+    import dask as da
     new_df = copy.deepcopy(df)
     
     new_df = add_path_and_key_columns(new_df)
@@ -135,16 +136,18 @@ def compute(df: pd.DataFrame,remove_path_and_key:bool=True) -> pd.DataFrame:
     df_list = []
     
     if not no_path_df.empty:
-        for row in no_path_df.itertuples():
-             no_path_df.at[row.Index, 'd'] = to_numpy(row.d)
+        d = da.compute(*list(no_path_df['d'].values))
+        for i,row in enumerate(no_path_df.itertuples()):
+             no_path_df.at[row.Index, 'd'] = d[i]
         df_list.append(no_path_df)
         
     for _, current_df in groups:
 
         current_df = current_df.sort_values('key')
 
-        for row in current_df.itertuples():
-             current_df.at[row.Index, 'd'] = to_numpy(row.d)
+        d = da.compute(*list(current_df['d'].values))
+        for i,row in enumerate(current_df.itertuples()):
+             current_df.at[row.Index, 'd'] = d[i]
 
         df_list.append(current_df)
     
