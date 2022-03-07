@@ -257,6 +257,9 @@ def vectorize (f, otypes=None):
     @wraps(f)
     def vectorized_f (*x):
         from pandas import Series, unique
+        # Expand any scalar arguments.
+        n = max(len(y) if hasattr(y,'__len__') and not isinstance(y,str) else 1 for y in x)
+        x = [y if hasattr(y,'__len__') and not isinstance(y,str) else (y,)*n for y in x]
         # Get unique values
         x = list(zip(*x))
         inputs = unique(x)
