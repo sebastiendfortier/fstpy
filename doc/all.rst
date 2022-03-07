@@ -16,6 +16,10 @@ The following functions and constants are available through ``fstpy.``
       :noindex: 
       :members: 
 
+   .. automodule:: fstpy.apply_mask      
+      :noindex:
+      :members:
+
    .. automodule:: fstpy.csv_reader      
       :noindex:
       :members:
@@ -32,6 +36,10 @@ The following functions and constants are available through ``fstpy.``
       :noindex:
       :members: 
                
+   .. automodule:: fstpy.recover_mask      
+      :noindex:
+      :members:
+
    .. automodule:: fstpy.std_dec
       :noindex:
       :members: 
