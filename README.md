@@ -2,22 +2,22 @@
 
 ## What is it?
 
-Fstpy is a high level interface to rpn's rpnpy python library that
-produces pandas dataframes or Xarray's from CMC standard files. In
+Fstpy is a high level interface to rpn\'s rpnpy python library that
+produces pandas dataframes or Xarray\'s from CMC standard files. In
 order to promote decoupling, modularization and collaboration, fstpy
 only reads and writes. All other operations and algorithms can be
 independent.
 
 ## Fstpy philosophy
 
-The idea of ​​using a dataframe is to have a pythonic way of working with
-standard files without having to know the mechanics of rmnlib. Since
-many people come here with numpy, pandas and xarray knowledge, the
+The idea of ​​using a dataframe is to have a pythonic way of working
+with standard files without having to know the mechanics of rmnlib.
+Since many people come here with numpy, pandas and xarray knowledge, the
 learning curve is much less steep.
 
 ## Dataframes
 
-They are good for organizing information. eg: select all the tt's, sort
+They are good for organizing information. eg: select all the tt\'s, sort
 them by grid then by level and produce 3d matrices for each tt of each
 grid. Dataframes will help to integrate new model changes and new data
 types. Thanks to the dataframes we can also export our results more
@@ -31,7 +31,7 @@ these types of arrays. The only difference is that until array.compute()
 is done, the dask array stores tasks instead of actually doing the
 computations.
 
-## Xarray's
+## Xarray\'s
 
 They are used to analyse grouped and indexed data. They are especially
 good for working with n-dimensional meteorological data. They also offer
@@ -41,27 +41,27 @@ a great variety of built-in plotting functions.
 
 ## run time packages
 
--   pandas\>=1.2.4
--   numpy\>=1.19.5
--   xarray\>=0.19.0
--   dask\>=2021.8.0
+-   pandas>=1.2.4
+-   numpy>=1.19.5
+-   xarray>=0.19.0
+-   dask>=2021.8.0
 
 ## developpement packages
 
--   ci_fstcomp\>=1.0.6
--   pandas\>=1.2.4
--   numpy\>=1.19.5
--   xarray\>=0.19.0
--   dask\>=2021.8.0
--   pytest\>=5.3.5
--   Sphinx\>=3.4.3
--   sphinx-autodoc-typehints\>=1.12.0
--   sphinx-gallery\>=0.9.0
--   sphinx-rtd-theme\>=1.0.0
--   nbsphinx\>=0.8.7
--   ipython\>=7.12.0
--   jupyterlab\>=3.1.13
--   myst-parser\>=0.15.2
+-   ci_fstcomp>=1.0.6
+-   pandas>=1.2.4
+-   numpy>=1.19.5
+-   xarray>=0.19.0
+-   dask>=2021.8.0
+-   pytest>=5.3.5
+-   Sphinx>=3.4.3
+-   sphinx-autodoc-typehints>=1.12.0
+-   sphinx-gallery>=0.9.0
+-   sphinx-rtd-theme>=1.0.0
+-   nbsphinx>=0.8.7
+-   ipython>=7.12.0
+-   jupyterlab>=3.1.13
+-   myst-parser>=0.15.2
 
 ## Surgepy
 
@@ -76,7 +76,7 @@ that contains a wide variety of packages
 
 Use the ssm package
 
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.12/
+    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.13/
 
 Use the git repository package: at your own risk ;)
 
@@ -92,7 +92,7 @@ Use the git repository package: at your own risk ;)
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.12/
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.13/
 ```
 
 ### Use fstpy
@@ -141,7 +141,7 @@ git merge origin/master
 git push my_change
 ```
 
-Then create a merge request on science's gitlab
+Then create a merge request on science\'s gitlab
 <https://gitlab.science.gc.ca/CMDS/fstpy/merge_requests>
 
 ## Using setup.sh to setup your developpement environment

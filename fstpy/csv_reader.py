@@ -67,12 +67,17 @@ class EtiketVarLengthError(Exception):
 
 class CsvFileReader:
     """Read a csv file and convert it to a pandas dataframe.
+
     :param path: path of the csv file to read
     :type path:str
+    
     Algorithm:
         Reading a file that must have the followed form:
+
         COLUMNS/HEADERS NAMES: nomvar,etiket,level,d
+
         VALUES:                CSV,CSVREADER,1.0,"11.1,22.2;33.3,44.4;55.5,66.6"
+
         VALUES:                CSV,CSVREADER,0.0,"77.7,88.8;99.9,100.10;110.11,120.12"
 
     - The d column is composed of floats and the ";" means one of the line of the level is done
@@ -80,40 +85,71 @@ class CsvFileReader:
     - One line of a single level represent the x axis (row)
     - The values inside a single line are the y axis (column)
     - ni and nj will be derived from the provided array shape in the d column
-    - arrays in rows sharing the same metadata columns (same nomvae, etiket, etc.), must have the same dimensions
+    - nk is always equal to 1
+    - arrays in rows sharing the same metadata columns (same nomvar, etiket, etc.), must have the same dimensions
     - comments are permitted on separate lines than the csv values 
     - Admissible columns:
             'nomvar': "str", variable name 
+
             'typvar': 'str', type of field (forecast, analysis, climatology)
+
             'etiket': 'str', label
+
             'level': 'int32', value that helps get ip1
+
             'ip1': 'int32', vertical level
+
             'ip2': 'int32', forecast hour
+
             'ip3': 'int32', user defined identifier
+
             'datyp': 'int32', data type 
+
             'nbits': 'int32', number of bits kept for the elements of the field
+
             'grtyp': 'str', type of geographical projection
+
+            'd': 'str', data column
 
     - If not already provided these columns will be added:
             'ni': 'int32', first dimension of the data field
+
             'nj': 'int32', second dimension of the data field
+
             'nk': 'int32', third dimension of the data field
+
             'nomvar': "str", variable name 
+
             'typvar': 'str', type of field (forecast, analysis, climatology)
+
             'etiket': 'str', label
+
             'dateo': 'int32', date of observation  
+
             'ip1': 'int32', vertical level
+
             'ip2': 'int32', forecast hour
+
             'ip3': 'int32', user defined identifier
+
             'datyp': 'int32', data type 
+
             'nbits': 'int32', number of bits kept for the elements of the field
+
             'ig1': 'int32', first grid descriptor
+
             'ig2': 'int32', second grid descriptor
+
             'ig3': 'int32', third grid descriptor
+
             'ig4': 'int32', fourth grid descriptor
+
             'deet': 'int32', Length of a time step in seconds datev constant unless keep_dateo 
+
             'npas': 'int32', time step number datev constant unless keep_dateo
+
             'grtyp': 'str', type of geographical projection 
+
             'datev': 'int32', date of validation
     """
 
@@ -124,8 +160,9 @@ class CsvFileReader:
             raise CsvFileReaderError('Path does not exist\n')
 
     def to_pandas(self) -> pd.DataFrame:
-        """Read the csv file and verify the existence of headers and add the missing columns if they are missing
-        :return: df
+        """Read the csv file , verify the existence of headers that are valid and add the missing columns in the dataframe.
+
+        :return: dataframe completed
         :rtype: pd.DataFrame
         """
         self.df = pd.read_csv(self.path, comment="#")
@@ -137,9 +174,10 @@ class CsvFileReader:
             return self.df
 
     def count_char(self, s):
-        """Count the number of characters in a string 
+        """Count the number of characters in a string. This function check the length of a string in a specific column of the dataframe
+
         :param s: the name of the column
-        :return: list of the count of the number of characters of the strings of every row of a column
+        :return: a list with the counts of the number of characters inside a string in the differents rows of a single column
         """
         array_list = []
         for i in self.df.index:
@@ -148,30 +186,28 @@ class CsvFileReader:
         return array_list
 
     def check_nomvar_char_length(self):
-        """Check that the length of the column nomvar is always between 2 and 4 characters for the whole dataframe 
-        """
+        f"""Check that the length of the column nomvar is always between {NOMVAR_MIN_LEN} and {NOMVAR_MAX_LEN} characters for the whole dataframe"""
 
         a = self.count_char(s="nomvar")
         for i in a:
             if (i < NOMVAR_MIN_LEN or i > NOMVAR_MAX_LEN):
-                raise NomVarLengthError("the variable nomvar should have between 2 and 4 characters")
+                raise NomVarLengthError(f"the variable nomvar should have between {NOMVAR_MIN_LEN} and {NOMVAR_MAX_LEN} characters")
 
     def check_typvar_char_length(self):
-        """Check that the length of the column typvar is always between 1 and 2 characters for the whole dataframe 
-        """
+        f"""Check that the length of the column typvar is always between {TYPVAR_MIN_LEN} and {TYPVAR_MAX_LEN} characters for the whole dataframe"""
+
         a = self.count_char(s="typvar")
         for i in a:
             if (i < TYPVAR_MIN_LEN or i > TYPVAR_MAX_LEN):
-                raise TypVarLengthError("the variable typvar should have between 1 and 2 characters")
+                raise TypVarLengthError(f"the variable typvar should have between {TYPVAR_MIN_LEN} and {TYPVAR_MAX_LEN} characters")
 
     def check_etiket_char_length(self):
-        """Check that the length of the column etiket is always between 1 and 12 characters for the whole dataframe 
-        """
+        f"""Check that the length of the column etiket is always between {ETIKET_MIN_LEN} and {ETIKET_MAX_LEN} characters for the whole dataframe"""
 
         a = self.count_char(s="etiket")
         for i in a:
             if (i < ETIKET_MIN_LEN or i > ETIKET_MAX_LEN):
-                raise EtiketVarLengthError("the variable etiket should have between 1 and 12 characters")
+                raise EtiketVarLengthError(f"the variable etiket should have between {ETIKET_MIN_LEN} and {ETIKET_MAX_LEN} characters")
 
     def verify_headers(self):
         """Verify the file header
@@ -199,8 +235,8 @@ class CsvFileReader:
         self.to_numpy_array()
 
     def check_columns(self):
-        """Check the types of the columns, the dimensions of the differents d arrays and the length of the nomvar,etiket
-        and typvar of the dataframe"""
+        """Check the types of the columns, the dimensions of the differents arrays and the length of the values of nomvar,
+        etiket and typvar in the dataframe"""
 
         self.change_column_dtypes()
         self.check_array_dimensions()
@@ -210,6 +246,7 @@ class CsvFileReader:
 
     def has_minimal_columns(self):
         """Verify that I have the minimum amount of headers 
+
         :raises MinimalColumnsError: raises this error if the necessary headers are not present in the dataframe
         :return: True
         :rtype: bool
@@ -224,6 +261,7 @@ class CsvFileReader:
 
     def valid_columns(self):
         """Check that all the provided columns are valid and are present in BASE_COLUMN list
+
         :raises ColumnsNotValidError: Raise an error when the column names are not valid
         :return: True
         :rtype: Boolean
@@ -255,6 +293,7 @@ class CsvFileReader:
 
     def column_exists(self, col):
         """Check if the column exists in the dataframe
+
         :param col: The column to check
         :type col: dataframe column
         :return: return true if the column exists
@@ -266,8 +305,9 @@ class CsvFileReader:
             return False
 
     def add_array_dimensions(self):
-        """add ni, nj and nk columns with the help of the d column in the dataframe 
-        :raises ArrayIs3dError: The error is raised if the array present in the d column is 3D
+        """Add ni, nj and nk columns with the help of the d column in the dataframe 
+
+        :raises ArrayIs3dError: Raised if the array present in the d column is 3D
         :return: df
         :rtype: pd.DataFrame
         """
@@ -403,7 +443,7 @@ class CsvFileReader:
                 raise DimensionError("Array with the same nomvar and etiket dont have the same dimension ")
 
     def to_numpy_array(self):
-        """Takes a string array and transforms it to a numpy array"""
+        """Takes a string array and transform it to a numpy array"""
         array_list = []
         for i in self.df.index:
             a = CsvArray(self.df.at[i, "d"])
