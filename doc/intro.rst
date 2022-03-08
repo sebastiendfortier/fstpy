@@ -13,7 +13,7 @@ independent.
 Fstpy philosophy
 ----------------
 
-The idea of ​​using a dataframe is to have a pythonic way of working
+The idea of using a dataframe is to have a pythonic way of working
 with standard files without having to know the mechanics of rmnlib.
 Since many people come here with numpy, pandas and xarray knowledge, the
 learning curve is much less steep.
@@ -32,7 +32,7 @@ Dask
 ----
 
 Dask is the type of array that is used by fstpy to wrap numpy arrays for 
-parallelisation purposes. You can use most of numpy’s API directly on 
+parallelisation purposes. You can use most of numpy's API directly on 
 these types of arrays. The only difference is that until array.compute() 
 is done, the dask array stores tasks instead of actually doing the 
 computations.
