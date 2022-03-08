@@ -125,8 +125,11 @@ class StandardFileWriter:
         rmn.fstcloseall(file_id)
 
     def _write(self):
+        from fstpy.dataframe import add_path_and_key_columns
 
         self.df = metadata_cleanup(self.df)
+        self.df = add_path_and_key_columns(self.df)
+        self.df = self.df.sort_values(by=['path','key'])
 
         if self.rewrite is None:
             rewrite = set_rewrite(self.df)

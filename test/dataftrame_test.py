@@ -58,7 +58,8 @@ def test_2(simple_df):
 
     assert(simple_df.grid.unique().size == 2)
     
-    simple_df.loc[simple_df.grid.isna(), 'ig1'] = 1234567
+    if not simple_df.loc[simple_df.grid.isna()].empty:
+        simple_df.loc[simple_df.grid.isna(), 'ig1'] = 1234567
     simple_df = fstpy.add_grid_column(simple_df)
     
     assert('123456777761' in list(simple_df.grid.unique())) 
@@ -88,7 +89,7 @@ def test_3(simple_df, input_file):
     simple_df = fstpy.add_path_and_key_columns(simple_df)
 
     assert(pathlib.Path(simple_df.path.unique()[0]) == pathlib.Path(input_file))
-    assert(list(simple_df.key.unique()) == ['22529','4097','5121','23553','54273'])
+    assert(list(simple_df.key.unique()) == [22529,4097,5121,23553,54273])
 
 
 def test_4(simple_df):
