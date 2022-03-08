@@ -11,13 +11,29 @@ import rpnpy.librmn.all as rmn
 
 BASE_COLUMNS = ['nomvar', 'typvar', 'etiket', 'level', 'dateo', 'ip1', 'ip2', 'ip3',
                 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd']
+"""Columns present in the final dataframe"""
+
 IP1_KIND: Final[int] = 3
+"""ip1 kind used in levels"""
+
 NOMVAR_MIN_LEN: Final[int] = 2
+"""minimum length for nomvar values"""
+
 NOMVAR_MAX_LEN: Final[int] = 4
+"""maximum length for nomvar values"""
+
 TYPVAR_MIN_LEN: Final[int] = 1
+"""minimum length for typvar values"""
+
 TYPVAR_MAX_LEN: Final[int] = 2
+"""maximum length for typvar values"""
+
 ETIKET_MIN_LEN: Final[int] = 1
+"""minimum length for etiket values"""
+
 ETIKET_MAX_LEN: Final[int] = 12
+"""maximum length for etiket values"""
+
 NBITS_DEFAULT: Final[int] = 24
 DATYP_DEFAULT: Final[int] = 1
 GRTYP_DEFAULT: Final[str] = "X"
@@ -69,16 +85,21 @@ class CsvFileReader:
     """Read a csv file and convert it to a pandas dataframe.
 
     :param path: path of the csv file to read
-    :type path:str
+    :type path: str
     
+
     Algorithm:
-        Reading a file that must have the followed form:
 
-        COLUMNS/HEADERS NAMES: nomvar,etiket,level,d
+    Read a file that must have the following form:
+    
+    +---------+------------+-----------+-------------------------------------+
+    | nomvar  | etiket     |   level   |              d                      |
+    +=========+============+===========+=====================================+
+    | CSV     | CSVREADER  |    1.0    | 11.1,22.2;33.3,44.4;55.5,66.6       |
+    +---------+------------+-----------+-----------+-------------------------+
+    | CSV     | CSVREADER  |    0.0    | 77.7,88.8;99.9,100.10;110.11,120.12 |
+    +---------+------------+-----------+-------------------------------------+
 
-        VALUES:                CSV,CSVREADER,1.0,"11.1,22.2;33.3,44.4;55.5,66.6"
-
-        VALUES:                CSV,CSVREADER,0.0,"77.7,88.8;99.9,100.10;110.11,120.12"
 
     - The d column is composed of floats and the ";" means one of the line of the level is done
     - You can't provide an ip1 column and a level column at the same time in your dataframe
@@ -88,69 +109,85 @@ class CsvFileReader:
     - nk is always equal to 1
     - arrays in rows sharing the same metadata columns (same nomvar, etiket, etc.), must have the same dimensions
     - comments are permitted on separate lines than the csv values 
-    - Admissible columns:
-            'nomvar': "str", variable name 
 
-            'typvar': 'str', type of field (forecast, analysis, climatology)
 
-            'etiket': 'str', label
+    - Admissible columns: 
 
-            'level': 'int32', value that helps get ip1
+        +---------+--------+------------------------------------------------------+
+        | column  | type   |                   details                            | 
+        +=========+========+======================================================+
+        | nomvar  | str    |                  variable name                       |
+        +---------+--------+------------------------------------------------------+
+        | typvar  | str    |                 type of field                        | 
+        +---------+--------+------------------------------------------------------+
+        | etiket  | str    |                   label                              | 
+        +---------+--------+------------------------------------------------------+
+        | level   | str    |               value that helps get ip1               | 
+        +---------+--------+------------------------------------------------------+
+        | ip1     | int32  |                 vertical level                       | 
+        +---------+--------+------------------------------------------------------+
+        | ip2     | int32  |                 forecast hour                        | 
+        +---------+--------+------------------------------------------------------+
+        | ip3     | int32  |                user defined identifier               | 
+        +---------+--------+------------------------------------------------------+
+        | datyp   | int32  |                    data type                         | 
+        +---------+--------+------------------------------------------------------+
+        | nbits   | int32  |    number of bits kept for the elements of the field | 
+        +---------+--------+------------------------------------------------------+
+        | grtyp   | str    |   type of geographical projection                    | 
+        +---------+--------+------------------------------------------------------+
+        | d       | str    |    data column                                       | 
+        +---------+--------+------------------------------------------------------+
 
-            'ip1': 'int32', vertical level
 
-            'ip2': 'int32', forecast hour
-
-            'ip3': 'int32', user defined identifier
-
-            'datyp': 'int32', data type 
-
-            'nbits': 'int32', number of bits kept for the elements of the field
-
-            'grtyp': 'str', type of geographical projection
-
-            'd': 'str', data column
 
     - If not already provided these columns will be added:
-            'ni': 'int32', first dimension of the data field
 
-            'nj': 'int32', second dimension of the data field
-
-            'nk': 'int32', third dimension of the data field
-
-            'nomvar': "str", variable name 
-
-            'typvar': 'str', type of field (forecast, analysis, climatology)
-
-            'etiket': 'str', label
-
-            'dateo': 'int32', date of observation  
-
-            'ip1': 'int32', vertical level
-
-            'ip2': 'int32', forecast hour
-
-            'ip3': 'int32', user defined identifier
-
-            'datyp': 'int32', data type 
-
-            'nbits': 'int32', number of bits kept for the elements of the field
-
-            'ig1': 'int32', first grid descriptor
-
-            'ig2': 'int32', second grid descriptor
-
-            'ig3': 'int32', third grid descriptor
-
-            'ig4': 'int32', fourth grid descriptor
-
-            'deet': 'int32', Length of a time step in seconds datev constant unless keep_dateo 
-
-            'npas': 'int32', time step number datev constant unless keep_dateo
-
-            'grtyp': 'str', type of geographical projection 
-
-            'datev': 'int32', date of validation
+        +---------+--------+------------------------------------------------------+
+        | column  | type   |                   details                            | 
+        +=========+========+======================================================+
+        | nomvar  | str    |                  variable name                       |
+        +---------+--------+------------------------------------------------------+
+        | typvar  | str    |                 type of field                        | 
+        +---------+--------+------------------------------------------------------+
+        | etiket  | str    |                   label                              | 
+        +---------+--------+------------------------------------------------------+
+        | dateo   | int32  |               date of observation                    | 
+        +---------+--------+------------------------------------------------------+
+        | ip1     | int32  |                 vertical level                       | 
+        +---------+--------+------------------------------------------------------+
+        | ip2     | int32  |                 forecast hour                        | 
+        +---------+--------+------------------------------------------------------+
+        | ip3     | int32  |                user defined identifier               | 
+        +---------+--------+------------------------------------------------------+
+        | deet    | int32  | Length of a time step in seconds datev constant      |  
+        +---------+--------+------------------------------------------------------+
+        | npas    | int32  | time step number datev constant unless keep_dateo    | 
+        +---------+--------+------------------------------------------------------+
+        | datyp   | int32  |                    data type                         |
+        +---------+--------+------------------------------------------------------+
+        | nbits   | int32  |    number of bits kept for the elements of the field | 
+        +---------+--------+------------------------------------------------------+
+        | grtyp   | str    |   type of geographical projection                    | 
+        +---------+--------+------------------------------------------------------+
+        | ni      | int32  |    first dimension of the data field                 | 
+        +---------+--------+------------------------------------------------------+
+        | nj      | int32  |    second dimension of the data field                | 
+        +---------+--------+------------------------------------------------------+
+        | nk      | int32  |    third dimension of the data field                 | 
+        +---------+--------+------------------------------------------------------+
+        | ig1     | int32  |                first grid descriptor                 | 
+        +---------+--------+------------------------------------------------------+
+        | ig2     | int32  |               second grid descriptor                 | 
+        +---------+--------+------------------------------------------------------+
+        | ig3     | int32  |               third grid descriptor                  | 
+        +---------+--------+------------------------------------------------------+
+        | ig4     | int32  |                fourth grid descriptor                | 
+        +---------+--------+------------------------------------------------------+
+        | datev   | int32  |                date of validation                    | 
+        +---------+--------+------------------------------------------------------+
+        | grid    | str    |                                                      | 
+        +---------+--------+------------------------------------------------------+
     """
 
     def __init__(self, path, encode_ip1=True):
@@ -177,6 +214,7 @@ class CsvFileReader:
         """Count the number of characters in a string. This function check the length of a string in a specific column of the dataframe
 
         :param s: the name of the column
+        :type s: str
         :return: a list with the counts of the number of characters inside a string in the differents rows of a single column
         """
         array_list = []
@@ -186,7 +224,10 @@ class CsvFileReader:
         return array_list
 
     def check_nomvar_char_length(self):
-        f"""Check that the length of the column nomvar is always between {NOMVAR_MIN_LEN} and {NOMVAR_MAX_LEN} characters for the whole dataframe"""
+        """Check that the length of the column nomvar is always between 2 and 4 characters for the whole dataframe 
+
+        :raises NomVarLengthError: the nomvar values does not have the correct length
+        """
 
         a = self.count_char(s="nomvar")
         for i in a:
@@ -194,16 +235,20 @@ class CsvFileReader:
                 raise NomVarLengthError(f"the variable nomvar should have between {NOMVAR_MIN_LEN} and {NOMVAR_MAX_LEN} characters")
 
     def check_typvar_char_length(self):
-        f"""Check that the length of the column typvar is always between {TYPVAR_MIN_LEN} and {TYPVAR_MAX_LEN} characters for the whole dataframe"""
+        """Check that the length of the column typvar is always between 1 and 2 characters for the whole dataframe
 
+        :raises TypVarLengthError: the typvar values does not have the correct length
+        """
         a = self.count_char(s="typvar")
         for i in a:
             if (i < TYPVAR_MIN_LEN or i > TYPVAR_MAX_LEN):
                 raise TypVarLengthError(f"the variable typvar should have between {TYPVAR_MIN_LEN} and {TYPVAR_MAX_LEN} characters")
 
     def check_etiket_char_length(self):
-        f"""Check that the length of the column etiket is always between {ETIKET_MIN_LEN} and {ETIKET_MAX_LEN} characters for the whole dataframe"""
+        """Check that the length of the column etiket is always between 1 and 12 characters for the whole dataframe 
 
+        :raises EtiketVarLengthError: the etiket values does not have the correct length
+        """
         a = self.count_char(s="etiket")
         for i in a:
             if (i < ETIKET_MIN_LEN or i > ETIKET_MAX_LEN):
@@ -247,7 +292,7 @@ class CsvFileReader:
     def has_minimal_columns(self):
         """Verify that I have the minimum amount of headers 
 
-        :raises MinimalColumnsError: raises this error if the necessary headers are not present in the dataframe
+        :raises MinimalColumnsError: the necessary headers are not present in the dataframe
         :return: True
         :rtype: bool
         """
@@ -262,7 +307,7 @@ class CsvFileReader:
     def valid_columns(self):
         """Check that all the provided columns are valid and are present in BASE_COLUMN list
 
-        :raises ColumnsNotValidError: Raise an error when the column names are not valid
+        :raises ColumnsNotValidError: the column names are not valid
         :return: True
         :rtype: Boolean
         """
@@ -279,15 +324,13 @@ class CsvFileReader:
             if(is_subset):
                 return True
             else:
-                raise ColumnsNotValidError(f'The headers in the csv file are not valid. Make sure that the columns names'
-                                           + 'are present in {BASE_COLUMNS}')
+                raise ColumnsNotValidError(f'The headers in the csv file are not valid. Make sure that the columns names are present in {BASE_COLUMNS}')
 
         if(len(list_of_hdr_names) == len(BASE_COLUMNS)):
             if all_the_cols == list_of_hdr_names:
                 return True
             else:
-                raise ColumnsNotValidError(f'The headers in the csv file are not valid. Make sure that the columns names'
-                                           + 'are present in {BASE_COLUMNS}')
+                raise ColumnsNotValidError(f'The headers in the csv file are not valid. Make sure that the columns names are present in {BASE_COLUMNS}')
         else:
             raise ColumnsNotValidError('The headers in the csv file are not valid you have too many columns')
 
@@ -307,7 +350,7 @@ class CsvFileReader:
     def add_array_dimensions(self):
         """Add ni, nj and nk columns with the help of the d column in the dataframe 
 
-        :raises ArrayIs3dError: Raised if the array present in the d column is 3D
+        :raises ArrayIs3dError: the array present in the d column is 3D
         :return: df
         :rtype: pd.DataFrame
         """
@@ -396,7 +439,7 @@ class CsvFileReader:
         """Add the ip1 column with the help of the level column. 
         The level column is deleted after the data been encoded and put on the ip1 column
 
-        :raises Ip1andLevelExistsError: raised when ip1 and level column exists in the given dataframe
+        :raises Ip1andLevelExistsError: ip1 and level column exists in the given dataframe
         """
         if self.column_exists("level") and (not self.column_exists("ip1")) and self.encode_ip1:
             for row in self.df.itertuples():
@@ -431,7 +474,7 @@ class CsvFileReader:
     def check_array_dimensions(self):
         """Check if etiket and name is the same as the previous row to compare dimensions
 
-        :raises DimensionError: raise an error when the array with the same var and etiket dont have the same dimension
+        :raises DimensionError: the array with the same var and etiket dont have the same dimension
         """
         groups = self.df.groupby(['nomvar', 'typvar', 'etiket', 'dateo', 'ip2', 'ip3', 'deet', 'npas', 'datyp',
                                   'nbits', 'ig1', 'ig2', 'ig3', 'ig4'])
@@ -477,7 +520,7 @@ class CsvArray:
 
     :param array: An array with the data
     :type array: string or numpy array
-    :raises ArrayIsNotStringOrNp: the error is raised when the array is not formed from strings or numpy array
+    :raises ArrayIsNotStringOrNp: the array is not formed from strings or numpy array
     """
 
     def __init__(self, array):
@@ -490,7 +533,7 @@ class CsvArray:
     def validate_array(self):
         """Validate that the array is either a string or a numpy array
 
-        :raises ArrayIs3dError: raises an error when the array provided is 3D
+        :raises ArrayIs3dError: the array provided is 3D
         :rtype: Boolean
         """
 
@@ -502,7 +545,7 @@ class CsvArray:
     def to_numpy(self):
         """Transform self.array to a numpy array
 
-        :raises ArrayIs3dError: raises an error when the array provided is 3D
+        :raises ArrayIs3dError: the array provided is 3D
         :return: numpy array
         """
         if isinstance(self.array, str):
@@ -515,9 +558,9 @@ class CsvArray:
             return self.array
 
     def to_str(self):
-        """Transform self.array to a string
+        """Transform numpy array to a string
 
-        :raises ArrayIs3dError: raises an error when the array provided is 3D
+        :raises ArrayIs3dError: the array provided is 3D
         :return: string array
         """
         if isinstance(self.array, np.ndarray):

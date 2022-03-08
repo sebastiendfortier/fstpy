@@ -46,7 +46,6 @@ def test_2(plugin_test_dir):
     """Test with gds1_pds1_level2.new.csv. It should return a DataFrame"""
     src = plugin_test_dir + 'gds1_pds1_level2.new.csv'
     df = fstpy.CsvFileReader(src, encode_ip1=False).to_pandas()
-
     NI = 3
     NJ = 2
     NK = 1
@@ -71,7 +70,6 @@ def test_2(plugin_test_dir):
     assert(df.d.size == 2)
     assert(np.array_equal(d1, d2))
     assert(np.array_equal(d3, d4))
-
 
 def test_3(plugin_test_dir):
     """Test with missing_eol_at_last_line_of_data.new.csv. It should return a DataFrame"""
