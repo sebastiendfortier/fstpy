@@ -58,7 +58,8 @@ def test_2(simple_df):
 
     assert(simple_df.grid.unique().size == 2)
     
-    simple_df.loc[simple_df.grid.isna(), 'ig1'] = 1234567
+    if not simple_df.loc[simple_df.grid.isna()].empty:
+        simple_df.loc[simple_df.grid.isna(), 'ig1'] = 1234567
     simple_df = fstpy.add_grid_column(simple_df)
     
     assert('123456777761' in list(simple_df.grid.unique())) 
