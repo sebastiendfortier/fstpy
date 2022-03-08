@@ -40,6 +40,7 @@ Documentation
 
 * :doc:`all`
 * :doc:`apply_mask`
+* :doc:`csv_reader`
 * :doc:`dataframe_utils`
 * :doc:`dataframe`
 * :doc:`log`
@@ -54,6 +55,7 @@ Documentation
 * :doc:`unit`
 * :doc:`utils`
 
+
 .. toctree::
    :maxdepth: 1
    :hidden:
@@ -61,6 +63,7 @@ Documentation
 
    all
    apply_mask
+   csv_reader
    dataframe_utils
    dataframe
    log
