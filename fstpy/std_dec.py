@@ -128,7 +128,7 @@ def get_ip_info(nomvar:str, ip1: int, ip2: int, ip3: int):
 
     return i1['v1'], i1['kind'], i1['kinds'], i2['v1'], i2['kind'], i2['kinds'], i3['v1'], i3['kind'], i3['kinds'], surface, follow_topography, ascending, interval
 
-VCREATE_IP_INFO: Final = np.vectorize(get_ip_info, otypes=['float32', 'int32', 'str', 'float32', 'int32', 'str', 'float32', 'int32', 'str', 'bool', 'bool', 'bool', 'object'])
+VCREATE_IP_INFO: Final = vectorize(get_ip_info, otypes=['float32', 'int32', 'str', 'float32', 'int32', 'str', 'float32', 'int32', 'str', 'bool', 'bool', 'bool', 'object'])
 
 
 def get_unit_and_description(nomvar):
@@ -251,7 +251,7 @@ def get_grid_identifier(nomvar: str, ip1: int, ip2: int, ig1: int, ig2: int) -> 
         grid = "".join([str(ig1), str(ig2)])
     return grid
 
-VCREATE_GRID_IDENTIFIER: Final = np.vectorize(get_grid_identifier, otypes=['str'])
+VCREATE_GRID_IDENTIFIER: Final = vectorize(get_grid_identifier, otypes=['str'])
 
 def get_parsed_etiket(raw_etiket: str):
     """parses the etiket of a standard file to get label, run, implementation and ensemble member if available
