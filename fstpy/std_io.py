@@ -602,6 +602,8 @@ def add_dask_column(df:pd.DataFrame) -> pd.DataFrame:
     :return: modified Dataframe with added 'd' column
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     arrays = []
     for row in df.itertuples():
         path = row.path

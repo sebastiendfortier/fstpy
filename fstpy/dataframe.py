@@ -26,6 +26,8 @@ def add_grid_column(df: pd.DataFrame) -> pd.DataFrame:
     :return: modified dataframe with the 'grid' column added
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     for col in ['nomvar', 'ip1', 'ip2', 'ig1', 'ig2']:
         if col not in df.columns:
             raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add grid column!')
