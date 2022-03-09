@@ -75,6 +75,8 @@ class GetRecordsFromFile(Exception):
 
 
 def add_metadata_to_query_results(df, query_result_df, hy_df) -> pd.DataFrame:
+    if df.empty:
+        return df
     meta_df = df.loc[df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1"])]
 
     query_result_metadata_df = meta_df.loc[meta_df.grid.isin(list(query_result_df.grid.unique()))]
