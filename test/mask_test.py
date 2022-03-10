@@ -6,7 +6,7 @@ import pytest
 import copy
 import numpy as np
 from ci_fstcomp import fstcomp
-
+import secrets
 pytestmark = [pytest.mark.regressions]
 
 
@@ -34,7 +34,7 @@ def test_1(test_data1):
 
     assert(len(df.index) == (src_nb_rows/2) )
     # # write the result
-    # results_file = TMP_PATH + "test_1.std"
+    # results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_1.std"])
     # fstpy.delete_file(results_file)
     # fstpy.StandardFileWriter(results_file, df).to_fst()
 
@@ -69,7 +69,7 @@ def test_3(test_data2):
     new_df = fstpy.RecoverMask(df).compute()
 
     # write the result
-    results_file = TMP_PATH + "test_3.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_3.std"])
     fstpy.delete_file(results_file)
     fstpy.StandardFileWriter(results_file, new_df).to_fst()
 
@@ -106,7 +106,7 @@ def test_4(test_data0):
     new_df = fstpy.RecoverMask(df).compute()
 
     # write the result
-    results_file = TMP_PATH + "test_4.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_4.std"])
     fstpy.delete_file(results_file)
     fstpy.StandardFileWriter(results_file, new_df).to_fst()
 
