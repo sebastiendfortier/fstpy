@@ -8,6 +8,7 @@ from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.utils import delete_file
 import rpnpy.librmn.all as rmn
+import secrets
 
 pytestmark = [pytest.mark.std_reader_regtests, pytest.mark.regressions]
 
@@ -34,7 +35,7 @@ def test_2(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,T6] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_2.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_2.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -54,7 +55,7 @@ def test_3(plugin_test_dir):
     src_df0 = StandardFileReader(source0).to_pandas()
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_3.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_3.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -75,7 +76,7 @@ def test_5(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_5.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_5.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -101,7 +102,7 @@ def test_6(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,TT] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_6.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_6.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, df).to_fst()
 
@@ -123,7 +124,7 @@ def test_7(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --noMetadata --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_7.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_7.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0,no_meta=True).to_fst()
 
@@ -147,7 +148,7 @@ def test_7(plugin_test_dir):
 #     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_read_reg_8.std"
+#     results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_8.std"])
 #     delete_file(results_file)
 #     StandardFileWriter(results_file, src_df0).to_fst()
 #     print(results_file)
@@ -172,7 +173,7 @@ def test_9(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_9.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_9.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -199,7 +200,7 @@ def test_10(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]} {sources[1]} {sources[2]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_10.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_10.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -224,7 +225,7 @@ def test_11(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_11.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_11.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -249,7 +250,7 @@ def test_12(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_12.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_12.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -274,7 +275,7 @@ def test_13(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --noUnitConversion]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_13.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_13.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -298,7 +299,7 @@ def test_14(plugin_test_dir):
     #['[ReaderStd --ignoreExtended --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]']
     src_df0.loc[:, 'typvar'] = 'P'
     #write the result
-    results_file = TMP_PATH + "test_read_reg_14.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_14.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -323,7 +324,7 @@ def test_15(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
     src_df0.loc[:, 'typvar'] = 'P'
     #write the result
-    results_file = TMP_PATH + "test_read_reg_15.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_15.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -348,7 +349,7 @@ def test_16(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
     src_df0.loc[:, 'typvar'] = 'P'
     #write the result
-    results_file = TMP_PATH + "test_read_reg_16.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_16.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -373,7 +374,7 @@ def test_17(plugin_test_dir):
     #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
     src_df0.loc[:, 'typvar'] = 'P'
     #write the result
-    results_file = TMP_PATH + "test_read_reg_17.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_17.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -399,7 +400,7 @@ def test_18(plugin_test_dir):
     src_df0.loc[:, 'typvar'] = 'P'
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_18.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_18.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -425,7 +426,7 @@ def test_19(plugin_test_dir):
     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path}]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_19.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_19.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -453,7 +454,7 @@ def test_20(plugin_test_dir):
     #[ReaderStd --input {sources[0]}] >> [Select --fieldName FN] >> [WriterStd --output {destination_path}]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_20.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_20.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -480,7 +481,7 @@ def test_21(plugin_test_dir):
     src_df0.loc[:,'etiket'] = 'K80'
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_21.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_21.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -504,7 +505,7 @@ def test_22(plugin_test_dir):
     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path}]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_22.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_22.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -531,7 +532,7 @@ def test_23(plugin_test_dir):
     #[ReaderStd --input {sources[0]}] >> [ZapSmart --fieldNameFrom AI --fieldNameTo PT] >> [WriterStd --output {destination_path}]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_23.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_23.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -556,7 +557,7 @@ def test_23(plugin_test_dir):
 #     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path} --writingMode APPEND]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_read_reg_25.std"
+#     results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_25.std"])
 #     StandardFileWriter(results_file, src_df0).to_fst()
 
 #     # open and read comparison file
@@ -580,7 +581,7 @@ def test_26(plugin_test_dir):
     #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path} ]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_26.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_26.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -607,7 +608,7 @@ def test_28(plugin_test_dir):
     #[ReaderStd --input {sources[0]} {sources[1]} {sources[2]} --ignoreExtended] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_28.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_28.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -632,7 +633,7 @@ def test_29(plugin_test_dir):
     #['[ReaderStd --input {sources[0]} --ignoreExtended] >> ', '[WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE --flagMissingData]']
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_29.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_29.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -661,7 +662,7 @@ def test_30(plugin_test_dir):
     #['[ReaderStd --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_30.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_30.std"])
     delete_file(results_file)
 
     StandardFileWriter(results_file, src_df0).to_fst()
@@ -687,7 +688,7 @@ def test_31(plugin_test_dir):
     src_df0.loc[:,'ip2'] = 24
     # print(src_df0[['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','grtyp','ig1','ig2','ig3','ig4']].to_string())
     #write the result
-    results_file = TMP_PATH + "test_read_reg_31.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_31.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0, rewrite=True).to_fst()
 
@@ -714,7 +715,7 @@ def test_32(plugin_test_dir):
     #['[ReaderStd --input {sources[0]}] >>', '[Select --fieldName WGEX] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_32.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_32.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -738,7 +739,7 @@ def test_33(plugin_test_dir):
     #['[ReaderStd --input {sources[0]}]>>', '[WriterStd --output {destination_path}]']
 
     #write the result
-    results_file = TMP_PATH + "test_read_reg_33.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_33.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 

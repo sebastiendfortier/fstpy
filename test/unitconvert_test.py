@@ -7,7 +7,7 @@ from test import TMP_PATH, TEST_PATH
 import pandas as pd
 import pytest
 from ci_fstcomp import fstcomp
-
+import secrets
 
 pytestmark = [pytest.mark.unit_regtests] #, pytest.mark.regressions
 
@@ -40,7 +40,7 @@ def test_1(plugin_test_dir):
     df['etiket']='WINDMOX'
     df.loc[:, 'typvar'] = 'PU'
     #write the result
-    results_file = TMP_PATH + "test_unitconv_1.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_unitconv_1.std"])
     delete_file(results_file)
 
     # df['datyp']=5
@@ -69,7 +69,7 @@ def test_2(plugin_test_dir):
     df.loc[:,'etiket']='WINDMODULUS'
 
     #write the result
-    results_file = TMP_PATH + "test_unitconv_2.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_unitconv_2.std"])
     delete_file(results_file)
     # df['datyp']=5
     # df['nbits']=32
@@ -99,7 +99,7 @@ def test_3(plugin_test_dir):
     df['etiket']='WINDMOX'
 
     #write the result
-    results_file = TMP_PATH + "test_unitconv_3.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_unitconv_3.std"])
     delete_file(results_file)
     # df['datyp']=5
     # df['nbits']=32
@@ -129,7 +129,7 @@ def test_4(plugin_test_dir):
     df['nomvar'] = 'UV*'
     df['etiket'] = 'WINDMODULUS'
     #write the result
-    results_file = TMP_PATH + "test_unitconv_4.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_unitconv_4.std"])
     delete_file(results_file)
     # df['datyp']=5
     # df['nbits']=32
@@ -157,7 +157,7 @@ def test_5(plugin_test_dir):
     df['nomvar'] = 'UV*'
     df['etiket'] = 'WINDMODULUS'
     #write the result
-    results_file = TMP_PATH + "test_unitconv_5.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_unitconv_5.std"])
     delete_file(results_file)
     # df['datyp']=5
     # df['nbits']=32
@@ -202,7 +202,7 @@ def test_6(plugin_test_dir):
     # df = zap(df,etiket='R1558V0N')
 
     #write the result
-    results_file = TMP_PATH + "test_unitconv_6.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_unitconv_6.std"])
     delete_file(results_file)
     # df['datyp']=5
     # df['nbits']=32
@@ -260,7 +260,7 @@ def test_7(plugin_test_dir):
 
     all_df = pd.concat([all_df,others_df,meta_df],ignore_index=True)
     #write the result
-    results_file = TMP_PATH + "test_unitconv_7.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_unitconv_7.std"])
     delete_file(results_file)
     all_df['datyp']=5
     all_df['nbits']=32
@@ -299,7 +299,7 @@ def test_8(plugin_test_dir):
 
 
     #write the result
-    results_file = TMP_PATH + "test_unitconv_8.std"
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_unitconv_8.std"])
     delete_file(results_file)
     #all_df['datyp']=5
     #all_df['nbits']=32
@@ -342,7 +342,7 @@ def test_8(plugin_test_dir):
 #     # [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_unitconv_9.std"
+#     results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_unitconv_9.std"])
 #     delete_file(results_file)
 #     all_df['datyp']=5
 #     all_df['nbits']=32
@@ -396,7 +396,7 @@ def test_8(plugin_test_dir):
 #     # [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
 #     #write the result
-#     results_file = TMP_PATH + "test_unitconv_10.std"
+#     results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_unitconv_10.std"])
 #     delete_file(results_file)
 #     all_df['datyp']=5
 #     all_df['nbits']=32

@@ -249,8 +249,7 @@ def test_9(plugin_test_dir):
 
 
 def test_10(plugin_test_dir):
-    """Test to see if I can read a csv file with only a single line per level. 
-       Should return a DataFrame """
+    """Test to see if I can read a csv file with only a single line per level. Should return a DataFrame """
     src = plugin_test_dir + 'only_1_line_per_level.new.csv'
     df = fstpy.CsvFileReader(src, encode_ip1=False).to_pandas()
 

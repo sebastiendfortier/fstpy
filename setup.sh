@@ -45,7 +45,7 @@ use_fstpy_deps(){
     # fstpy uses low-level python binding for
     # librmn functions provided by rpnpy
     print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
-    print_and_do . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/1.0.6
+    print_and_do . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/1.0.8
 }
 
 use_fstpy

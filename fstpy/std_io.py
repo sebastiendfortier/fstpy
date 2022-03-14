@@ -8,8 +8,8 @@ import pathlib
 import time
 from ctypes import (POINTER, Structure, c_char_p, c_int, c_int32, c_uint,
                     c_uint32, c_void_p, cast)
-import ctypes as ct
-import numpy.ctypeslib as npc
+# import ctypes as ct
+# import numpy.ctypeslib as npc
 from typing import Tuple, Type
 
 import numpy as np
@@ -75,6 +75,8 @@ class GetRecordsFromFile(Exception):
 
 
 def add_metadata_to_query_results(df, query_result_df, hy_df) -> pd.DataFrame:
+    if df.empty:
+        return df
     meta_df = df.loc[df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF", "P0", "PT", "E1"])]
 
     query_result_metadata_df = meta_df.loc[meta_df.grid.isin(list(query_result_df.grid.unique()))]
@@ -478,90 +480,121 @@ def get_data(path, key, cache={}):
 # Allows for better threading performance by avoiding the need to lock.
 #
 
-librmn.compact_float.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.POINTER(ct.c_double))
-librmn.compact_double.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.POINTER(ct.c_double))
-librmn.compact_integer.argtypes = (npc.ndpointer(dtype='int32'), ct.c_void_p, npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int)
-librmn.ieeepak_.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int))
-librmn.compact_char.argtypes = (npc.ndpointer(dtype='int32'), ct.c_void_p, npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int)
-librmn.c_armn_uncompress32.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int)
-librmn.armn_compress.argtypes = (npc.ndpointer(dtype='int32'),ct.c_int,ct.c_int,ct.c_int,ct.c_int,ct.c_int)
-librmn.c_float_unpacker.argtypes = (npc.ndpointer(dtype='int32'),npc.ndpointer(dtype='int32'),npc.ndpointer(dtype='int32'),ct.c_int,ct.POINTER(ct.c_int))
+# librmn.compact_float.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.POINTER(ct.c_double))
+# librmn.compact_double.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.POINTER(ct.c_double))
+# librmn.compact_integer.argtypes = (npc.ndpointer(dtype='int32'), ct.c_void_p, npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int)
+# librmn.ieeepak_.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int), ct.POINTER(ct.c_int))
+# librmn.compact_char.argtypes = (npc.ndpointer(dtype='int32'), ct.c_void_p, npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int)
+# librmn.c_armn_uncompress32.argtypes = (npc.ndpointer(dtype='int32'), npc.ndpointer(dtype='int32'), ct.c_int, ct.c_int, ct.c_int, ct.c_int)
+# librmn.armn_compress.argtypes = (npc.ndpointer(dtype='int32'),ct.c_int,ct.c_int,ct.c_int,ct.c_int,ct.c_int)
+# librmn.c_float_unpacker.argtypes = (npc.ndpointer(dtype='int32'),npc.ndpointer(dtype='int32'),npc.ndpointer(dtype='int32'),ct.c_int,ct.POINTER(ct.c_int))
 
-def get_data_fast(path, swa, lng):
-    import rpnpy.librmn.all as rmn
-    import numpy as np
-    with open(path,'rb') as f:
-        f.seek(swa*8-8,0)
-        data = np.fromfile(f,'B',lng*4)
-    data = data.view('>i4').astype('i4')
-    ni, nj, nk = data[3]>>8, data[4]>>8, data[5]>>12
-    nelm = ni*nj*nk
-    datyp = int(data[4]%256) & 191  # Ignore +64 mask.
-    nbits = int(data[2]%256)
-    dtype = rmn.dtype_fst2numpy (datyp, nbits)
-    if nbits <= 32:
-        work = np.empty(nelm,'int32')
-    else:
-        work = np.empty(nelm,'int64').view('int32')
-    # Strip header
-    data = data[20:]
-    # Extend data buffer for in-place decompression.
-    if datyp in (129,130,134):
-        d = np.empty(nelm + 100, dtype='int32')
-        d[:len(data)] = data
-        data = d
-    shape = (nj,ni)
-    ni = ct.c_int(ni)
-    nj = ct.c_int(nj)
-    nk = ct.c_int(nk)
-    nelm = ct.c_int(nelm)
-    npak = ct.c_int(-nbits)
-    nbits = ct.c_int(nbits)
-    zero = ct.c_int(0)
-    one = ct.c_int(1)
-    two = ct.c_int(2)
-    tempfloat = ct.c_double(99999.0)
+# def get_data_fast(path, swa, lng):
+#     import rpnpy.librmn.all as rmn
+#     import numpy as np
+#     with open(path,'rb') as f:
+#         f.seek(swa*8-8,0)
+#         data = np.fromfile(f,'B',lng*4)
+#     data = data.view('>i4').astype('i4')
+#     ni, nj, nk = data[3]>>8, data[4]>>8, data[5]>>12
+#     nelm = ni*nj*nk
+#     datyp = int(data[4]%256) & 191  # Ignore +64 mask.
+#     nbits = int(data[2]%256)
+#     dtype = rmn.dtype_fst2numpy (datyp, nbits)
+#     if nbits <= 32:
+#         work = np.empty(nelm,'int32')
+#     else:
+#         work = np.empty(nelm,'int64').view('int32')
+#     # Strip header
+#     data = data[20:]
+#     # Extend data buffer for in-place decompression.
+#     if datyp in (129,130,134):
+#         d = np.empty(nelm + 100, dtype='int32')
+#         d[:len(data)] = data
+#         data = d
+#     shape = (nj,ni)
+#     ni = ct.c_int(ni)
+#     nj = ct.c_int(nj)
+#     nk = ct.c_int(nk)
+#     nelm = ct.c_int(nelm)
+#     npak = ct.c_int(-nbits)
+#     nbits = ct.c_int(nbits)
+#     zero = ct.c_int(0)
+#     one = ct.c_int(1)
+#     two = ct.c_int(2)
+#     tempfloat = ct.c_double(99999.0)
 
-    if datyp == 0:
-        work = data
-    elif datyp == 1:
-        if nbits.value <= 32:
-            librmn.compact_float(work, data, data[3:], nelm, nbits, 24, 1, 2, 0, ct.byref(tempfloat))
-        else:
-            raise Exception
-            librmn.compact_double(work, data, data[3:], nelm, nbits, 24, 1, 2, 0, ct.byref(tempfloat))
-    elif datyp == 2:
-        librmn.compact_integer(work, None, data, nelm, nbits, 0, 1, 2)
-    elif datyp == 3:
-        raise Exception
-    elif datyp == 4:
-        librmn.compact_integer(work, None, data, nelm, nbits, 0, 1, 4)
-    elif datyp == 5:
-        librmn.ieeepak_(work, data, ct.byref(nelm), ct.byref(one), ct.byref(npak), ct.byref(zero), ct.byref(two))
-    elif datyp == 6:
-        librmn.c_float_unpacker(work, data, data[3:], nelm, ct.byref(nbits));
-    elif datyp == 7:
-        ier = librmn.compact_char(work, None, data, nelm, 8, 0, 1, 10)
-        work = work.view('B')[:len(work)] #& 127
-    elif datyp == 8:
-        raise Exception
-    elif datyp == 129:
-        librmn.armn_compress(data[5:],ni,nj,nk,nbits,2)
-        librmn.compact_float(work,data[1:],data[5:],nelm,nbits.value+64*max(16,nbits.value),0,1,2,0,ct.byref(tempfloat))
-    elif datyp == 130:
-        librmn.armn_compress(data[1:],ni,nj,nk,nbits,2)
-        work[:] = data[1:].astype('>i4').view('>H')[:nelm.value]
-    elif datyp == 133:
-        librmn.c_armn_uncompress32(work, data[1:], ni, nj, nk, nbits)
-    elif datyp == 134:
-        librmn.armn_compress(data[4:],ni,nj,nk,nbits,2);
-        librmn.c_float_unpacker(work,data[1:],data[4:],nelm,ct.byref(nbits))
-    else:
-        raise Exception(datyp)
-    return work.view(dtype)[:nelm.value].reshape(shape).T
-#
-######################################################################
+#     if datyp == 0:
+#         work = data
+#     elif datyp == 1:
+#         if nbits.value <= 32:
+#             librmn.compact_float(work, data, data[3:], nelm, nbits, 24, 1, 2, 0, ct.byref(tempfloat))
+#         else:
+#             raise Exception
+#             librmn.compact_double(work, data, data[3:], nelm, nbits, 24, 1, 2, 0, ct.byref(tempfloat))
+#     elif datyp == 2:
+#         librmn.compact_integer(work, None, data, nelm, nbits, 0, 1, 2)
+#     elif datyp == 3:
+#         raise Exception
+#     elif datyp == 4:
+#         librmn.compact_integer(work, None, data, nelm, nbits, 0, 1, 4)
+#     elif datyp == 5:
+#         librmn.ieeepak_(work, data, ct.byref(nelm), ct.byref(one), ct.byref(npak), ct.byref(zero), ct.byref(two))
+#     elif datyp == 6:
+#         librmn.c_float_unpacker(work, data, data[3:], nelm, ct.byref(nbits));
+#     elif datyp == 7:
+#         ier = librmn.compact_char(work, None, data, nelm, 8, 0, 1, 10)
+#         work = work.view('B')[:len(work)] #& 127
+#     elif datyp == 8:
+#         raise Exception
+#     elif datyp == 129:
+#         librmn.armn_compress(data[5:],ni,nj,nk,nbits,2)
+#         librmn.compact_float(work,data[1:],data[5:],nelm,nbits.value+64*max(16,nbits.value),0,1,2,0,ct.byref(tempfloat))
+#     elif datyp == 130:
+#         librmn.armn_compress(data[1:],ni,nj,nk,nbits,2)
+#         work[:] = data[1:].astype('>i4').view('>H')[:nelm.value]
+#     elif datyp == 133:
+#         librmn.c_armn_uncompress32(work, data[1:], ni, nj, nk, nbits)
+#     elif datyp == 134:
+#         librmn.armn_compress(data[4:],ni,nj,nk,nbits,2);
+#         librmn.c_float_unpacker(work,data[1:],data[4:],nelm,ct.byref(nbits))
+#     else:
+#         raise Exception(datyp)
+#     return work.view(dtype)[:nelm.value].reshape(shape).T
+# #
+# ######################################################################
 
+
+# def add_dask_column2(df:pd.DataFrame) -> pd.DataFrame:
+#     """Adds the 'd' column as dask arrays to a basic dataframe of meta data only, path and key columns have to be present in the DataFrame
+
+#     :param df: input dataframe
+#     :type df: pd.DataFrame
+#     :return: modified Dataframe with added 'd' column
+#     :rtype: pd.DataFrame
+#     """
+#     arrays = []
+#     for row in df.itertuples():
+#         path = row.path
+#         key = row.key
+#         swa = row.swa
+#         lng = row.lng
+#         # Unique identifier for this record.
+#         name = ''.join([path,":",str(key)])
+#         # How to read the data for this record.
+#         shape = row.shape
+#         dsk = {(name, 0, 0): (get_data_fast, path, swa, lng)}
+#         field_dtype = get_field_dtype(row.datyp, row.nbits)
+#         # Size of the record.
+#         chunks = [(s,) for s in shape]
+#         arrays.append(da.Array(dsk, name, chunks, field_dtype))
+#     # Very *carefully* add to pandas.
+#     # Need to avoid triggering evaluation of the dask arrays via numpy.
+#     d = np.zeros(len(arrays), dtype=object)
+#     for i in range(len(d)):
+#         d[i] = arrays[i]
+#     df['d'] = d
+#     return df
 
 def add_dask_column(df:pd.DataFrame) -> pd.DataFrame:
     """Adds the 'd' column as dask arrays to a basic dataframe of meta data only, path and key columns have to be present in the DataFrame
@@ -571,17 +604,19 @@ def add_dask_column(df:pd.DataFrame) -> pd.DataFrame:
     :return: modified Dataframe with added 'd' column
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     arrays = []
     for row in df.itertuples():
         path = row.path
         key = row.key
-        swa = row.swa
-        lng = row.lng
+        # swa = row.swa
+        # lng = row.lng
         # Unique identifier for this record.
         name = ''.join([path,":",str(key)])
         # How to read the data for this record.
         shape = row.shape
-        dsk = {(name, 0, 0): (get_data_fast, path, swa, lng)}
+        dsk = {(name, 0, 0): (get_data, path, key)}
         field_dtype = get_field_dtype(row.datyp, row.nbits)
         # Size of the record.
         chunks = [(s,) for s in shape]
@@ -593,7 +628,6 @@ def add_dask_column(df:pd.DataFrame) -> pd.DataFrame:
         d[i] = arrays[i]
     df['d'] = d
     return df
-
 
 
 def get_field_dtype(datyp, nbits):

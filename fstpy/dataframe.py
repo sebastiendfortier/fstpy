@@ -26,6 +26,8 @@ def add_grid_column(df: pd.DataFrame) -> pd.DataFrame:
     :return: modified dataframe with the 'grid' column added
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     for col in ['nomvar', 'ip1', 'ip2', 'ig1', 'ig2']:
         if col not in df.columns:
             raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add grid column!')
@@ -73,6 +75,8 @@ def add_path_and_key_columns(df: pd.DataFrame):
     :return: path and key for each row
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     if 'd' not in df.columns:
         raise MissingColumnError(f'"d" is missing from DataFrame columns, cannot add path and key column!') 
 
@@ -180,6 +184,8 @@ def add_timezone_column(df: pd.DataFrame, source_column: str, timezone:str) -> p
     :return: a new date adjusted timezone column
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     if source_column not in ['date_of_validity', 'date_of_observation']:
         raise IndvalidDateColumnError(f'"{source_column}" not in {["date_of_validity", "date_of_observation"]}!') 
 
@@ -208,6 +214,8 @@ def add_flag_values(df: pd.DataFrame) -> pd.DataFrame:
     :return: flag values set according to second character of typvar if present
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     if 'typvar' not in df.columns:
         raise MissingColumnError(f'"typvar" is missing from DataFrame columns, cannot add flags columns!') 
 
@@ -290,6 +298,8 @@ def add_shape_column(df: pd.DataFrame) -> pd.DataFrame:
              added
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     for col in ['ni', 'nj']:
         if col not in df.columns:
             raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add shape column!') 
@@ -313,6 +323,8 @@ def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
              added
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     if 'etiket' not in df.columns:
         raise MissingColumnError(f'"etiket" is missing from DataFrame columns, cannot add parsed etiket columns!') 
 
@@ -352,6 +364,8 @@ def add_unit_and_description_columns(df: pd.DataFrame):
     :return: dataframe with unit and description columns added
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     if 'nomvar' not in df.columns:
         raise MissingColumnError(f'"nomvar" is missing from DataFrame columns, cannot add unit and description columns!') 
 
@@ -385,7 +399,8 @@ def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
              dataframe
     :rtype: pd.DataFrame
     """
-
+    if df.empty:
+        return df
     if attr == 'dateo':
         if 'dateo' not in df.columns:
             raise MissingColumnError(f'"dateo" is missing from DataFrame columns, cannot add date_of_observation column!') 
@@ -431,6 +446,8 @@ def add_forecast_hour_column(df: pd.DataFrame):
     :return: forecast_hour column added to the dataframe
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     for col in ['deet', 'npas']:
         if col not in df.columns:
             raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add forecast_hour column!') 
@@ -460,6 +477,8 @@ def add_data_type_str_column(df: pd.DataFrame) -> pd.DataFrame:
     :return: data_type_str column added to the dataframe
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     if 'datyp' not in df.columns:
             raise MissingColumnError(f'"datyp" is missing from DataFrame columns, cannot add data_type_str column!') 
 
@@ -488,6 +507,8 @@ def add_ip_info_columns(df: pd.DataFrame):
              added to the dataframe.
     :rtype: pd.DataFrame
     """
+    if df.empty:
+        return df
     for col in ['nomvar', 'ip1', 'ip2', 'ip3']:
         if col not in df.columns:
             raise MissingColumnError(f'"{col}" is missing from DataFrame columns, cannot add ip info columns!') 
@@ -570,6 +591,8 @@ def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket',
     :param columns: [description], defaults to  ['flags','etiket','unit','dateo','datev','forecast_hour', 'datyp','ip_info']
     :type columns: list[str], optional
     """
+    if df.empty:
+        return df
     cols = ['flags', 'etiket', 'unit', 'dateo', 'datev', 'forecast_hour', 'datyp', 'ip_info']
     if isinstance(columns,str):
         columns = [columns]
