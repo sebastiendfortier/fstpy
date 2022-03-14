@@ -566,16 +566,16 @@ class CsvArray:
         if isinstance(self.array, np.ndarray):
             b = self.array
             dim0 = []
-            ndim0 = self.array.shape[0]
+            ndim0 = b.shape[0]
 
             for i in range(ndim0):
-                dim0.append([self.array[i, j] for j in range(self.array.shape[1])])
+                dim0.append([b[i, j] for j in range(b.shape[1])])
 
             dim0 = []
-            ndim0 = self.array.shape[0]
+            ndim0 = b.shape[0]
 
             for i in range(ndim0):
-                dim0.append([self.array[i, j] for j in range(self.array.shape[1])])
+                dim0.append([b[i, j] for j in range(b.shape[1])])
 
             s = ""
 
