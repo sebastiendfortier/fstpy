@@ -4,13 +4,14 @@ import os
 import numpy as np
 import datetime
 from typing import Final
+from .utils import CsvArray
 from .std_enc import create_encoded_dateo, create_encoded_ip1
 from .dataframe import add_grid_column
 import rpnpy.librmn.all as rmn
 
 
 BASE_COLUMNS = ['nomvar', 'typvar', 'etiket', 'level', 'dateo', 'ip1', 'ip2', 'ip3',
-                'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd']
+                'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd','datev','ni','nj','nk']
 """Columns present in the final dataframe"""
 
 IP1_KIND: Final[int] = 3
@@ -319,20 +320,20 @@ class CsvFileReader:
         set1 = set(list_of_hdr_names)
         set2 = set(BASE_COLUMNS)
 
-        if(len(list_of_hdr_names) < len(BASE_COLUMNS)):
+        if(len(list_of_hdr_names) < len(BASE_COLUMNS) or len(list_of_hdr_names) > len(BASE_COLUMNS) ):
             is_subset = set1.issubset(set2)
             if(is_subset):
                 return True
             else:
-                raise ColumnsNotValidError(f'The headers in the csv file are not valid. Make sure that the columns names are present in {BASE_COLUMNS}')
+                raise ColumnsNotValidError(f'The headers in the csv file are not valid. Make sure that the columns names are present in {BASE_COLUMNS}. The current columns are {list_of_hdr_names}')
 
         if(len(list_of_hdr_names) == len(BASE_COLUMNS)):
             if all_the_cols == list_of_hdr_names:
                 return True
             else:
-                raise ColumnsNotValidError(f'The headers in the csv file are not valid. Make sure that the columns names are present in {BASE_COLUMNS}')
+                raise ColumnsNotValidError(f'The headers in the csv file are not valid. Make sure that the columns names are present in {BASE_COLUMNS}. The current columns are {list_of_hdr_names}')
         else:
-            raise ColumnsNotValidError('The headers in the csv file are not valid you have too many columns')
+            raise ColumnsNotValidError(f'The headers in the csv file are not valid you have too many columns. The current columns are {list_of_hdr_names}')
 
     def column_exists(self, col):
         """Check if the column exists in the dataframe
@@ -502,89 +503,3 @@ class CsvFileReader:
                                   'ig1': 'int32', 'ig2': 'int32', 'ig3': 'int32', 'ig4': 'int32', 'deet': 'int32', 'npas': 'int32',
                                   'grtyp': 'str', 'datev': 'int32'})
 
-
-class ArrayIsNotNumpyStrError(Exception):
-    pass
-
-
-class ArrayIs3dError(Exception):
-    pass
-
-
-class ArrayIsNotStringOrNp(Exception):
-    pass
-
-
-class CsvArray:
-    """A class that represents a csv formatted array
-
-    :param array: An array with the data
-    :type array: string or numpy array
-    :raises ArrayIsNotStringOrNp: the array is not formed from strings or numpy array
-    """
-
-    def __init__(self, array):
-        self.array = array
-        if(self.validate_array()):
-            pass
-        else:
-            raise ArrayIsNotStringOrNp("The array is not a string or a numpy aray")
-
-    def validate_array(self):
-        """Validate that the array is either a string or a numpy array
-
-        :raises ArrayIs3dError: the array provided is 3D
-        :rtype: Boolean
-        """
-
-        if(type(self.array) == np.ndarray or type(self.array) == str):
-            return True
-        else:
-            return False
-
-    def to_numpy(self):
-        """Transform self.array to a numpy array
-
-        :raises ArrayIs3dError: the array provided is 3D
-        :return: numpy array
-        """
-        if isinstance(self.array, str):
-            b = self.array
-            a = np.array([[float(j) for j in i.split(',')] for i in b.split(';')], dtype=np.float32, order='F')
-            if(a.ndim == 3):
-                raise ArrayIs3dError('The numpy array you created from the string array is 3D and it should not be 3d')
-            return a
-        else:
-            return self.array
-
-    def to_str(self):
-        """Transform numpy array to a string
-
-        :raises ArrayIs3dError: the array provided is 3D
-        :return: string array
-        """
-        if isinstance(self.array, np.ndarray):
-            b = self.array
-            dim0 = []
-            ndim0 = b.shape[0]
-
-            for i in range(ndim0):
-                dim0.append([b[i, j] for j in range(b.shape[1])])
-
-            dim0 = []
-            ndim0 = b.shape[0]
-
-            for i in range(ndim0):
-                dim0.append([b[i, j] for j in range(b.shape[1])])
-
-            s = ""
-
-            for i in range(ndim0):
-                s1 = str(dim0[i]).replace("[", "")
-                s1 = s1.replace("]", ";")
-                s += s1
-            s = s.replace(" ", "")
-            s = s.rstrip(s[-1])
-            return s
-        else:
-            return self.array
