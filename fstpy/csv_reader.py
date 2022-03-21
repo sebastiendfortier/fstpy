@@ -12,7 +12,7 @@ import rpnpy.librmn.all as rmn
 
 BASE_COLUMNS = ['nomvar', 'typvar', 'etiket', 'level', 'dateo', 'ip1', 'ip2', 'ip3',
                 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'd','datev','ni','nj','nk']
-"""Columns present in the final dataframe"""
+
 
 IP1_KIND: Final[int] = 3
 """ip1 kind used in levels"""

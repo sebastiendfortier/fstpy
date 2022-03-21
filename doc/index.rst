@@ -41,6 +41,7 @@ Documentation
 * :doc:`all`
 * :doc:`apply_mask`
 * :doc:`csv_reader`
+* :doc:`csv_writer`
 * :doc:`dataframe_utils`
 * :doc:`dataframe`
 * :doc:`log`
@@ -64,6 +65,7 @@ Documentation
    all
    apply_mask
    csv_reader
+   csv_writer
    dataframe_utils
    dataframe
    log
