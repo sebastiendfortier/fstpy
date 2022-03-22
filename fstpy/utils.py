@@ -286,3 +286,88 @@ def vectorize (f, otypes=None):
     return vectorized_f
 # In case of emergency, break glass.
 #from numpy import vectorize
+
+class ArrayIsNotNumpyStrError(Exception):
+    pass
+
+
+class ArrayIs3dError(Exception):
+    pass
+
+
+class ArrayIsNotStringOrNp(Exception):
+    pass
+
+class CsvArray:
+    """A class that represents a csv formatted array
+
+    :param array: An array with the data
+    :type array: string or numpy array
+    :raises ArrayIsNotStringOrNp: the array is not formed from strings or numpy array
+    """
+
+    def __init__(self, array):
+        self.array = array
+        if(self.validate_array()):
+            pass
+        else:
+            raise ArrayIsNotStringOrNp("The array is not a string or a numpy aray")
+
+    def validate_array(self):
+        """Validate that the array is either a string or a numpy array
+
+        :raises ArrayIs3dError: the array provided is 3D
+        :rtype: Boolean
+        """
+
+        if(type(self.array) == np.ndarray or type(self.array) == str):
+            return True
+        else:
+            return False
+
+    def to_numpy(self):
+        """Transform self.array to a numpy array
+
+        :raises ArrayIs3dError: the array provided is 3D
+        :return: numpy array
+        """
+        if isinstance(self.array, str):
+            b = self.array
+            a = np.array([[float(j) for j in i.split(',')] for i in b.split(';')], dtype=np.float32, order='F')
+            if(a.ndim == 3):
+                raise ArrayIs3dError('The numpy array you created from the string array is 3D and it should not be 3d')
+            return a
+        else:
+            return self.array
+
+    def to_str(self):
+        """Transform numpy array to a string
+
+        :raises ArrayIs3dError: the array provided is 3D
+        :return: string array
+        """
+        if isinstance(self.array, np.ndarray):
+            b = self.array
+            dim0 = []
+            ndim0 = b.shape[0]
+
+            for i in range(ndim0):
+                dim0.append([b[i, j] for j in range(b.shape[1])])
+
+            dim0 = []
+            ndim0 = b.shape[0]
+
+            for i in range(ndim0):
+                dim0.append([b[i, j] for j in range(b.shape[1])])
+
+            s = ""
+
+            for i in range(ndim0):
+                s1 = str(dim0[i]).replace("[", "")
+                s1 = s1.replace("]", ";")
+                s += s1
+            s = s.replace(" ", "")
+            s = s.rstrip(s[-1])
+            return s
+        else:
+            return self.array

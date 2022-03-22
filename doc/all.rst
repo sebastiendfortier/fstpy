@@ -23,6 +23,10 @@ The following functions and constants are available through ``fstpy.``
    .. automodule:: fstpy.csv_reader      
       :noindex:
       :members:
+   
+   .. automodule:: fstpy.csv_writer      
+      :noindex:
+      :members:
 
    .. automodule:: fstpy.dataframe_utils 
       :noindex: 

@@ -2,17 +2,17 @@
 
 ## What is it?
 
-Fstpy is a high level interface to rpn\'s rpnpy python library that
-produces pandas dataframes or Xarray\'s from CMC standard files. In
+Fstpy is a high level interface to rpn's rpnpy python library that
+produces pandas dataframes or Xarray's from CMC standard files. In
 order to promote decoupling, modularization and collaboration, fstpy
 only reads and writes. All other operations and algorithms can be
 independent.
 
 ## Fstpy philosophy
 
-The idea of ​​using a dataframe is to have a pythonic way of working
-with standard files without having to know the mechanics of rmnlib.
-Since many people come here with numpy, pandas and xarray knowledge, the
+The idea of using a dataframe is to have a pythonic way of working with
+standard files without having to know the mechanics of rmnlib. Since
+many people come here with numpy, pandas and xarray knowledge, the
 learning curve is much less steep.
 
 ## Dataframes
@@ -26,7 +26,7 @@ easily to different types of formats.
 ## Dask
 
 Dask is the type of array that is used by fstpy to wrap numpy arrays for
-parallelisation purposes. You can use most of numpy's API directly on
+parallelisation purposes. You can use most of numpy\'s API directly on
 these types of arrays. The only difference is that until array.compute()
 is done, the dask array stores tasks instead of actually doing the
 computations.
@@ -76,7 +76,7 @@ that contains a wide variety of packages
 
 Use the ssm package
 
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.13/
+    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.14/
 
 Use the git repository package: at your own risk ;)
 
@@ -92,7 +92,7 @@ Use the git repository package: at your own risk ;)
 # get rmn python library      
 . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
 # get fstpy ssm package
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.13/
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.14/
 ```
 
 ### Use fstpy
