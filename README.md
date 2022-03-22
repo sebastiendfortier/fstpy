@@ -2,8 +2,8 @@
 
 ## What is it?
 
-Fstpy is a high level interface to rpn\'s rpnpy python library that
-produces pandas dataframes or Xarray\'s from CMC standard files. In
+Fstpy is a high level interface to rpn's rpnpy python library that
+produces pandas dataframes or Xarray's from CMC standard files. In
 order to promote decoupling, modularization and collaboration, fstpy
 only reads and writes. All other operations and algorithms can be
 independent.
