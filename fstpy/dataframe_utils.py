@@ -4,6 +4,7 @@ import math
 
 import numpy as np
 import pandas as pd
+
 import rpnpy.librmn.all as rmn
 
 from fstpy import DATYP_DICT
@@ -11,7 +12,7 @@ from fstpy.utils import to_numpy
 
 from .dataframe import add_columns, add_ip_info_columns, reorder_columns
 from .std_dec import convert_rmndate_to_datetime
-
+from .std_vgrid import set_vertical_coordinate_type
 
 class SelectError(Exception):
     pass
@@ -37,6 +38,9 @@ def select_with_meta(df: pd.DataFrame, nomvar: list) -> pd.DataFrame:
     if df.empty:
         raise SelectError(f'dataframe is empty - nothing to select into')
 
+    if not isinstance(nomvar,list):
+        nomvar = [nomvar]
+        
     results = []
 
     if len(nomvar) == 0:
@@ -71,8 +75,8 @@ def metadata_cleanup(df: pd.DataFrame, strict_toctoc=True) -> pd.DataFrame:
 
     if df.empty:
         return df
-    if 'level' not in df.columns:
-        df = add_columns(df,['ip_info'])
+        
+    df = set_vertical_coordinate_type(df)
 
     no_meta_df = df.loc[~df.nomvar.isin(["!!", "P0", "PT", ">>", "^^", "^>", "HY", "!!SF"])]
 
