@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 from fstpy.dataframe import add_columns, add_grid_column, add_path_and_key_columns
 
-from fstpy.std_vgrid import VerticalCoordType, get_vertical_coord
+from fstpy.std_vgrid import VerticalCoordType, get_vertical_coord, set_vertical_coordinate_type
 from .dataframe_utils import metadata_cleanup
 
 from .utils import initializer
@@ -26,21 +26,24 @@ class QuickPressure():
 
     @initializer
     def __init__(self, df: pd.DataFrame, standard_atmosphere: bool = False):
+        # print(self.df.drop(columns=['d']).to_string())
         self.validate_input()
 
     def validate_input(self):
+        # cols = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'grid', 'vctype'] 
+        # print(self.df[cols].to_string())
         if self.df.empty:
             logging.error('No data to process')
 
         self.meta_df = self.df.loc[self.df.nomvar.isin(
             ["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
 
-        if 'grid' not in self.df.columns:
-            self.df = add_grid_column(self.df)
-        if 'ip1_kind' not in self.df.columns:
-            self.df = add_columns(self.df, 'ip_info')
-        if 'path' not in self.df.columns:
-            self.df = add_path_and_key_columns(self.df)
+
+        self.df = add_grid_column(self.df)
+        self.df = add_path_and_key_columns(self.df)
+        self.df = set_vertical_coordinate_type(self.df)
+        # print(self.df[cols].to_string())
+        # print(self.df.drop(columns=['d','path','key']).to_string())
 
     def compute(self):
         grid_groups = self.df.groupby(['path'])
