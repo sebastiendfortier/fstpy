@@ -594,24 +594,29 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
         groups = no_meta_df.groupby(['grid','ip1_kind'])
 
         for (grid,ip1_kind), group_df in groups:
-            # print(ip1_kind)
+            # print('set_vertical_coordinate_type ip1_kind\n',ip1_kind)
             toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(meta_df.loc[meta_df.grid == grid])
-            # print(toctoc, p0, e1, pt, hy, sf, vcode)
-            # print(df.drop(columns='d'))
-            try:
-                index = [divmod(vc, 1000)[0] for vc in vcode].index(ip1_kind)
-            except:
-                index = -1
+            # print('set_vertical_coordinate_type get_meta_fields_exists\n',toctoc, p0, e1, pt, hy, sf, vcode)
+            # print('set_vertical_coordinate_type group_df\n',group_df.drop(columns='d'))
+            if len(vcode) > 1:
+                try:
+                    index = [divmod(vc, 1000)[0] for vc in vcode].index(ip1_kind)
+                    # print('set_vertical_coordinate_type index\n',index)
+                except:
+                    index = -1
 
-            if index != -1:
-                this_vcode = vcode[index]
+                if index != -1:
+                    this_vcode = vcode[index]
+                else:
+                    this_vcode = -1
             else:
-                this_vcode = -1
+                 this_vcode = vcode[0]
 
+            # print(this_vcode)
             vctyte_df = VCTYPES.loc[(VCTYPES.ip1_kind == ip1_kind) & (VCTYPES.toctoc == toctoc) & (VCTYPES.P0 == p0) & (
                         VCTYPES.E1 == e1) & (VCTYPES.PT == pt) & (VCTYPES.HY == hy) & (VCTYPES.SF == sf) & (VCTYPES.vcode == this_vcode)]
 
-            # print(vctyte_df)
+            # print('set_vertical_coordinate_type vctyte_df\n',vctyte_df)
             if not vctyte_df.empty:
                 if len(vctyte_df.index) > 1:
                     logging.warning('set_vertical_coordinate_type - more than one match!!!')
