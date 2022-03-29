@@ -15,8 +15,7 @@ def plugin_test_dir():
 
 
 def test_1(plugin_test_dir):
-    """Test that compare the new standard file created with the help of the csv writer 
-    and the old std file that already exists""" 
+    """Test that compare the new standard file created with the help of the csv writer and the old std file that already exists""" 
     
     src_file = plugin_test_dir + "UUVV5x5_fileSrc.std"
     df = fstpy.StandardFileReader(src_file).to_pandas()
@@ -35,8 +34,7 @@ def test_1(plugin_test_dir):
 
 
 def test_2(plugin_test_dir):
-    """Test that compare the new standard file created with the help of the csv writer 
-    and the old std file that already exists""" 
+    """Test that compare the new standard file created with the help of the csv writer and the old std file that already exists""" 
 
     src_file = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
     df = fstpy.StandardFileReader(src_file).to_pandas()
@@ -55,8 +53,7 @@ def test_2(plugin_test_dir):
 
 
 def test_3(plugin_test_dir):
-    """Test that compare the new standard file created with the help of the csv writer 
-    and the old std file that already exists""" 
+    """Test that compare the new standard file created with the help of the csv writer and the old std file that already exists""" 
     
     src_file = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PF.std"
     df = fstpy.StandardFileReader(src_file).to_pandas()
@@ -75,8 +72,7 @@ def test_3(plugin_test_dir):
 
 
 def test_4(plugin_test_dir):
-    """Test that compare the new standard file created with the help of the csv writer 
-    and the old std file that already exists""" 
+    """Test that compare the new standard file created with the help of the csv writer and the old std file that already exists""" 
     
     src_file = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PI.std"
     df = fstpy.StandardFileReader(src_file).to_pandas()
@@ -95,8 +91,7 @@ def test_4(plugin_test_dir):
 
 
 def test_5(plugin_test_dir):
-    """Test that compare the new standard file created with the help of the csv writer 
-    and the old std file that already exists""" 
+    """Test that compare the new standard file created with the help of the csv writer and the old std file that already exists""" 
     
     src_file = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PM.std"
     df = fstpy.StandardFileReader(src_file).to_pandas()
@@ -115,8 +110,7 @@ def test_5(plugin_test_dir):
 
 
 def test_6(plugin_test_dir):
-    """Test that compare the new standard file created with the help of the csv writer 
-    and the old std file that already exists""" 
+    """Test that compare the new standard file created with the help of the csv writer and the old std file that already exists""" 
     
     src_file = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PU.std"
     df = fstpy.StandardFileReader(src_file).to_pandas()
@@ -135,8 +129,7 @@ def test_6(plugin_test_dir):
 
 
 def test_7(plugin_test_dir):
-    """Test that compare the new standard file created with the help of the csv writer 
-    and the old std file that already exists""" 
+    """Test that compare the new standard file created with the help of the csv writer and the old std file that already exists""" 
     
     src_file = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PZ.std"
     df = fstpy.StandardFileReader(src_file).to_pandas()
