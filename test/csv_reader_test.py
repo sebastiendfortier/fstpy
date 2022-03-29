@@ -328,7 +328,7 @@ def test_14(plugin_test_dir):
     with pytest.raises(fstpy.MinimalColumnsError):
         csv_file = fstpy.CsvFileReader(plugin_test_dir + "minimalColumns.csv", encode_ip1=False)
         csv_file = csv_file.to_pandas()
-        print(csv_file.to_string())
+        # print(csv_file.to_string())
 
 
 def test_15(plugin_test_dir):
