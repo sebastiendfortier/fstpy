@@ -1,17 +1,18 @@
-*.o
 __pycache__
-# .vscode
+_build
 .cache
+.coverage
+.env
 .ipynb_checkpoints
 .pytest_cache
-perf.png
-plot.png
-out.std
-.coverage
+*.o
+# .vscode
 diff.png
+fstpy.egg-info
+global.lock
 map.html
 mydask.png
-global.lock
+out.std
+perf.png
+plot.png
 purge.lock
-fstpy.egg-info
-_build
