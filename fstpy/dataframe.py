@@ -620,7 +620,7 @@ def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket',
         df = add_data_type_str_column(df)
 
     if ('ip_info' in columns):
-        df = add_ip_info_columns(df)
+        # df = add_ip_info_columns(df)
         df = set_vertical_coordinate_type(df)
 
     if 'flags' in columns:
@@ -650,8 +650,8 @@ def reorder_columns(df):
     df = df[ordered]
 
 
-def get_meta_fields_exists(grid):
-    toctoc = grid.loc[grid.nomvar == "!!"]
+def get_meta_fields_exists(grid_df):
+    toctoc = grid_df.loc[grid_df.nomvar == "!!"]
     vcode = []
     if not toctoc.empty:
         for row in toctoc.itertuples():
@@ -660,16 +660,16 @@ def get_meta_fields_exists(grid):
     else:
         vcode.append(-1)
         toctoc = False
-    p0 = meta_exists(grid, "P0")
-    e1 = meta_exists(grid, "E1")
-    pt = meta_exists(grid, "PT")
-    hy = meta_exists(grid, "HY")
-    sf = meta_exists(grid, "!!SF")
+    p0 = meta_exists(grid_df, "P0")
+    e1 = meta_exists(grid_df, "E1")
+    pt = meta_exists(grid_df, "PT")
+    hy = meta_exists(grid_df, "HY")
+    sf = meta_exists(grid_df, "!!SF")
     return toctoc, p0, e1, pt, hy, sf, vcode
 
 
-def meta_exists(grid, nomvar) -> bool:
-    df = grid.loc[grid.nomvar == nomvar]
+def meta_exists(grid_df, nomvar) -> bool:
+    df = grid_df.loc[grid_df.nomvar == nomvar]
     return not df.empty
 
 def create_empty_dataframe(num_rows):
