@@ -685,65 +685,65 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
 
     # return res_df
 
-def set_vertical_coordinate_type2(df: pd.DataFrame) -> pd.DataFrame:
-    """Function that tries to determine the vertical coordinate of the fields
+# def set_vertical_coordinate_type2(df: pd.DataFrame) -> pd.DataFrame:
+#     """Function that tries to determine the vertical coordinate of the fields
 
-    :param df: input dataframe
-    :type df: pd.DataFrame
-    :return: output dataframe
-    :rtype: pd.DataFrame
-    """
-    from .dataframe import add_ip_info_columns, get_meta_fields_exists
-    from . import VCTYPES
+#     :param df: input dataframe
+#     :type df: pd.DataFrame
+#     :return: output dataframe
+#     :rtype: pd.DataFrame
+#     """
+#     from .dataframe import add_ip_info_columns, get_meta_fields_exists
+#     from . import VCTYPES
 
-    # if 'vctype' in df.columns:
-    #     return df
-    # if 'level' not in df.columns:
-    new_df = add_ip_info_columns(df)
-    # else:
-    #     new_df = copy.deepcopy(df)
-    newdfs = []
-    new_df['vctype'] = vctype_dict['UNKNOWN']
-    grid_groups = new_df.groupby('grid')
+#     # if 'vctype' in df.columns:
+#     #     return df
+#     # if 'level' not in df.columns:
+#     new_df = add_ip_info_columns(df)
+#     # else:
+#     #     new_df = copy.deepcopy(df)
+#     newdfs = []
+#     new_df['vctype'] = vctype_dict['UNKNOWN']
+#     grid_groups = new_df.groupby('grid')
 
-    for _, grid in grid_groups:
-        toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(grid)
-        this_vcode = vcode[0]
-        ip1_kind_groups = grid.groupby('ip1_kind')
-        for _, ip1_kind_group in ip1_kind_groups:
-            # these ip1_kinds are not defined
-            without_meta = ip1_kind_group.loc[(~ip1_kind_group.ip1_kind.isin(
-                [-1, 3, 6])) & (~ip1_kind_group.nomvar.isin(["!!", "HY", "P0", "PT", ">>", "^^"]))]
-            if not without_meta.empty:
-                ip1_kind = without_meta.iloc[0]['ip1_kind']
-                # print(vcode)
-                if len(vcode) > 1:
-                    for vc in vcode:
-                        d, _ = divmod(vc, 1000)
-                        if ip1_kind == d:
-                            this_vcode = vc
-                            continue
+#     for _, grid in grid_groups:
+#         toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(grid)
+#         this_vcode = vcode[0]
+#         ip1_kind_groups = grid.groupby('ip1_kind')
+#         for _, ip1_kind_group in ip1_kind_groups:
+#             # these ip1_kinds are not defined
+#             without_meta = ip1_kind_group.loc[(~ip1_kind_group.ip1_kind.isin(
+#                 [-1, 3, 6])) & (~ip1_kind_group.nomvar.isin(["!!", "HY", "P0", "PT", ">>", "^^"]))]
+#             if not without_meta.empty:
+#                 ip1_kind = without_meta.iloc[0]['ip1_kind']
+#                 # print(vcode)
+#                 if len(vcode) > 1:
+#                     for vc in vcode:
+#                         d, _ = divmod(vc, 1000)
+#                         if ip1_kind == d:
+#                             this_vcode = vc
+#                             continue
 
-                ip1_kind_group['vctype'] = vctype_dict['UNKNOWN']
-                #vctype_dict = {'ip1_kind':ip1_kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
-                # print(VCTYPES)
-                # print(VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(5,False,True,False,False,False,False,-1)))
-                # print('\n(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
-                # vctyte_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
-                vctyte_df = VCTYPES.loc[(VCTYPES.ip1_kind == ip1_kind) & (VCTYPES.toctoc == toctoc) & (VCTYPES.P0 == p0) & (
-                    VCTYPES.E1 == e1) & (VCTYPES.PT == pt) & (VCTYPES.HY == hy) & (VCTYPES.SF == sf) & (VCTYPES.vcode == this_vcode)]
-                # print(vctyte_df)
-                if not vctyte_df.empty:
-                    if len(vctyte_df.index) > 1:
-                        logging.warning('set_vertical_coordinate_type - more than one match!!!')
-                    ip1_kind_group['vctype'] = vctype_dict[vctyte_df.iloc[0]['vctype']]
-            newdfs.append(ip1_kind_group)
+#                 ip1_kind_group['vctype'] = vctype_dict['UNKNOWN']
+#                 #vctype_dict = {'ip1_kind':ip1_kind,'toctoc':toctoc,'P0':p0,'E1':e1,'PT':pt,'HY':hy,'SF':sf,'vcode':vcode}
+#                 # print(VCTYPES)
+#                 # print(VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(5,False,True,False,False,False,False,-1)))
+#                 # print('\n(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
+#                 # vctyte_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
+#                 vctyte_df = VCTYPES.loc[(VCTYPES.ip1_kind == ip1_kind) & (VCTYPES.toctoc == toctoc) & (VCTYPES.P0 == p0) & (
+#                     VCTYPES.E1 == e1) & (VCTYPES.PT == pt) & (VCTYPES.HY == hy) & (VCTYPES.SF == sf) & (VCTYPES.vcode == this_vcode)]
+#                 # print(vctyte_df)
+#                 if not vctyte_df.empty:
+#                     if len(vctyte_df.index) > 1:
+#                         logging.warning('set_vertical_coordinate_type - more than one match!!!')
+#                     ip1_kind_group['vctype'] = vctype_dict[vctyte_df.iloc[0]['vctype']]
+#             newdfs.append(ip1_kind_group)
 
-    res_df = pd.concat(newdfs, ignore_index=True)
+#     res_df = pd.concat(newdfs, ignore_index=True)
 
-    res_df.loc[res_df.nomvar.isin([">>", "^^", "!!", "P0", "PT", "HY", "!!SF"]), "vctype"] = vctype_dict['UNKNOWN']
+#     res_df.loc[res_df.nomvar.isin([">>", "^^", "!!", "P0", "PT", "HY", "!!SF"]), "vctype"] = vctype_dict['UNKNOWN']
 
-    return res_df
+#     return res_df
 
 
 def get_df_from_vgrid(vgrid_descriptor: vgd.VGridDescriptor, ip1: int, ip2: int) -> pd.DataFrame:
