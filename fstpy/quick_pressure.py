@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
 import pandas as pd
-from fstpy.dataframe import add_columns, add_grid_column, add_path_and_key_columns
+from .dataframe import add_grid_column, add_path_and_key_columns
 
-from fstpy.std_vgrid import VerticalCoordType, get_vertical_coord, set_vertical_coordinate_type
+from .std_vgrid import VerticalCoordType, get_vertical_coord, set_vertical_coordinate_type
 from .dataframe_utils import metadata_cleanup
 
 from .utils import initializer
