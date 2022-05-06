@@ -4,7 +4,7 @@ import os
 import numpy as np
 import datetime
 from typing import Final
-from .utils import CsvArray
+from .utils import ArrayIs3dError, CsvArray
 from .std_enc import create_encoded_dateo, create_encoded_ip1
 from .dataframe import add_grid_column
 import rpnpy.librmn.all as rmn
