@@ -125,7 +125,7 @@ def get_subgrids(grid_params: dict):
 class Get2DLatLonError(Exception):
     pass
 
-def get_2d_lan_lon_arr(grid_params: dict) -> 'list(Tuple(np.ndarray,np.ndarray))':
+def get_2d_lat_lon_arr(grid_params: dict) -> 'list(Tuple(np.ndarray,np.ndarray))':
     if not isinstance(grid_params, dict):
         raise Get2DLatLonError('grid_id must be a valid grid definition as type dict')
 
@@ -183,7 +183,7 @@ def get_2d_lat_lon_df(df: pd.DataFrame) -> pd.DataFrame:
                     continue
 
                 grid_params = get_grid_definition_params(grtyp_df)
-                (lat, lon) = get_2d_lan_lon_arr(grid_params)
+                (lat, lon) = get_2d_lat_lon_arr(grid_params)
 
                 tictic_df['nomvar'] = 'LA'
                 tictic_df['d'] = [lat]
@@ -210,7 +210,7 @@ def is_global_grid(grid_params: dict, lon: np.ndarray, epsilon: float = 0.001) -
 
     :param grid_params: grid parameters obtained from get_grid_definition_params
     :type grid_params: dict
-    :param lon: 2d fortran order longitude matrix obtained with get_2d_lan_lon_arr
+    :param lon: 2d fortran order longitude matrix obtained with get_2d_lat_lon_arr
     :type lon: np.ndarray
     :param epsilon: Epsilon value for comparison operators, defaults to 0.001
     :type epsilon: float, optional
