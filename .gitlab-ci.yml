@@ -1,10 +1,8 @@
 
 variables:
-  JOB_CPUS: "4"
-  JOB_CHUNKS: "1"
-  JOB_MEMORY: 8G
-  JOB_TMPFS: 4G
-  # JOB_WALLCLOCK: "3600"
+  ORD_SOUMET_CPUS: "4"
+  ORD_SOUMET_M: "8G"
+  ORD_SOUMET_TMPFS: "4096"
   doc_install_dir: "/home/spst900/public_html/fstpy/${CI_BUILD_REF_NAME}"
   latest_doc_install_dir: "/home/spst900/public_html/fstpy/latest"
 
