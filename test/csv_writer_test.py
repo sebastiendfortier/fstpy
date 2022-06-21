@@ -1,6 +1,6 @@
 from tabnanny import verbose
 import pytest
-import fstpy.all as fstpy
+import fstpy
 from fstpy.utils import get_file_list
 from test import TEST_PATH, TMP_PATH
 import secrets

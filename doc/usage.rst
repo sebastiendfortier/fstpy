@@ -19,7 +19,7 @@ Use fstpy
 .. code:: python
 
    # inside your script    
-   import fstpy.all as fstpy   
+   import fstpy   
    df = fstpy.StandardFileReader('path to my fst file').to_pandas()
 
 Example
@@ -28,7 +28,7 @@ Example
 .. code:: python
 
    data_path = prefix + '/data/'    
-   import fstpy.all as fstpy
+   import fstpy
    # setup your file to read    
    records=fstpy.StandardFileReader(data_path + 'ttuvre.std').to_pandas()    
    # display selected records in a rpn voir format    

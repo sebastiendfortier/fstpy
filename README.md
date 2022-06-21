@@ -99,7 +99,7 @@ Use the git repository package: at your own risk ;)
 
 ``` python
 # inside your script    
-import fstpy.all as fstpy   
+import fstpy   
 df = fstpy.StandardFileReader('path to my fst file').to_pandas()
 ```
 
@@ -107,7 +107,7 @@ df = fstpy.StandardFileReader('path to my fst file').to_pandas()
 
 ``` python
 data_path = prefix + '/data/'    
-import fstpy.all as fstpy
+import fstpy
 # setup your file to read    
 records=fstpy.StandardFileReader(data_path + 'ttuvre.std').to_pandas()    
 # display selected records in a rpn voir format    
