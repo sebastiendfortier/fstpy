@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from test import TEST_PATH, TMP_PATH
-import fstpy.all as fstpy
+import fstpy
 import pytest
 import copy
 import numpy as np

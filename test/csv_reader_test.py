@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 import numpy as np
-import fstpy.all as fstpy
+import fstpy
 from test import TEST_PATH
 pytestmark = [pytest.mark.unit_tests]
 

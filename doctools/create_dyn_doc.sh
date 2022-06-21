@@ -51,7 +51,7 @@ echo "" >> $OUTPUT
 echo ".. code:: python" >> $OUTPUT
 echo "" >> $OUTPUT
 echo "   # inside your script    " >> $OUTPUT
-echo "   import fstpy.all as fstpy   " >> $OUTPUT
+echo "   import fstpy   " >> $OUTPUT
 echo "   df = fstpy.StandardFileReader('path to my fst file').to_pandas()" >> $OUTPUT
 echo "" >> $OUTPUT
 echo "Example" >> $OUTPUT
@@ -60,7 +60,7 @@ echo "" >> $OUTPUT
 echo ".. code:: python" >> $OUTPUT
 echo "" >> $OUTPUT
 echo "   data_path = prefix + '/data/'    " >> $OUTPUT
-echo "   import fstpy.all as fstpy" >> $OUTPUT
+echo "   import fstpy" >> $OUTPUT
 echo "   # setup your file to read    " >> $OUTPUT
 echo "   records=fstpy.StandardFileReader(data_path + 'ttuvre.std').to_pandas()    " >> $OUTPUT
 echo "   # display selected records in a rpn voir format    " >> $OUTPUT

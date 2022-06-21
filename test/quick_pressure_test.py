@@ -2,7 +2,7 @@
 from fstpy.dataframe_utils import select_with_meta
 from test import TEST_PATH, TMP_PATH
 
-import fstpy.all as fstpy
+import fstpy
 import pytest
 from ci_fstcomp import fstcomp
 import secrets
