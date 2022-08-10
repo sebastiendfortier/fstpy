@@ -27,7 +27,19 @@ class Interval:
 
     def __str__(self):
         return f'{self.ip}:{self.low}{self.pkind}@{self.high}{self.pkind}'
+    
+    def __eq__(self, other):
+        if other is None:
+            return False
+        return (
+            self.ip == other.ip and
+            self.low == other.low and
+            self.high == other.high and
+            self.kind == other.kind
+            )
 
+    def __ne__(self, other):
+        return not (self == other)
 
 def get_interval(ip1: int, ip2: int, ip3: int, i1: dict, i2: dict, i3: dict) -> 'Interval|None':
     """Gets interval if exists from ip values
