@@ -82,5 +82,5 @@ install_latest_doc:
 ssm_package:
   stage: ssm_package
   script:
-    - cd ssm
-    - ./make_ssm_package.sh
+    - cd livraison
+    - ./make_ssm_package.py
