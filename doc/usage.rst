@@ -9,7 +9,7 @@ Use pre-built developpement environment
    # Use CMDS Py39
    . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all   
    # get rmn python library      
-   . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
+   . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1-u2.4      
    # get fstpy ssm package
    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/202206/
 

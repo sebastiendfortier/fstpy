@@ -41,7 +41,7 @@ echo "" >> $OUTPUT
 echo "   # use CMDS Py39      " >> $OUTPUT
 echo "   . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all      " >> $OUTPUT
 echo "   # get rmn python library      " >> $OUTPUT
-echo "   . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      " >> $OUTPUT
+echo "   . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1-u2.4      " >> $OUTPUT
 echo "   # get fstpy ssm package" >> $OUTPUT
 echo "   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/$VERSION/" >> $OUTPUT
 echo "" >> $OUTPUT
