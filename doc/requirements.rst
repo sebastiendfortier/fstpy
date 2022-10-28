@@ -25,11 +25,11 @@ developpement packages
 - jupyterlab>=3.1.13
 - myst-parser>=0.15.2
 
-Surgepy
+CMDS Py39
 -------
 
 This is an ssm package that we use at CMC on the science network and that contains a wide variety of packages
 
 .. code:: bash
 
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/
+    . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all

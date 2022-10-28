@@ -38,8 +38,8 @@ echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" >> $OUTPUT
 echo "" >> $OUTPUT
 echo ".. code:: bash" >> $OUTPUT
 echo "" >> $OUTPUT
-echo "   # use surgepy      " >> $OUTPUT
-echo "   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/      " >> $OUTPUT
+echo "   # use CMDS Py39      " >> $OUTPUT
+echo "   . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all      " >> $OUTPUT
 echo "   # get rmn python library      " >> $OUTPUT
 echo "   . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      " >> $OUTPUT
 echo "   # get fstpy ssm package" >> $OUTPUT
