@@ -63,20 +63,20 @@ a great variety of built-in plotting functions.
 -   jupyterlab>=3.1.13
 -   myst-parser>=0.15.2
 
-## Surgepy
+## CMDS Py39
 
 This is an ssm package that we use at CMC on the science network and
 that contains a wide variety of packages
 
 ``` bash
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/
+. ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all
 ```
 
 # Installation
 
 Use the ssm package
 
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.14/
+    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/202206/
 
 Use the git repository package: at your own risk ;)
 
@@ -87,12 +87,12 @@ Use the git repository package: at your own risk ;)
 ### Use pre-built developpement environment
 
 ``` bash
-# use surgepy      
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/      
+# use CMDS Py39      
+. ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all     
 # get rmn python library      
-. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      
+. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1-u2.4      
 # get fstpy ssm package
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/2.1.14/
+. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/202206/
 ```
 
 ### Use fstpy
@@ -154,10 +154,10 @@ source setup.sh
 ## Testing
 
 ``` bash
-# Use surgepy
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8
+# Use CMDS Py39
+. ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all
 # get rmn python library      
-. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2     
+. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1-u2.4     
 # From the $project_root/test directory of the project
 python -m pytest -vrf
 ```
