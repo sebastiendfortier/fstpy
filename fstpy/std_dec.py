@@ -253,12 +253,14 @@ def get_grid_identifier(nomvar: str, ip1: int, ip2: int, ig1: int, ig2: int) -> 
 
 VCREATE_GRID_IDENTIFIER: Final = vectorize(get_grid_identifier, otypes=['str'])
 
-def get_parsed_etiket(raw_etiket: str):
+def get_parsed_etiket(raw_etiket: str, etiket_format: str = ""):
     """parses the etiket of a standard file to get label, run, implementation and ensemble member if available
 
     :param raw_etiket: raw etiket before parsing
     :type raw_etiket: str
-    :return: the parsed etiket, run, implementation and ensemble member
+    :param etiket_format: flag with number of character in run, label, implementation and ensemble_member
+    :type etiket_format: str
+    :return: the parsed etiket, run, implementation, ensemble member and etiket_format
     :rtype: str
 
     >>> get_parsed_etiket('')
@@ -272,42 +274,98 @@ def get_parsed_etiket(raw_etiket: str):
     implementation = None
     ensemble_member = None
 
-    match_run = "[RGPEAIMWNC_][\\dRLHMEA_]"
+    if etiket_format != "":
+        idx = etiket_format.split(',')
+        idx_run = int(idx[0])
+        idx_label = int(idx[0])+int(idx[1])
+        idx_implementation = int(idx[0])+int(idx[1])+int(idx[2])
+        idx_ensemble = int(idx[0])+int(idx[1])+int(idx[2])+int(idx[3])
+
+        run = raw_etiket[:idx_run]
+        label = raw_etiket[idx_run:idx_label]
+        implementation = raw_etiket[idx_label:idx_implementation]
+        ensemble_member = raw_etiket[idx_implementation:idx_ensemble]
+        return label, run, implementation, ensemble_member, etiket_format
+
+
+    # match_run = "[RGPEAIMWNC_][\\dRLHMEA_]"
+    match_run = "\\w{2}"
     match_main_cmc = "\\w{5}"
     match_main_spooki = "\\w{6}"
     match_implementation = "[NPX]"
-    match_ensemble_member = "\\w{3}"
+    # match_ensemble_member = "\\w{3}"
+    match_ensemble_number3 = "\\d{3}"
+    match_ensemble_number4 = "\\d{4}"
+    match_ensemble_letter3 = "[a-zA-Z]{3}"
+    match_ensemble_letter4 = "[a-zA-Z]{4}"
     match_end = "$"
 
+    re_match_run_only = match_run + match_end
     re_match_cmc_no_ensemble = match_run + \
         match_main_cmc + match_implementation + match_end
-    re_match_cmc_ensemble = match_run + match_main_cmc + \
-        match_implementation + match_ensemble_member + match_end
+    re_match_cmc_ensemble_number3 = match_run + match_main_cmc + \
+        match_implementation + match_ensemble_number3 + match_end
+    re_match_cmc_ensemble_number4 = match_run + match_main_cmc + \
+        match_implementation + match_ensemble_number4 + match_end
+    re_match_cmc_ensemble_letter3 = match_run + match_main_cmc + \
+        match_implementation + match_ensemble_letter3 + match_end
+    re_match_cmc_ensemble_letter4 = match_run + match_main_cmc + \
+        match_implementation + match_ensemble_letter4 + match_end
     re_match_spooki_no_ensemble = match_run + \
         match_main_spooki + match_implementation + match_end
     re_match_spooki_ensemble = match_run + match_main_spooki + \
-        match_implementation + match_ensemble_member + match_end
+        match_implementation + match_ensemble_number3 + match_end
 
     if re.match(re_match_cmc_no_ensemble, raw_etiket):
+        etiket_format = "2,5,1,0"
         run = raw_etiket[:2]
         label = raw_etiket[2:7]
         implementation = raw_etiket[7]
-    elif re.match(re_match_cmc_ensemble, raw_etiket):
+    elif re.match(re_match_cmc_ensemble_number3, raw_etiket):
+        etiket_format = "2,5,1,3"
         run = raw_etiket[:2]
         label = raw_etiket[2:7]
         implementation = raw_etiket[7]
         ensemble_member = raw_etiket[8:11]
+    elif re.match(re_match_cmc_ensemble_number4, raw_etiket):
+        etiket_format = "2,5,1,4"
+        run = raw_etiket[:2]
+        label = raw_etiket[2:7]
+        implementation = raw_etiket[7]
+        ensemble_member = raw_etiket[8:12]
+    elif re.match(re_match_cmc_ensemble_letter3, raw_etiket):
+        etiket_format = "2,5,1,3"
+        run = raw_etiket[:2]
+        label = raw_etiket[2:7]
+        implementation = raw_etiket[7]
+        ensemble_member = raw_etiket[8:11]
+    elif re.match(re_match_cmc_ensemble_letter4, raw_etiket):
+        etiket_format = "2,5,1,4"
+        run = raw_etiket[:2]
+        label = raw_etiket[2:7]
+        implementation = raw_etiket[7]
+        ensemble_member = raw_etiket[8:12]
     elif re.match(re_match_spooki_no_ensemble, raw_etiket):
+        etiket_format = "2,6,1,0"
         run = raw_etiket[:2]
         label = raw_etiket[2:8]
         implementation = raw_etiket[8]
     elif re.match(re_match_spooki_ensemble, raw_etiket):
+        etiket_format = "2,6,1,3"
         run = raw_etiket[:2]
         label = raw_etiket[2:8]
         implementation = raw_etiket[8]
         ensemble_member = raw_etiket[9:12]
+    elif re.match(re_match_run_only, raw_etiket):
+        etiket_format = "2,0,0,0"
+        run = raw_etiket[:2]
     else:
-        label = raw_etiket
-    return label, run, implementation, ensemble_member
+        if len(raw_etiket) >= 2:
+            etiket_format = "2,1,0,0"
+            run = raw_etiket[:2]
+            label = raw_etiket[2]
+        else:
+            label = raw_etiket
+    return label, run, implementation, ensemble_member, etiket_format
 
-VPARSE_ETIKET: Final = vectorize(get_parsed_etiket, otypes=['str', 'str', 'str', 'str'])
+VPARSE_ETIKET: Final = vectorize(get_parsed_etiket, otypes=['str', 'str', 'str', 'str', 'str'])
