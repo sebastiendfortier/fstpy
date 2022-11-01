@@ -7,7 +7,7 @@ from rpnpy.rpndate import RPNDate
 from fstpy import DATYP_DICT
 
 
-def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_member: str) -> str:
+def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_member: str, etiket_format: str = "") -> str:
     """Creates a new etiket based on label, run, implementation and ensemble member attributes
 
     :param label: label string
@@ -18,9 +18,28 @@ def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_me
     :type implementation: str
     :param ensemble_member: ensemble member number as string
     :type ensemble_member: str
+    :param etiket_format: flag with number of character in run, label, implementation and ensemble_member (ex: "2,5,1,3")
+    :type etiket_format: str
     :return: an etiket composed of supplied parameters
     :rtype: str
     """
+    
+    if etiket_format != "":
+        length = etiket_format.split(',')
+        length_run = int(length[0])
+        length_label = int(length[1])
+        length_implementation = int(length[2])
+        length_ensemble = int(length[3])
+
+        run = run[:length_run]
+        label = label[:length_label]
+        implementation = implementation[:length_implementation]
+        ensemble_member = ensemble_member[:length_ensemble]
+        etiket = run + label + implementation + ensemble_member
+
+        return etiket
+
+    
     etiket =  label
 
     if run != 'None':
