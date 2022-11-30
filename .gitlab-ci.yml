@@ -5,6 +5,7 @@ variables:
   ORD_SOUMET_TMPFS: "4096"
   doc_install_dir: "/home/spst900/public_html/fstpy/${CI_BUILD_REF_NAME}"
   latest_doc_install_dir: "/home/spst900/public_html/fstpy/latest"
+  deploy_dir_prefix: /fs/site5/eccc/cmd/w/spst900/spooki/CI_fstpy/${CI_BUILD_REF_NAME}
 
 
 stages:
@@ -13,6 +14,7 @@ stages:
   - make_doc
   - install_doc
   - ssm_package
+  - deploy
 
 
 # default:
@@ -83,4 +85,23 @@ ssm_package:
   stage: ssm_package
   script:
     - cd livraison
-    - ./make_ssm_package.py
+    - DEPLOY_DIR=${deploy_dir_prefix}/${CI_PIPELINE_ID}
+    - echo ${DEPLOY_DIR}
+    - ./make_ssm_package.py --install --temp ${DEPLOY_DIR}
+
+deploy:
+  stage: deploy
+  script:
+    - cd ${deploy_dir_prefix}
+    - rm -f latest
+    - ln -s ${CI_PIPELINE_ID} latest
+#   only:
+#     - master
+
+# remove_ssm:
+#   stage: deploy
+#   script:
+#     - DEPLOY_DIR=${deploy_dir_prefix}/${CI_PIPELINE_ID}
+#     - rm -r ${DEPLOY_DIR}
+#   except:
+#     - master
