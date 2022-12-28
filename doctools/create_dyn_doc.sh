@@ -38,10 +38,10 @@ echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" >> $OUTPUT
 echo "" >> $OUTPUT
 echo ".. code:: bash" >> $OUTPUT
 echo "" >> $OUTPUT
-echo "   # use surgepy      " >> $OUTPUT
-echo "   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/      " >> $OUTPUT
+echo "   # use CMDS Py39      " >> $OUTPUT
+echo "   . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all      " >> $OUTPUT
 echo "   # get rmn python library      " >> $OUTPUT
-echo "   . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2      " >> $OUTPUT
+echo "   . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1-u2.4      " >> $OUTPUT
 echo "   # get fstpy ssm package" >> $OUTPUT
 echo "   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/$VERSION/" >> $OUTPUT
 echo "" >> $OUTPUT
@@ -51,7 +51,7 @@ echo "" >> $OUTPUT
 echo ".. code:: python" >> $OUTPUT
 echo "" >> $OUTPUT
 echo "   # inside your script    " >> $OUTPUT
-echo "   import fstpy.all as fstpy   " >> $OUTPUT
+echo "   import fstpy   " >> $OUTPUT
 echo "   df = fstpy.StandardFileReader('path to my fst file').to_pandas()" >> $OUTPUT
 echo "" >> $OUTPUT
 echo "Example" >> $OUTPUT
@@ -60,7 +60,7 @@ echo "" >> $OUTPUT
 echo ".. code:: python" >> $OUTPUT
 echo "" >> $OUTPUT
 echo "   data_path = prefix + '/data/'    " >> $OUTPUT
-echo "   import fstpy.all as fstpy" >> $OUTPUT
+echo "   import fstpy" >> $OUTPUT
 echo "   # setup your file to read    " >> $OUTPUT
 echo "   records=fstpy.StandardFileReader(data_path + 'ttuvre.std').to_pandas()    " >> $OUTPUT
 echo "   # display selected records in a rpn voir format    " >> $OUTPUT

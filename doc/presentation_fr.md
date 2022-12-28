@@ -119,7 +119,7 @@ Sébastien Fortier 2021
 
 ```bash
  0 [sbf000 @ eccc3-ppp4 ~ / data] $ python
->>> import fstpy.all as fstpy
+>>> import fstpy
 >>> df = fstpy.StandardFileReader ('source_data_5005.std'). to_pandas ()
 >>> df
           nomvar typvar     etiket    ni    nj  nk      dateo       ip1    ip2  ip3  deet  npas  datyp  nbits grtyp    ig1    ig2    ig3    ig4

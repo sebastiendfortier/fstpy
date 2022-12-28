@@ -3,7 +3,7 @@ import pytest
 import pandas as pd
 from test import TMP_PATH, TEST_PATH
 import datetime
-import fstpy.all as fstpy
+import fstpy
 from datetime import datetime, timedelta
 import numpy as np
 import pathlib

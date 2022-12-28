@@ -1,12 +1,11 @@
 
 variables:
-  JOB_CPUS: "4"
-  JOB_CHUNKS: "1"
-  JOB_MEMORY: 8G
-  JOB_TMPFS: 4G
-  # JOB_WALLCLOCK: "3600"
+  ORD_SOUMET_CPUS: "4"
+  ORD_SOUMET_M: "8G"
+  ORD_SOUMET_TMPFS: "4096"
   doc_install_dir: "/home/spst900/public_html/fstpy/${CI_BUILD_REF_NAME}"
   latest_doc_install_dir: "/home/spst900/public_html/fstpy/latest"
+  deploy_dir_prefix: /fs/site5/eccc/cmd/w/spst900/spooki/CI_fstpy/${CI_BUILD_REF_NAME}
 
 
 stages:
@@ -15,6 +14,7 @@ stages:
   - make_doc
   - install_doc
   - ssm_package
+  - deploy
 
 
 # default:
@@ -26,8 +26,9 @@ before_script:
   - . /fs/ssm/main/env/ordenv-boot-20201118.sh
   - export EC_ATOMIC_PROFILE_VERSION=1.15.0
   - . $ARMNLIB_SHARE/check_profile_1.1.0
-  - . ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8/
-  - . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1.2
+  - . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all
+  - . r.load.dot /fs/ssm/main/opt/intelcomp/inteloneapi-2022.1.2/intelcomp+mpi+mkl
+  - . r.load.dot /fs/ssm/eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 /fs/ssm/eccc/mrd/rpn/MIG/ENV/rpnpy/2.1-u2.4
   - . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/1.0.8
 
 
@@ -83,5 +84,23 @@ install_latest_doc:
 ssm_package:
   stage: ssm_package
   script:
-    - cd ssm
-    - ./make_ssm_package.sh
+    - cd livraison
+    - DEPLOY_DIR=${deploy_dir_prefix}/${CI_PIPELINE_ID}
+    - echo ${DEPLOY_DIR}
+    - ./make_ssm_package.py --install --temp ${DEPLOY_DIR}
+
+deploy:
+  stage: deploy
+  script:
+    - cd ${deploy_dir_prefix}
+    - rm -f latest
+    - ln -s ${CI_PIPELINE_ID} latest
+  only:
+    - master
+
+remove_ssm:
+  stage: deploy
+  script:
+    - rm -r ${deploy_dir_prefix}
+  except:
+    - master

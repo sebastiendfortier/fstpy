@@ -25,7 +25,7 @@ Get a computing node
 
 Get jupyterlab and all other necessary python packages 
 
-[sbf000@cs4be-197p34 ~] $ . ssmuse-sh -d /fs/ssm/eccc/cmd/cmde/surge/surgepy/1.0.8
+[sbf000@cs4be-197p34 ~] $ . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all
 
 Run jupter lab
 
