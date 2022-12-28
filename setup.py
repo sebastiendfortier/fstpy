@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 
-v_file = open("VERSION")
+v_file = open("fstpy/VERSION")
 __version__ = v_file.readline().strip()
 v_file.close()
 
@@ -27,7 +27,7 @@ setuptools.setup(
         "Operating System :: OS Linux",
     ],
     install_requires=[
-        'pandas>=1.0.0',
+        'pandas>=1.2.4','numpy>=1.19.5','xarray>=0.19.0','dask>=2021.8.0','fstd2nc-deps >= 0.20200304.0'
     ],
     packages=setuptools.find_packages(exclude='test'),
     include_package_data=True,
