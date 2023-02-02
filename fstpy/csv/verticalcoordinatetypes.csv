@@ -25,3 +25,4 @@ ip1_kind,toctoc,P0,E1,PT,HY,SF,vcode,vctype
 1,False,True,False,False,True,False,-1,HYBRID_NORMALIZED_1003
 7,False,False,False,False,False,False,-1,PRESSURE_2001
 0,False,False,False,False,False,False,-1,METER_SEA_LEVEL
+2,True,False,False,False,False,False,2001,PRESSURE_2001
