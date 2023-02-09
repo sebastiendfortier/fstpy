@@ -185,10 +185,14 @@ def encode_ip2_and_ip3_as_time_interval(df):
             continue
         ip2 = row.ip2
         ip3 = row.ip3
-        rp1a = rmn.FLOAT_IP(0., 0., rmn.LEVEL_KIND_PMB)
-        rp2a = rmn.FLOAT_IP( ip2,  ip3, rmn.TIME_KIND_HR)
-        rp3a = rmn.FLOAT_IP( ip2-ip3,  0, rmn.TIME_KIND_HR)
-        (_, ip2, ip3) = rmn.EncodeIp(rp1a, rp2a, rp3a)
+        (ip2, ip3) = one_encode_ip2_and_ip3_as_time_interval(ip2, ip3)
         df.at[row.Index,'ip2'] = ip2
         df.at[row.Index,'ip3'] = ip3
     return df    
+
+def one_encode_ip2_and_ip3_as_time_interval(ip2,ip3):
+    rp1a = rmn.FLOAT_IP(0., 0., rmn.LEVEL_KIND_PMB)
+    rp2a = rmn.FLOAT_IP( ip2,  ip3, rmn.TIME_KIND_HR)
+    rp3a = rmn.FLOAT_IP( ip2-ip3,  0, rmn.TIME_KIND_HR)
+    (_, ip2, ip3) = rmn.EncodeIp(rp1a, rp2a, rp3a)
+    return ip2, ip3
