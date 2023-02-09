@@ -49,7 +49,7 @@ class StandardFileWriter:
     :param rewrite: overrides default rewrite value for fstecr, default None
     :type rewrite: bool, optional
     """
-    modes = ['write', 'update', 'dump']
+    modes = ['write', 'update', 'dump', "append", "appendoverwrite"]
 
     @initializer
     def __init__(self, filename: str or Path, df: pd.DataFrame, mode='write', no_meta=False, overwrite=False, rewrite=None, meta_only=False):
@@ -84,6 +84,12 @@ class StandardFileWriter:
             self._dump()
         elif self.mode == 'update':
             self._update()
+        elif self.mode == 'appendoverwrite':
+            self.rewrite = True
+            self._write()
+        elif self.mode == 'append':
+            self.rewrite = False
+            self._write()
         else:
             self._write()
 
@@ -128,7 +134,7 @@ class StandardFileWriter:
         from fstpy.dataframe import add_path_and_key_columns
 
         if not self.meta_only:
-            self.df = metadata_cleanup(self.df)
+            self.df = metadata_cleanup(self.df,False)
 
         try:
             self.df = add_path_and_key_columns(self.df)
