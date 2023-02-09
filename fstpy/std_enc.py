@@ -7,7 +7,7 @@ from rpnpy.rpndate import RPNDate
 from fstpy import DATYP_DICT
 
 
-def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_member: str, etiket_format: str = "") -> str:
+def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_member: str, etiket_format: str = "", ignore_extended: bool = False, override_pds_label: bool = False) -> str:
     """Creates a new etiket based on label, run, implementation and ensemble member attributes
 
     :param label: label string
@@ -23,13 +23,28 @@ def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_me
     :return: an etiket composed of supplied parameters
     :rtype: str
     """
-    
+
+    if override_pds_label:
+        return label
+
+    if (implementation not in ['X','','None'] or implementation is None) and len(label) > 6:
+        raise Exception("LE PDSLABEL EST TROP LONG, LA LONGUEUR ACCEPTEE EST MAXIMUM 6! - '{}'".format(label))
+
     if etiket_format != "":
         length = etiket_format.split(',')
         length_run = int(length[0])
-        length_label = int(length[1])
-        length_implementation = int(length[2])
+        length_implementation = 1 if implementation and implementation != 'None' else 0
         length_ensemble = int(length[3])
+        length_label = 6 if (length_run+length_implementation+length_ensemble) <= 6 and int(length[1]) != 0 else int(length[1])
+
+        if (length_run+length_implementation+length_ensemble+length_label) > 12 :
+            print("The etiket is too long and might get cut in writer")
+
+        if implementation not in ['X','N','P']:
+            implementation = 'X'
+
+        if not ignore_extended:
+            label = label+"______"
 
         run = run[:length_run]
         label = label[:length_label]

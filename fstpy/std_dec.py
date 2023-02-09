@@ -269,7 +269,7 @@ def get_parsed_etiket(raw_etiket: str, etiket_format: str = ""):
     ('_V710_', 'R1', 'N', '')
     """
     import re
-    label = raw_etiket
+    label = ""
     run = None
     implementation = None
     ensemble_member = None
@@ -361,9 +361,10 @@ def get_parsed_etiket(raw_etiket: str, etiket_format: str = ""):
         run = raw_etiket[:2]
     else:
         if len(raw_etiket) >= 2:
-            etiket_format = "2,1,0,0"
+            label_len = len(raw_etiket)-2
+            etiket_format = "2,"+str(label_len)+",0,0"
             run = raw_etiket[:2]
-            label = raw_etiket[2]
+            label = raw_etiket[2:]
         else:
             label = raw_etiket
     return label, run, implementation, ensemble_member, etiket_format
