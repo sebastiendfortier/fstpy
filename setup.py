@@ -33,6 +33,6 @@ setuptools.setup(
     include_package_data=True,
     python_requires='>=3.6',
     package_data = {
-    'fstpy': ['csv/*','fstpy/VERSION'],
+    'fstpy': ['csv/*','VERSION'],
   },
 )
