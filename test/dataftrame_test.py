@@ -159,7 +159,7 @@ def test_6(simple_df):
 
     simple_df = fstpy.add_parsed_etiket_columns(simple_df)
 
-    assert(len(simple_df.columns) == 26)
+    assert(len(simple_df.columns) == 27)
 
     for col in ['label', 'run', 'implementation', 'ensemble_member']:
         assert(col in simple_df.columns)
