@@ -317,12 +317,12 @@ def get_parsed_etiket(raw_etiket: str, etiket_format: str = ""):
         match_implementation + match_ensemble_number3 + match_end
 
     if re.match(re_match_cmc_no_ensemble, raw_etiket):
-        etiket_format = "2,5,1,0"
+        # etiket_format = "2,5,1,0"
         run = raw_etiket[:2]
         label = raw_etiket[2:7]
         implementation = raw_etiket[7]
     elif re.match(re_match_cmc_ensemble_number3, raw_etiket):
-        etiket_format = "2,5,1,3"
+        # etiket_format = "2,5,1,3"
         run = raw_etiket[:2]
         label = raw_etiket[2:7]
         implementation = raw_etiket[7]
@@ -346,12 +346,12 @@ def get_parsed_etiket(raw_etiket: str, etiket_format: str = ""):
         implementation = raw_etiket[7]
         ensemble_member = raw_etiket[8:12]
     elif re.match(re_match_spooki_no_ensemble, raw_etiket):
-        etiket_format = "2,6,1,0"
+        # etiket_format = "2,6,1,0"
         run = raw_etiket[:2]
         label = raw_etiket[2:8]
         implementation = raw_etiket[8]
     elif re.match(re_match_spooki_ensemble, raw_etiket):
-        etiket_format = "2,6,1,3"
+        # etiket_format = "2,6,1,3"
         run = raw_etiket[:2]
         label = raw_etiket[2:8]
         implementation = raw_etiket[8]
@@ -362,7 +362,7 @@ def get_parsed_etiket(raw_etiket: str, etiket_format: str = ""):
     else:
         if len(raw_etiket) >= 2:
             label_len = len(raw_etiket)-2
-            etiket_format = "2,"+str(label_len)+",0,0"
+            # etiket_format = "2,"+str(label_len)+",0,0"
             run = raw_etiket[:2]
             label = raw_etiket[2:]
         else:
