@@ -231,9 +231,29 @@ def get_hybrid_ips(df: pd.DataFrame) -> list:
 
 def get_toctoc_fields(df: pd.DataFrame, no_meta_df:pd.DataFrame, hybrid_ips: list, sigma_ips: list, pressure_ips: list, strict=True):
 
-    toctoc_df = df.loc[df.nomvar=='!!']
+    mask_toctoc = (df.nomvar=='!!')
+    other_df = df.loc[~mask_toctoc]
+    toctoc_df = df.loc[mask_toctoc]
     
+    # if df contains !!SF you dont want to remove the !!
+    if not df.loc[df['nomvar']=='!!SF'].empty:
+        return pd.concat([toctoc_df,df.loc[df['nomvar']=='!!SF']], ignore_index=True)
+
     df_list = []
+
+    for toctoc in toctoc_df.iterrows():
+        
+        # get all the ip1 from fields on the same grid
+        grid = toctoc[1]['grid']
+        list_ip1_df = other_df.loc[other_df['grid']==grid,"ip1"].values
+
+        # check if the ip1 are in !!
+        list_ip1_toctoc = toctoc[1]['d'][0]
+        ip1_intersection = np.intersect1d(list_ip1_toctoc,list_ip1_df)
+
+        if len(ip1_intersection) != 0:
+            # need to keep this !!
+            df_list.append(toctoc[1].to_frame().T)
 
     hybrid_fields_df = pd.DataFrame(dtype=object)
     # hybrid
@@ -393,30 +413,47 @@ def get_specific_meta_field(df, col_subset, nomvar, grid, dateo, deet, npas):
 
 def get_p0_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, hybrid_ips: list, sigma_ips: list):
 
-    p0_df = df.loc[df.nomvar=='P0']
+    mask_p0 = (df.nomvar=='P0')
+    p0_df = df.loc[mask_p0]
+    other_df = df.loc[~mask_p0]
 
     p0_fields_df = pd.DataFrame(dtype=object)
+
+    df_list = []
+
+    # check for P0 associated with 5005 surface level 
+    ip1_1_5M = rmn.convertIp(rmn.CONVIP_ENCODE,1.5,4)
+    ip1_10M = rmn.convertIp(rmn.CONVIP_ENCODE,10,4)
+    for p0 in p0_df.iterrows():
+
+        # to make sure it only compare in the same grid for the same time
+        grid = p0[1]['grid']
+        dateo = p0[1]['dateo']
+
+        # get list of ip1 on the same grid at the same time
+        list_ip1_df = other_df.loc[(other_df.grid==grid) & (other_df.dateo==dateo),"ip1"].values
+        
+        # check if 1.5M or 10M is in the list (hybrid 5005)
+        if ip1_1_5M in list_ip1_df or ip1_10M in list_ip1_df:
+            p0_fields_df= pd.concat([p0_fields_df,p0[1].to_frame().T])
+            df_list.append(p0[1].to_frame().T)
+
 
     hybrid_grids = set()
     for ip1 in hybrid_ips:
         hybrid_grids.add(no_meta_df.loc[no_meta_df.ip1 == ip1].iloc[0]['grid'])
 
    
-    df_list = []
     for grid in hybrid_grids:
         ni = no_meta_df.loc[no_meta_df.grid == grid].ni.unique()[0]
         nj = no_meta_df.loc[no_meta_df.grid == grid].nj.unique()[0]
         df_list.append(p0_df.loc[(p0_df.grid == grid) & (p0_df.ni == ni) & (p0_df.nj == nj)])
-
-    if len(df_list):
-        p0_fields_df = pd.concat(df_list, ignore_index=True)
 
 
     sigma_grids = set()
     for ip1 in sigma_ips:
         sigma_grids.add(no_meta_df.loc[no_meta_df.ip1 == ip1].iloc[0]['grid'])
 
-    df_list = []
     for grid in sigma_grids:
         ni = no_meta_df.loc[no_meta_df.grid == grid].ni.unique()[0]
         nj = no_meta_df.loc[no_meta_df.grid == grid].nj.unique()[0]

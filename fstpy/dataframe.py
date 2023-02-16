@@ -333,23 +333,23 @@ def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     new_df = copy.deepcopy(df)
 
-    if any([(col not in new_df.columns) for col in ['label', 'run', 'implementation', 'ensemble_member']]):
-        new_df['label'], new_df['run'], new_df['implementation'], new_df['ensemble_member'] = VPARSE_ETIKET(new_df.etiket)
+    if any([(col not in new_df.columns) for col in ['label', 'run', 'implementation', 'ensemble_member', 'etiket_format']]):
+        new_df['label'], new_df['run'], new_df['implementation'], new_df['ensemble_member'], new_df['etiket_format'] = VPARSE_ETIKET(new_df.etiket)
     else:
         if not new_df.loc[new_df.label.isna()].empty:
-            label, _, _, _ = VPARSE_ETIKET(new_df.loc[new_df.label.isna()].etiket)
+            label, _, _,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.label.isna()].etiket)
             new_df.loc[new_df.label.isna(),'label'] = label
 
         if not new_df.loc[new_df.run.isna()].empty:
-            _, run, _, _ = VPARSE_ETIKET(new_df.loc[new_df.run.isna()].etiket)
+            _, run, _,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.run.isna()].etiket)
             new_df.loc[new_df.run.isna(),'run'] = run
 
         if not new_df.loc[new_df.implementation.isna()].empty:
-            _, _, implementation, _ = VPARSE_ETIKET(new_df.loc[new_df.implementation.isna()].etiket)
+            _, _, implementation,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.implementation.isna()].etiket)
             new_df.loc[new_df.implementation.isna(),'implementation'] = implementation
 
         if not new_df.loc[new_df.ensemble_member.isna()].empty:
-            _, _, _, ensemble_member = VPARSE_ETIKET(new_df.loc[new_df.ensemble_member.isna()].etiket)
+            _, _, _, ensemble_member, _ = VPARSE_ETIKET(new_df.loc[new_df.ensemble_member.isna()].etiket)
             new_df.loc[new_df.ensemble_member.isna(),'ensemble_member'] = ensemble_member
         
     return new_df

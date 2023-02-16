@@ -49,10 +49,10 @@ class StandardFileWriter:
     :param rewrite: overrides default rewrite value for fstecr, default None
     :type rewrite: bool, optional
     """
-    modes = ['write', 'update', 'dump']
+    modes = ['write', 'update', 'dump', "append", "appendoverwrite"]
 
     @initializer
-    def __init__(self, filename: str or Path, df: pd.DataFrame, mode='write', no_meta=False, overwrite=False, rewrite=None):
+    def __init__(self, filename: str or Path, df: pd.DataFrame, mode='write', no_meta=False, overwrite=False, rewrite=None, meta_only=False):
         self.validate_input()
 
     def validate_input(self):
@@ -84,6 +84,12 @@ class StandardFileWriter:
             self._dump()
         elif self.mode == 'update':
             self._update()
+        elif self.mode == 'appendoverwrite':
+            self.rewrite = True
+            self._write()
+        elif self.mode == 'append':
+            self.rewrite = False
+            self._write()
         else:
             self._write()
 
@@ -127,9 +133,14 @@ class StandardFileWriter:
     def _write(self):
         from fstpy.dataframe import add_path_and_key_columns
 
-        self.df = metadata_cleanup(self.df)
-        self.df = add_path_and_key_columns(self.df)
-        self.df = self.df.sort_values(by=['path','key'])
+        if not self.meta_only:
+            self.df = metadata_cleanup(self.df,False)
+
+        try:
+            self.df = add_path_and_key_columns(self.df)
+            self.df = self.df.sort_values(by=['path','key'])
+        except:
+            logging.warning("Can't get path and key")
 
         if self.rewrite is None:
             rewrite = set_rewrite(self.df)
@@ -139,7 +150,7 @@ class StandardFileWriter:
         num_rows = get_num_rows_for_reading(self.df)
         
         df_list = np.array_split(self.df, math.ceil(len(self.df.index)/num_rows))  # of records per block
-         
+
         for df in df_list:
             df = compute(df,False)
 
