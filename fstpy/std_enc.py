@@ -17,7 +17,7 @@ def create_encoded_standard_etiket(label: str, run: str, implementation: str, en
     :type implementation: str
     :param ensemble_member: ensemble member number as string
     :type ensemble_member: str
-    :param etiket_format: flag with number of character in run, label, implementation and ensemble_member and 0 or 1 to indicate if the output should have the same format (ex: "2,5,1,3,1")
+    :param etiket_format: flag with number of character in run, label, implementation and ensemble_member and K or D to indicate if we keep or discard this format (ex: "2,5,1,3,K")
     :type etiket_format: str
     :param ignore_extended: flag to indicate that the etiket should just be the label
     :type ignore_extended: bool
@@ -43,7 +43,7 @@ def create_encoded_standard_etiket(label: str, run: str, implementation: str, en
         length_label = int(length[1])
         length_implementation = int(length[2])
         length_ensemble = int(length[3])
-        keep_format = int(length[4])
+        keep_format = length[4] == 'K'
     
     if etiket_format == "" or not keep_format:
         length_run = 2
