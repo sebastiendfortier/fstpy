@@ -6,8 +6,7 @@ from rpnpy.rpndate import RPNDate
 
 from fstpy import DATYP_DICT
 
-
-def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_member: str, etiket_format: str = "", ignore_extended: bool = False, override_pds_label: bool = False) -> str:
+def create_encoded_standard_etiket(label: str, run: str, implementation: str, ensemble_member: str, etiket_format: str = "", ignore_extended: bool = False, override_pds_label: bool = False) -> str:
     """Creates a new etiket based on label, run, implementation and ensemble member attributes
 
     :param label: label string
@@ -18,8 +17,12 @@ def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_me
     :type implementation: str
     :param ensemble_member: ensemble member number as string
     :type ensemble_member: str
-    :param etiket_format: flag with number of character in run, label, implementation and ensemble_member (ex: "2,5,1,3")
+    :param etiket_format: flag with number of character in run, label, implementation and ensemble_member and 0 or 1 to indicate if the output should have the same format (ex: "2,5,1,3,1")
     :type etiket_format: str
+    :param ignore_extended: flag to indicate that the etiket should just be the label
+    :type ignore_extended: bool
+    :param override_pds_label: flag to indicate that the etiket should just be the label
+    :type override_pds_label: bool
     :return: an etiket composed of supplied parameters
     :rtype: str
     """
@@ -33,27 +36,55 @@ def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_me
     if implementation != 'X' and len(label) > 6:
         raise Exception("LE PDSLABEL EST TROP LONG, LA LONGUEUR ACCEPTEE EST MAXIMUM 6! - '{}'".format(label))
 
+    keep_format = False
     if etiket_format != "":
         length = etiket_format.split(',')
         length_run = int(length[0])
         length_label = int(length[1])
         length_implementation = int(length[2])
         length_ensemble = int(length[3])
+        keep_format = int(length[4])
+    
+    if etiket_format == "" or not keep_format:
+        length_run = 2
+        length_label = 6
+        length_implementation = 1
+        length_ensemble = 3
 
-        if (length_run+length_implementation+length_ensemble+length_label) > 12 :
-            print("The etiket is too long and might get cut in writer")
+    if (length_run+length_implementation+length_ensemble+length_label) > 12 :
+        print("The etiket is too long and might get cut in writer")
 
-        label = label+"______"
+    label = label+"____________"
 
-        run = run[:length_run]
-        label = label[:length_label]
-        implementation = implementation[:length_implementation]
-        ensemble_member = ensemble_member[:length_ensemble]
-        etiket = run + label + implementation + ensemble_member
+    if ensemble_member == 'None' or ensemble_member is None:
+        ensemble_member = ""
+    
+    if len(run) == 0:
+        run = "__"
 
-        return etiket
+    run = run[:length_run]
+    label = label[:length_label]
+    implementation = implementation[:length_implementation]
+    ensemble_member = ensemble_member[:length_ensemble]
+    etiket = run + label + implementation + ensemble_member
 
-    label = (label+"______")[0:6]
+    return etiket
+
+
+def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_member: str) -> str:
+    """Creates a new etiket based on label, run, implementation and ensemble member attributes
+
+    :param label: label string
+    :type label: str
+    :param run: model run string
+    :type run: str
+    :param implementation: implementation string
+    :type implementation: str
+    :param ensemble_member: ensemble member number as string
+    :type ensemble_member: str
+    :return: an etiket composed of supplied parameters
+    :rtype: str
+    """
     etiket =  label
 
     if run != 'None':
