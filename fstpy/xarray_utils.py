@@ -2,7 +2,6 @@
 
 from fstpy.dataframe import add_columns, add_shape_column
 from fstpy.std_io import get_field_dtype, get_lat_lon
-import xarray as xr
 import pandas as pd
 import numpy as np
 import dask.array as da
@@ -17,7 +16,7 @@ def convert_to_cmc_xarray(df, timeseries=False, attributes=False):
     :return: xarray containing contents of cmc standard files
     :rtype: xarray.DataSet
     """
-
+    import xarray as xr
     # dask_config_set(**{'array.slicing.split_large_chunks': True})
     df = add_columns(df)
     df = add_shape_column(df)
@@ -118,6 +117,7 @@ def set_attrib(nomvar_df,attribs,key):
     return attribs
 
 def get_date_of_validity_data_array(df,date_of_validity_name):
+    import xarray as xr
     times = df['date_of_validity'].to_numpy()
     time = xr.DataArray(
         times,
@@ -128,6 +128,7 @@ def get_date_of_validity_data_array(df,date_of_validity_name):
     return time
 
 def get_level_data_array(df,level_name,ascending):
+    import xarray as xr
     levels = df['level'].to_numpy(dtype='float32')
     level = xr.DataArray(
         levels,
@@ -138,6 +139,7 @@ def get_level_data_array(df,level_name,ascending):
     return level
 
 def get_latitude_data_array(lat_lon_df,lat_name,shape):
+    import xarray as xr
     if not lat_lon_df.empty:
         lati = lat_lon_df.query('nomvar=="^^"').iloc[0]['d'].flatten()
     else:    
@@ -158,7 +160,7 @@ def get_latitude_data_array(lat_lon_df,lat_name,shape):
     return lat
     
 def get_longitude_data_array(lat_lon_df,lon_name,shape):
-
+    import xarray as xr
     if not lat_lon_df.empty:
         # loni = np.flip(lat_lon_df.query('nomvar==">>"').iloc[0]['d'].flatten(),axis=0)
         # loni = (loni-163.41278)*-1
@@ -183,6 +185,7 @@ def get_longitude_data_array(lat_lon_df,lon_name,shape):
     return lon
 
 def get_variable_data_array(df, name, attribs, dim, dim_name, latitudes, lat_name, longitudes, lon_name,timeseries=False):
+    import xarray as xr
     field_dtype = get_field_dtype(df.iloc[0]['datyp'],df.iloc[0]['nbits'])    
     values = da.stack(df['d'].to_list())
 
