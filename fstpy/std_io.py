@@ -273,8 +273,8 @@ class general_file_info(Structure):
     ]
 
 
-Fnom_General_File_Desc_Table = (
-    general_file_info*MAXFILES).in_dll(librmn, 'Fnom_General_File_Desc_Table')
+# Fnom_General_File_Desc_Table = (
+#     general_file_info*MAXFILES).in_dll(librmn, 'Fnom_General_File_Desc_Table')
 
 # From rpnmacros.h
 word = c_uint32
