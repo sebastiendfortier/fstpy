@@ -302,8 +302,8 @@ def get_parsed_etiket(raw_etiket: str, etiket_format: str = ""):
 
     # match_run = "[RGPEAIMWNC_][\\dRLHMEA_]"
     match_run = "\\w{2}"
-    match_main_cmc = "\\w{5}"
-    match_main_spooki = "\\w{6}"
+    match_main_cmc = "\\S{5}"
+    match_main_spooki = "\\S{6}"
     match_implementation = "[NPX]"
     # match_ensemble_member = "\\w{3}"
     match_ensemble_number3 = "\\d{3}"
