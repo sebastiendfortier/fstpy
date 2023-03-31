@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'fstpy'
-copyright = '2021, Sébastien Fortier'
+copyright = '2021, Canadian Meteorological Centre'
 author = 'Sébastien Fortier'
 
 # The full version, including alpha/beta/rc tags
