@@ -374,8 +374,15 @@ def add_unit_and_description_columns(df: pd.DataFrame):
 
     new_df = copy.deepcopy(df)
 
-    if any([(col not in new_df.columns) for col in ['unit', 'description']]):
+    if 'unit' not in new_df.columns and 'description' not in new_df.columns:
         new_df['unit'], new_df['description'] = VGET_UNIT_AND_DESCRIPTION(new_df.nomvar)
+    
+    elif 'unit' not in new_df.columns:
+        new_df['unit'], _ = VGET_UNIT_AND_DESCRIPTION(new_df.nomvar)
+    
+    elif 'description' not in new_df.columns:
+        _, new_df['description'] = VGET_UNIT_AND_DESCRIPTION(new_df.nomvar)
+
     else:
         if not new_df.loc[new_df.unit.isna()].empty:
             unit, _ = VGET_UNIT_AND_DESCRIPTION(new_df.loc[new_df.unit.isna()].nomvar)
