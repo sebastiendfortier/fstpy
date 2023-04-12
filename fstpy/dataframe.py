@@ -379,9 +379,17 @@ def add_unit_and_description_columns(df: pd.DataFrame):
     
     elif 'unit' not in new_df.columns:
         new_df['unit'], _ = VGET_UNIT_AND_DESCRIPTION(new_df.nomvar)
-    
+
+        if not new_df.loc[new_df.description.isna()].empty:
+            _, description = VGET_UNIT_AND_DESCRIPTION(new_df.loc[new_df.description.isna()].nomvar)
+            new_df.loc[new_df.description.isna(),'description'] = description
+
     elif 'description' not in new_df.columns:
         _, new_df['description'] = VGET_UNIT_AND_DESCRIPTION(new_df.nomvar)
+
+        if not new_df.loc[new_df.unit.isna()].empty:
+            unit, _ = VGET_UNIT_AND_DESCRIPTION(new_df.loc[new_df.unit.isna()].nomvar)
+            new_df.loc[new_df.unit.isna(),'unit'] = unit
 
     else:
         if not new_df.loc[new_df.unit.isna()].empty:
