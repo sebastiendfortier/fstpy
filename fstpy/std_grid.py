@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-import copy
 import ctypes
 import logging
 import math
+from typing import Tuple
+
 import numpy as np
 import pandas as pd
-from typing import Tuple
-import rpnpy.librmn.proto as pt
-from .dataframe import add_path_and_key_columns
 import rpnpy.librmn.all as rmn
+import rpnpy.librmn.proto as pt
+
+from .dataframe import add_path_and_key_columns
+
 
 def get_df_from_grid(grid_params: dict) -> pd.DataFrame:
     """For grid types Z, Y or U, produces a DataFrame of >>,^^ or ^> fields
@@ -165,7 +167,7 @@ def get_2d_lat_lon_df(df: pd.DataFrame) -> pd.DataFrame:
     path_groups = df.groupby('path')
     for _, path_df in path_groups:
         
-        grid_groups = path_df.groupby(['grid'])
+        grid_groups = path_df.groupby('grid')
         for _, grid_df in grid_groups:
             no_meta_df = grid_df.loc[~grid_df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
 
@@ -280,6 +282,141 @@ def _lower_than(value, threshold, epsilon=0.00001):
 
 def _lower_or_equal(value, threshold, epsilon=0.00001):
     return (value < threshold or _equal(value, threshold, epsilon))
+
+
+
+def get_lat_lon_from_index(df: pd.DataFrame, x: list, y: list) -> pd.DataFrame:
+    """Returns the lat-lon coordinates of data located at positions x-y
+
+    :param df: a pandas Dataframe object containing at least one record with its metadata fields
+    :type df: pd.DataFrame
+    :param x: a list of x grid coords
+    :type x: list
+    :param y: a list of y grid coords
+    :type y: list
+    :raises Get2DLatLonError: Empty DataFrame
+    :return: a dataframe of associated path, grid, grid_id, x, y, and lat lon results
+    :rtype: pd.DataFrame
+    """
+
+    if df.empty:
+        raise Get2DLatLonError('Empty DataFrame!')
+
+    if not isinstance(x, list):
+        raise Get2DLatLonError(f'x must be a list')
+
+    if not isinstance(y, list):
+        raise Get2DLatLonError(f'y must be a list')
+
+    for elem in x:
+        if not isinstance(elem, int):
+            raise Get2DLatLonError(f'elements of x must integers') # raise if any element is not an integer
+
+    for elem in y:
+        if not isinstance(elem, int):
+            raise Get2DLatLonError(f'elements of y must integers') # raise if any element is not an integer
+
+    if len(x) != len(y):
+        raise Get2DLatLonError('x and y must be lists of same size')
+
+    if 'path' not in df.columns:
+        df = add_path_and_key_columns(df)
+
+    dfs = []
+    path_groups = df.groupby('path')
+    for path, path_df in path_groups:
+        
+        grid_groups = path_df.groupby('grid')
+        for grid, grid_df in grid_groups:
+            no_meta_df = grid_df.loc[~grid_df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
+
+            if no_meta_df.empty:
+                continue
+            
+            grtyp_groups = no_meta_df.groupby('grtyp')
+            for grtyp, grtyp_df in grtyp_groups:
+                if (grtyp == 'X'):
+                    logging.warning(f"{grtyp} is an unsupported grid type!")
+                    continue
+                max_x_val = grtyp_df.iloc[0].ni - 1
+                max_y_val = grtyp_df.iloc[0].nj - 1
+                
+                for elem in x:
+                    if not (0 <= elem <= max_x_val):
+                        raise Get2DLatLonError(f'elements of x must inside the following range: 0 to {max_x_val}')
+                
+                for elem in y:
+                    if not (0 <= elem <= max_y_val):
+                        raise Get2DLatLonError(f'elements of y must inside the following range: 0 to {max_y_val}')
+
+                grid_params = get_grid_definition_params(grtyp_df)
+                lalo = rmn.gdllfxy(grid_params['id'], [e+1 for e in x], [e+1 for e in y]) # add 1 to all index for fortran compat
+                paths = [path for _ in range(len(x))]
+                grids = [grid for _ in range(len(x))]
+                grtyps = [grtyp for _ in range(len(x))]
+                dfs.extend([{'path': pat, 'grid': gd, 'grid': gr, 'x': xi, 'y': yi, 'lat': la, 'lon': lo} for pat, gd, gr, xi, yi, la, lo in zip(paths, grids, grtyps, x, y, lalo['lat'], lalo['lon'])])
+
+    return pd.DataFrame(dfs)               
+
+
+
+def get_index_from_lat_lon(df: pd.DataFrame, lat: list, lon: list) -> pd.DataFrame:
+    """Returns the x-y coordinates of data located at lat-lon
+
+    :param df: a pandas Dataframe object containing at least one record with its metadata fields
+    :type df: pd.DataFrame
+    :param lat: a list of latitudes
+    :type lat: list
+    :param lon: a list of longitudes
+    :type lon: list
+    :raises Get2DLatLonError: Empty DataFrame
+    :return: a dataframe of associated path, grid, grid_id, x, y, and lat lon results
+    :rtype: pd.DataFrame
+    """
+
+    if df.empty:
+        raise Get2DLatLonError('Empty DataFrame!')
+    
+    if not isinstance(lat, list):
+        raise Get2DLatLonError(f'lat must be a list')
+
+    if not isinstance(lon, list):
+        raise Get2DLatLonError(f'lon must be a list')
+
+    if len(lat) != len(lon):
+        raise Get2DLatLonError('lat and lon must be lists of same size')
+
+    if 'path' not in df.columns:
+        df = add_path_and_key_columns(df)
+
+    dfs = []
+    path_groups = df.groupby('path')
+    for path, path_df in path_groups:
+        
+        grid_groups = path_df.groupby('grid')
+        for grid, grid_df in grid_groups:
+            no_meta_df = grid_df.loc[~grid_df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
+
+            if no_meta_df.empty:
+                continue
+
+            grtyp_groups = no_meta_df.groupby('grtyp')
+            for grtyp, grtyp_df in grtyp_groups:
+                if (grtyp == 'X'):
+                    logging.warning(f"{grtyp} is an unsupported grid type! skipping")
+                    continue
+
+                grid_params = get_grid_definition_params(grtyp_df)
+                xy = rmn.gdxyfll(grid_params['id'], lat, lon)
+                paths = [path for _ in range(len(lat))]
+                grids = [grid for _ in range(len(lat))]
+                grtyps = [grtyp for _ in range(len(lat))]
+                dfs.extend([{'path': pat, 'grid': gd, 'grid': gr, 'x': xi, 'y': yi, 'lat': la, 'lon': lo} for pat, gd, gr, xi, yi, la, lo in zip(paths, grids, grtyps, [e-1 for e in xy['x']], [e-1 for e in xy['y']], lat, lon)])
+
+    return pd.DataFrame(dfs)  
+
+
+
 
 # def get_df_from_vgrid(vgrid_descriptor: vgd.VGridDescriptor, ip1: int, ip2: int) -> pd.DataFrame:
 #     v = vgrid_descriptor

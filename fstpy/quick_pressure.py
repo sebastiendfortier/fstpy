@@ -46,20 +46,20 @@ class QuickPressure():
         # print(self.df.drop(columns=['d','path','key']).to_string())
 
     def compute(self):
-        grid_groups = self.df.groupby(['path'])
+        grid_groups = self.df.groupby('path')
         df_list = []
         for _, path_df in grid_groups:
-            grid_groups = path_df.groupby(['grid'])
+            grid_groups = path_df.groupby('grid')
 
             for _, grid_df in grid_groups:
                 grids_meta_df = grid_df.loc[grid_df.nomvar.isin(["!!", "P0", "PT", "!!SF"])].reset_index(drop=True)
-                vctypes_groups = grid_df.groupby(['vctype'])
+                vctypes_groups = grid_df.groupby('vctype')
 
                 for vctype, vt_df in vctypes_groups:
                     if vctype == VerticalCoordType.UNKNOWN:
                         continue
 
-                    datev_groups = vt_df.groupby(['datev'])
+                    datev_groups = vt_df.groupby('datev')
                     for _, dv_df in datev_groups:
                         without_meta_df = dv_df.loc[(dv_df.ip1 != 0) & (~dv_df.nomvar.isin(
                             ["!!", "HY", "P0", "PT", ">>", "^^", "PX", "PXSA"]))]
