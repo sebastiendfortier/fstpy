@@ -1,0 +1,106 @@
+
+variables:
+  ORD_SOUMET_CPUS: "4"
+  ORD_SOUMET_M: "8G"
+  ORD_SOUMET_TMPFS: "4096"
+  doc_install_dir: "/home/spst900/public_html/fstpy/${CI_BUILD_REF_NAME}"
+  latest_doc_install_dir: "/home/spst900/public_html/fstpy/latest"
+  deploy_dir_prefix: /fs/site5/eccc/cmd/w/spst900/spooki/CI_fstpy/${CI_BUILD_REF_NAME}
+
+
+stages:
+  - run_unittest
+  - run_regtests
+  - make_doc
+  - install_doc
+  - ssm_package
+  - deploy
+
+
+# default:
+# when 'default' becomes supported, uncomment the above line, delete this line, and indent the before_script part.
+before_script:
+  - export ORDENV_SITE_PROFILE=20220214
+  - export ORDENV_COMM_PROFILE=eccc/20220217
+  - export ORDENV_GROUP_PROFILE=eccc/cmc/1.9.7
+  - . /fs/ssm/main/env/ordenv-boot-20201118.sh
+  - export EC_ATOMIC_PROFILE_VERSION=1.15.0
+  - . $ARMNLIB_SHARE/check_profile_1.1.0
+  - . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all
+  - . r.load.dot /fs/ssm/main/opt/intelcomp/inteloneapi-2022.1.2/intelcomp+mpi+mkl
+  - . r.load.dot /fs/ssm/eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 /fs/ssm/eccc/mrd/rpn/MIG/ENV/rpnpy/2.1-u2.4
+  - . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/1.0.8
+
+
+run_unittest:
+  stage: run_unittest
+  script:
+    # - sleep 2000
+    - cd test
+    - python3 -m pytest -vrf -m unit_tests
+
+
+run_regtests:
+  stage: run_regtests
+  script:
+    - cd test
+    - python3 -m pytest -vrf -m regressions
+
+make_doc:
+  stage: make_doc
+  script:
+    - cd doc
+    - make doc
+  artifacts:
+    paths:
+      - doc/_build/html
+
+
+install_doc:
+  stage: install_doc
+  script:
+    - cd doc/_build/html
+    - cdir=`pwd`
+    - rm -rf ${doc_install_dir}
+    - mkdir -p ${doc_install_dir}
+    - cp -r ${cdir}/* ${doc_install_dir}
+    - echo "Installed in ${doc_install_dir}"
+    - echo "Visit http://web.science.gc.ca/~spst900/fstpy/${CI_BUILD_REF_NAME}"
+
+install_latest_doc:
+  stage: install_doc
+  only:
+      - master
+  script:
+    - cd doc/_build/html
+    - cdir=`pwd`
+    - rm -rf ${latest_doc_install_dir}
+    - mkdir -p ${latest_doc_install_dir}
+    - cp -r ${cdir}/* ${latest_doc_install_dir}
+    - echo "Installed in ${latest_doc_install_dir}"
+    - echo "Visit http://web.science.gc.ca/~spst900/fstpy/latest"
+
+
+ssm_package:
+  stage: ssm_package
+  script:
+    - cd livraison
+    - DEPLOY_DIR=${deploy_dir_prefix}/${CI_PIPELINE_ID}
+    - echo ${DEPLOY_DIR}
+    - ./make_ssm_package.py --install --temp ${DEPLOY_DIR}
+
+deploy:
+  stage: deploy
+  script:
+    - cd ${deploy_dir_prefix}
+    - rm -f latest
+    - ln -s ${CI_PIPELINE_ID} latest
+  only:
+    - master
+
+remove_ssm:
+  stage: deploy
+  script:
+    - rm -r ${deploy_dir_prefix}
+  except:
+    - master
