@@ -334,7 +334,10 @@ def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
     new_df = copy.deepcopy(df)
 
     if any([(col not in new_df.columns) for col in ['label', 'run', 'implementation', 'ensemble_member', 'etiket_format']]):
-        new_df['label'], new_df['run'], new_df['implementation'], new_df['ensemble_member'], new_df['etiket_format'] = VPARSE_ETIKET(new_df.etiket)
+        if 'etiket_format' in new_df.columns:
+            new_df['label'], new_df['run'], new_df['implementation'], new_df['ensemble_member'], _ = VPARSE_ETIKET(new_df.etiket)
+        else:
+            new_df['label'], new_df['run'], new_df['implementation'], new_df['ensemble_member'], new_df['etiket_format'] = VPARSE_ETIKET(new_df.etiket)
     else:
         if not new_df.loc[new_df.label.isna()].empty:
             label, _, _,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.label.isna()].etiket)
