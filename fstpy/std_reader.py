@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import copy
-import itertools
-import multiprocessing as mp
 import os
 from pathlib import Path
+
 from . import FSTPY_PROGRESS
 
 try:
@@ -12,9 +11,6 @@ except ModuleNotFoundError as e:
     FSTPY_PROGRESS = False
     
 import pandas as pd
-
-
-from fstpy.xarray_utils import convert_to_cmc_xarray
 
 from .utils import initializer, to_numpy
 
@@ -73,8 +69,8 @@ class StandardFileReader:
             raise StandardFileReaderError('Filenames must be str or list\n')
 
     def to_pandas(self) -> pd.DataFrame:
-        from .std_io import get_dataframe_from_file
         from .dataframe import add_columns, drop_duplicates
+        from .std_io import get_dataframe_from_file
         """creates the dataframe from the provided file metadata
 
         :return: df
@@ -105,13 +101,6 @@ class StandardFileReader:
 
         return df
      
-    def to_cmc_xarray(self):
-        df = self.to_pandas()
-        return convert_to_cmc_xarray(df)
-
-def to_cmc_xarray(df):
-    return convert_to_cmc_xarray(df)
-    
 
 def compute(df: pd.DataFrame,remove_path_and_key:bool=True) -> pd.DataFrame:
     """Converts all dask arrays contained in the 'd' column, by numpy arrays
@@ -123,8 +112,9 @@ def compute(df: pd.DataFrame,remove_path_and_key:bool=True) -> pd.DataFrame:
     :return: modified dataframe with numpy arrays instead of dask arrays
     :rtype: pd.DataFrame
     """
-    from .dataframe import add_path_and_key_columns
     import dask as da
+
+    from .dataframe import add_path_and_key_columns
     new_df = copy.deepcopy(df)
     
     new_df = add_path_and_key_columns(new_df)

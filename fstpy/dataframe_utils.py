@@ -19,6 +19,13 @@ class SelectError(Exception):
 
 
 def select_meta(df: pd.DataFrame) -> pd.DataFrame:
+    """select all metadata fields in a dataframe from
+
+    :param df: input dataframe
+    :type df: pd.DataFrame
+    :return: output dataframe of metadat fileds only
+    :rtype: pd.DataFrame
+    """
     meta_df = df.loc[df.nomvar.isin(
         ["!!", "P0", "PT", ">>", "^^", "^>", "HY", "!!SF"])]
     return meta_df

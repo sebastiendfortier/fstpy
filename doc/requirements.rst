@@ -5,7 +5,6 @@ run time packages
 -----------------
 - pandas>=1.2.4
 - numpy>=1.19.5
-- xarray>=0.19.0
 - dask>=2021.8.0
 
 developpement packages
@@ -13,7 +12,6 @@ developpement packages
 - ci_fstcomp>=1.0.6
 - pandas>=1.2.4
 - numpy>=1.19.5
-- xarray>=0.19.0
 - dask>=2021.8.0
 - pytest>=5.3.5
 - Sphinx>=3.4.3

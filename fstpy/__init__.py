@@ -24,26 +24,32 @@ stack_size(100000000)
 
 
 def fstpy_log_level_debug():
+    """sets log level to debug"""
     rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_DEBUG, setOget=0)
 
 
 def fstpy_log_level_info():
+    """sets log level to info"""
     rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_INFO, setOget=0)
 
 
 def fstpy_log_level_warning():
+    """sets log level to warning"""
     rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_WARNING, setOget=0)
 
 
 def fstpy_log_level_error():
+    """sets log level to error"""
     rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_ERROR, setOget=0)
 
 
 def fstpy_log_level_fatal():
+    """sets log level to fatal"""
     rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_FATAL, setOget=0)
 
 
 def fstpy_log_level_catast():
+    """sets log level to catast"""
     rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
 
 

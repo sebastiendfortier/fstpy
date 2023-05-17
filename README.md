@@ -3,7 +3,7 @@
 ## What is it?
 
 Fstpy is a high level interface to rpn's rpnpy python library that
-produces pandas dataframes or Xarray's from CMC standard files. In
+produces pandas dataframes from CMC standard files. In
 order to promote decoupling, modularization and collaboration, fstpy
 only reads and writes. All other operations and algorithms can be
 independent.
@@ -12,7 +12,7 @@ independent.
 
 The idea of using a dataframe is to have a pythonic way of working with
 standard files without having to know the mechanics of rmnlib. Since
-many people come here with numpy, pandas and xarray knowledge, the
+many people come here with numpy and pandas knowledge, the
 learning curve is much less steep.
 
 ## Dataframes
@@ -31,19 +31,12 @@ these types of arrays. The only difference is that until array.compute()
 is done, the dask array stores tasks instead of actually doing the
 computations.
 
-## Xarray\'s
-
-They are used to analyse grouped and indexed data. They are especially
-good for working with n-dimensional meteorological data. They also offer
-a great variety of built-in plotting functions.
-
 # Requirements
 
 ## run time packages
 
 -   pandas>=1.2.4
 -   numpy>=1.19.5
--   xarray>=0.19.0
 -   dask>=2021.8.0
 
 ## developpement packages
@@ -51,7 +44,6 @@ a great variety of built-in plotting functions.
 -   ci_fstcomp>=1.0.6
 -   pandas>=1.2.4
 -   numpy>=1.19.5
--   xarray>=0.19.0
 -   dask>=2021.8.0
 -   pytest>=5.3.5
 -   Sphinx>=3.4.3

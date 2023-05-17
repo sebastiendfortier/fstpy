@@ -1,4 +1,4 @@
-Dataframe, Dask and Xarray Ressources
+Dataframe and Dask Ressources
 =====================================
 
 The source reference for pandas
@@ -21,12 +21,3 @@ Dask tutorials.
 
 https://github.com/dask/dask-tutorial
 
-The source reference for xarray
--------------------------------
-
-http://xarray.pydata.org/en/stable/
-
-Xarray examples
----------------
-
-http://xarray.pydata.org/en/stable/tutorials-and-videos.html

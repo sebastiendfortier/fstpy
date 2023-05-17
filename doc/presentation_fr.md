@@ -42,7 +42,7 @@ Sébastien Fortier 2021
 ### Philosophie
 - Façon de travailler "pythonic" avec des fichiers FST 
 - Pas besoin de connaître tous les mécanismes de rmnlib
-- Beaucoup de gens viennent ici avec des connaissances sur numpy, pandas et xarray
+- Beaucoup de gens viennent ici avec des connaissances sur numpy and pandas
 - Courbe d'apprentissage moins raide.
 
 ---
@@ -51,7 +51,6 @@ Sébastien Fortier 2021
 - pandas
 - numpy
 - dask
-- xarray
 
 
 ---
@@ -74,16 +73,6 @@ Sébastien Fortier 2021
 - Bibliothèque open source pour le calcul parallèle écrite en Python
 - Il est développé en coordination avec d'autres projets communautaires comme NumPy, pandas et scikit-learn.
 - <https://dask.org/>
-
----
-
-### Xarray
-- Organisation analogue au format netCDF
-- Analyse des données regroupées et indexées. 
-- Données météorologiques n-dimensionnelles. 
-- Fonctions de graphisme intégrées.
-- Indexation simplifié grace aux dimensions nommées
-- <http://xarray.pydata.org/en/stable/>
 
 ---
 
@@ -181,33 +170,10 @@ uv_df['d'] = uv
 
 ---
 
-### version 3 xarray
-```python
-# sélectionner tous les UU
-uu_df = df.loc[df.nomvar=='UU']
-# sélectionner tous les UU
-vv_df = df.loc[df.nomvar=='VV']
-
-uu_da = xr.DataArray(np.stack(uu_df.d))
-vv_da = xr.DataArray(np.stack(vv_df.d))
-ds = xr.Dataset({'UU':uu_da,'VV':vv_da})
-uv_da = np.hypot(ds.UU,ds.VV)
-
-```
-
----
-
-### Dataset xarray de TT
-![image](dataset.jpg)
-
----
-
 
 ### Notes
 - Documention sur les dataframe -> Google
 - Aide -> Google/Stackoverflow
-- Dataframe  -> netCDF avec fstd2nc direct avec Buffer.from_fstpy(df).to_netcdf("some_met_data.nc")
-- Dataframe  -> Xarray avec fstd2nc direct avec Buffer.from_fstpy(df).to_xarray()
 
 ---
 

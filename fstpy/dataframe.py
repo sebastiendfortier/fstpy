@@ -690,7 +690,14 @@ def meta_exists(grid_df, nomvar) -> bool:
     df = grid_df.loc[grid_df.nomvar == nomvar]
     return not df.empty
 
-def create_empty_dataframe(num_rows):
+def create_empty_dataframe(num_rows: int) -> pd.DataFrame:
+    """Creates an empty dataframe of the given number of rows
+
+    :param num_rows: number of rows to create
+    :type num_rows: int
+    :return: a dataframe of the given number of rows without data column
+    :rtype: pandas Dataframe
+    """
     record = {
         'nomvar': ' ',
         'typvar': 'P',
