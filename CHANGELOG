@@ -9,3 +9,4 @@ Added: fstpy.setup_fstpy_logger () to format the logger using the spooki method.
 Added: environment variable FSTPY_NUM_ROWS to control the number of records read at a time.
 Added: functions to_numpy and to_dask, to convert matrices from one format to another.
 Added: to_cmc_xarray function to work in 3 dimensions with xarray datasets.
+Removed: all traces of xarray

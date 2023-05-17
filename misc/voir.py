@@ -307,7 +307,7 @@ if __name__ == "__main__":
 
     # import shutil
     # print(shutil.get_terminal_size().lines)
-    #h = get_record_headers('/space/hall3/sitestore/eccc/cmod/prod/hubs/gridpt/dbase/prog/glbeta/2021031912_240')
+    #h = get_record_headers('/space/hall5/sitestore/eccc/prod/hubs/gridpt/dbase/prog/glbeta/2021031912_240')
 
 
 

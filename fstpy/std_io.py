@@ -156,61 +156,61 @@ def get_file_modification_time(path):
     return datetime.datetime.strptime(file_modification_time, "%a %b %d %H:%M:%S %Y")
 
 
-def get_lat_lon(df):
-    return get_grid_metadata_fields(df, pressure=False, vertical_descriptors=False)
+# def get_lat_lon(df):
+#     return get_grid_metadata_fields(df, pressure=False, vertical_descriptors=False)
 
 
-def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vertical_descriptors=True) -> pd.DataFrame:
-    from fstpy.dataframe import add_path_and_key_columns
-    new_df = copy.deepcopy(df)
-    new_df = add_path_and_key_columns(new_df)
-    path_groups = new_df.groupby(new_df.path)
-    df_list = []
-    #for each files in the df
-    for path, rec_df in path_groups:
+# def get_grid_metadata_fields(df,latitude_and_longitude=True, pressure=True, vertical_descriptors=True) -> pd.DataFrame:
+#     from fstpy.dataframe import add_path_and_key_columns
+#     new_df = copy.deepcopy(df)
+#     new_df = add_path_and_key_columns(new_df)
+#     path_groups = new_df.groupby(new_df.path)
+#     df_list = []
+#     #for each files in the df
+#     for path, rec_df in path_groups:
 
-        if path is None:
-            continue
+#         if path is None:
+#             continue
 
-        meta_df = get_all_grid_metadata_fields_from_std_file(path)
+#         meta_df = get_all_grid_metadata_fields_from_std_file(path)
 
-        if meta_df.empty:
-            # sys.stderr.write('get_grid_metadata_fields - no metatada in file %s\n'%path)
-            return pd.DataFrame(dtype=object)
-        grid_groups = rec_df.groupby(rec_df.grid)
-        #for each grid in the current file
-        for _,grid_df in grid_groups:
-            this_grid = grid_df.iloc[0]['grid']
-            if vertical_descriptors:
-                #print('vertical_descriptors')
-                vertical_df = meta_df.loc[(meta_df.nomvar.isin(["!!", "HY", "!!SF", "E1"])) & (meta_df.grid==this_grid)]
-                df_list.append(vertical_df)
-            if pressure:
-                #print('pressure')
-                pressure_df = meta_df.loc[(meta_df.nomvar.isin(["P0", "PT"])) & (meta_df.grid==this_grid)]
-                df_list.append(pressure_df)
-            if latitude_and_longitude:
-                #print('lati and longi')
-                latlon_df = meta_df.loc[(meta_df.nomvar.isin(["^>", ">>", "^^"])) & (meta_df.grid==this_grid)]
-                #print(latlon_df)
-                df_list.append(latlon_df)
-                #print(latlon_df)
+#         if meta_df.empty:
+#             # sys.stderr.write('get_grid_metadata_fields - no metatada in file %s\n'%path)
+#             return pd.DataFrame(dtype=object)
+#         grid_groups = rec_df.groupby(rec_df.grid)
+#         #for each grid in the current file
+#         for _,grid_df in grid_groups:
+#             this_grid = grid_df.iloc[0]['grid']
+#             if vertical_descriptors:
+#                 #print('vertical_descriptors')
+#                 vertical_df = meta_df.loc[(meta_df.nomvar.isin(["!!", "HY", "!!SF", "E1"])) & (meta_df.grid==this_grid)]
+#                 df_list.append(vertical_df)
+#             if pressure:
+#                 #print('pressure')
+#                 pressure_df = meta_df.loc[(meta_df.nomvar.isin(["P0", "PT"])) & (meta_df.grid==this_grid)]
+#                 df_list.append(pressure_df)
+#             if latitude_and_longitude:
+#                 #print('lati and longi')
+#                 latlon_df = meta_df.loc[(meta_df.nomvar.isin(["^>", ">>", "^^"])) & (meta_df.grid==this_grid)]
+#                 #print(latlon_df)
+#                 df_list.append(latlon_df)
+#                 #print(latlon_df)
 
-    if len(df_list):
-        result_df = pd.concat(df_list,ignore_index=True)
-        result_df = result_df.drop_duplicates(subset = ['nomvar', 'typvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], ignore_index=True)
-        return result_df
-    else:
-        return pd.DataFrame(dtype=object)
+#     if len(df_list):
+#         result_df = pd.concat(df_list,ignore_index=True)
+#         result_df = result_df.drop_duplicates(subset = ['nomvar', 'typvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'], ignore_index=True)
+#         return result_df
+#     else:
+#         return pd.DataFrame(dtype=object)
 
 
-def get_all_grid_metadata_fields_from_std_file(path):
-    from .dataframe import add_grid_column
-    df = get_basic_dataframe(path)
-    df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "HY", "!!SF", "E1", "P0", "PT"])]
-    df = add_grid_column(df)
-    df = add_dask_column(df)
-    return df
+# def get_all_grid_metadata_fields_from_std_file(path):
+#     from .dataframe import add_grid_column
+#     df = get_basic_dataframe(path)
+#     df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "HY", "!!SF", "E1", "P0", "PT"])]
+#     df = add_grid_column(df)
+#     df = add_dask_column(df)
+#     return df
 
             
 class GetMetaDataError(Exception):
