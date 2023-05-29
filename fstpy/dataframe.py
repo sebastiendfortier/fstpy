@@ -110,18 +110,25 @@ def parse_typvar(typvar: str):
     :rtype: list(bool)
     """
     multiple_modifications = False
-    zapped = False
-    filtered = False
-    interpolated = False
-    unit_converted = False
-    bounded = False
-    missing_data = False
-    ensemble_extra_info = False
+    zapped                 = False
+    filtered               = False
+    interpolated           = False
+    unit_converted         = False
+    bounded                = False
+    missing_data           = False
+    masked                 = False
+    masks                  = False
+    ensemble_extra_info    = False
     if len(typvar) == 2:
         typvar2 = typvar[1]
         if (typvar2 == 'M'):
             # Il n'y a pas de façon de savoir quelle modif a ete faite
             multiple_modifications = True
+        elif (typvar2 == '@'):
+            if typvar[0] == '@':
+                masks = True
+            else:
+                masked = True
         elif (typvar2 == 'Z'):
             zapped = True
         elif (typvar2 == 'F'):
@@ -134,11 +141,13 @@ def parse_typvar(typvar: str):
             bounded = True
         elif (typvar2 == '?'):
             missing_data = True
+        elif (typvar2 == 'H'):
+            missing_data = True
         elif (typvar2 == '!'):
             ensemble_extra_info = True
-    return multiple_modifications, zapped, filtered, interpolated, unit_converted, bounded, missing_data, ensemble_extra_info
+    return multiple_modifications, zapped, filtered, interpolated, unit_converted, bounded, missing_data, ensemble_extra_info, masks, masked
 
-VPARSE_TYPVAR: Final = vectorize(parse_typvar, otypes=['bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'])  
+VPARSE_TYPVAR: Final = vectorize(parse_typvar, otypes=['bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'])  
 
 
 class InvalidTimezoneError(Exception):
@@ -204,6 +213,57 @@ def add_timezone_column(df: pd.DataFrame, source_column: str, timezone:str) -> p
 
     return new_df
 
+def reduce_flag_values(df: pd.DataFrame) -> pd.DataFrame:
+    """Combine the flag values to the correct typvar.
+    Replaces original column(s) if present.
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: typvar set according to the different flag values
+    :rtype: pd.DataFrame
+    """
+    if df.empty:
+        return df
+    if 'typvar' not in df.columns:
+        raise MissingColumnError(f'"typvar" is missing from DataFrame columns!') 
+
+    required_cols = ['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info', 'masked', 'masks']
+
+    all_cols = df.columns.tolist()
+    missing_elements = [x for x in required_cols if x not in all_cols]
+    if missing_elements:
+        df = add_flag_values(df)
+
+    df.loc[(df[['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded']] == True).sum(axis=1) > 1, 'second_char'] = "M"
+    
+    conditions = [
+        (df['masked']&df['ensemble_extra_info']),
+        (df['masked']),
+        (df['masks']),
+        (df['missing_data']),
+        (df['ensemble_extra_info']),
+        (df['second_char'] == "M"),
+        (df['multiple_modifications']),
+        (df['zapped']),
+        (df['bounded']),
+        (df['filtered']),
+        (df['interpolated']),
+        (df['unit_converted'])
+    ]
+    cond_array = np.array(conditions, dtype=bool)
+
+    values = ['*', '@', '#','H', '!', 'M', 'M', 'Z', 'B', 'F', 'I', 'U']
+
+    df['second_char'] = np.select(cond_array, values, default='')
+
+    df['typvar']                                 = df['typvar'].str[0] + df['second_char']  
+    df.loc[(df['second_char'] == '*'), 'typvar'] = "!@"
+    df.loc[(df['second_char'] == '#'), 'typvar'] = "@@"
+    df.drop(labels=['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'bounded', 'missing_data', 'ensemble_extra_info', 
+                        'masks', 'masked', 'second_char'], axis=1, inplace=True)
+
+    return df
+
 
 def add_flag_values(df: pd.DataFrame) -> pd.DataFrame:
     """Adds the correct flag values derived from parsing the typvar.
@@ -223,46 +283,56 @@ def add_flag_values(df: pd.DataFrame) -> pd.DataFrame:
         raise MissingColumnError(f'A "typvar" value is missing from typvar DataFrame column, cannot add flags columns!') 
 
     new_df = copy.deepcopy(df)
+    required_cols = ['masks', 'masked', 'multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info']
+    if all([(col not in new_df.columns) for col in required_cols]):
+        new_df['multiple_modifications'], new_df['zapped'], new_df['filtered'], new_df['interpolated'], new_df['unit_converted'], new_df['bounded'], new_df['missing_data'], new_df['ensemble_extra_info'], new_df['masks'], new_df['masked']= VPARSE_TYPVAR(new_df.typvar)
+    else: 
+        if any([(col not in new_df.columns) for col in required_cols]):
+            missing_cols = [x for x in required_cols if x not in new_df.columns]
+            for col in missing_cols:
+                new_df[col] = None
 
-    if any([(col not in new_df.columns) for col in ['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info']]):
-        new_df['multiple_modifications'], new_df['zapped'], new_df['filtered'], new_df['interpolated'], new_df['unit_converted'], new_df['bounded'], new_df['missing_data'], new_df['ensemble_extra_info'] = VPARSE_TYPVAR(new_df.typvar)
-    else:
+        if not new_df.loc[new_df.masked.isna()].empty:
+            _, _, _, _, _, _, _, _, _,  masked= VPARSE_TYPVAR(new_df.loc[new_df.masked.isna()].typvar)
+            new_df.loc[new_df.multiple_modifications.isna(),'masked'] = masked
+
+        if not new_df.loc[new_df.masks.isna()].empty:
+            _, _, _, _, _, _, _, _, masks, _= VPARSE_TYPVAR(new_df.loc[new_df.masks.isna()].typvar)
+            new_df.loc[new_df.multiple_modifications.isna(),'masks'] = masks    
+
         if not new_df.loc[new_df.multiple_modifications.isna()].empty:
-            multiple_modifications, _, _, _, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.multiple_modifications.isna()].typvar)
+            multiple_modifications, _, _, _, _, _, _, _, _, _= VPARSE_TYPVAR(new_df.loc[new_df.multiple_modifications.isna()].typvar)
             new_df.loc[new_df.multiple_modifications.isna(),'multiple_modifications'] = multiple_modifications
 
         if not new_df.loc[new_df.zapped.isna()].empty:
-            _, zapped, _, _, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.zapped.isna()].typvar)
+            _, zapped, _, _, _, _, _, _ , _, _= VPARSE_TYPVAR(new_df.loc[new_df.zapped.isna()].typvar)
             new_df.loc[new_df.zapped.isna(),'zapped'] = zapped
 
         if not new_df.loc[new_df.filtered.isna()].empty:
-            _, _, filtered, _, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.filtered.isna()].typvar)
+            _, _, filtered, _, _, _, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.filtered.isna()].typvar)
             new_df.loc[new_df.filtered.isna(),'filtered'] = filtered
 
         if not new_df.loc[new_df.interpolated.isna()].empty:
-            _, _, _, interpolated, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.interpolated.isna()].typvar)
+            _, _, _, interpolated, _, _, _, _ , _, _= VPARSE_TYPVAR(new_df.loc[new_df.interpolated.isna()].typvar)
             new_df.loc[new_df.interpolated.isna(),'interpolated'] = interpolated
 
         if not new_df.loc[new_df.unit_converted.isna()].empty:
-            _, _, _, _, unit_converted, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.unit_converted.isna()].typvar)
+            _, _, _, _, unit_converted, _, _, _ , _, _= VPARSE_TYPVAR(new_df.loc[new_df.unit_converted.isna()].typvar)
             new_df.loc[new_df.unit_converted.isna(),'unit_converted'] = unit_converted
 
         if not new_df.loc[new_df.bounded.isna()].empty:
-            _, _, _, _, _, bounded, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.bounded.isna()].typvar)
+            _, _, _, _, _, bounded, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.bounded.isna()].typvar)
             new_df.loc[new_df.bounded.isna(),'bounded'] = bounded
 
         if not new_df.loc[new_df.missing_data.isna()].empty:
-            _, _, _, _, _, _, missing_data, _ = VPARSE_TYPVAR(new_df.loc[new_df.missing_data.isna()].typvar)
+            _, _, _, _, _, _, missing_data, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.missing_data.isna()].typvar)
             new_df.loc[new_df.missing_data.isna(),'missing_data'] = missing_data
 
         if not new_df.loc[new_df.ensemble_extra_info.isna()].empty:
-            _, _, _, _, _, _, _, ensemble_extra_info = VPARSE_TYPVAR(new_df.loc[new_df.ensemble_extra_info.isna()].typvar)
+            _, _, _, _, _, _, _, ensemble_extra_info, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.ensemble_extra_info.isna()].typvar)
             new_df.loc[new_df.ensemble_extra_info.isna(),'ensemble_extra_info'] = ensemble_extra_info
 
     return new_df
-
-
-
 
 
 def drop_duplicates(df: pd.DataFrame):
@@ -645,9 +715,27 @@ def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket',
         df = add_flag_values(df)
 
     return df    
-
     
+def reduce_columns(df: pd.DataFrame):
+    """Enlever les colonnes qui ont ete ajoutees et ramener le dataframe a sa plus simple expression
+       en reprenant l'info necessaire pour rebater les colonnes de base.
+       Replaces original column(s) if present.   
 
+    :param df: dataframe to modify (meta data needs to be present in dataframe)
+    :type df: pd.DataFrame
+    """
+    if df.empty:
+        return df
+
+    # df = add_parsed_etiket_columns(df)
+    # df = add_unit_and_description_columns(df)
+    # df = add_decoded_date_column(df, 'dateo')
+    # df = add_decoded_date_column(df, 'datev')
+    # df = add_forecast_hour_column(df)
+    # df = add_data_type_str_column(df)
+    df = reduce_flag_values(df)
+
+    return df    
 
 def reorder_columns(df):
     """Reorders columns for voir like output

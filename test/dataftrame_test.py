@@ -133,7 +133,7 @@ def test_5(simple_df):
 
     simple_df = fstpy.add_flag_values(simple_df)
 
-    assert(len(simple_df.columns) == 30)
+    assert(len(simple_df.columns) == 32)
 
     for col in ['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info']:
         assert(col in simple_df.columns)
@@ -150,8 +150,6 @@ def test_5(simple_df):
     simple_df = fstpy.add_flag_values(simple_df)
 
     assert(simple_df.unit_converted.unique().size == 2)
-
-
 
 def test_6(simple_df):
     """Check that add_parsed_etiket_columns does not replace existing values"""
@@ -335,7 +333,66 @@ def test_11(simple_df):
     assert(simple_df.level.unique().size == 5)
     
 
-# def test_12(simple_df):
-#     """Check that add_shape_column does not replace existing values"""
-#     assert(len(simple_df.columns) == 22)
-#     pass
+def test_12(simple_df):
+    """Check that add_flag_values does not replace existing values"""
+
+    simple_df = fstpy.add_flag_values(simple_df)
+
+    simple_df.typvar = 'PZ'
+    simple_df.bounded = True
+    simple_df.zapped  = True
+    cols  = ['nomvar', 'typvar', 'zapped', 'bounded','filtered','interpolated']
+
+    simple_df_modified = simple_df.drop(labels=['zapped'], axis=1)
+
+    simple_df_modified = fstpy.add_flag_values(simple_df_modified)
+
+    simple_df          = simple_df.loc         [:, cols]
+    simple_df_modified = simple_df_modified.loc[:, cols]
+
+    assert((simple_df_modified == simple_df).all().all())
+
+def test_13(simple_df):
+    """Check that reduce_flag_values interprets the values of the different flags and updates the typvar accordingly"""
+    
+    simple_df_new = fstpy.add_flag_values(simple_df)
+    simple_df_new.typvar = 'P'
+
+    # Ajouts de 2 rows a la fin pour fins de tests
+    simple_df_new.reset_index(inplace=True)
+    row = simple_df_new.loc[simple_df_new.index == 0]
+    simple_df_new = pd.concat([simple_df_new, row, row], ignore_index=True)
+
+    # Cas 0, masked et ensemble
+    simple_df_new.loc[simple_df_new.index == 0, 'masked'] = True
+    simple_df_new.loc[simple_df_new.index == 0, 'ensemble_extra_info'] = True
+
+    # Cas 1 masked seulement
+    simple_df_new.loc[simple_df_new.index == 1, 'masked'] = True
+
+    # Cas 2 masks seulement
+    simple_df_new.loc[simple_df_new.index == 2, 'masks'] = True
+
+    # Cas 3 donnees manquantes
+    simple_df_new.loc[simple_df_new.index == 3, 'missing_data'] = True
+
+    # Cas 4, modifications multiples
+    simple_df_new.loc[simple_df_new.index == 4,'zapped'] = True
+    simple_df_new.loc[simple_df_new.index == 4, 'bounded'] = True
+
+    # Cas 5 - modif simple, interpolation
+    simple_df_new.loc[simple_df_new.index == 5, 'interpolated'] = True
+
+    # Cas 6 - masked ET multiple_modifications
+    simple_df_new.loc[simple_df_new.index == 6, 'multiple_modifications'] = True
+    simple_df_new.loc[simple_df_new.index == 6, 'masked'] = True
+
+    simple_df_new = fstpy.reduce_flag_values(simple_df_new)
+
+    assert simple_df_new.loc[simple_df_new.index == 0, 'typvar'].item() == '!@'
+    assert simple_df_new.loc[simple_df_new.index == 1, 'typvar'].item() == 'P@'
+    assert simple_df_new.loc[simple_df_new.index == 2, 'typvar'].item() == '@@'
+    assert simple_df_new.loc[simple_df_new.index == 3, 'typvar'].item() == 'PH'
+    assert simple_df_new.loc[simple_df_new.index == 4, 'typvar'].item() == 'PM'
+    assert simple_df_new.loc[simple_df_new.index == 5, 'typvar'].item() == 'PI'
+    assert simple_df_new.loc[simple_df_new.index == 6, 'typvar'].item() == 'P@'
