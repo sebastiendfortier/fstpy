@@ -151,35 +151,6 @@ def test_5(simple_df):
 
     assert(simple_df.unit_converted.unique().size == 2)
 
-# def test_55(simple_df):
-#     """Check that add_flag_values does not replace existing values"""
-#     df_reduit = simple_df
-
-#     cols2 = ['nomvar', 'typvar', 'bounded','filtered','interpolated']
-#     df_reduit = fstpy.add_flag_values(df_reduit)
-
-#     df_reduit.typvar = 'PZ'
-#     df_reduit.bounded = True
-#     df_reduit.zapped  = True
-#     cols  = ['nomvar', 'typvar', 'zapped', 'bounded','filtered','interpolated']
-#     print(f'Avant drop \n {df_reduit[cols]}')
-
-#     df_reduit_before = df_reduit.drop(labels=['zapped'], axis=1)
-#     print(f'Apres drop zapped \n {df_reduit_before[cols2]}')
-
-#     df_reduit_after_new = fstpy.add_flag_values(df_reduit_before)
-#     df_reduit_after_old = fstpy.add_flag_values_old(df_reduit_before)
-
-#     df_reduit_after_new = df_reduit_after_new.loc[:, ['nomvar', 'typvar', 'zapped', 'bounded','filtered','interpolated']]
-#     df_reduit_after_old = df_reduit_after_old.loc[:, ['nomvar', 'typvar', 'zapped', 'bounded','filtered','interpolated']]
-#     df_reduit = df_reduit.loc[:, ['nomvar', 'typvar', 'zapped', 'bounded','filtered','interpolated']]
-#     # assert(df_reduit_after.compare(df_reduit))
- 
-#     print(f'Apres add final : \n {df_reduit_after_new[cols] }\n')  
-#     print(f'Apres add final : \n {df_reduit_after_old[cols]}')  
-#     assert((df_reduit_after_new == df_reduit).all().all())
-#     assert((df_reduit_after_old == df_reduit).all().all())
-
 def test_6(simple_df):
     """Check that add_parsed_etiket_columns does not replace existing values"""
     assert(len(simple_df.columns) == 22)
