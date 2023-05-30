@@ -45,10 +45,8 @@ def create_encoded_standard_etiket(label: str, run: str, implementation: str, en
             length_implementation = int(length[2])
             length_ensemble = int(length[3])
             keep_format = length[4] == 'K'
-        else:
-            keep_format = False
     
-    if etiket_format == "" or not keep_format:
+    if not keep_format:
         length_run = 2
         length_label = 6
         length_implementation = 1
