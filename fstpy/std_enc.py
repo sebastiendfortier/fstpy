@@ -37,15 +37,16 @@ def create_encoded_standard_etiket(label: str, run: str, implementation: str, en
         raise Exception("LE PDSLABEL EST TROP LONG, LA LONGUEUR ACCEPTEE EST MAXIMUM 6! - '{}'".format(label))
 
     keep_format = False
-    if etiket_format != "":
+    if type(etiket_format) == str and etiket_format != "":
         length = etiket_format.split(',')
-        length_run = int(length[0])
-        length_label = int(length[1])
-        length_implementation = int(length[2])
-        length_ensemble = int(length[3])
-        keep_format = length[4] == 'K'
+        if len(length) == 5:
+            length_run = int(length[0])
+            length_label = int(length[1])
+            length_implementation = int(length[2])
+            length_ensemble = int(length[3])
+            keep_format = length[4] == 'K'
     
-    if etiket_format == "" or not keep_format:
+    if not keep_format:
         length_run = 2
         length_label = 6
         length_implementation = 1
