@@ -19,6 +19,12 @@ def simple_df(input_file):
     df = fstpy.StandardFileReader(input_file).to_pandas()
     df = df.loc[df.ip1.isin([95178882,95154915,95529009,97351772,96219256]) & (df.nomvar == 'TT')]
     return df
+
+@pytest.fixture
+def simple_df2(input_file):
+    df = fstpy.StandardFileReader(input_file).to_pandas()
+    df = df.loc[df.ip1.isin([95178882,95154915,95529009,97351772,96219256])]
+    return df
     
 @pytest.fixture
 def mixed_df(simple_df, full_df):
@@ -396,3 +402,13 @@ def test_13(simple_df):
     assert simple_df_new.loc[simple_df_new.index == 4, 'typvar'].item() == 'PM'
     assert simple_df_new.loc[simple_df_new.index == 5, 'typvar'].item() == 'PI'
     assert simple_df_new.loc[simple_df_new.index == 6, 'typvar'].item() == 'P@'
+
+def test_14(simple_df2):
+    """Check that add_decoded_date_column does not replace existing values and works with metadata informations """
+    
+    assert(len(simple_df2.columns) == 22)
+
+    simple_df2 = fstpy.add_decoded_date_column(simple_df2, 'dateo')
+    simple_df2 = fstpy.add_decoded_date_column(simple_df2, 'datev')
+
+    assert(len(simple_df2.columns) == 24)

@@ -501,8 +501,10 @@ def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
         if 'date_of_observation' not in new_df.columns:
             new_df['date_of_observation'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.dateo)
         else:
-            if not new_df.loc[new_df.date_of_observation.isna()].empty:
-                new_df.loc[new_df.date_of_observation.isna(),'date_of_observation'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.loc[new_df.date_of_observation.isna()].dateo)
+            filtered_df = new_df.loc[(new_df.date_of_observation.isna()) & (new_df.dateo != 0)]
+
+            if not filtered_df.empty:
+                new_df.loc[(new_df.date_of_observation.isna()) & (new_df.dateo !=  0),'date_of_observation'] = VCONVERT_RMNDATE_TO_DATETIME(filtered_df.dateo)
 
         # new_df['date_of_observation'] = new_df['date_of_observation'].astype('datetime64[ns]')
     else:
@@ -517,12 +519,14 @@ def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
         if 'date_of_validity' not in new_df.columns:
             new_df['date_of_validity'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.datev)
         else:
-            if not new_df.loc[new_df.date_of_validity.isna()].empty:
-                new_df.loc[new_df.date_of_validity.isna(),'date_of_validity'] = VCONVERT_RMNDATE_TO_DATETIME(new_df.loc[new_df.date_of_validity.isna()].datev)
+            filtered_df = new_df.loc[(new_df.date_of_validity.isna()) & (new_df.datev != 0)]
 
+            if not filtered_df.empty:
+                new_df.loc[(new_df.date_of_validity.isna()) & (new_df.datev !=  0),'date_of_validity'] = VCONVERT_RMNDATE_TO_DATETIME(filtered_df.datev)
+       
         # new_df['date_of_validity'] = new_df['date_of_validity'].astype('datetime64[ns]')
-    return new_df    
 
+    return new_df
 
 
 def add_forecast_hour_column(df: pd.DataFrame):
