@@ -404,10 +404,14 @@ def test_13(simple_df):
     assert simple_df_new.loc[simple_df_new.index == 6, 'typvar'].item() == 'P@'
 
 def test_14(simple_df2):
-    """Check that add_decoded_date_column does not replace existing values and works with metadata informations """
+    """Check that add_decoded_date_column works when called twice, when metadata information is present"""
     
     assert(len(simple_df2.columns) == 22)
 
+    simple_df2 = fstpy.add_decoded_date_column(simple_df2, 'dateo')
+    simple_df2 = fstpy.add_decoded_date_column(simple_df2, 'datev')
+    
+    # 2ieme appel
     simple_df2 = fstpy.add_decoded_date_column(simple_df2, 'dateo')
     simple_df2 = fstpy.add_decoded_date_column(simple_df2, 'datev')
 
