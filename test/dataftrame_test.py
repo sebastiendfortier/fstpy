@@ -416,3 +416,29 @@ def test_14(simple_df2):
     simple_df2 = fstpy.add_decoded_date_column(simple_df2, 'datev')
 
     assert(len(simple_df2.columns) == 24)
+
+def test_15(simple_df):
+    """Check that add_ip_info_columns does not replace existing values"""
+    
+    simple_df = simple_df.loc[simple_df.ip1==95178882]
+
+    simple_df = fstpy.add_ip_info_columns(simple_df)
+    print(simple_df[['ip1', 'ip1_kind', 'ip1_pkind']])
+
+    ip1 = 95178882
+    ip3 = 96219256
+    kind = int(simple_df.iloc[0].ip1_kind)
+    simple_df.interval = fstpy.Interval('ip1', ip1, ip3, kind)
+
+    cols = ['nomvar', 'ip1', 'ip2', 'ip3', 'level', 'ip1_kind', 'ip1_pkind', 'ip2_dec', 'ip2_kind', 'ip2_pkind','ip3_dec', 'ip3_kind', 'follow_topography', 'ascending', 'interval']
+    simple_df_modified = simple_df.drop(labels=['level'], axis=1)
+
+    simple_df_modified = fstpy.add_ip_info_columns(simple_df_modified)
+
+    simple_df          = simple_df.loc         [:, cols]
+    simple_df_modified = simple_df_modified.loc[:, cols]
+    print(simple_df)
+
+    print(simple_df_modified)
+
+    assert((simple_df_modified == simple_df).all().all())
