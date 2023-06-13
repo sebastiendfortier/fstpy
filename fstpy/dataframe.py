@@ -610,11 +610,15 @@ def add_ip_info_columns(df: pd.DataFrame):
             raise MissingColumnError(f'A "{col}" value is missing from {col} DataFrame column, cannot add ip info columns!') 
 
     new_df = copy.deepcopy(df)
-
-    if any([(col not in new_df.columns) for col in ['level', 'ip1_kind', 'ip1_pkind', 'ip2_dec', 'ip2_kind', 'ip2_pkind', 'ip3_dec', 'ip3_kind', 'ip3_pkind', 'surface', 'follow_topography', 'ascending', 'interval']]):
+    required_cols = ['level', 'ip1_kind', 'ip1_pkind', 'ip2_dec', 'ip2_kind', 'ip2_pkind', 'ip3_dec', 'ip3_kind', 'ip3_pkind', 'surface', 'follow_topography', 'ascending', 'interval']
+    if all([(col not in new_df.columns) for col in required_cols]):
         new_df['level'], new_df['ip1_kind'], new_df['ip1_pkind'], new_df['ip2_dec'], new_df['ip2_kind'], new_df['ip2_pkind'], new_df['ip3_dec'], new_df['ip3_kind'], new_df['ip3_pkind'], new_df['surface'], new_df['follow_topography'], new_df['ascending'], new_df['interval'] = VCREATE_IP_INFO(new_df.nomvar, new_df.ip1, new_df.ip2, new_df.ip3)
-    else:
-
+    else: 
+        if any([(col not in new_df.columns) for col in required_cols]):
+            missing_cols = [x for x in required_cols if x not in new_df.columns]
+            for col in missing_cols:
+                new_df[col] = None
+        
         if not new_df.loc[new_df.level.isna()].empty:
             level, _, _, _, _, _, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.level.isna()].nomvar, new_df.loc[new_df.level.isna()].ip1, new_df.loc[new_df.level.isna()].ip2, new_df.loc[new_df.level.isna()].ip3)
             new_df.loc[new_df.level.isna(),'level'] = level
