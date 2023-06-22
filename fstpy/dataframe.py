@@ -410,26 +410,26 @@ def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
             missing_cols = [x for x in required_cols if x not in new_df.columns]
             for col in missing_cols:
                 new_df[col] = None
-        else:
-            if not new_df.loc[new_df.etiket_format.isna()].empty:               
-                _,_,_,_, etiket_format = VPARSE_ETIKET(new_df.etiket)
-                new_df.loc[new_df.etiket_format.isna(), 'etiket_format'] = etiket_format
 
-            if not new_df.loc[new_df.label.isna()].empty:
-                label, _, _,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.label.isna()].etiket)
-                new_df.loc[new_df.label.isna(),'label'] = label
+        if not new_df.loc[new_df.etiket_format.isna()].empty:               
+            _,_,_,_, etiket_format = VPARSE_ETIKET(new_df.etiket)
+            new_df.loc[new_df.etiket_format.isna(), 'etiket_format'] = etiket_format
 
-            if not new_df.loc[new_df.run.isna()].empty:
-                _, run, _,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.run.isna()].etiket)
-                new_df.loc[new_df.run.isna(),'run'] = run
+        if not new_df.loc[new_df.label.isna()].empty:
+            label, _, _,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.label.isna()].etiket)
+            new_df.loc[new_df.label.isna(),'label'] = label
 
-            if not new_df.loc[new_df.implementation.isna()].empty:
-                _, _, implementation,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.implementation.isna()].etiket)
-                new_df.loc[new_df.implementation.isna(),'implementation'] = implementation
+        if not new_df.loc[new_df.run.isna()].empty:
+            _, run, _,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.run.isna()].etiket)
+            new_df.loc[new_df.run.isna(),'run'] = run
 
-            if not new_df.loc[new_df.ensemble_member.isna()].empty:
-                _, _, _, ensemble_member, _ = VPARSE_ETIKET(new_df.loc[new_df.ensemble_member.isna()].etiket)
-                new_df.loc[new_df.ensemble_member.isna(),'ensemble_member'] = ensemble_member
+        if not new_df.loc[new_df.implementation.isna()].empty:
+            _, _, implementation,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.implementation.isna()].etiket)
+            new_df.loc[new_df.implementation.isna(),'implementation'] = implementation
+
+        if not new_df.loc[new_df.ensemble_member.isna()].empty:
+            _, _, _, ensemble_member, _ = VPARSE_ETIKET(new_df.loc[new_df.ensemble_member.isna()].etiket)
+            new_df.loc[new_df.ensemble_member.isna(),'ensemble_member'] = ensemble_member
             
     return new_df
 
