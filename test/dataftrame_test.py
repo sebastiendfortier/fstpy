@@ -7,6 +7,7 @@ import fstpy
 from datetime import datetime, timedelta
 import numpy as np
 import pathlib
+import copy
 
 pytestmark = [pytest.mark.unit_tests]
 
@@ -442,3 +443,28 @@ def test_15(simple_df):
     print(simple_df_modified)
 
     assert((simple_df_modified == simple_df).all().all())
+
+def test_16(simple_df):
+    """Check that add_parsed_etiket_columns does not replace existing values"""
+    # from pandas.testing import assert_frame_equal
+    simple_df = simple_df.loc[(simple_df['ip1'] == 95529009) & (simple_df['nomvar'] == 'TT')]
+    simple_df = fstpy.add_parsed_etiket_columns(simple_df)
+
+    simple_df_modified = copy.deepcopy(simple_df)
+    simple_df_modified.loc[simple_df_modified.nomvar == 'TT', ['label', 'run']] = ["_TEST_", None]
+
+    # Verification que les dataframe sont differents car le label a ete modifie
+    cols      = ['nomvar','etiket', 'run', 'implementation', 'ensemble_member', 'etiket_format', 'label']
+    simple_df          = simple_df.loc         [:, cols]
+    simple_df_modified = simple_df_modified.loc[:, cols]
+    assert not simple_df_modified.equals(simple_df)
+
+    # Appel a la fonction pour remettre a jour les donnees manquantes: ici la run
+    simple_df_modified  = fstpy.add_parsed_etiket_columns(simple_df_modified)
+
+    # Verification que la valeur du label n'a pas ete ecrasee et que la run a ete mise a jour
+    cols      = ['nomvar','etiket', 'run', 'implementation', 'ensemble_member', 'etiket_format']
+    simple_df          = simple_df.loc         [:, cols]
+    simple_df_modified = simple_df_modified.loc[:, cols]
+
+    assert simple_df_modified.equals(simple_df)
