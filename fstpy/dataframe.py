@@ -402,13 +402,19 @@ def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
         raise MissingColumnError(f'A "etiket" value is missing from nomvar DataFrame column, cannot add parsed etiket columns!') 
 
     new_df = copy.deepcopy(df)
-
-    if any([(col not in new_df.columns) for col in ['label', 'run', 'implementation', 'ensemble_member', 'etiket_format']]):
-        if 'etiket_format' in new_df.columns:
-            new_df['label'], new_df['run'], new_df['implementation'], new_df['ensemble_member'], _ = VPARSE_ETIKET(new_df.etiket)
-        else:
-            new_df['label'], new_df['run'], new_df['implementation'], new_df['ensemble_member'], new_df['etiket_format'] = VPARSE_ETIKET(new_df.etiket)
+    required_cols = ['label', 'run', 'implementation', 'ensemble_member', 'etiket_format']
+    if all([(col not in new_df.columns) for col in required_cols]):
+        new_df['label'], new_df['run'], new_df['implementation'], new_df['ensemble_member'], new_df['etiket_format'] = VPARSE_ETIKET(new_df.etiket)
     else:
+        if any([(col not in new_df.columns) for col in required_cols]):
+            missing_cols = [x for x in required_cols if x not in new_df.columns]
+            for col in missing_cols:
+                new_df[col] = None
+
+        if not new_df.loc[new_df.etiket_format.isna()].empty:               
+            _,_,_,_, etiket_format = VPARSE_ETIKET(new_df.etiket)
+            new_df.loc[new_df.etiket_format.isna(), 'etiket_format'] = etiket_format
+
         if not new_df.loc[new_df.label.isna()].empty:
             label, _, _,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.label.isna()].etiket)
             new_df.loc[new_df.label.isna(),'label'] = label
@@ -424,7 +430,7 @@ def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
         if not new_df.loc[new_df.ensemble_member.isna()].empty:
             _, _, _, ensemble_member, _ = VPARSE_ETIKET(new_df.loc[new_df.ensemble_member.isna()].etiket)
             new_df.loc[new_df.ensemble_member.isna(),'ensemble_member'] = ensemble_member
-        
+            
     return new_df
 
 
