@@ -311,7 +311,7 @@ def get_toctoc_fields(df: pd.DataFrame, no_meta_df:pd.DataFrame, hybrid_ips: lis
 
     # vcode 2001 -> Pressure levels
     for grid in pressure_grids:
-        presure_toctoc_df = toctoc_df.loc[(df.grid == grid) & (df.ig1 == 2001)]
+        presure_toctoc_df = toctoc_df.loc[(toctoc_df.grid == grid) & (toctoc_df.ig1 == 2001)]
         if not presure_toctoc_df.empty:
             df_list.append(presure_toctoc_df)
 
