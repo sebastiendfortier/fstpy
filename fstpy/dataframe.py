@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-convertIp
 
 from typing import Final
 import copy
@@ -8,8 +8,13 @@ import logging
 import numpy as np
 import pandas as pd
 import pytz
+import rpnpy.librmn.all as rmn
+from rpnpy.rpndate import RPNDate
 
-from fstpy.std_dec import VCREATE_DATA_TYPE_STR, VCREATE_FORECAST_HOUR, VCREATE_GRID_IDENTIFIER, VCONVERT_RMNDATE_TO_DATETIME, VCREATE_IP_INFO, VGET_UNIT_AND_DESCRIPTION, VPARSE_ETIKET
+from fstpy.std_enc import create_encoded_standard_etiket
+from fstpy.std_dec import VCREATE_DATA_TYPE_STR, VCREATE_FORECAST_HOUR,                                  \
+                          VCREATE_GRID_IDENTIFIER, VCONVERT_RMNDATE_TO_DATETIME,                         \
+                          VCREATE_IP_INFO, VGET_UNIT_AND_DESCRIPTION, VPARSE_ETIKET
 from fstpy.std_vgrid import set_vertical_coordinate_type
 from fstpy.utils import vectorize
 
@@ -35,7 +40,6 @@ def add_grid_column(df: pd.DataFrame) -> pd.DataFrame:
     for col in ['nomvar', 'ip1', 'ip2', 'ig1', 'ig2']:
         if df[col].isna().any():
             raise MissingColumnError(f'A "{col}" value is missing from {col} DataFrame column, cannot add grid column!')
-
 
     new_df = copy.deepcopy(df)
     if 'grid' not in new_df.columns:
@@ -94,11 +98,6 @@ def add_path_and_key_columns(df: pd.DataFrame):
             _, keys = VPARSE_TASK_LIST(new_df.loc[new_df.key.isna()].d)
             new_df.loc[new_df.key.isna(),'key'] = keys
     return new_df
-
-    # # new_df = copy.deepcopy(df.drop(['path','key'], axis=1, errors='ignore'))
-    # new_df['path'], new_df['key'] = VPARSE_TASK_LIST(new_df.d)
-    # return new_df
-
 
 # get modifier information from the second character of typvar
 def parse_typvar(typvar: str):
@@ -177,7 +176,7 @@ def convert_date_to_timezone(date: datetime.datetime, timezone: str) -> datetime
 
 VCONVERT_DATE_TO_TIMEZONE: Final = vectorize(convert_date_to_timezone)  # ,otypes=['datetime64']
 
-class IndvalidDateColumnError(Exception):
+class InvalidDateColumnError(Exception):
     pass
 
 def add_timezone_column(df: pd.DataFrame, source_column: str, timezone:str) -> pd.DataFrame:
@@ -188,7 +187,7 @@ def add_timezone_column(df: pd.DataFrame, source_column: str, timezone:str) -> p
     :type source_column: str
     :param timezone: timezone name (valid timezone can be obtained from pytz.all_timezones)
     :type timezone: str
-    :raises IndvalidDateColumnError: raised if source_column not in 'date_of_validity' or 'date_of_observation'
+    :raises InvalidDateColumnError: raised if source_column not in 'date_of_validity' or 'date_of_observation'
     :raises MissingColumnError: raised if source_column is not in dataframe
     :return: a new date adjusted timezone column
     :rtype: pd.DataFrame
@@ -196,7 +195,7 @@ def add_timezone_column(df: pd.DataFrame, source_column: str, timezone:str) -> p
     if df.empty:
         return df
     if source_column not in ['date_of_validity', 'date_of_observation']:
-        raise IndvalidDateColumnError(f'"{source_column}" not in {["date_of_validity", "date_of_observation"]}!') 
+        raise InvalidDateColumnError(f'"{source_column}" not in {["date_of_validity", "date_of_observation"]}!') 
 
     if source_column not in df.columns:
         raise MissingColumnError(f'"{source_column}" is missing from DataFrame columns, cannot add timezone column!') 
@@ -212,58 +211,6 @@ def add_timezone_column(df: pd.DataFrame, source_column: str, timezone:str) -> p
             new_df.loc[new_df[new_column].isna(),new_column] = VCONVERT_DATE_TO_TIMEZONE(new_df.loc[new_df[new_column].isna()][source_column],timezone)
 
     return new_df
-
-def reduce_flag_values(df: pd.DataFrame) -> pd.DataFrame:
-    """Combine the flag values to the correct typvar.
-    Replaces original column(s) if present.
-
-    :param df: dataframe
-    :type df: pd.DataFrame
-    :return: typvar set according to the different flag values
-    :rtype: pd.DataFrame
-    """
-    if df.empty:
-        return df
-    if 'typvar' not in df.columns:
-        raise MissingColumnError(f'"typvar" is missing from DataFrame columns!') 
-
-    required_cols = ['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info', 'masked', 'masks']
-
-    all_cols = df.columns.tolist()
-    missing_elements = [x for x in required_cols if x not in all_cols]
-    if missing_elements:
-        df = add_flag_values(df)
-
-    df.loc[(df[['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded']] == True).sum(axis=1) > 1, 'second_char'] = "M"
-    
-    conditions = [
-        (df['masked']&df['ensemble_extra_info']),
-        (df['masked']),
-        (df['masks']),
-        (df['missing_data']),
-        (df['ensemble_extra_info']),
-        (df['second_char'] == "M"),
-        (df['multiple_modifications']),
-        (df['zapped']),
-        (df['bounded']),
-        (df['filtered']),
-        (df['interpolated']),
-        (df['unit_converted'])
-    ]
-    cond_array = np.array(conditions, dtype=bool)
-
-    values = ['*', '@', '#','H', '!', 'M', 'M', 'Z', 'B', 'F', 'I', 'U']
-
-    df['second_char'] = np.select(cond_array, values, default='')
-
-    df['typvar']                                 = df['typvar'].str[0] + df['second_char']  
-    df.loc[(df['second_char'] == '*'), 'typvar'] = "!@"
-    df.loc[(df['second_char'] == '#'), 'typvar'] = "@@"
-    df.drop(labels=['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'bounded', 'missing_data', 'ensemble_extra_info', 
-                        'masks', 'masked', 'second_char'], axis=1, inplace=True)
-
-    return df
-
 
 def add_flag_values(df: pd.DataFrame) -> pd.DataFrame:
     """Adds the correct flag values derived from parsing the typvar.
@@ -334,6 +281,56 @@ def add_flag_values(df: pd.DataFrame) -> pd.DataFrame:
 
     return new_df
 
+def reduce_flag_values(df: pd.DataFrame) -> pd.DataFrame:
+    """Combine the flag values to the correct typvar.
+    Replaces original column(s) if present.
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: typvar set according to the different flag values
+    :rtype: pd.DataFrame
+    """
+    if df.empty:
+        return df
+    if 'typvar' not in df.columns:
+        raise MissingColumnError(f'"typvar" is missing from DataFrame columns!') 
+
+    required_cols = ['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info', 'masked', 'masks']
+
+    all_cols = df.columns.tolist()
+    missing_elements = [x for x in required_cols if x not in all_cols]
+    if missing_elements:
+        df = add_flag_values(df)
+
+    df.loc[(df[['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded']] == True).sum(axis=1) > 1, 'second_char'] = "M"
+    
+    conditions = [
+        (df['masked']&df['ensemble_extra_info']),
+        (df['masked']),
+        (df['masks']),
+        (df['missing_data']),
+        (df['ensemble_extra_info']),
+        (df['second_char'] == "M"),
+        (df['multiple_modifications']),
+        (df['zapped']),
+        (df['bounded']),
+        (df['filtered']),
+        (df['interpolated']),
+        (df['unit_converted'])
+    ]
+    cond_array = np.array(conditions, dtype=bool)
+
+    values = ['*', '@', '#','H', '!', 'M', 'M', 'Z', 'B', 'F', 'I', 'U']
+
+    df['second_char'] = np.select(cond_array, values, default='')
+
+    df['typvar']                                 = df['typvar'].str[0] + df['second_char']  
+    df.loc[(df['second_char'] == '*'), 'typvar'] = "!@"
+    df.loc[(df['second_char'] == '#'), 'typvar'] = "@@"
+
+    df.drop(labels=['second_char'], axis=1, inplace=True)
+
+    return df
 
 def drop_duplicates(df: pd.DataFrame):
     """Removes duplicate rows from dataframe.
@@ -355,8 +352,6 @@ def drop_duplicates(df: pd.DataFrame):
         logging.warning('Found duplicate rows in dataframe!')
     
     return df    
-
-
 
 def add_shape_column(df: pd.DataFrame) -> pd.DataFrame:
     """Adds the shape column from the ni and nj to a dataframe.
@@ -381,7 +376,6 @@ def add_shape_column(df: pd.DataFrame) -> pd.DataFrame:
     new_df = copy.deepcopy(df.drop('shape', axis=1, errors='ignore'))
     new_df['shape'] = pd.Series(zip(new_df.ni.to_numpy(), new_df.nj.to_numpy()),dtype='object').to_numpy()
     return new_df
-
 
 def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Adds label,run,implementation and ensemble_member columns from the parsed etikets to a dataframe.
@@ -433,6 +427,46 @@ def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
             
     return new_df
 
+def reduce_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Removes label,run,implementation and ensemble_member columns from the dataframe.
+    Updates the etiket column with the latest information
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: dataframe without label,run,implementation and ensemble_member columns 
+    :rtype: pd.DataFrame
+    """
+    if df.empty:
+        return df
+    if 'etiket' not in df.columns:
+        raise MissingColumnError(f'"etiket" is missing from DataFrame columns, cannot reduce parsed etiket columns!') 
+
+    if df.etiket.isna().any():
+        raise MissingColumnError(f'A "etiket" value is missing from nomvar DataFrame column, cannot add parsed etiket columns!') 
+
+    required_cols = ['label', 'run', 'implementation', 'ensemble_member', 'etiket_format']
+    all_cols = df.columns.tolist()
+    missing_elements = [x for x in required_cols if x not in all_cols]
+    
+    # Toutes les colonnes sont absentes, donc n'ont pas ete ajoutees (etiket non parsee)  Rien a faire!
+    if len(missing_elements) == len(required_cols):
+        return df
+    
+    # Ajoute les colonnes manquantes avec l'info de l'etiket, sans ecraser l'info des colonnes qui existent deja.
+    if missing_elements:
+        df = add_parsed_etiket_columns(df)
+
+    df['etiket'] =  df.apply(lambda row: create_encoded_standard_etiket(
+                                                                row['label'], 
+                                                                row['run'], 
+                                                                row['implementation'], 
+                                                                row['ensemble_member'], 
+                                                                row['etiket_format'],
+                                                                ignore_extended=False,
+                                                                override_pds_label=False,
+                                                                ), axis=1)
+
+    return df
 
 def add_unit_and_description_columns(df: pd.DataFrame):
     """Adds unit and description from the nomvars to a dataframe.
@@ -512,7 +546,6 @@ def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
             if not filtered_df.empty:
                 new_df.loc[(new_df.date_of_observation.isna()) & (new_df.dateo !=  0),'date_of_observation'] = VCONVERT_RMNDATE_TO_DATETIME(filtered_df.dateo)
 
-        # new_df['date_of_observation'] = new_df['date_of_observation'].astype('datetime64[ns]')
     else:
         if 'datev' not in df.columns:
             raise MissingColumnError(f'"datev" is missing from DataFrame columns, cannot add date_of_validity column!') 
@@ -530,10 +563,32 @@ def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
             if not filtered_df.empty:
                 new_df.loc[(new_df.date_of_validity.isna()) & (new_df.datev !=  0),'date_of_validity'] = VCONVERT_RMNDATE_TO_DATETIME(filtered_df.datev)
        
-        # new_df['date_of_validity'] = new_df['date_of_validity'].astype('datetime64[ns]')
-
     return new_df
 
+def reduce_decoded_date_column(df: pd.DataFrame):
+    """Ajustement des valeurs de dateo et de datev en fonction de la colonne 
+       decodee date_of_origin. La valeur de datev est ajustee telle que
+       datev = dateo + deet * npas 
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: dataframe auquel ont ete supprime les colonnes date_of_origin/validity
+    :rtype: pd.DataFrame
+    """
+    if df.empty:
+        return df
+    
+    if 'dateo' not in df.columns:
+        raise MissingColumnError(f'"dateo" is missing from DataFrame columns!') 
+    if 'datev' not in df.columns:
+        raise MissingColumnError(f'"datev" is missing from DataFrame columns!') 
+   
+    if 'date_of_observation' in df.columns:
+        df['dateo'] = df.apply(lambda row: RPNDate(row['date_of_observation']).dateo if pd.notnull(row['date_of_observation']) else row['dateo'], axis=1).astype(int)
+
+    df['datev'] = VUPD_DATEV_FOR_COHERENCE(df.dateo, df.datev, df.deet, df.npas)
+
+    return df
 
 def add_forecast_hour_column(df: pd.DataFrame):
     """Adds the forecast_hour column derived from the deet and npas columns.
@@ -563,9 +618,234 @@ def add_forecast_hour_column(df: pd.DataFrame):
             new_df.loc[new_df.forecast_hour.isna(),'forecast_hour'] = VCREATE_FORECAST_HOUR(new_df.loc[new_df.forecast_hour.isna()].deet,new_df.loc[new_df.forecast_hour.isna()].npas)
 
     return new_df
+
+def reduce_forecast_hour_column(df: pd.DataFrame):
+    """Update the npas column if forecast_hour is not equal to deet * npas.
+       Do not remove the forecast_hour column because will be used for the 
+       ip_info columns reduction.
+
+    :param df: dataframe
+    :type df : pd.DataFrame
+    :return  : dataframe with npas information updated
+    :rtype   : pd.DataFrame
+    """
+    if df.empty:
+        return df
+
+    if 'deet' not in df.columns:
+        raise MissingColumnError(f'"deet" is missing from DataFrame columns!') 
     
+    if 'npas' not in df.columns:
+        raise MissingColumnError(f'"npas" is missing from DataFrame columns!') 
 
+    if 'forecast_hour' in df.columns:
+        filtered_df = df.loc[(df.deet * df.npas != (df.forecast_hour/pd.Timedelta(seconds=1)).astype(int)) ]
 
+        if not filtered_df.empty:
+            df.loc[(df.deet * df.npas != (df.forecast_hour/pd.Timedelta(seconds=1)).astype(int)), 'npas'] = VUPDATE_NPAS_FROM_FORECAST_HOUR(filtered_df.deet, filtered_df.forecast_hour/pd.Timedelta(seconds=1))
+
+    return df
+
+def update_npas_from_forecast_hour(deet: int, forecast_hour: float) -> int:
+    """ Update the npas column if forecast_hour is not equal to deet * npas.
+        If deet is equal to 0, ignore the forecast hour..
+
+    :param deet: valeur du deet
+    :type deet : int
+    :param forecast_hour: forecast_hour
+    :type forecast_hour : float
+    :return  : valeur du npas calcule a partir du forecast_hour et deet
+    :rtype   : int
+    """   
+
+    if deet != 0:
+        npas = int(forecast_hour / deet)
+        return(npas)
+    return(0)
+
+VUPDATE_NPAS_FROM_FORECAST_HOUR: Final = vectorize(update_npas_from_forecast_hour, otypes=['int32'])  # ,otypes=['timedelta64[ns]']
+
+def update_ip1_from_level(df: pd.DataFrame):
+    
+    if df.empty:
+        return df
+    
+    if 'level' in df.columns and 'ip1_kind' in df.columns:
+        df['ip1'] = VUPDATE_IP1_WITH_IP_INFOS(df['ip1'], df['level'], df['ip1_kind'])
+    else:
+        raise MissingColumnError(f'level or ip1_kind columns missing from DataFrame, cannot update ip1 column!') 
+
+    return df
+
+def update_ip1_with_ip_infos(ip1: int, level: int, kind: int):
+
+    # Kind 2, on encode le ip seulement s'il etait deja encode
+    # Autres kind:  on encode les ips
+    if kind != 2 or ip1 >= 32768:
+        return rmn.convertIp(rmn.CONVIP_ENCODE, level, int(kind))
+    else:
+       return(level)
+         
+VUPDATE_IP1_WITH_IP_INFOS = np.vectorize(update_ip1_with_ip_infos, otypes=['int'])
+
+def update_ip2_from_ip2dec(df: pd.DataFrame):
+    """ Met a jour le ip2 a partir de ip2dec.  Ne met pas a jour deet et npas. """
+    if df.empty:
+        return df
+    
+    if 'ip2_dec' in df.columns and 'ip2_kind' in df.columns:
+        df['ip2'] = VUPDATE_IP2_WITH_IP_INFOS(df['ip2'], df['ip2_dec'], df['ip2_kind'])
+    else:
+        raise MissingColumnError(f'ip2_dec or ip2_kind columns missing from DataFrame, cannot update ip2 column!') 
+
+    return df
+
+def update_ip2_from_ip_infos(ip2: int, ip2_dec: int, ip2_kind: int):
+    """ Met a jour le ip2 a partir du ip2 decode.  
+        Si ip2 etait deja encode, on encode le ip2
+    """
+    if ip2 >= 32768 :
+        return rmn.convertIp(rmn.CONVIP_ENCODE, ip2_dec, ip2_kind)
+    else:
+        return(ip2_dec)
+         
+VUPDATE_IP2_WITH_IP_INFOS = np.vectorize(update_ip2_from_ip_infos, otypes=['int'])
+
+def update_ip2_from_forecast_hour(df: pd.DataFrame):
+    if df.empty:
+        return df
+    
+    if 'forecast_hour' in df.columns:
+        df['ip2'] = VUPDATE_IP2_WITH_FORECAST_HOUR(df['ip2'], df['forecast_hour'])
+    else:
+        raise MissingColumnError(f'Forecast_hour column is missing from DataFrame, cannot update ip2 column!') 
+
+    return df
+
+def update_ip2_with_forecast_hour(ip2: int, forecast_hour: pd.Timedelta):
+    """ Met a jour le ip2 a partir du forecast_hour.  Si ip2 etait deja encode OU
+        si le forecast_hour contient des minutes/secondes, on encode le ip2
+    """
+    result = forecast_hour/ pd.Timedelta(hours=1)
+    if ip2 >= 32768 or not float(result).is_integer():
+        return rmn.convertIp(rmn.CONVIP_ENCODE, result, rmn.KIND_HOURS)
+    else:
+        return(result)
+         
+VUPDATE_IP2_WITH_FORECAST_HOUR = np.vectorize(update_ip2_with_forecast_hour, otypes=['int'])
+
+def update_ip3_from_ip3dec(df: pd.DataFrame):
+    if df.empty:
+        return df
+    
+    if 'ip3_dec' in df.columns and 'ip3_kind' in df.columns:
+        df['ip3'] = VUPDATE_IP3_WITH_IP_INFOS(df['ip3'], df['ip3_dec'], df['ip3_kind'])
+
+    return df
+
+def update_ip3_with_ip_infos(ip3: int, ip3_dec: int, ip3_kind: int):
+
+    # Kind 100, n'existe pas, indique que ce n'est pas encode
+    if ip3_kind != 100:
+        return rmn.convertIp(rmn.CONVIP_ENCODE, ip3_dec, int(ip3_kind))
+    else:
+       return(ip3_dec)
+
+VUPDATE_IP3_WITH_IP_INFOS = np.vectorize(update_ip3_with_ip_infos, otypes=['int'])
+
+def reduce_interval_columns(df:pd.DataFrame):
+    """Remove the interval column and update ip infos.
+    Remove column if present.
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: dataframe without interval column
+    :rtype: pd.DataFrame
+    """
+    if df.empty:
+        return df
+    
+    if 'interval' in df.columns:
+        if not df.loc[df.interval.notna()].empty:
+            filtered_df = df.loc[df.interval.notna()]
+
+            if not filtered_df.empty:
+                parsed_intervals = filtered_df['interval'].apply(lambda x: pd.Series(VPARSE_INTERVAL(str(x)), index=['type_inter', 'i_low', 'i_high', 'i_kind']))
+
+                # Copie necessaire pour eviter SettingWithCopyWarning
+                filtered_df = filtered_df.copy()
+                filtered_df.loc[:, 'type_inter'] = parsed_intervals['type_inter']
+                filtered_df.loc[:, 'i_low']      = parsed_intervals['i_low']
+                filtered_df.loc[:, 'i_high']     = parsed_intervals['i_high']
+                filtered_df.loc[:, 'i_kind']     = parsed_intervals['i_kind']
+
+                filtered_df['ip1'] = filtered_df.apply(encode_ip1_with_interval_infos, axis=1)
+                filtered_df['ip2'] = filtered_df.apply(encode_ip2_with_interval_infos, axis=1)
+                filtered_df['ip3'] = filtered_df.apply(encode_ip3_with_interval_infos, axis=1)
+
+                df.loc[df['interval'].notna(), ['ip1', 'ip2', 'ip3']] = filtered_df.loc[:, ['ip1', 'ip2', 'ip3']]
+
+    return df
+
+def get_interval_infos(inter: str):
+    """Extract interval informations from the interval object
+    :param inter: an interval 
+    :type inter : Interval 
+    :param ip   : str
+    :param low  : float
+    :param high : float
+    :param kind : int
+    """
+    import re
+    from fstpy import KIND_DICT
+
+    ip   = -1 
+    low  = -1
+    high = -1
+    kind = -1
+
+    infos_interval = re.split('[:@]', inter)
+    pattern = r"([\d\.]+)(\D+)"
+    ip = infos_interval[0]
+
+    match = re.match(pattern, infos_interval[1])
+    if match:
+        low       = match.group(1)
+        low_unit  = match.group(2)
+
+    match = re.match(pattern, infos_interval[2])
+    if match:
+        high      = match.group(1)
+        high_unit = match.group(2)
+
+    kind = {v: k for k, v in KIND_DICT.items()}[low_unit]
+    
+    return ip, float(low), float(high), int(kind)
+
+VPARSE_INTERVAL: Final = vectorize(get_interval_infos, otypes=['str', 'float', 'float', 'int'])
+
+def encode_ip1_with_interval_infos(row):
+    if row['type_inter'] == 'ip1':
+        return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.i_low), int(row.i_kind)) 
+    else:
+        return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.ip1),   int(row.ip1_kind))
+
+def encode_ip2_with_interval_infos(row):
+    if row['type_inter'] == ['ip1']:
+        # ip2 deja encode?
+        if row.ip2 >= 32768 :
+            return row.ip2
+        else:
+            return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.ip2), int(row.ip2_kind))
+    else:
+        return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.i_high), int(row.i_kind)) 
+
+def encode_ip3_with_interval_infos(row):
+    if row['type_inter'] == 'ip1':
+        return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.i_high), int(row.i_kind))
+    else:
+        return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.i_low),  int(row.i_kind)) 
+    
 def add_data_type_str_column(df: pd.DataFrame) -> pd.DataFrame:
     """Adds the data type decoded to string value column to the dataframe.
     Replaces original column(s) if present.
@@ -593,8 +873,6 @@ def add_data_type_str_column(df: pd.DataFrame) -> pd.DataFrame:
 
     return new_df
     
-
-
 def add_ip_info_columns(df: pd.DataFrame):
     """Adds all relevant level info from the ip1 column values.
     Replaces original column(s) if present.
@@ -679,7 +957,41 @@ def add_ip_info_columns(df: pd.DataFrame):
 
     return new_df
 
+def reduce_ip_info_columns(df: pd.DataFrame):
+    """Updates the ip1, ip2, ip3 column with the information from the ip decoded columns when necessary.
+    Replaces original column(s) if present.
 
+    :param df: dataframe
+    :type df: pd.DataFrame
+    :return: Ip's informative columns removed from the updated dataframe.
+    :rtype: pd.DataFrame
+    """
+    if df.empty:
+        return df
+    
+    required_cols = ['level', 'ip1_kind', 'ip1_pkind', 'ip2_dec', 'ip2_kind', 'ip2_pkind', 'ip3_dec','ip3_kind', 'ip3_pkind', 'interval', 'surface', 'follow_topography','ascending']
+    all_cols = df.columns.tolist()
+    missing_elements = [x for x in required_cols if x not in all_cols]
+    
+    # Toutes les colonnes sont absentes, donc n'ont pas ete ajoutees  Rien a faire!
+    if len(missing_elements) == len(required_cols):
+        return df
+    
+    # Ajoute les colonnes manquantes, sans ecraser l'info des colonnes qui existent deja.
+    if missing_elements:
+        df = add_ip_info_columns(df)
+
+    # Recuperer l'info de level pour maj ip1
+    update_ip1_from_level(df)  
+    update_ip2_from_ip2dec(df) 
+    update_ip2_from_forecast_hour(df)
+    update_ip3_from_ip3dec(df)
+
+    #  Derniere etape a faire 
+    if 'interval' in df.columns:
+        reduce_interval_columns(df)
+
+    return(df)
 
 def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket', 'unit', 'dateo', 'datev', 'forecast_hour', 'datyp', 'ip_info']):
     """If valid columns are provided, they will be added. 
@@ -722,7 +1034,7 @@ def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket',
         df = add_data_type_str_column(df)
 
     if ('ip_info' in columns):
-        # df = add_ip_info_columns(df)
+        # df = add_ip_info_columns(df)  (Appele dans set_vertical_coordinate_type)
         df = set_vertical_coordinate_type(df)
 
     if 'flags' in columns:
@@ -732,24 +1044,64 @@ def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket',
     
 def reduce_columns(df: pd.DataFrame):
     """Enlever les colonnes qui ont ete ajoutees et ramener le dataframe a sa plus simple expression
-       en reprenant l'info necessaire pour rebater les colonnes de base.
-       Replaces original column(s) if present.   
+       en reprenant l'info necessaire pour rebatir les colonnes de base.  
+       L'ordre d'appel des fonctions pour reduire (reduce_ ...) est important.
 
-    :param df: dataframe to modify (meta data needs to be present in dataframe)
-    :type df: pd.DataFrame
+    :param df: dataframe to modify 
+    :type df : pd.DataFrame
     """
     if df.empty:
         return df
+    
+    simple_df = df.loc[~df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF"])]
+    meta_df   = df.loc[ df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF"])]
 
-    # df = add_parsed_etiket_columns(df)
-    # df = add_unit_and_description_columns(df)
-    # df = add_decoded_date_column(df, 'dateo')
-    # df = add_decoded_date_column(df, 'datev')
-    # df = add_forecast_hour_column(df)
-    # df = add_data_type_str_column(df)
-    df = reduce_flag_values(df)
+    if simple_df.empty:
+        return df
+    
+    # Attention, ordre d'appel des fonctions doit etre respecte 
+    simple_df = reduce_parsed_etiket_columns(simple_df)
+    simple_df = reduce_flag_values(simple_df)
+    simple_df = reduce_forecast_hour_column(simple_df)
+    simple_df = reduce_decoded_date_column(simple_df)
+    simple_df = reduce_ip_info_columns(simple_df)
 
-    return df    
+    new_df = pd.concat([meta_df, simple_df], ignore_index=True)
+
+    # Suppression des colonnes qui ont ete ajoutees autres que unit et etiket_format
+    new_df = remove_all_expanded_columns(new_df)
+    
+    return new_df    
+
+def remove_all_expanded_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove all expanded columns from the dataframe except unit and etiket_format
+
+    :param df          : the dataFrame from which to remove columns
+    :type df           : pd.DataFrame
+    """   
+    
+    cols_to_remove =  ['label', 'run', 'implementation', 'date_of_observation', 'ensemble_member', 'date_of_validity', 
+                       'level', 'ip1_kind', 'ip1_pkind', 'forecast_hour','ip2_dec', 'ip2_kind', 'ip2_pkind', 'ip3_dec',
+                       'ip3_kind', 'ip3_pkind', 'interval', 'surface', 'follow_topography', 'ascending', 'description',
+                       'data_type_str', 'vctype', 'masks', 'masked', 'multiple_modifications','zapped', 'filtered', 
+                       'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info']
+
+    df = remove_list_of_columns(df, cols_to_remove)
+
+    return df
+
+def remove_list_of_columns(df: pd.DataFrame, list_of_cols: list) -> pd.DataFrame:
+    """Remove columns from the dataframe
+
+    :param df          : the dataFrame from which to remove columns
+    :type df           : pd.DataFrame
+    :param list_of_cols: a list of columns to remove
+    :type list_of_cols : list
+    """   
+    cols_to_remove = [x for x in list_of_cols if x in df.columns]
+    df.drop(labels=cols_to_remove, axis=1, inplace=True)
+
+    return df
 
 def reorder_columns(df):
     """Reorders columns for voir like output
@@ -768,7 +1120,6 @@ def reorder_columns(df):
         ordered.extend(list(extra_columns))
 
     df = df[ordered]
-
 
 def get_meta_fields_exists(grid_df):
     toctoc = grid_df.loc[grid_df.nomvar == "!!"]
@@ -826,3 +1177,22 @@ def create_empty_dataframe(num_rows: int) -> pd.DataFrame:
     df =  pd.DataFrame([record for _ in range(num_rows)])
     return df
 
+def update_datev_for_coherence(dateo: int, datev: int, deet: int, npas: int)-> int:
+    """Mise-a-jour de datev a partir de dateo, deet et npas
+
+    :param dateo
+    :type dateo: int
+    :param datev
+    :type datev: int
+    :param deet
+    :type deet: int
+    :param npas
+    :type deet: int
+    """
+    from rpnpy.rpndate import RPNDate
+
+    newdateofvalidity = RPNDate(int(dateo), dt=deet, nstep=npas)
+
+    return newdateofvalidity.datev
+
+VUPD_DATEV_FOR_COHERENCE: Final = vectorize(update_datev_for_coherence)
