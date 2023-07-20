@@ -984,7 +984,8 @@ def reduce_ip_info_columns(df: pd.DataFrame):
     # Recuperer l'info de level pour maj ip1
     update_ip1_from_level(df)  
     update_ip2_from_ip2dec(df) 
-    update_ip2_from_forecast_hour(df)
+    if 'forecast_hour' in df.columns: 
+        update_ip2_from_forecast_hour(df)
     update_ip3_from_ip3dec(df)
 
     #  Derniere etape a faire 
