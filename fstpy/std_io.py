@@ -653,7 +653,7 @@ class GetBasicDataFrameError(Exception):
 # NOTE: This includes deleted records as well.  You can filter them out using
 # the 'dltf' flag.
 
-def get_basic_dataframe(path:str) -> pd.DataFrame:
+def   get_basic_dataframe(path:str) -> pd.DataFrame:
     """Creates a dataframe of all non deleted records in an FST file, does not include data 'd'
 
     :param path: path of file to load
