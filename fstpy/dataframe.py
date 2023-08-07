@@ -21,6 +21,8 @@ from fstpy.utils import vectorize
 class MissingColumnError(Exception):
     pass
 
+class UnexpectedValueError(Exception):
+    pass
 
 def add_grid_column(df: pd.DataFrame) -> pd.DataFrame:
     """Adds the grid column to the dataframe. The grid column is a simple identifier composed of ip1+ip2 or ig1+ig2 depending on the type of record (>>,^^,^>) vs regular field. 
@@ -586,7 +588,7 @@ def reduce_decoded_date_column(df: pd.DataFrame):
     if 'date_of_observation' in df.columns:
         df['dateo'] = df.apply(lambda row: RPNDate(row['date_of_observation']).dateo if pd.notnull(row['date_of_observation']) else row['dateo'], axis=1).astype(int)
 
-    df['datev'] = VUPD_DATEV_FOR_COHERENCE(df.dateo, df.datev, df.deet, df.npas)
+    df['datev'] = VUPD_DATEV_FOR_COHERENCE(df.dateo, df.deet, df.npas)
 
     return df
 
@@ -621,6 +623,7 @@ def add_forecast_hour_column(df: pd.DataFrame):
 
 def reduce_forecast_hour_column(df: pd.DataFrame):
     """Update the npas column if forecast_hour is not equal to deet * npas.
+       If deet = 0, we keep the original value for npas.
        Do not remove the forecast_hour column because will be used for the 
        ip_info columns reduction.
 
@@ -639,29 +642,29 @@ def reduce_forecast_hour_column(df: pd.DataFrame):
         raise MissingColumnError(f'"npas" is missing from DataFrame columns!') 
 
     if 'forecast_hour' in df.columns:
-        filtered_df = df.loc[(df.deet * df.npas != (df.forecast_hour/pd.Timedelta(seconds=1)).astype(int)) ]
+        filtered_df = df.loc[(df.deet != 0) & (df.deet * df.npas != (df.forecast_hour/pd.Timedelta(seconds=1)).astype(int)) ]
 
         if not filtered_df.empty:
-            df.loc[(df.deet * df.npas != (df.forecast_hour/pd.Timedelta(seconds=1)).astype(int)), 'npas'] = VUPDATE_NPAS_FROM_FORECAST_HOUR(filtered_df.deet, filtered_df.forecast_hour/pd.Timedelta(seconds=1))
-
+            df.loc[(df.deet != 0) & (df.deet * df.npas != (df.forecast_hour/pd.Timedelta(seconds=1)).astype(int)), 'npas'] = \
+                VUPDATE_NPAS_FROM_FORECAST_HOUR(filtered_df.deet, filtered_df.forecast_hour/pd.Timedelta(seconds=1))
     return df
 
 def update_npas_from_forecast_hour(deet: int, forecast_hour: float) -> int:
     """ Update the npas column if forecast_hour is not equal to deet * npas.
-        If deet is equal to 0, ignore the forecast hour..
+        This function should never receive a value of deet = 0
 
     :param deet: valeur du deet
     :type deet : int
     :param forecast_hour: forecast_hour
     :type forecast_hour : float
-    :return  : valeur du npas calcule a partir du forecast_hour et deet
+    :return  : npas calcule a partir de forecast_hour or ERROR if deet = 0
     :rtype   : int
     """   
-
     if deet != 0:
         npas = int(forecast_hour / deet)
         return(npas)
-    return(0)
+    else:
+        raise UnexpectedValueError(f'unexpected value, deet is equal to 0, should not happen!')
 
 VUPDATE_NPAS_FROM_FORECAST_HOUR: Final = vectorize(update_npas_from_forecast_hour, otypes=['int32'])  # ,otypes=['timedelta64[ns]']
 
@@ -1178,13 +1181,11 @@ def create_empty_dataframe(num_rows: int) -> pd.DataFrame:
     df =  pd.DataFrame([record for _ in range(num_rows)])
     return df
 
-def update_datev_for_coherence(dateo: int, datev: int, deet: int, npas: int)-> int:
+def update_datev_for_coherence(dateo: int, deet: int, npas: int)-> int:
     """Mise-a-jour de datev a partir de dateo, deet et npas
 
     :param dateo
     :type dateo: int
-    :param datev
-    :type datev: int
     :param deet
     :type deet: int
     :param npas

@@ -652,7 +652,7 @@ def test_26(simple_df):
     assert(new_ip3 == 176280768)
 
 def test_27(simple_df):
-    """Test function add_decoded_date_column """
+    """Test function reduce_decoded_date_column """
 
     simple_df = fstpy.add_decoded_date_column(simple_df,'dateo')
     simple_df = fstpy.add_decoded_date_column(simple_df,'datev')
@@ -664,7 +664,7 @@ def test_27(simple_df):
     simple_df = fstpy.reduce_decoded_date_column(simple_df)  
 
     # Verifions que dateo = 2020072200020000   et 
-    # datev = 2020072206020000 (dateo + (deet*npas/2600))
+    # datev = 2020072206020000 (dateo + (deet*npas/3600))
     assert(simple_df.dateo.unique()[0] == 443160830)
     assert(simple_df.datev.unique()[0] == 443166230)
 
@@ -750,3 +750,31 @@ def test_29(simple_df):
     assert(simple_df.ip2.unique()[0]    == 12)         # Correspond a 12 H encode 
 
     assert(len(simple_df.columns) == 24)
+
+def test_30(simple_df):
+    """Test function reduce_columns, deet = 0 """
+
+    source    = TEST_PATH + 'MinMaxLevelIndex/testsFiles/test_ICGA_file2cmp_20201202.std'
+    simple_df = fstpy.StandardFileReader(source).to_pandas()
+    simple_df = simple_df.loc[(simple_df.nomvar == 'IND')]
+    simple_df.npas = 96
+
+    # Ajout de toutes les colonnes
+    simple_df = fstpy.add_columns(simple_df, ['dateo', 'datev', 'forecast_hour', 'ip_info'])
+
+    # Partie forecast_hour
+    simple_df.forecast_hour = pd.Timedelta(hours=6)
+
+    # Dataframe ressemble a ceci, avec informations incoherentes: 
+    # forecast_hour = 0 days 6:00:00 , deet = 0, npas = 96
+    # level = 850, ip3_dec 500, ip1 = 41744464, ip3 = 41394464 
+
+    # Reduction de toutes les colonnes
+    simple_df = fstpy.reduce_columns(simple_df)
+
+    assert(simple_df.ip1[0]    == 41744464)   # Correspond a 850 mb encode
+    assert(simple_df.ip3[0]    == 41394464)   # Correspond a 200 mb encode
+    assert(simple_df.ip2[0]    == 177809344)  # Correspond a 6 H encode 
+    assert(simple_df.npas[0]   == 96)         # Npas non modifie car deet == 0
+
+    assert(len(simple_df.columns) == 22)
