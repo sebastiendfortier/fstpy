@@ -326,7 +326,7 @@ def reduce_flag_values(df: pd.DataFrame) -> pd.DataFrame:
 
     df['second_char'] = np.select(cond_array, values, default='')
 
-    df['typvar']                                 = df['typvar'].str[0] + df['second_char']  
+    df['typvar']                                 = df['typvar'].str[0] + df['second_char']
     df.loc[(df['second_char'] == '*'), 'typvar'] = "!@"
     df.loc[(df['second_char'] == '#'), 'typvar'] = "@@"
 
@@ -680,14 +680,14 @@ def update_ip1_from_level(df: pd.DataFrame):
 
     return df
 
-def update_ip1_with_ip_infos(ip1: int, level: int, kind: int):
+def update_ip1_with_ip_infos(ip1: int, level: float, kind: int):
 
     # Kind 2, on encode le ip seulement s'il etait deja encode
     # Autres kind:  on encode les ips
     if kind != 2 or ip1 >= 32768:
         return rmn.convertIp(rmn.CONVIP_ENCODE, level, int(kind))
     else:
-       return(level)
+        return rmn.convertIp(rmn.CONVIP_ENCODE_OLD, level, int(kind))   
          
 VUPDATE_IP1_WITH_IP_INFOS = np.vectorize(update_ip1_with_ip_infos, otypes=['int'])
 
@@ -994,7 +994,7 @@ def reduce_ip_info_columns(df: pd.DataFrame):
     #  Derniere etape a faire 
     if 'interval' in df.columns:
         reduce_interval_columns(df)
-
+        
     return(df)
 
 def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket', 'unit', 'dateo', 'datev', 'forecast_hour', 'datyp', 'ip_info']):
@@ -1046,7 +1046,7 @@ def add_columns(df: pd.DataFrame, columns: 'str|list[str]' = ['flags', 'etiket',
 
     return df    
     
-def reduce_columns(df: pd.DataFrame):
+def reduce_columns(df: pd.DataFrame)-> pd.DataFrame:
     """Enlever les colonnes qui ont ete ajoutees et ramener le dataframe a sa plus simple expression
        en reprenant l'info necessaire pour rebatir les colonnes de base.  
        L'ordre d'appel des fonctions pour reduire (reduce_ ...) est important.
@@ -1057,8 +1057,8 @@ def reduce_columns(df: pd.DataFrame):
     if df.empty:
         return df
     
-    simple_df = df.loc[~df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF"])]
-    meta_df   = df.loc[ df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF"])]
+    simple_df = df.loc[~df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF"])].copy()
+    meta_df   = df.loc[ df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF"])].copy()
 
     if simple_df.empty:
         return df
