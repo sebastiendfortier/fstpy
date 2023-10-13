@@ -440,6 +440,7 @@ def reduce_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
     """
     if df.empty:
         return df
+
     if 'etiket' not in df.columns:
         raise MissingColumnError(f'"etiket" is missing from DataFrame columns, cannot reduce parsed etiket columns!') 
 
@@ -682,7 +683,7 @@ def update_ip1_from_level(df: pd.DataFrame):
 
 def update_ip1_with_ip_infos(ip1: int, level: float, kind: int):
 
-    # Kind 2, on encode le ip seulement s'il etait deja encode
+    # Kind 2, on encode le ip s'il etait deja encode sinon on l'encode facon OLD_STYLE
     # Autres kind:  on encode les ips
     if kind != 2 or ip1 >= 32768:
         return rmn.convertIp(rmn.CONVIP_ENCODE, level, int(kind))
@@ -1065,6 +1066,9 @@ def reduce_columns(df: pd.DataFrame)-> pd.DataFrame:
     
     # Attention, ordre d'appel des fonctions doit etre respecte 
     simple_df = reduce_parsed_etiket_columns(simple_df)
+    # Besoin de reduire UNIQUEMENT la colonne etiket pour les metadonnees
+    meta_df   = reduce_parsed_etiket_columns(meta_df)
+
     simple_df = reduce_flag_values(simple_df)
     simple_df = reduce_forecast_hour_column(simple_df)
     simple_df = reduce_decoded_date_column(simple_df)
@@ -1128,6 +1132,7 @@ def reorder_columns(df):
 def get_meta_fields_exists(grid_df):
     toctoc = grid_df.loc[grid_df.nomvar == "!!"]
     vcode = []
+
     if not toctoc.empty:
         for row in toctoc.itertuples():
             vcode.append(row.ig1)
