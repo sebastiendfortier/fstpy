@@ -1132,8 +1132,7 @@ def reorder_columns(df):
 def get_meta_fields_exists(grid_df):
     toctoc = grid_df.loc[grid_df.nomvar == "!!"]
     vcode = []
-    # cols=['nomvar', 'grid', 'ip1', 'ip2', 'ip3', 'ip1_kind', 'ip1_pkind', 'ip2_kind', 'ip2_pkind']
-    # print(f'get_meta_fields_exists - grid_df = \n{grid_df[cols]} \n')
+
     if not toctoc.empty:
         for row in toctoc.itertuples():
             vcode.append(row.ig1)
