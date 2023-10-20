@@ -224,7 +224,10 @@ def get_2d_lat_lon_df(df: pd.DataFrame) -> pd.DataFrame:
     if 'path' not in df.columns:
         df = add_path_and_key_columns(df)
 
-    path_groups = df.groupby('path')
+    df_list = []
+
+    path_groups = df.groupby('path',dropna=False)
+
     for _, path_df in path_groups:
         
         grid_groups = path_df.groupby('grid')
@@ -237,29 +240,27 @@ def get_2d_lat_lon_df(df: pd.DataFrame) -> pd.DataFrame:
             tictic_df = pd.DataFrame([no_meta_df.iloc[0].to_dict()])
             tactac_df = pd.DataFrame([no_meta_df.iloc[0].to_dict()])
 
-            df_list = []
-            grtyp_groups = no_meta_df.groupby('grtyp')
-            for grtyp, grtyp_df in grtyp_groups:
-                if (grtyp == 'X'):
-                    logging.warning(f"{grtyp} is an unsupported grid type!")
-                    continue
+            grtyp = no_meta_df.grtyp.mode().iloc[0]
+            if (grtyp == 'X'):
+                logging.warning(f"{grtyp} is an unsupported grid type!")
+                continue
 
-                grid_params = get_grid_definition_params(grtyp_df)
-                (lat, lon) = get_2d_lat_lon_arr(grid_params)
+            grid_params = get_grid_definition_params(grid_df)
+            (lat, lon) = get_2d_lat_lon_arr(grid_params)
 
-                tictic_df['nomvar'] = 'LA'
-                tictic_df['d'] = [lat]
-                tictic_df['ni'] = lat.shape[0]
-                tictic_df['nj'] = lat.shape[1]
+            tictic_df['nomvar'] = 'LA'
+            tictic_df['d'] = [lat]
+            tictic_df['ni'] = lat.shape[0]
+            tictic_df['nj'] = lat.shape[1]
 
-                tactac_df['nomvar'] = 'LO'
-                tactac_df['d'] = [lon]
-                tactac_df['ni'] = lon.shape[0]
-                tactac_df['nj'] = lon.shape[1]
+            tactac_df['nomvar'] = 'LO'
+            tactac_df['d'] = [lon]
+            tactac_df['ni'] = lon.shape[0]
+            tactac_df['nj'] = lon.shape[1]
 
 
-                df_list.append(tictic_df)
-                df_list.append(tactac_df)
+            df_list.append(tictic_df)
+            df_list.append(tactac_df)
 
     latlon_df = pd.concat(df_list, ignore_index=True)
     return latlon_df
