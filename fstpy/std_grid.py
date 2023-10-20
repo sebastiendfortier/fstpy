@@ -70,6 +70,7 @@ def get_grid_definition_params(df):
     grtyp = no_meta_df.grtyp.unique()[0]
     ni = no_meta_df.ni.unique()[0]
     nj = no_meta_df.nj.unique()[0]
+    path = no_meta_df.path.unique()[0]
 
     grid_id = -1
 
@@ -78,37 +79,96 @@ def get_grid_definition_params(df):
         (grtyp == "S") or (grtyp == "U") or (grtyp == "X") or
         (grtyp == "Y") or (grtyp == "Z") or (grtyp == "#")):
 
-        if ( (grtyp == "Y") or (grtyp == "Z")  or (grtyp == "#") or (grtyp == "U")):
-            file_id = rmn.fstopenall(df.path.unique()[0], rmn.FST_RO)
-            try:
-                rec = rmn.fstprm(int(no_meta_df.iloc[0].key))
-            except rmn.FSTDError:
+        cgrtyp = ctypes.c_char_p(grtyp.encode('utf-8'))
+
+        if (path is not None) and ( (grtyp == "Y") or (grtyp == "Z")  or (grtyp == "#") or (grtyp == "U")):
+                file_id = rmn.fstopenall(df.path.unique()[0], rmn.FST_RO)
+                try:
+                    rec = rmn.fstprm(int(no_meta_df.iloc[0].key))
+                except rmn.FSTDError:
+                    rmn.fstcloseall(file_id)
+                    raise GridDefinitionError('Error while getting record data!')
+                try:
+                    grid_id = rmn.readGrid(file_id, rec)
+                except rmn.EzscintError:
+                    rmn.fstcloseall(file_id)
+                    raise GridDefinitionError('Error while reading grid!')
                 rmn.fstcloseall(file_id)
-                raise GridDefinitionError('Error while getting record data!')
-            try:
-                grid_id = rmn.readGrid(file_id, rec)
-            except rmn.EzscintError:
-                rmn.fstcloseall(file_id)
-                raise GridDefinitionError('Error while reading grid!')
-            rmn.fstcloseall(file_id)
+                return grid_id
+
+        elif ( (grtyp == "Y") or (grtyp == "Z")  or (grtyp == "#")):
+            tictic_tactac_df = df.loc[df.nomvar.isin(["^^", ">>", "^>"])]
+            ig1 = tictic_tactac_df.ig1.mode().iloc[0]
+            ig2 = tictic_tactac_df.ig2.mode().iloc[0]
+            ig3 = tictic_tactac_df.ig3.mode().iloc[0]
+            ig4 = tictic_tactac_df.ig4.mode().iloc[0]
+            grref = df.loc[df.nomvar.isin(['^^', '>>', '^>']),'grtyp'].mode().iloc[0]
+            cgrref = ctypes.c_char_p(grref.encode('utf-8'))
+            lat = df.loc[df.nomvar == '>>'].reset_index().at[0,'d']
+            lon = df.loc[df.nomvar == '^^'].reset_index().at[0,'d']
+
+            if type(lat) != np.ndarray:
+                lat = np.asarray(lat)
+            if type(lon) != np.ndarray:
+                lon = np.asarray(lon)
+
+            grid_id = pt.c_ezgdef_fmem(ni, nj, cgrtyp, cgrref, ig1, ig2, ig3, ig4, lat, lon)
+
+        elif (grtyp == "U"):
+            grref = df.loc[~df.nomvar == '^>','grtyp'].mode().iloc[0]
+            vercode = 1
+            nsubgrids = 2
+            next_position = 5
+            yy = df.loc[df.nomvar == '^^','d']
+            subgrid_id1, next_position, grid_ni, grid_nj = define_sub_grid_u(next_position, yy)
+            subgrid_id2, next_position, grid_ni, grid_nj = define_sub_grid_u(next_position, yy)
+            subgrid_ids = [subgrid_id1, subgrid_id2]
+
+            grid_id = pt.c_ezgdef_supergrid(grid_ni, grid_nj, cgrtyp, grref, vercode, nsubgrids, subgrid_ids)
+
         else:
-            info_s = no_meta_df.iloc[0]
-            ig1 = info_s.ig1
-            ig2 = info_s.ig2
-            ig3 = info_s.ig3
-            ig4 = info_s.ig4
-            cgrtyp = ctypes.c_char_p(grtyp.encode('utf-8'))
+            ig1 = no_meta_df.ig1.mode().iloc[0]
+            ig2 = no_meta_df.ig2.mode().iloc[0]
+            ig3 = no_meta_df.ig3.mode().iloc[0]
+            ig4 = no_meta_df.ig4.mode().iloc[0]
             grid_id = pt.c_ezqkdef(ni, nj, cgrtyp, ig1, ig2, ig3, ig4, 0)
-            try:
-                grid_id = rmn.decodeGrid(grid_id)
-            except rmn.RMNError:
-                grid_id = rmn.ezgxprm(grid_id)
+
+        try:
+            grid_id = rmn.decodeGrid(grid_id)
+        except rmn.RMNError:
+            grid_id = rmn.ezgxprm(grid_id)
 
 
     else:
         logging.error(f"{grtyp} grid type is not supported")
 
     return grid_id
+
+def define_sub_grid_u(start_position, yy):
+    sub_grid_type = "TYPE_Z"
+    sub_grid_ref = "TYPE_E"
+
+    grid_ni = yy[start_position]
+    grid_nj = yy[start_position+1]
+
+    xg1 = yy[start_position+6]
+    xg2 = yy[start_position+7]
+    xg3 = yy[start_position+8]
+    xg4 = yy[start_position+9]
+
+    position_ax = start_position + 10
+    position_ay = position_ax + grid_ni
+
+    next_position = position_ay + grid_nj
+
+    lat = yy[position_ax:position_ay]
+    lon = yy[position_ay:next_position]
+
+    ig1, ig2, ig3, ig4 = rmn.cxgaig(sub_grid_type, xg1, xg2, xg3, xg4)
+
+    grid_id = pt.c_ezgdef_fmem(grid_ni, grid_nj, sub_grid_type, sub_grid_ref, ig1, ig2, ig3, ig4, lat, lon)
+
+    return grid_id, next_position, grid_ni, grid_nj
 
 class GetSubGridsError(Exception):
     pass
