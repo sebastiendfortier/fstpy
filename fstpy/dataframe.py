@@ -788,7 +788,6 @@ def reduce_interval_columns(df:pd.DataFrame):
                 filtered_df['ip3'] = filtered_df.apply(encode_ip3_with_interval_infos, axis=1)
 
                 df.loc[df['interval'].notna(), ['ip1', 'ip2', 'ip3']] = filtered_df.loc[:, ['ip1', 'ip2', 'ip3']]
-
     return df
 
 def get_interval_infos(inter: str):
@@ -830,9 +829,9 @@ VPARSE_INTERVAL: Final = vectorize(get_interval_infos, otypes=['str', 'float', '
 
 def encode_ip1_with_interval_infos(row):
     if row['type_inter'] == 'ip1':
-        return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.i_low), int(row.i_kind)) 
+        return rmn.convertIp(rmn.CONVIP_ENCODE, float(row.i_low), int(row.i_kind)) 
     else:
-        return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.ip1),   int(row.ip1_kind))
+        return rmn.convertIp(rmn.CONVIP_ENCODE, float(row.ip1),   int(row.ip1_kind))
 
 def encode_ip2_with_interval_infos(row):
     if row['type_inter'] == ['ip1']:
@@ -842,13 +841,13 @@ def encode_ip2_with_interval_infos(row):
         else:
             return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.ip2), int(row.ip2_kind))
     else:
-        return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.i_high), int(row.i_kind)) 
+        return rmn.convertIp(rmn.CONVIP_ENCODE, float(row.i_high), int(row.i_kind)) 
 
 def encode_ip3_with_interval_infos(row):
     if row['type_inter'] == 'ip1':
-        return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.i_high), int(row.i_kind))
+        return rmn.convertIp(rmn.CONVIP_ENCODE, float(row.i_high), int(row.i_kind))
     else:
-        return rmn.convertIp(rmn.CONVIP_ENCODE, int(row.i_low),  int(row.i_kind)) 
+        return rmn.convertIp(rmn.CONVIP_ENCODE, float(row.i_low),  int(row.i_kind)) 
     
 def add_data_type_str_column(df: pd.DataFrame) -> pd.DataFrame:
     """Adds the data type decoded to string value column to the dataframe.
