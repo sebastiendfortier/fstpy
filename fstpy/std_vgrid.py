@@ -598,20 +598,18 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
             toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(meta_df.loc[meta_df.grid == grid])
             # print('set_vertical_coordinate_type get_meta_fields_exists\n',toctoc, p0, e1, pt, hy, sf, vcode)
             # print('set_vertical_coordinate_type group_df\n',group_df.drop(columns='d'))
-            if len(vcode) > 1:
-                try:
-                    index = [divmod(vc, 1000)[0] for vc in vcode].index(ip1_kind)
-                    # print('set_vertical_coordinate_type index\n',index)
-                except:
-                    index = -1
+            try:
+                # find toctoc with ig1 that matches the ip1_kind
+                index = [divmod(vc, 1000)[0] for vc in vcode].index(ip1_kind)
+                # print('set_vertical_coordinate_type index\n',index)
+            except:
+                toctoc = False
+                index = -1
 
-                if index != -1:
-                    this_vcode = vcode[index]
-                else:
-                    this_vcode = -1
+            if index != -1:
+                this_vcode = vcode[index]
             else:
-                 this_vcode = vcode[0]
-
+                this_vcode = -1
             # print(this_vcode)
             vctyte_df = VCTYPES.loc[(VCTYPES.ip1_kind == ip1_kind) & (VCTYPES.toctoc == toctoc) & (VCTYPES.P0 == p0) & (
                         VCTYPES.E1 == e1) & (VCTYPES.PT == pt) & (VCTYPES.HY == hy) & (VCTYPES.SF == sf) & (VCTYPES.vcode == this_vcode)]
