@@ -47,8 +47,13 @@ def add_grid_column(df: pd.DataFrame) -> pd.DataFrame:
     if 'grid' not in new_df.columns:
         new_df['grid'] = VCREATE_GRID_IDENTIFIER(new_df.nomvar, new_df.ip1, new_df.ip2, new_df.ig1, new_df.ig2)
     else:
-        if not new_df.loc[new_df.grid.isna()].empty:
-            new_df.loc[new_df.grid.isna(),'grid'] = VCREATE_GRID_IDENTIFIER(new_df.loc[new_df.grid.isna()].nomvar, new_df.loc[new_df.grid.isna()].ip1, new_df.loc[new_df.grid.isna()].ip2, new_df.loc[new_df.grid.isna()].ig1, new_df.loc[new_df.grid.isna()].ig2)
+        mask = new_df.grid.isna()
+        if mask.any():
+            grid = VCREATE_GRID_IDENTIFIER(new_df.loc[mask, 'nomvar'],
+                                           new_df.loc[mask, 'ip1'], new_df.loc[mask,'ip2'],
+                                           new_df.loc[mask, 'ig1'], new_df.loc[mask,'ig2'])
+            new_df.loc[mask, 'grid'] = grid
+
     return new_df
 
 def get_path_and_key_from_array(darr:'da.core.Array'):
@@ -234,7 +239,16 @@ def add_flag_values(df: pd.DataFrame) -> pd.DataFrame:
     new_df = copy.deepcopy(df)
     required_cols = ['masks', 'masked', 'multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data', 'ensemble_extra_info']
     if all([(col not in new_df.columns) for col in required_cols]):
-        new_df['multiple_modifications'], new_df['zapped'], new_df['filtered'], new_df['interpolated'], new_df['unit_converted'], new_df['bounded'], new_df['missing_data'], new_df['ensemble_extra_info'], new_df['masks'], new_df['masked']= VPARSE_TYPVAR(new_df.typvar)
+        (new_df['multiple_modifications'], 
+         new_df['zapped'], 
+         new_df['filtered'], 
+         new_df['interpolated'], 
+         new_df['unit_converted'], 
+         new_df['bounded'], 
+         new_df['missing_data'], 
+         new_df['ensemble_extra_info'], 
+         new_df['masks'], 
+         new_df['masked']) = VPARSE_TYPVAR(new_df.typvar)
     else: 
         if any([(col not in new_df.columns) for col in required_cols]):
             missing_cols = [x for x in required_cols if x not in new_df.columns]
@@ -242,43 +256,43 @@ def add_flag_values(df: pd.DataFrame) -> pd.DataFrame:
                 new_df[col] = None
 
         if not new_df.loc[new_df.masked.isna()].empty:
-            _, _, _, _, _, _, _, _, _,  masked= VPARSE_TYPVAR(new_df.loc[new_df.masked.isna()].typvar)
+            _, _, _, _, _, _, _, _, _,  masked                        = VPARSE_TYPVAR(new_df.loc[new_df.masked.isna()].typvar)
             new_df.loc[new_df.multiple_modifications.isna(),'masked'] = masked
 
         if not new_df.loc[new_df.masks.isna()].empty:
-            _, _, _, _, _, _, _, _, masks, _= VPARSE_TYPVAR(new_df.loc[new_df.masks.isna()].typvar)
+            _, _, _, _, _, _, _, _, masks, _                         = VPARSE_TYPVAR(new_df.loc[new_df.masks.isna()].typvar)
             new_df.loc[new_df.multiple_modifications.isna(),'masks'] = masks    
 
         if not new_df.loc[new_df.multiple_modifications.isna()].empty:
-            multiple_modifications, _, _, _, _, _, _, _, _, _= VPARSE_TYPVAR(new_df.loc[new_df.multiple_modifications.isna()].typvar)
+            multiple_modifications, *_                                                = VPARSE_TYPVAR(new_df.loc[new_df.multiple_modifications.isna()].typvar)
             new_df.loc[new_df.multiple_modifications.isna(),'multiple_modifications'] = multiple_modifications
 
         if not new_df.loc[new_df.zapped.isna()].empty:
-            _, zapped, _, _, _, _, _, _ , _, _= VPARSE_TYPVAR(new_df.loc[new_df.zapped.isna()].typvar)
+            _, zapped, *_                             = VPARSE_TYPVAR(new_df.loc[new_df.zapped.isna()].typvar)
             new_df.loc[new_df.zapped.isna(),'zapped'] = zapped
 
         if not new_df.loc[new_df.filtered.isna()].empty:
-            _, _, filtered, _, _, _, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.filtered.isna()].typvar)
+            _, _, filtered, *_                            = VPARSE_TYPVAR(new_df.loc[new_df.filtered.isna()].typvar)
             new_df.loc[new_df.filtered.isna(),'filtered'] = filtered
 
         if not new_df.loc[new_df.interpolated.isna()].empty:
-            _, _, _, interpolated, _, _, _, _ , _, _= VPARSE_TYPVAR(new_df.loc[new_df.interpolated.isna()].typvar)
+            _, _, _, interpolated, *_                             = VPARSE_TYPVAR(new_df.loc[new_df.interpolated.isna()].typvar)
             new_df.loc[new_df.interpolated.isna(),'interpolated'] = interpolated
 
         if not new_df.loc[new_df.unit_converted.isna()].empty:
-            _, _, _, _, unit_converted, _, _, _ , _, _= VPARSE_TYPVAR(new_df.loc[new_df.unit_converted.isna()].typvar)
+            _, _, _, _, unit_converted, *_                            = VPARSE_TYPVAR(new_df.loc[new_df.unit_converted.isna()].typvar)
             new_df.loc[new_df.unit_converted.isna(),'unit_converted'] = unit_converted
 
         if not new_df.loc[new_df.bounded.isna()].empty:
-            _, _, _, _, _, bounded, _, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.bounded.isna()].typvar)
+            _, _, _, _, _, bounded, *_                  = VPARSE_TYPVAR(new_df.loc[new_df.bounded.isna()].typvar)
             new_df.loc[new_df.bounded.isna(),'bounded'] = bounded
 
         if not new_df.loc[new_df.missing_data.isna()].empty:
-            _, _, _, _, _, _, missing_data, _, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.missing_data.isna()].typvar)
+            _, _, _, _, _, _, missing_data, *_                    = VPARSE_TYPVAR(new_df.loc[new_df.missing_data.isna()].typvar)
             new_df.loc[new_df.missing_data.isna(),'missing_data'] = missing_data
 
         if not new_df.loc[new_df.ensemble_extra_info.isna()].empty:
-            _, _, _, _, _, _, _, ensemble_extra_info, _, _ = VPARSE_TYPVAR(new_df.loc[new_df.ensemble_extra_info.isna()].typvar)
+            _, _, _, _, _, _, _, ensemble_extra_info, *_                        = VPARSE_TYPVAR(new_df.loc[new_df.ensemble_extra_info.isna()].typvar)
             new_df.loc[new_df.ensemble_extra_info.isna(),'ensemble_extra_info'] = ensemble_extra_info
 
     return new_df
@@ -407,25 +421,30 @@ def add_parsed_etiket_columns(df: pd.DataFrame) -> pd.DataFrame:
             for col in missing_cols:
                 new_df[col] = None
 
-        if not new_df.loc[new_df.etiket_format.isna()].empty:               
-            _,_,_,_, etiket_format = VPARSE_ETIKET(new_df.etiket)
-            new_df.loc[new_df.etiket_format.isna(), 'etiket_format'] = etiket_format
+        mask = new_df.etiket_format.isna()
+        if mask.any():             
+            _,_,_,_, etiket_format = VPARSE_ETIKET(new_df.loc[mask, 'etiket'])
+            new_df.loc[mask, 'etiket_format'] = etiket_format
+        
+        mask = new_df.label.isna()
+        if mask.any():      
+            label, *_ = VPARSE_ETIKET(new_df.loc[mask, 'etiket'])
+            new_df.loc[mask,'label'] = label
 
-        if not new_df.loc[new_df.label.isna()].empty:
-            label, _, _,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.label.isna()].etiket)
-            new_df.loc[new_df.label.isna(),'label'] = label
+        mask = new_df.run.isna()
+        if mask.any(): 
+            _, run, *_ = VPARSE_ETIKET(new_df.loc[mask, 'etiket'])
+            new_df.loc[mask,'run'] = run
 
-        if not new_df.loc[new_df.run.isna()].empty:
-            _, run, _,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.run.isna()].etiket)
-            new_df.loc[new_df.run.isna(),'run'] = run
+        mask = new_df.implementation.isna()
+        if mask.any(): 
+            _, _, implementation, *_ = VPARSE_ETIKET(new_df.loc[mask, 'etiket'])
+            new_df.loc[mask,'implementation'] = implementation
 
-        if not new_df.loc[new_df.implementation.isna()].empty:
-            _, _, implementation,  _, _ = VPARSE_ETIKET(new_df.loc[new_df.implementation.isna()].etiket)
-            new_df.loc[new_df.implementation.isna(),'implementation'] = implementation
-
-        if not new_df.loc[new_df.ensemble_member.isna()].empty:
-            _, _, _, ensemble_member, _ = VPARSE_ETIKET(new_df.loc[new_df.ensemble_member.isna()].etiket)
-            new_df.loc[new_df.ensemble_member.isna(),'ensemble_member'] = ensemble_member
+        mask = new_df.ensemble_member.isna()
+        if mask.any(): 
+            _, _, _, ensemble_member, _ = VPARSE_ETIKET(new_df.loc[mask, 'etiket'])
+            new_df.loc[mask,'ensemble_member'] = ensemble_member
             
     return new_df
 
@@ -496,26 +515,30 @@ def add_unit_and_description_columns(df: pd.DataFrame):
     elif 'unit' not in new_df.columns:
         new_df['unit'], _ = VGET_UNIT_AND_DESCRIPTION(new_df.nomvar)
 
-        if not new_df.loc[new_df.description.isna()].empty:
-            _, description = VGET_UNIT_AND_DESCRIPTION(new_df.loc[new_df.description.isna()].nomvar)
-            new_df.loc[new_df.description.isna(),'description'] = description
+        mask = new_df.description.isna()
+        if mask.any():
+            _, description = VGET_UNIT_AND_DESCRIPTION(new_df.loc[mask, 'nomvar'])
+            new_df.loc[mask, 'description'] = description
 
     elif 'description' not in new_df.columns:
         _, new_df['description'] = VGET_UNIT_AND_DESCRIPTION(new_df.nomvar)
 
-        if not new_df.loc[new_df.unit.isna()].empty:
-            unit, _ = VGET_UNIT_AND_DESCRIPTION(new_df.loc[new_df.unit.isna()].nomvar)
-            new_df.loc[new_df.unit.isna(),'unit'] = unit
+        mask = new_df.unit.isna()
+        if mask.any():    
+            unit, _ = VGET_UNIT_AND_DESCRIPTION(new_df.loc[mask, 'nomvar'])
+            new_df.loc[mask,'unit'] = unit  
 
     else:
-        if not new_df.loc[new_df.unit.isna()].empty:
-            unit, _ = VGET_UNIT_AND_DESCRIPTION(new_df.loc[new_df.unit.isna()].nomvar)
-            new_df.loc[new_df.unit.isna(),'unit'] = unit
+        mask = new_df.unit.isna()
+        if mask.any():    
+            unit, _ = VGET_UNIT_AND_DESCRIPTION(new_df.loc[mask, 'nomvar'])
+            new_df.loc[mask,'unit'] = unit         
 
-        if not new_df.loc[new_df.description.isna()].empty:
-            _, description = VGET_UNIT_AND_DESCRIPTION(new_df.loc[new_df.description.isna()].nomvar)
-            new_df.loc[new_df.description.isna(),'description'] = description
-        
+        mask = new_df.description.isna()
+        if mask.any():
+            _, description = VGET_UNIT_AND_DESCRIPTION(new_df.loc[mask, 'nomvar'])
+            new_df.loc[mask, 'description'] = description
+            
     return new_df
 
 def add_decoded_date_column(df: pd.DataFrame, attr: str = 'dateo'):
@@ -617,8 +640,10 @@ def add_forecast_hour_column(df: pd.DataFrame):
     if 'forecast_hour' not in new_df.columns:
         new_df['forecast_hour'] = VCREATE_FORECAST_HOUR(new_df.deet, new_df.npas)
     else:
-        if not new_df.loc[new_df.forecast_hour.isna()].empty:
-            new_df.loc[new_df.forecast_hour.isna(),'forecast_hour'] = VCREATE_FORECAST_HOUR(new_df.loc[new_df.forecast_hour.isna()].deet,new_df.loc[new_df.forecast_hour.isna()].npas)
+        mask = new_df.forecast_hour.isna()
+        if mask.any():     
+            forecast_hour = VCREATE_FORECAST_HOUR(new_df.loc[mask,'deet'], new_df.loc[mask,'npas'])
+            new_df.loc[mask, 'forecast_hour'] = forecast_hour
 
     return new_df
 
@@ -871,8 +896,10 @@ def add_data_type_str_column(df: pd.DataFrame) -> pd.DataFrame:
     if 'data_type_str' not in new_df.columns:
         new_df['data_type_str'] = VCREATE_DATA_TYPE_STR(new_df.datyp)
     else:
-        if not new_df.loc[new_df.data_type_str.isna()].empty:
-            new_df.loc[new_df.data_type_str.isna(),'data_type_str'] = VCREATE_DATA_TYPE_STR(new_df.loc[new_df.data_type_str.isna()].datyp)
+        mask = new_df.data_type_str.isna()
+        if mask.any():  
+            data_type_str = VCREATE_DATA_TYPE_STR(new_df.loc[mask, 'datyp'])
+            new_df.loc[mask, 'data_type_str'] = data_type_str
 
     return new_df
     
@@ -896,67 +923,120 @@ def add_ip_info_columns(df: pd.DataFrame):
         if df[col].isna().any():
             raise MissingColumnError(f'A "{col}" value is missing from {col} DataFrame column, cannot add ip info columns!') 
 
-    new_df = copy.deepcopy(df)
-    required_cols = ['level', 'ip1_kind', 'ip1_pkind', 'ip2_dec', 'ip2_kind', 'ip2_pkind', 'ip3_dec', 'ip3_kind', 'ip3_pkind', 'surface', 'follow_topography', 'ascending', 'interval']
+    new_df        = copy.deepcopy(df)
+    required_cols = ['level',   'ip1_kind', 'ip1_pkind', 'ip2_dec', 'ip2_kind', 'ip2_pkind', 
+                     'ip3_dec', 'ip3_kind', 'ip3_pkind', 'surface', 'follow_topography', 'ascending', 'interval']
+    
     if all([(col not in new_df.columns) for col in required_cols]):
-        new_df['level'], new_df['ip1_kind'], new_df['ip1_pkind'], new_df['ip2_dec'], new_df['ip2_kind'], new_df['ip2_pkind'], new_df['ip3_dec'], new_df['ip3_kind'], new_df['ip3_pkind'], new_df['surface'], new_df['follow_topography'], new_df['ascending'], new_df['interval'] = VCREATE_IP_INFO(new_df.nomvar, new_df.ip1, new_df.ip2, new_df.ip3)
+        (new_df['level'],  
+         new_df['ip1_kind'], 
+         new_df['ip1_pkind'], 
+         new_df['ip2_dec'], 
+         new_df['ip2_kind'], 
+         new_df['ip2_pkind'],
+         new_df['ip3_dec'], 
+         new_df['ip3_kind'], 
+         new_df['ip3_pkind'], 
+         new_df['surface'], 
+         new_df['follow_topography'], 
+         new_df['ascending'], 
+         new_df['interval']) = VCREATE_IP_INFO(new_df.nomvar, new_df.ip1, new_df.ip2, new_df.ip3)
     else: 
         if any([(col not in new_df.columns) for col in required_cols]):
             missing_cols = [x for x in required_cols if x not in new_df.columns]
             for col in missing_cols:
                 new_df[col] = None
         
-        if not new_df.loc[new_df.level.isna()].empty:
-            level, _, _, _, _, _, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.level.isna()].nomvar, new_df.loc[new_df.level.isna()].ip1, new_df.loc[new_df.level.isna()].ip2, new_df.loc[new_df.level.isna()].ip3)
-            new_df.loc[new_df.level.isna(),'level'] = level
+        mask = new_df.level.isna()
+        if mask.any():
+            level, *_                                            = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'level'] = level
 
-        if not new_df.loc[new_df.ip1_kind.isna()].empty:            
-            _, ip1_kind, _, _, _, _, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip1_kind.isna()].nomvar, new_df.loc[new_df.ip1_kind.isna()].ip1, new_df.loc[new_df.ip1_kind.isna()].ip2, new_df.loc[new_df.ip1_kind.isna()].ip3)
-            new_df.loc[new_df.ip1_kind.isna(),'ip1_kind'] = ip1_kind
+        mask = new_df.ip1_kind.isna()
+        if mask.any():
+            _, ip1_kind, *_                                      = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'ip1_kind'] = ip1_kind
 
-        if not new_df.loc[new_df.ip1_pkind.isna()].empty:
-            _, _, ip1_pkind, _, _, _, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip1_pkind.isna()].nomvar, new_df.loc[new_df.ip1_pkind.isna()].ip1, new_df.loc[new_df.ip1_pkind.isna()].ip2, new_df.loc[new_df.ip1_pkind.isna()].ip3)
-            new_df.loc[new_df.ip1_pkind.isna(),'ip1_pkind'] = ip1_pkind
+        mask = new_df.ip1_pkind.isna()
+        if mask.any():
+            _, _, ip1_pkind, *_                                  = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'ip1_pkind'] = ip1_pkind
 
-        if not new_df.loc[new_df.ip2_dec.isna()].empty:
-            _, _, _, ip2_dec, _, _, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip2_dec.isna()].nomvar, new_df.loc[new_df.ip2_dec.isna()].ip1, new_df.loc[new_df.ip2_dec.isna()].ip2, new_df.loc[new_df.ip2_dec.isna()].ip3)
-            new_df.loc[new_df.ip2_dec.isna(),'ip2_dec'] = ip2_dec
+        mask = new_df.ip2_dec.isna()
+        if mask.any():
+            _, _, _, ip2_dec, *_                                 = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'ip2_dec'] = ip2_dec
 
-        if not new_df.loc[new_df.ip2_kind.isna()].empty:    
-            _, _, _, _, ip2_kind, _, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip2_kind.isna()].nomvar, new_df.loc[new_df.ip2_kind.isna()].ip1, new_df.loc[new_df.ip2_kind.isna()].ip2, new_df.loc[new_df.ip2_kind.isna()].ip3)
-            new_df.loc[new_df.ip2_kind.isna(),'ip2_kind'] = ip2_kind
+        mask = new_df.ip2_kind.isna()
+        if mask.any():
+            _, _, _, _, ip2_kind, *_                             = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'ip2_kind'] = ip2_kind
 
-        if not new_df.loc[new_df.ip2_pkind.isna()].empty:    
-            _, _, _, _, _, ip2_pkind, _, _, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip2_pkind.isna()].nomvar, new_df.loc[new_df.ip2_pkind.isna()].ip1, new_df.loc[new_df.ip2_pkind.isna()].ip2, new_df.loc[new_df.ip2_pkind.isna()].ip3)
-            new_df.loc[new_df.ip2_pkind.isna(),'ip2_pkind'] = ip2_pkind
+        mask = new_df.ip2_pkind.isna()
+        if mask.any():
+            _, _, _, _, _, ip2_pkind, *_                         = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'ip2_pkind'] = ip2_pkind
 
-        if not new_df.loc[new_df.ip3_dec.isna()].empty:    
-            _, _, _, _, _, _, ip3_dec, _, _, _, _, _, _  = VCREATE_IP_INFO(new_df.loc[new_df.ip3_dec.isna()].nomvar, new_df.loc[new_df.ip3_dec.isna()].ip1, new_df.loc[new_df.ip3_dec.isna()].ip2, new_df.loc[new_df.ip3_dec.isna()].ip3)
-            new_df.loc[new_df.ip3_dec.isna(),'ip3_dec'] = ip3_dec
+        mask = new_df.ip3_dec.isna()
+        if mask.any():
+            _, _, _, _, _, _, ip3_dec, *_                        = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'ip3_dec'] = ip3_dec
 
-        if not new_df.loc[new_df.ip3_kind.isna()].empty:    
-            _, _, _, _, _, _, _, ip3_kind, _, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip3_kind.isna()].nomvar, new_df.loc[new_df.ip3_kind.isna()].ip1, new_df.loc[new_df.ip3_kind.isna()].ip2, new_df.loc[new_df.ip3_kind.isna()].ip3)
-            new_df.loc[new_df.ip3_kind.isna(),'ip3_kind'] = ip3_kind
+        mask = new_df.ip3_kind.isna()
+        if mask.any():
+            _, _, _, _, _, _, _, ip3_kind, *_                    = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'ip3_kind'] = ip3_kind
+            
+        mask = new_df.ip3_pkind.isna()
+        if mask.any():
+            _, _, _, _, _, _, _, _, ip3_pkind, *_                = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'ip3_pkind'] = ip3_pkind
+         
+        mask = new_df.surface.isna()
+        if mask.any():
+            _, _, _, _, _, _, _, _, _, surface, *_               = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'surface'] = surface    
 
-        if not new_df.loc[new_df.ip3_pkind.isna()].empty:    
-            _, _, _, _, _, _, _, _, ip3_pkind, _, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.ip3_pkind.isna()].nomvar, new_df.loc[new_df.ip3_pkind.isna()].ip1, new_df.loc[new_df.ip3_pkind.isna()].ip2, new_df.loc[new_df.ip3_pkind.isna()].ip3)
-            new_df.loc[new_df.ip3_pkind.isna(),'ip3_pkind'] = ip3_pkind            
+        mask = new_df.follow_topography.isna()
+        if mask.any():
+            _, _, _, _, _, _, _, _, _, _, follow_topography, *_  = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'follow_topography'] = follow_topography    
 
-        if not new_df.loc[new_df.surface.isna()].empty:    
-            _, _, _, _, _, _, _, _, _, surface, _, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.surface.isna()].nomvar, new_df.loc[new_df.surface.isna()].ip1, new_df.loc[new_df.surface.isna()].ip2, new_df.loc[new_df.surface.isna()].ip3)
-            new_df.loc[new_df.surface.isna(),'surface'] = surface
+        mask = new_df.ascending.isna()
+        if mask.any():
+            _, _, _, _, _, _, _, _, _, _, _, ascending, _        = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'ascending'] = ascending    
 
-        if not new_df.loc[new_df.follow_topography.isna()].empty:    
-            _, _, _, _, _, _, _, _, _, _, follow_topography, _, _ = VCREATE_IP_INFO(new_df.loc[new_df.follow_topography.isna()].nomvar, new_df.loc[new_df.follow_topography.isna()].ip1, new_df.loc[new_df.follow_topography.isna()].ip2, new_df.loc[new_df.follow_topography.isna()].ip3)
-            new_df.loc[new_df.follow_topography.isna(),'follow_topography'] = follow_topography
-
-        if not new_df.loc[new_df.ascending.isna()].empty:    
-            _, _, _, _, _, _, _, _, _, _, _, ascending, _ = VCREATE_IP_INFO(new_df.loc[new_df.ascending.isna()].nomvar, new_df.loc[new_df.ascending.isna()].ip1, new_df.loc[new_df.ascending.isna()].ip2, new_df.loc[new_df.ascending.isna()].ip3)
-            new_df.loc[new_df.ascending.isna(),'ascending'] = ascending
-
-        if not new_df.loc[new_df.interval.isna()].empty:    
-            _, _, _, _, _, _, _, _, _, _, _, _, interval = VCREATE_IP_INFO(new_df.loc[new_df.interval.isna()].nomvar, new_df.loc[new_df.interval.isna()].ip1, new_df.loc[new_df.interval.isna()].ip2, new_df.loc[new_df.interval.isna()].ip3)
-            new_df.loc[new_df.interval.isna(),'interval'] = interval
+        mask = new_df.interval.isna()
+        if mask.any():
+            _, _, _, _, _, _, _, _, _, _, _, _, interval         = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
+                                                                                   new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
+                                                                                   new_df.loc[mask, 'ip3'])
+            new_df.loc[mask,'interval'] = interval  
 
     return new_df
 
@@ -972,7 +1052,8 @@ def reduce_ip_info_columns(df: pd.DataFrame):
     if df.empty:
         return df
     
-    required_cols = ['level', 'ip1_kind', 'ip1_pkind', 'ip2_dec', 'ip2_kind', 'ip2_pkind', 'ip3_dec','ip3_kind', 'ip3_pkind', 'interval', 'surface', 'follow_topography','ascending']
+    required_cols = ['level', 'ip1_kind', 'ip1_pkind', 'ip2_dec', 'ip2_kind', 'ip2_pkind', 
+                     'ip3_dec','ip3_kind', 'ip3_pkind', 'interval', 'surface', 'follow_topography','ascending']
     all_cols = df.columns.tolist()
     missing_elements = [x for x in required_cols if x not in all_cols]
     
@@ -1057,17 +1138,14 @@ def reduce_columns(df: pd.DataFrame)-> pd.DataFrame:
     if df.empty:
         return df
     
-    simple_df = df.loc[~df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF"])].copy()
-    meta_df   = df.loc[ df.nomvar.isin(["^>", ">>", "^^", "!!", "!!SF"])].copy()
+    simple_df = df.loc[~df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY"])].copy()
+    meta_df   = df.loc[ df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY"])].copy()
 
     if simple_df.empty:
         return df
     
     # Attention, ordre d'appel des fonctions doit etre respecte 
     simple_df = reduce_parsed_etiket_columns(simple_df)
-    # Besoin de reduire UNIQUEMENT la colonne etiket pour les metadonnees
-    meta_df   = reduce_parsed_etiket_columns(meta_df)
-
     simple_df = reduce_flag_values(simple_df)
     simple_df = reduce_forecast_hour_column(simple_df)
     simple_df = reduce_decoded_date_column(simple_df)
