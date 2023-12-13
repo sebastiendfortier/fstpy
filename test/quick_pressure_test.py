@@ -347,14 +347,12 @@ def test_14(plugin_test_dir):
     source0 = plugin_test_dir + "coord_5005_big.std"
     src_df0 = fstpy.StandardFileReader(source0).to_pandas()
 
-    src_df0.loc[src_df0.ip1 == 76696048,'ip1'] = 93423264
     src_df0 = select_with_meta(src_df0, ['TT'])
     # compute fstpy.QuickPressure
     df = fstpy.QuickPressure(src_df0).compute()
 
     df.loc[:, 'etiket'] = 'R1_V710_N'
     df = df.loc[~df.nomvar.isin(["^^", ">>", "P0"])]
-    df.loc[df.ip1 == 93423264,'ip1'] = 76696048
 
     # write the result
     results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_14.std"])
@@ -365,7 +363,7 @@ def test_14(plugin_test_dir):
     file_to_compare = plugin_test_dir + "resulttest_35_TT.std"
 
     # compare results
-    res = fstcomp(results_file, file_to_compare, exclude_meta=True, e_max=0.2)
+    res = fstcomp(results_file, file_to_compare, exclude_meta=True, e_max=0.01)
     fstpy.delete_file(results_file)
     assert(res)
 
@@ -375,7 +373,6 @@ def test_15(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "coord_5005_big.std"
     src_df0 = fstpy.StandardFileReader(source0).to_pandas()
-    src_df0.loc[src_df0.ip1 == 75597472,'ip1'] = 93423264
 
     src_df0 = select_with_meta(src_df0, ['UU'])
     # compute fstpy.QuickPressure
@@ -383,7 +380,6 @@ def test_15(plugin_test_dir):
 
     df.loc[:, 'etiket'] = 'R1_V710_N'
     df = df.loc[~df.nomvar.isin(["^^", ">>", "P0"])]
-    df.loc[df.ip1 == 93423264,'ip1'] = 75597472
     # write the result
     results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_15.std"])
     fstpy.delete_file(results_file)
@@ -392,6 +388,6 @@ def test_15(plugin_test_dir):
     file_to_compare = plugin_test_dir + "resulttest_36_UU.std"
 
     # compare results
-    res = fstcomp(results_file, file_to_compare, exclude_meta=True, e_max=1.3)
+    res = fstcomp(results_file, file_to_compare, exclude_meta=True, e_max=0.01)
     fstpy.delete_file(results_file)
     assert(res)
