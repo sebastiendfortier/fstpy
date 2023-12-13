@@ -571,6 +571,63 @@ def get_vertical_coord(file_df: pd.DataFrame, meta_df: pd.DataFrame, df: pd.Data
         vcoord_inst = VerticalCoordUnknown(file_df, meta_df, df)
     return vcoord_inst
 
+def get_vertical_coordinate_type(kind: int, toctoc: bool, p0: bool, pt: bool, hy: bool, vcode: list, check_p0: bool = True) -> str:
+
+    result = "UNKNOWN"
+
+    if kind == 0:
+        result = "METER_SEA_LEVEL"
+    
+    elif kind == 4:
+        result = "METER_GROUND_LEVEL"
+    
+    elif kind == 2:
+        result = "PRESSURE_2001"
+
+    elif kind == 1: #SIGMA
+        if pt:
+            result = "ETA_1002"
+        elif hy:
+            result = "HYBRID_NORMALIZED_1003"
+        else:
+            result = "SIGMA_1001"
+    
+    elif kind == 5: #HYBRID
+        if hy: 
+            result = "HYBRID_5001"
+
+
+    if result == "UNKNOWN":
+        if kind == 5: #HYBRID:
+            if toctoc and 5001 in vcode:
+                result = "HYBRID_5001"
+            
+            elif toctoc and 5002 in vcode:
+                result = "HYBRID_5002" #HYBRID_STAGGERED
+            
+            elif toctoc and 5005 in vcode:
+                result = "HYBRID_5005"
+
+            elif toctoc and 5100 in vcode:
+                result = "HYBRID_5100"
+        
+        elif  kind == 1: #SIGMA
+            if toctoc and 1001 in vcode:
+                result = "SIGMA_1001"
+            
+            elif toctoc and 1002 in vcode:
+                result = "ETA_1002"
+        
+        elif kind == 2:
+            if toctoc and 2001 in vcode:
+                result = "PRESSURE_2001"
+
+    if check_p0 and kind in [5,1]: #HYBRID or SIGMA
+        if not p0:
+            result = "UNKNOWN"
+
+    return result
+
 def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
     """Function that tries to determine the vertical coordinate of the fields
 
@@ -594,33 +651,17 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
         groups = no_meta_df.groupby(['grid','ip1_kind'])
 
         for (grid,ip1_kind), group_df in groups:
-            # print('set_vertical_coordinate_type ip1_kind\n',ip1_kind)
             toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(meta_df.loc[meta_df.grid == grid])
-            # print('set_vertical_coordinate_type get_meta_fields_exists\n',toctoc, p0, e1, pt, hy, sf, vcode)
-            # print('set_vertical_coordinate_type group_df\n',group_df.drop(columns='d'))
-            try:
-                # find toctoc with ig1 that matches the ip1_kind
-                index = [divmod(vc, 1000)[0] for vc in vcode].index(ip1_kind)
-                # print('set_vertical_coordinate_type index\n',index)
-            except:
-                toctoc = False
-                index = -1
-
-            if index != -1:
-                this_vcode = vcode[index]
-            else:
-                this_vcode = -1
-            # print(this_vcode)
-            vctyte_df = VCTYPES.loc[(VCTYPES.ip1_kind == ip1_kind) & (VCTYPES.toctoc == toctoc) & (VCTYPES.P0 == p0) & (
-                        VCTYPES.E1 == e1) & (VCTYPES.PT == pt) & (VCTYPES.HY == hy) & (VCTYPES.SF == sf) & (VCTYPES.vcode == this_vcode)]
-
-            # print('set_vertical_coordinate_type vctyte_df\n',vctyte_df)
-            if not vctyte_df.empty:
-                if len(vctyte_df.index) > 1:
-                    logging.warning('set_vertical_coordinate_type - more than one match!!!')
-                group_df['vctype'] = vctype_dict[vctyte_df.iloc[0]['vctype']]
-            else:
-                group_df['vctype'] = vctype_dict['UNKNOWN']
+           
+            vctype = get_vertical_coordinate_type(ip1_kind, toctoc, p0, pt, hy, vcode)
+            group_df['vctype'] = vctype_dict[vctype]
+            
+            # if it's the surface level of a 5005, the vctype should be hybrid 5005
+            if vctype == "METER_GROUND_LEVEL" and 5005 in vcode:
+                nomvar_groups = group_df.groupby(['nomvar'])
+                for nomvar,nomvar_df in nomvar_groups:
+                    if len(nomvar_df) == 1 and nomvar_df['level'].values[0] in [1.5,10]:
+                        group_df.loc[group_df.nomvar == nomvar, 'vctype'] = vctype_dict["HYBRID_5005"]
 
             df_list.append(group_df)
 
