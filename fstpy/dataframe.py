@@ -358,16 +358,20 @@ def drop_duplicates(df: pd.DataFrame):
     """
     init_row_count = len(df.index)
     columns = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo',
-               'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits',
-               'grtyp', 'ig1', 'ig3', 'ig4', 'datev']
+                'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits',
+                'grtyp', 'ig1', 'ig3', 'ig4', 'datev']
 
-    df.drop_duplicates(subset=columns, keep='first',inplace=True)
+    df.drop_duplicates(subset=columns, keep='first', inplace=True)
 
     row_count = len(df.index)
     if init_row_count != row_count:
         logging.warning('Found duplicate rows in dataframe!')
-    
-    return df    
+       
+        # Identify and log the duplicate rows
+        duplicates = df[df.duplicated(subset=columns, keep=False)]
+        logging.info('Duplicate rows:\n{}'.format(duplicates.drop(columns='d', errors='ignore')))
+   
+    return df
 
 def add_shape_column(df: pd.DataFrame) -> pd.DataFrame:
     """Adds the shape column from the ni and nj to a dataframe.

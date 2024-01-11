@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import pkg_resources
 import sys
 from pathlib import Path
 from threading import RLock, stack_size
@@ -12,10 +13,16 @@ error = 0
 if sys.version_info[:2] < (3, 6):
     sys.exit("Wrong python version, python>=3.6")
 
-p = Path(os.path.abspath(__file__))
-v_file = open(p.parent / 'VERSION')
-__version__ = v_file.readline().strip()
-v_file.close()
+
+def _get_version():
+   try:
+       version = pkg_resources.resource_string('fstpy', 'VERSION').decode('utf-8').strip()
+   except IOError:
+       version = 'unknown'
+   return version
+
+__version__ = _get_version()
+
 
 _LOCK = RLock()
 stack_size(100000000)
@@ -140,12 +147,21 @@ KIND_DICT = {
 :meta hide-value:
 """
 
-_const_prefix = '/'.join(__file__.split('/')[0:-1])
-_csv_path = _const_prefix + '/csv/'
-_stationsfb = pd.read_csv(_csv_path + 'stationsfb.csv')
-_vctypes = pd.read_csv(_csv_path + 'verticalcoordinatetypes.csv')
-_stdvar = pd.read_csv(_csv_path + 'stdvar.csv')
-_units = pd.read_csv(_csv_path + 'units.csv', dtype={
+def _get_csv_path(filename):
+  try:
+      csv_path = pkg_resources.resource_filename('fstpy', f'csv/{filename}')
+  except KeyError:
+      csv_path = None
+  return csv_path
+
+_csv_path = _get_csv_path
+
+
+_stationsfb = pd.read_csv(_csv_path('stationsfb.csv'))
+_vctypes = pd.read_csv(_csv_path('verticalcoordinatetypes.csv'))
+_stdvar = pd.read_csv(_csv_path('stdvar.csv'))
+
+_units = pd.read_csv(_csv_path('units.csv'), dtype={
     'name': str,
     'symbol': str,
     'expression': str,
@@ -161,8 +177,8 @@ _units = pd.read_csv(_csv_path + 'units.csv', dtype={
 })
 
 # _etikets = pd.read_csv(_csv_path + 'etiket.csv')
-_leveltypes = pd.read_csv(_csv_path + 'leveltype.csv')
-_thermoconstants = pd.read_csv(_csv_path + 'thermo_constants.csv')
+_leveltypes = pd.read_csv(_csv_path('leveltype.csv'))
+_thermoconstants = pd.read_csv(_csv_path('thermo_constants.csv'))
 
 STATIONSFB = _stationsfb  # : :meta hide-value:
 """FB stations table
