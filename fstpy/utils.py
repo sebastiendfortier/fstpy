@@ -256,7 +256,7 @@ def vectorize (f, otypes=None):
     import numpy as np
     @wraps(f)
     def vectorized_f (*x):
-        from pandas import unique
+        from pandas import unique, Series
         n = max(len(y) if hasattr(y,'__len__') and not isinstance(y,str) else 1 for y in x)
         # Degenerate case: input vector has length 0.
         if n == 0:
