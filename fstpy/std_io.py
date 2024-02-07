@@ -11,12 +11,12 @@ from ctypes import (POINTER, Structure, c_char_p, c_int, c_int32, c_uint,
 # import ctypes as ct
 # import numpy.ctypeslib as npc
 from typing import Tuple, Type
-
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
 from dask import array as da
 from rpnpy.librmn import librmn
+from rpnpy.rpndate import RPNDate
 
 from . import _LOCK
 
@@ -778,12 +778,20 @@ def   get_basic_dataframe(path:str) -> pd.DataFrame:
     typvar_bytes[:, 0] = ((_typvar >> 6) & 0x3f) + 32
     typvar_bytes[:, 1] = ((_typvar & 0x3f)) + 32
     out['typvar'][:] = typvar_bytes.flatten().view('|S2')
-    out['datev'][:] = (date_stamp >> 3) * 10 + (date_stamp & 0x7)
-    # Note: this dateo calculation is based on my assumption that
-    # the raw stamps increase in 5-second intervals.
-    # Doing it this way to avoid a gazillion calls to incdat.
-    date_stamp = date_stamp - (out['deet']*out['npas'])//5
-    out['dateo'][:] = (date_stamp >> 3) * 10 + (date_stamp & 0x7)
+
+    # Convert raw stamp to RPN date code.
+    # Two cases: positive = regular, negative = extended range.
+    out['datev'][:] = np.where(date_stamp >= 0,
+      (date_stamp >> 3) * 10 + (date_stamp & 0x7),
+      ((date_stamp+858993488) >> 3) * 10 + ((date_stamp+858993488) & 0x7) - 6
+    )
+    def _dateo(datev, deet, npas):
+        """Convert a datev to dateo, going through python's Datetime"""
+        if datev == 0:
+            return 0
+        return RPNDate(RPNDate(int(datev)).toDateTime() - datetime.timedelta(seconds=int(deet * npas))).dateo
+
+    out['dateo'][:] = np.array(list(map(_dateo, out['datev'], out['deet'], out['npas'])))
 
     #   out['xtra1'][:] = out['datev']
     #   out['xtra2'][:] = 0
