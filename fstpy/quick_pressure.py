@@ -46,28 +46,45 @@ class QuickPressure():
         # print(self.df.drop(columns=['d','path','key']).to_string())
 
     def compute(self):
+
+        # 1. Groupement par path
+        # 2. Groupement par grid
+        # 3. Groupement par datev et dateo
+        # 4. Groupement par vctype (coord. verticales)
         grid_groups = self.df.groupby('path')
-        df_list = []
+        df_list     = []
         for _, path_df in grid_groups:
-            grid_groups = path_df.groupby('grid')
+
+            # Conserver le HY car s'applique a tous les calculs qui ont une coord HYBRID
+            hy_df            = path_df.loc[(path_df.nomvar.isin(["HY"]))]
+            path_without_hy  = path_df.loc[(~path_df.nomvar.isin(["HY"]))]
+
+            grid_groups = path_without_hy.groupby('grid')
 
             for _, grid_df in grid_groups:
-                grids_meta_df = grid_df.loc[grid_df.nomvar.isin(["!!", "P0", "PT", "!!SF"])].reset_index(drop=True)
-                vctypes_groups = grid_df.groupby('vctype')
 
-                for vctype, vt_df in vctypes_groups:
-                    if vctype == VerticalCoordType.UNKNOWN:
-                        continue
+                grids_meta_df         = grid_df.loc[grid_df.nomvar.isin(["!!", "!!SF", ">>", "^^", "^>" ])].reset_index(drop=True)
+                grids_without_meta_df = grid_df.loc[~grid_df.nomvar.isin(["!!", "!!SF", ">>", "^^", "^>" ])].reset_index(drop=True)
+                
+                datev_groups          = grids_without_meta_df.groupby(['datev', 'dateo'])
 
-                    datev_groups = vt_df.groupby('datev')
-                    for _, dv_df in datev_groups:
-                        without_meta_df = dv_df.loc[(dv_df.ip1 != 0) & (~dv_df.nomvar.isin(
-                            ["!!", "HY", "P0", "PT", ">>", "^^", "PX", "PXSA"]))]
+                for _, dv_df in datev_groups:
 
-                        if without_meta_df.empty:
+                    dv_without_meta_df = dv_df.loc[(dv_df.ip1 != 0) & (~dv_df.nomvar.isin(["P0", "P0LS", "PT", "PX", "PXSA"]))]
+                    P0_PT_df           = dv_df.loc[(dv_df.nomvar.isin(["P0", "P0LS", "PT"]))]
+            
+                    vctypes_groups     = dv_without_meta_df.groupby('vctype')
+
+                    for vctype, vt_df in vctypes_groups:
+                        if vctype == VerticalCoordType.UNKNOWN:
+                            continue
+
+                        if vt_df.empty:
                             continue
                         else:
-                            vcoord = get_vertical_coord(path_df, grids_meta_df, without_meta_df)
+                            vcoord = get_vertical_coord(path_df, 
+                                                        pd.concat([P0_PT_df, hy_df, grids_meta_df]), 
+                                                        vt_df)
 
                             if self.standard_atmosphere:
                                 px_df = vcoord.pressure_standard_atmosphere()

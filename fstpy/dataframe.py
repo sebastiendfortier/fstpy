@@ -315,7 +315,12 @@ def reduce_flag_values(df: pd.DataFrame) -> pd.DataFrame:
 
     all_cols = df.columns.tolist()
     missing_elements = [x for x in required_cols if x not in all_cols]
+        
     if missing_elements:
+        df = add_flag_values(df)
+    # S'assurer que meme si les colonnes sont presentes, elles ont bien ete initialisees(True ou False) et 
+    # ne contiennent pas de NaN
+    elif df[required_cols].isnull().any().any():
         df = add_flag_values(df)
 
     df.loc[(df[['multiple_modifications', 'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded']] == True).sum(axis=1) > 1, 'second_char'] = "M"
@@ -358,20 +363,19 @@ def drop_duplicates(df: pd.DataFrame):
     """
     init_row_count = len(df.index)
     columns = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo',
-                'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits',
-                'grtyp', 'ig1', 'ig3', 'ig4', 'datev']
+               'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits',
+               'grtyp', 'ig1', 'ig3', 'ig4', 'datev']
 
-    df.drop_duplicates(subset=columns, keep='first', inplace=True)
+    df.drop_duplicates(subset=columns, keep='first',inplace=True)
 
     row_count = len(df.index)
     if init_row_count != row_count:
         logging.warning('Found duplicate rows in dataframe!')
-       
         # Identify and log the duplicate rows
         duplicates = df[df.duplicated(subset=columns, keep=False)]
         logging.info('Duplicate rows:\n{}'.format(duplicates.drop(columns='d', errors='ignore')))
-   
-    return df
+    
+    return df    
 
 def add_shape_column(df: pd.DataFrame) -> pd.DataFrame:
     """Adds the shape column from the ni and nj to a dataframe.
@@ -1147,7 +1151,7 @@ def reduce_columns(df: pd.DataFrame)-> pd.DataFrame:
 
     if simple_df.empty:
         return df
-    
+
     # Attention, ordre d'appel des fonctions doit etre respecte 
     simple_df = reduce_parsed_etiket_columns(simple_df)
     simple_df = reduce_flag_values(simple_df)

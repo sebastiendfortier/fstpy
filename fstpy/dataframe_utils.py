@@ -82,7 +82,7 @@ def metadata_cleanup(df: pd.DataFrame, strict_toctoc=True) -> pd.DataFrame:
 
     if df.empty:
         return df
-        
+    
     df = set_vertical_coordinate_type(df)
 
     no_meta_df = df.loc[~df.nomvar.isin(["!!", "P0", "PT", ">>", "^^", "^>", "HY", "!!SF"])]
@@ -420,25 +420,27 @@ def get_specific_meta_field(df, col_subset, nomvar, grid, dateo, deet, npas):
 
 def get_p0_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, hybrid_ips: list, sigma_ips: list):
 
-    mask_p0 = (df.nomvar=='P0')
-    p0_df = df.loc[mask_p0]
-    other_df = df.loc[~mask_p0]
-
+    mask_p0      = (df.nomvar=='P0')
+    p0_df        = df.loc[mask_p0]
+    other_df     = df.loc[~mask_p0]
     p0_fields_df = pd.DataFrame(dtype=object)
 
     df_list = []
 
     # check for P0 associated with 5005 surface level 
     ip1_1_5M = rmn.convertIp(rmn.CONVIP_ENCODE,1.5,4)
-    ip1_10M = rmn.convertIp(rmn.CONVIP_ENCODE,10,4)
+    ip1_10M  = rmn.convertIp(rmn.CONVIP_ENCODE,10,4)
     for p0 in p0_df.iterrows():
 
         # to make sure it only compare in the same grid for the same time
-        grid = p0[1]['grid']
+        grid  = p0[1]['grid']
         dateo = p0[1]['dateo']
+        datev = p0[1]['datev']
 
         # get list of ip1 on the same grid at the same time
-        list_ip1_df = other_df.loc[(other_df.grid==grid) & (other_df.dateo==dateo),"ip1"].values
+        list_ip1_df = other_df.loc[(other_df.grid==grid)   & 
+                                   (other_df.dateo==dateo) &
+                                   (other_df.datev==datev),"ip1"].values
         
         # check if 1.5M or 10M is in the list (hybrid 5005)
         if ip1_1_5M in list_ip1_df or ip1_10M in list_ip1_df:
@@ -446,16 +448,40 @@ def get_p0_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, hybrid_ips: list, 
             df_list.append(p0[1].to_frame().T)
 
 
-    hybrid_grids = set()
-    for ip1 in hybrid_ips:
-        hybrid_grids.add(no_meta_df.loc[no_meta_df.ip1 == ip1].iloc[0]['grid'])
+    
+    # hybrid_grids = set()
+    # for ip1 in hybrid_ips:
+    #     hybrid_grids.add(no_meta_df.loc[no_meta_df.ip1 == ip1].iloc[0]['grid'])
+    hybrid_grids = set(no_meta_df.loc[no_meta_df['ip1'].isin(hybrid_ips)]['grid'])
 
-   
+    hy_df     = get_hy_field(df, hybrid_ips)
+    toctoc_df = df.loc[df.nomvar=='!!']
+    # Si champs HY est present, on conserve P0
+    # Sinon si on a un toctoc avec le bon ig1 (correspondant au kind 5), on conserve le P0
+    # Si on a un toctoc avec un ig1 ne faisant pas partie de la liste de tous les cas possibles de
+    # ig1, c'est donc un vieux !! et on conserve le P0
     for grid in hybrid_grids:
         ni = no_meta_df.loc[no_meta_df.grid == grid].ni.unique()[0]
         nj = no_meta_df.loc[no_meta_df.grid == grid].nj.unique()[0]
-        df_list.append(p0_df.loc[(p0_df.grid == grid) & (p0_df.ni == ni) & (p0_df.nj == nj)])
+        
+        if not toctoc_df.empty:
+            all_igs_list = [1001, 1002, 1003, 2001, 4001, 5001, 5002, 5003, 5004, 5005, 5100, 5999, 21001, 21002]
+            hy_igs_list  = [1003, 5001, 5002, 5003, 5004, 5005, 5100, 5999, 21001, 21002]
+            same_grid    = toctoc_df.grid == grid
 
+            hyb_toctoc_df = toctoc_df.loc[same_grid & 
+                                              (toctoc_df.ig1.isin(hy_igs_list))]
+            old_toctoc_df = toctoc_df.loc[same_grid & 
+                                              ~(toctoc_df.ig1.isin(all_igs_list))]
+            
+            if not hyb_toctoc_df.empty or not old_toctoc_df.empty:
+                df_list.append(p0_df.loc[(p0_df.grid == grid) & 
+                                         (p0_df.ni == ni) & (p0_df.nj == nj)])
+        else:
+            # Champs HY present
+            if not hy_df.empty:
+                df_list.append(p0_df.loc[(p0_df.grid == grid) & 
+                                        (p0_df.ni == ni) & (p0_df.nj == nj)])
 
     sigma_grids = set()
     for ip1 in sigma_ips:
@@ -471,7 +497,6 @@ def get_p0_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, hybrid_ips: list, 
 
     p0_fields_df.drop_duplicates(subset=['grtyp', 'nomvar', 'typvar', 'ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet',
                                          'npas', 'nbits', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'], inplace=True, ignore_index=True)
-
     # p0_fields_df.sort_index(inplace=True)
 
     return p0_fields_df

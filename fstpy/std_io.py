@@ -95,7 +95,8 @@ def add_metadata_to_query_results(df, query_result_df, hy_df) -> pd.DataFrame:
 
 
 def process_hy(hy_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
-    """Make sure there is only one HY, add it to the dataframe and set its grid
+    """Assign HY to every grid with hybrid coordinates except if toctoc is present for the grid; 
+       add HY to the dataframe and set its grid.
 
     :param hy_df: dataframe of all hy fields
     :type hy_df: pd.DataFrame
@@ -106,22 +107,40 @@ def process_hy(hy_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
     """
     if hy_df.empty or df.empty:
         return df
-
-    # check HY count
-    hy_count = hy_df.nomvar.count()
-
-    if hy_count >= 1:
-        if hy_count > 1:
-            logging.warning(
-                'More than one HY in this file! - UNKNOWN BEHAVIOR, continue at your own risk')
-
-        hy_df = pd.DataFrame([hy_df.iloc[0].to_dict()])
-
-        grid = df.grid.unique()[0]
-        hy_df['grid'] = grid
-
-        df = pd.concat([df, hy_df], ignore_index=True)
+    
+    # On prend le 1er HY car de toute facon on ne peut pas determiner a quelle grille
+    # les HY sont associes
+    hy_df = pd.DataFrame([hy_df.iloc[0].to_dict()])
+    
+    # Group by 'grid' and apply a function to each group
+    df = df.groupby('grid').apply(lambda group: assign_hy(group, hy_df)).reset_index(drop=True)
+    
     return df
+
+def assign_hy(grid_df: pd.DataFrame, hy_df: pd.DataFrame) -> pd.DataFrame:
+    """Assign HY to a group of data when appropriate."""
+
+    from .dataframe_utils import get_hybrid_ips
+    hybrid_ips = get_hybrid_ips(grid_df)
+
+    if len(hybrid_ips):
+        df_with_hyb_levels = grid_df.loc[grid_df.ip1.isin(hybrid_ips)]
+
+        hyb_levels_grid = df_with_hyb_levels.grid.unique()
+        
+        toctoc_df = grid_df.loc[grid_df.nomvar=='!!']
+
+        # Est-ce que le toctoc est associe aux niveaux hybrid?
+        for grid in hyb_levels_grid:
+            hyb_toctoc_df = toctoc_df.loc[(toctoc_df.grid == grid) & (
+                            toctoc_df.ig1.isin([5001, 5002, 5003, 5004, 5005, 5100, 5999, 21001, 21002]))]
+            
+            # Pas de toctoc pour la grille, on ajoute un HY
+            if hyb_toctoc_df.empty:
+                hy_df['grid'] = grid
+                grid_df = pd.concat([grid_df, hy_df], ignore_index=True)
+
+    return grid_df
 
 
 # written by Micheal Neish creator of fstd2nc

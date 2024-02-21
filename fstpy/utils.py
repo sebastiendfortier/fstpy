@@ -256,7 +256,7 @@ def vectorize (f, otypes=None):
     import numpy as np
     @wraps(f)
     def vectorized_f (*x):
-        from pandas import unique, Series
+        from pandas import Series, unique
         n = max(len(y) if hasattr(y,'__len__') and not isinstance(y,str) else 1 for y in x)
         # Degenerate case: input vector has length 0.
         if n == 0:
@@ -281,7 +281,7 @@ def vectorize (f, otypes=None):
             result = tuple(np.array(r) for r in result)
         else:
             result = tuple(np.array(r,dtype=o) for r,o in zip(result,otypes))
-        if len(result) == 1: result = result[0] # Only one output
+        if len(result) == 1: result = result[0]  # Only one output
         return result
     return vectorized_f
 # In case of emergency, break glass.

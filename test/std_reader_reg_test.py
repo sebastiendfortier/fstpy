@@ -164,7 +164,7 @@ def test_7(plugin_test_dir):
 def test_9(plugin_test_dir):
     """Test read write 64bit"""
     # open and read source
-    source0 = plugin_test_dir + "tt_stg_fileSrc.std+20210517"
+    source0 = plugin_test_dir + "tt_stg_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
 
@@ -178,7 +178,7 @@ def test_9(plugin_test_dir):
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
-    file_to_compare = plugin_test_dir + "tt_stg_fileSrc.std+20210517"
+    file_to_compare = plugin_test_dir + "tt_stg_fileSrc.std"
 
     #compare results
     res = fstcomp(results_file,file_to_compare)

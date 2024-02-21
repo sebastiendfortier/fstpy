@@ -6,6 +6,7 @@ variables:
   doc_install_dir: "/home/spst900/public_html/fstpy/${CI_BUILD_REF_NAME}"
   latest_doc_install_dir: "/home/spst900/public_html/fstpy/latest"
   deploy_dir_prefix: /fs/site5/eccc/cmd/w/spst900/spooki/CI_fstpy/${CI_BUILD_REF_NAME}
+  ssm_dir_prefix: /space/hall5/sitestore/eccc/cmd/s/sgci800/ci_ssm_dir/fstpy
 
 
 stages:
@@ -15,6 +16,7 @@ stages:
   - install_doc
   - ssm_package
   - deploy
+  - keep_ssm_package
 
 
 # default:
@@ -88,6 +90,10 @@ ssm_package:
     - DEPLOY_DIR=${deploy_dir_prefix}/${CI_PIPELINE_ID}
     - echo ${DEPLOY_DIR}
     - ./make_ssm_package.py --install --temp ${DEPLOY_DIR}
+  artifacts:
+    expire_in: 1 hrs
+    paths:
+      - livraison/
 
 deploy:
   stage: deploy
@@ -104,3 +110,13 @@ remove_ssm:
     - rm -r ${deploy_dir_prefix}
   except:
     - master
+
+keep_ssm_package:
+  stage: keep_ssm_package
+  script:
+    - cd livraison
+    - cp *.ssm ${ssm_dir_prefix}/
+    - echo "Your package is here ${ssm_dir_prefix}"
+  only:
+    - /^r-\d+\.\d+\.\d+/
+

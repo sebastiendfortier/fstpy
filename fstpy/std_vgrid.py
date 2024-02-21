@@ -226,17 +226,23 @@ class VerticalCoord(ABC):
         :return: DataFrame of PX to hold results
         :rtype: pd.DataFrame
         """
+        from .dataframe import add_ip_info_columns
+
         base_dict = self.df.iloc[0].to_dict()
         res_df = pd.DataFrame([base_dict for l in self.levels])
         nbits, datyp = self.get_px_precision()
-        res_df['nomvar'] = nomvar
-        res_df['etiket'] = etiket
-        res_df['unit'] = unit
-        res_df['nbits'] = nbits
-        res_df['datyp'] = datyp
-        res_df['description'] = description
+        res_df['nomvar']         = nomvar
+        res_df['etiket']         = etiket
+        res_df['unit']           = unit
+        res_df['nbits']          = nbits
+        res_df['datyp']          = datyp
+        res_df['description']    = description
         res_df['ip1'] = [int(self.lvl_ip_df.loc[self.lvl_ip_df.level == lvl].iloc[0].ip1) for lvl in self.levels]
         res_df['level'] = self.levels
+        # make sure the ascending, ip1_kind and ip1_pkind columns are correct (could be problematic with hybrid 5005)
+        res_df = res_df.drop(columns=['ascending','ip1_kind','ip1_pkind'], errors='ignore')
+        res_df = add_ip_info_columns(res_df)
+
         return res_df
 
     def create_px_container(self) -> pd.DataFrame:
@@ -254,7 +260,7 @@ class VerticalCoord(ABC):
         :return: DataFrame of PXSA to hold results
         :rtype: pd.DataFrame
         """
-        res_df = self.create_result_container('PXSA', 'PRESSR', 'millibar', 'Pressure of the model standard atmosphere')
+        res_df = self.create_result_container('PXSA', 'PRESSR', 'hectoPascal', 'Pressure of the model standard atmosphere')
         return res_df
 
 ###############################################################
@@ -648,7 +654,7 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
 
         df_list = []
 
-        groups = no_meta_df.groupby(['grid','ip1_kind'])
+        groups = no_meta_df.groupby(['grid','ip1_kind'], dropna=False)
 
         for (grid,ip1_kind), group_df in groups:
             toctoc, p0, e1, pt, hy, sf, vcode = get_meta_fields_exists(meta_df.loc[meta_df.grid == grid])
@@ -679,8 +685,10 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
         else:
             missing_vctype_df = df.loc[df.vctype.isna()]
             correct_vctype_df = df.loc[~df.vctype.isna()]
-            missing_vctype_df = missing_vctype_df.drop(columns='vctype')
-            new_df = set_vertical_coordinate_type(missing_vctype_df)
+            meta_df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])]
+            missing_vctype_with_meta_df = pd.concat([meta_df,missing_vctype_df], ignore_index=True)
+            missing_vctype_with_meta_df = missing_vctype_with_meta_df.drop(columns='vctype')
+            new_df = set_vertical_coordinate_type(missing_vctype_with_meta_df)
             res_df = pd.concat([new_df,correct_vctype_df], ignore_index=True)
             return res_df
 
@@ -708,14 +716,14 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
     #             # print(VCTYPES)
     #             # print(VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(5,False,True,False,False,False,False,-1)))
     #             # print('\n(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
-    #             # vctyte_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
-    #             vctyte_df = VCTYPES.loc[(VCTYPES.ip1_kind == ip1_kind) & (VCTYPES.toctoc == toctoc) & (VCTYPES.P0 == p0) & (
+    #             # vctype_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
+    #             vctype_df = VCTYPES.loc[(VCTYPES.ip1_kind == ip1_kind) & (VCTYPES.toctoc == toctoc) & (VCTYPES.P0 == p0) & (
     #                 VCTYPES.E1 == e1) & (VCTYPES.PT == pt) & (VCTYPES.HY == hy) & (VCTYPES.SF == sf) & (VCTYPES.vcode == this_vcode)]
-    #             # print(vctyte_df)
-    #             if not vctyte_df.empty:
-    #                 if len(vctyte_df.index) > 1:
+    #             # print(vctype_df)
+    #             if not vctype_df.empty:
+    #                 if len(vctype_df.index) > 1:
     #                     logging.warning('set_vertical_coordinate_type - more than one match!!!')
-    #                 ip1_kind_group['vctype'] = vctype_dict[vctyte_df.iloc[0]['vctype']]
+    #                 ip1_kind_group['vctype'] = vctype_dict[vctype_df.iloc[0]['vctype']]
     #         df_list.append(ip1_kind_group)
 
     # res_df = pd.concat(df_list, ignore_index=True)
@@ -768,14 +776,14 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
 #                 # print(VCTYPES)
 #                 # print(VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(5,False,True,False,False,False,False,-1)))
 #                 # print('\n(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
-#                 # vctyte_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
-#                 vctyte_df = VCTYPES.loc[(VCTYPES.ip1_kind == ip1_kind) & (VCTYPES.toctoc == toctoc) & (VCTYPES.P0 == p0) & (
+#                 # vctype_df = VCTYPES.query('(ip1_kind==%d) and (toctoc==%s) and (P0==%s) and (E1==%s) and (PT==%s) and (HY==%s) and (SF==%s) and (vcode==%d)'%(ip1_kind,toctoc,p0,e1,pt,hy,sf,this_vcode))
+#                 vctype_df = VCTYPES.loc[(VCTYPES.ip1_kind == ip1_kind) & (VCTYPES.toctoc == toctoc) & (VCTYPES.P0 == p0) & (
 #                     VCTYPES.E1 == e1) & (VCTYPES.PT == pt) & (VCTYPES.HY == hy) & (VCTYPES.SF == sf) & (VCTYPES.vcode == this_vcode)]
-#                 # print(vctyte_df)
-#                 if not vctyte_df.empty:
-#                     if len(vctyte_df.index) > 1:
+#                 # print(vctype_df)
+#                 if not vctype_df.empty:
+#                     if len(vctype_df.index) > 1:
 #                         logging.warning('set_vertical_coordinate_type - more than one match!!!')
-#                     ip1_kind_group['vctype'] = vctype_dict[vctyte_df.iloc[0]['vctype']]
+#                     ip1_kind_group['vctype'] = vctype_dict[vctype_df.iloc[0]['vctype']]
 #             newdfs.append(ip1_kind_group)
 
 #     res_df = pd.concat(newdfs, ignore_index=True)

@@ -49,6 +49,9 @@ def test_2(plugin_test_dir):
     # compute fstpy.QuickPressure
     df = fstpy.QuickPressure(src_df0, standard_atmosphere=True).compute()
 
+    df.loc[df.nomvar != 'PXSA', 'etiket'] = 'R1580V0N'
+    df.loc[df.nomvar == 'PXSA', 'etiket'] = 'PRESSR'
+
     # write the result
     results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_2.std"])
     fstpy.delete_file(results_file)
@@ -389,5 +392,30 @@ def test_15(plugin_test_dir):
 
     # compare results
     res = fstcomp(results_file, file_to_compare, exclude_meta=True, e_max=0.01)
+    fstpy.delete_file(results_file)
+    assert(res)
+
+def test_16(plugin_test_dir):
+    """2 groupes de TT avec dates d'origine differentes mais dates de validity indentiques """
+
+    source  = plugin_test_dir + "Regeta_TTHUES_differentDateoSameDatev.std"
+    src_df  = fstpy.StandardFileReader(source).to_pandas()
+    tt_df   = fstpy.select_with_meta(src_df, ['TT'])
+
+    df      = fstpy.QuickPressure(tt_df).compute()
+
+    #  Pour etre identique au test de Pressure de Spooki
+    df.loc[df.nomvar.isin(['PX']), 'etiket'] = '__PRESSRX000'
+    
+     # write the result
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_16.std"])
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, df).to_fst()
+
+    # # open and read comparison file
+    file_to_compare = plugin_test_dir + "Regeta_differentDateoSameDatev_file2cmp.std"
+
+    # compare results 
+    res = fstcomp(results_file, file_to_compare)
     fstpy.delete_file(results_file)
     assert(res)

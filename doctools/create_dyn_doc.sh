@@ -7,6 +7,8 @@ echo ${DOCDIR}
 
 cd ../
 VERSION=$(head -n 1 VERSION)
+VERSION_PATH="${VERSION/./}"
+VERSION_PATH="${VERSION_PATH/./\/}"
 cd doc
 OUTPUT=install.rst
 rm -f $OUTPUT
@@ -18,7 +20,7 @@ echo "Use the ssm package" >> $OUTPUT
 echo "" >> $OUTPUT
 echo "::" >> $OUTPUT
 echo "" >> $OUTPUT
-echo "   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/$VERSION/" >> $OUTPUT
+echo "   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/$VERSION_PATH" >> $OUTPUT
 echo "" >> $OUTPUT
 echo "Use the git repository package: at your own risk ;)" >> $OUTPUT
 echo "" >> $OUTPUT
@@ -43,7 +45,7 @@ echo "   . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all    
 echo "   # get rmn python library      " >> $OUTPUT
 echo "   . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1-u2.4      " >> $OUTPUT
 echo "   # get fstpy ssm package" >> $OUTPUT
-echo "   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/$VERSION/" >> $OUTPUT
+echo "   . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/$VERSION_PATH" >> $OUTPUT
 echo "" >> $OUTPUT
 echo "Use fstpy" >> $OUTPUT
 echo "~~~~~~~~~" >> $OUTPUT
