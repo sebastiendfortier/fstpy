@@ -1,20 +1,235 @@
 # -*- coding: utf-8 -*-
 import pytest
-from test import TMP_PATH, TEST_PATH
-from pathlib import Path
+from   test import TMP_PATH, TEST_PATH
+from   pathlib import Path
 import tempfile
-pytestmark = [pytest.mark.std_writer, pytest.mark.unit_tests]
+import fstpy
+from   fstpy.utils import delete_file
+import rpnpy.librmn.all as rmn
+from   ci_fstcomp import fstcomp
+import secrets
+import numpy as np
 
+pytestmark = [pytest.mark.std_writer, pytest.mark.unit_tests]
 
 @pytest.fixture
 def input_file():
     return TEST_PATH + 'ReaderStd/testsFiles/source_data_5005.std'
+
+@pytest.fixture
+def plugin_test_dir():
+    return TEST_PATH +"WriterStd/testsFiles/"
 
 @pytest.fixture(scope="module", params=[str, Path])
 def tmp_file(request):
     temp_name = next(tempfile._get_candidate_names())
     return request.param(TMP_PATH + temp_name)
 #filename:str, df:pd.DataFrame, add_meta_fields=True, overwrite=False, load_data=False
+
+# Definition de la liste de colonnes pour fstcomp.  Par defaut, datyp et nbits ne sont pas dans la liste de fstcomp
+# et on veut les comparer.
+list_of_columns=['nomvar', 'etiket', 'typvar', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 
+                 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4']
+
+def test_1(plugin_test_dir):
+    """Test conversion des donnees int64 vers int32 tel que requis par le datype et nbits """
+    # open and read source
+    source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+    src_df  = fstpy.StandardFileReader(source0).to_pandas()
+    df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
+
+    # int32
+    df.loc[:,'datyp']    = 2        # Unsigned integer
+    df.loc[:,'nbits']    = 32
+
+    for i in df.index:
+        arr           = df.at[i, 'd'].compute()
+        arr_filled    = np.full_like(arr,  2147483647, dtype=np.int64)
+        df.at[i, 'd'] = arr_filled
+        arr           = df.at[i, 'd']
+        # print(f'\n Apres conversion - {arr.dtype= } \n', df.at[i,'d'])
+
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_1.std"])
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, df).to_fst()
+
+    # compare results 
+    file_to_compare = plugin_test_dir + "UUVVTT5x5_test1_conversion_PY_file2cmp.std"
+    res = fstcomp(results_file, file_to_compare, columns=list_of_columns)
+    fstpy.delete_file(results_file)
+    assert(res)
+
+def test_2(plugin_test_dir):
+    """Test conversion des donnees float64 vers int32 tel que requis par le datype et nbits """
+    # open and read source
+    source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+    src_df  = fstpy.StandardFileReader(source0).to_pandas()
+    df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
+
+    # int32
+    df.loc[:,'datyp']    = 2        # Unsigned integer
+    df.loc[:,'nbits']    = 32
+
+    for i in df.index:
+        arr           = df.at[i, 'd'].compute()
+        arr_filled    = np.full_like(arr,  6.8, dtype=np.float64)
+        df.at[i, 'd'] = arr_filled
+        arr           = df.at[i, 'd']
+
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_2.std"])
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, df).to_fst()
+
+    # compare results 
+    file_to_compare = plugin_test_dir + "UUVVTT5x5_test2_conversion_PY_file2cmp.std"
+    res = fstcomp(results_file, file_to_compare, columns=list_of_columns)
+    fstpy.delete_file(results_file)
+    assert(res)
+
+def test_3(plugin_test_dir):
+    """Test conversion des donnees int32 vers float32 tel que requis par le datype et nbits """
+    # open and read source
+    source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+    src_df  = fstpy.StandardFileReader(source0).to_pandas()
+    df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
+
+    # float 32
+    df.loc[:,'datyp']    = 5        # IEEE floating point
+    df.loc[:,'nbits']    = 32
+
+    for i in df.index:
+        arr             = df.at[i, 'd'].compute()
+        arr_filled      = np.full_like(arr,  2147483647, dtype=np.int32)  
+        df.at[i, 'd']   = arr_filled
+        arr             = df.at[i, 'd']
+
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_3.std"])
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, df).to_fst()
+
+    # compare results 
+    file_to_compare = plugin_test_dir + "UUVVTT5x5_test3-4_conversion_PY_file2cmp.std"
+    res = fstcomp(results_file, file_to_compare, columns=list_of_columns)
+    fstpy.delete_file(results_file)
+    assert(res)
+
+def test_4(plugin_test_dir):
+    """Test conversion des donnees float64 vers float32 tel que requis par le datype et nbits """
+    # open and read source
+    source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+    src_df  = fstpy.StandardFileReader(source0).to_pandas()
+    df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
+
+    # float 32
+    df.loc[:,'datyp']    = 5        # IEEE floating point
+    df.loc[:,'nbits']    = 32
+
+    for i in df.index:
+        arr           = df.at[i, 'd'].compute()
+        arr_filled    = np.full_like(arr,  2147483647, dtype=np.float64)
+        df.at[i, 'd'] = arr_filled
+        arr           = df.at[i, 'd']
+
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_4.std"])
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, df).to_fst()
+
+    # compare results 
+    file_to_compare = plugin_test_dir + "UUVVTT5x5_test3-4_conversion_PY_file2cmp.std"
+    res = fstcomp(results_file, file_to_compare, columns=list_of_columns)
+    fstpy.delete_file(results_file)
+    assert(res)
+
+def test_5(plugin_test_dir):
+    """Test conversion des donnees float32 vers R24 tel que requis par le datype et nbits """
+    # open and read source
+    source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+    src_df  = fstpy.StandardFileReader(source0).to_pandas()
+    df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
+
+    #  R24
+    df.loc[:,'datyp']    = 1        # Floating point
+    df.loc[:,'nbits']    = 24
+
+    for i in df.index:
+        arr            = df.at[i, 'd'].compute()
+        arr_filled    = np.full_like(arr,  6.8, dtype=np.float32)
+        df.at[i, 'd'] = arr_filled
+        arr           = df.at[i, 'd']
+
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_5.std"])
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, df).to_fst()
+
+    # compare results 
+    file_to_compare = plugin_test_dir + "UUVVTT5x5_test5_conversion_PY_file2cmp.std"
+    res = fstcomp(results_file, file_to_compare, columns=list_of_columns)
+    fstpy.delete_file(results_file)
+    assert(res)
+
+def test_6(plugin_test_dir):
+    """Test conversion des donnees float32 vers F12 tel que requis par le datype et nbits """
+    # open and read source
+    source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+    src_df  = fstpy.StandardFileReader(source0).to_pandas()
+    df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
+
+    #  F12
+    df.loc[:,'datyp']    = 6        # Floating point (special format, 16 bit, reserved for use with the compressor)
+    df.loc[:,'nbits']    = 12
+
+    for i in df.index:
+        arr           = df.at[i, 'd'].compute()
+        arr_filled    = np.full_like(arr,  6.8, dtype=np.float32)
+        df.at[i, 'd'] = arr_filled
+        arr           = df.at[i, 'd']
+
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_6.std"])
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, df).to_fst()
+
+    # compare results 
+    file_to_compare = plugin_test_dir + "UUVVTT5x5_test6_conversion_PY_file2cmp.std"
+    res = fstcomp(results_file, file_to_compare, columns=list_of_columns)
+    fstpy.delete_file(results_file)
+    assert(res)
+
+def test_7(plugin_test_dir):
+    """Test conversion des donnees float32 vers f12 tel que requis par le datype et nbits """
+    # open and read source
+    source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+    src_df  = fstpy.StandardFileReader(source0).to_pandas()
+    df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
+
+    #  F12
+    df.loc[:,'datyp']    = 134        # Compressed floating point
+    df.loc[:,'nbits']    = 12
+
+    for i in df.index:
+        arr           = df.at[i, 'd'].compute()
+        arr_filled    = np.full_like(arr,  6.8, dtype=np.float32)
+        df.at[i, 'd'] = arr_filled
+        arr           = df.at[i, 'd']
+
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_7.std"])
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, df).to_fst()
+
+    # compare results 
+    file_to_compare = plugin_test_dir + "UUVVTT5x5_test7_conversion_PY_file2cmp.std"
+    res = fstcomp(results_file, file_to_compare, columns=list_of_columns)
+    fstpy.delete_file(results_file)
+    assert(res)
+
+# #     std_file_writer = StandardFileWriter(tmp_file,df)
+# #     std_file_writer.to_fst()
+
+# #     written_file = StandardFileReader(tmp_file)
+# #     written_df = written_file.to_pandas()
+
+# #     status = fstcomp_df(df,written_df,exclude_meta=False)
+# #     delete_file(tmp_file)
+# #     assert status
 
 # def test_read_write_noload(input_file,tmp_file):
 #     df = fstpy.StandardFileReader(input_file).to_pandas()

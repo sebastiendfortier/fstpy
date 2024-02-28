@@ -260,7 +260,10 @@ def get_toctoc_fields(df: pd.DataFrame, no_meta_df:pd.DataFrame, hybrid_ips: lis
 
         if len(ip1_intersection) != 0:
             # need to keep this !!
-            df_list.append(toctoc[1].to_frame().T)
+            df_to_append = toctoc[1].to_frame().T
+            if 'forecast_hour' in df_to_append.columns:
+                df_to_append['forecast_hour'] = pd.to_timedelta(df_to_append['forecast_hour'])
+            df_list.append(df_to_append)
 
     hybrid_fields_df = pd.DataFrame(dtype=object)
     # hybrid

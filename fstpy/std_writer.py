@@ -187,9 +187,12 @@ def write_dataframe_record_to_file(file_id, df, row, rewrite):
 
     if str(data.dtype) != field_dtype:
         logging.warning(f'For record at index {row.Index}, nomvar:{row.nomvar} datyp:{row.datyp} nbits:{row.nbits} array.dtype:{row.d.dtype}')  
-        logging.warning('Difference in field dtype detected! - check dataframe nbits datyp and array dtype for mismatch')    
-        
-    rmn.fstecr(file_id, data=np.asfortranarray(data), meta=df.loc[row.Index].to_dict(), rewrite=rewrite)
+        logging.warning(f'Difference in field dtype detected! Converting array from {str(data.dtype)} to {field_dtype}')
+
+        converted_array = data.astype(field_dtype) 
+        rmn.fstecr(file_id, data=np.asfortranarray(converted_array), meta=df.loc[row.Index].to_dict(), rewrite=rewrite)   
+    else:   
+        rmn.fstecr(file_id, data=np.asfortranarray(data), meta=df.loc[row.Index].to_dict(), rewrite=rewrite)
 
 
 def identical_destination_and_record_path(record_path, filename):
