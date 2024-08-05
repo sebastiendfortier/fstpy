@@ -159,7 +159,7 @@ _csv_path = _get_csv_path
 
 _stationsfb = pd.read_csv(_csv_path('stationsfb.csv'))
 _vctypes = pd.read_csv(_csv_path('verticalcoordinatetypes.csv'))
-_stdvar = pd.read_csv(_csv_path('stdvar.csv'))
+_unitcorrespondance = pd.read_csv(_csv_path('unitcorrespondance.csv'))
 
 _units = pd.read_csv(_csv_path('units.csv'), dtype={
     'name': str,
@@ -213,28 +213,28 @@ VCTYPES = _vctypes  # : :meta hide-value:
 ...
 
 """
-STDVAR = _stdvar  # : :meta hide-value:
-"""Like the o.dict standard file dictionnary table
+UNITCORRESPONDANCE = _unitcorrespondance
+"""Units traduction table from cmcdict to fstpy.UNITS
 
     :return: dataframe
     :rtype: pd.DataFrame
     :meta hide-value:
 
->>> fstpy.STDVAR
-    nomvar                                     description_fr                        description_en              unit
-0       !!                 Descripteur de coordonnée vericale        Vertical coordinate descriptor            scalar
-1       ++                           Réservé pour usage futur               Reserved for Future Use            scalar
-2       1A                                     Albedo visible                        Visible Albedo           percent
-3       1P                           Pression à la tropopause                   Tropopause pressure       hectoPascal
-4       1T                       Température de la tropopause         Temperature at the tropopause           celsius
-..     ...                                                ...                                   ...               ...
-923    ZVC  hauteur du NCL utilisant le temperature virtuelle  LFC height using virtual temperature             meter
-924    ZVE   hauteur du NE utilisant le temperature virtuelle   EL height using virtual temperature             meter
-925     ZZ                 Mouvement vertical en coordonnée Z        Vertical Motion (Z Coordinate)  meter_per_second
-926     ^^          Position verticale dans une Grille Y ou Z    Vertical position in a Y or Z grid            scalar
-927     ^>        Position horizontale dans une grille Y ou Z  Horizontal position in a Y or Z grid            scalar
+>>> fstpy.UNITCORRESPONDANCE
+              label                         unit
+0    '% per volume'     'percent_per_cubicMeter'
+1               '%'                    'percent'
+2              '°C'                    'celsius'
+3         '°C or K'                     'kelvin'
+4           'µg/kg'     'microgram_per_kilogram'
+..              ...                          ...
+187          'W/m²'       'watt_per_squareMeter'
+188          'W/m2'       'watt_per_squareMeter'
+189          'W/M2'       'watt_per_squareMeter'
+190        'mW m-2'  'milliwatt_per_squareMeter'
+191     'W m⁻¹ K⁻¹'        'thermalConductivity'
 
-[928 rows x 4 columns]
+[192 rows x 2 columns]
 
 """
 UNITS = _units  # : :meta hide-value:

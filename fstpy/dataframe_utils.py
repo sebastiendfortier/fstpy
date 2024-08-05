@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 import logging
 import math
 
@@ -248,22 +249,10 @@ def get_toctoc_fields(df: pd.DataFrame, no_meta_df:pd.DataFrame, hybrid_ips: lis
 
     df_list = []
 
-    for toctoc in toctoc_df.iterrows():
-        
-        # get all the ip1 from fields on the same grid
-        grid = toctoc[1]['grid']
-        list_ip1_df = other_df.loc[other_df['grid']==grid,"ip1"].values
-
-        # check if the ip1 are in !!
-        list_ip1_toctoc = toctoc[1]['d'][0]
-        ip1_intersection = np.intersect1d(list_ip1_toctoc,list_ip1_df)
-
-        if len(ip1_intersection) != 0:
-            # need to keep this !!
-            df_to_append = toctoc[1].to_frame().T
-            if 'forecast_hour' in df_to_append.columns:
-                df_to_append['forecast_hour'] = pd.to_timedelta(df_to_append['forecast_hour'])
-            df_list.append(df_to_append)
+    if not toctoc_df.empty:
+        toctoc_df_to_keep = toctoc_df[toctoc_df.apply(lambda row, other_df=other_df: is_toctoc_necessary(row['grid'],row['d'],other_df), axis=1)]
+        if not toctoc_df_to_keep.empty:
+            df_list.append(toctoc_df_to_keep)
 
     hybrid_fields_df = pd.DataFrame(dtype=object)
     # hybrid
@@ -346,8 +335,25 @@ def get_toctoc_fields(df: pd.DataFrame, no_meta_df:pd.DataFrame, hybrid_ips: lis
 #             vctype_list.append('SIGMA_1001')
 #         else:
 #             vctype_list.append('UNKNOWN')
-#     return vctype_list        
+#     return vctype_list       
+ 
+def intersect_arrays(arr1, arr2) -> bool:
+    found_intersections = np.intersect1d(arr1, arr2)
 
+    # Return True if intersections are found
+    return found_intersections
+
+def is_toctoc_necessary(grid, d, other_df):
+    import dask.array as da
+
+    list_ip1_df     = other_df.loc[other_df['grid']==grid,"ip1"].values
+    list_ip1_toctoc = d[0]
+    data_type       = list_ip1_df.dtype
+    # ip1_intersection = np.intersect1d(list_ip1_toctoc,list_ip1_df)
+    intersections   = da.map_blocks(intersect_arrays, list_ip1_toctoc, list_ip1_df, dtype=data_type)
+    result          = intersections.compute()
+
+    return result.size != 0
 
 def get_hy_field(df: pd.DataFrame, hybrid_ips: list):
 

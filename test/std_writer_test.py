@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
+import warnings
 from   test import TMP_PATH, TEST_PATH
 from   pathlib import Path
 import tempfile
@@ -38,9 +39,13 @@ def test_1(plugin_test_dir):
     src_df  = fstpy.StandardFileReader(source0).to_pandas()
     df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
 
-    # int32
-    df.loc[:,'datyp']    = 2        # Unsigned integer
-    df.loc[:,'nbits']    = 32
+    # Suppression d'un future warning de pandas; dans notre cas, on veut conserver le meme comportement
+    # meme avec le nouveau comportement a venir. On encapsule la suppression du warning pour ce cas seulement.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        # int32
+        df.loc[:,'datyp']    = 2        # Unsigned integer
+        df.loc[:,'nbits']    = 32
 
     for i in df.index:
         arr           = df.at[i, 'd'].compute()
@@ -66,9 +71,13 @@ def test_2(plugin_test_dir):
     src_df  = fstpy.StandardFileReader(source0).to_pandas()
     df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
 
-    # int32
-    df.loc[:,'datyp']    = 2        # Unsigned integer
-    df.loc[:,'nbits']    = 32
+    # Suppression d'un future warning de pandas; dans notre cas, on veut conserver le meme comportement
+    # meme avec le nouveau comportement a venir. On encapsule la suppression du warning pour ce cas seulement.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        # int32
+        df.loc[:,'datyp']    = 2        # Unsigned integer
+        df.loc[:,'nbits']    = 32
 
     for i in df.index:
         arr           = df.at[i, 'd'].compute()
@@ -93,9 +102,13 @@ def test_3(plugin_test_dir):
     src_df  = fstpy.StandardFileReader(source0).to_pandas()
     df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
 
-    # float 32
-    df.loc[:,'datyp']    = 5        # IEEE floating point
-    df.loc[:,'nbits']    = 32
+    # Suppression d'un future warning de pandas; dans notre cas, on veut conserver le meme comportement
+    # meme avec le nouveau comportement a venir. On encapsule la suppression du warning pour ce cas seulement.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)    
+        # float 32
+        df.loc[:,'datyp']    = 5        # IEEE floating point
+        df.loc[:,'nbits']    = 32
 
     for i in df.index:
         arr             = df.at[i, 'd'].compute()
@@ -120,9 +133,13 @@ def test_4(plugin_test_dir):
     src_df  = fstpy.StandardFileReader(source0).to_pandas()
     df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
 
-    # float 32
-    df.loc[:,'datyp']    = 5        # IEEE floating point
-    df.loc[:,'nbits']    = 32
+    # Suppression d'un future warning de pandas; dans notre cas, on veut conserver le meme comportement
+    # meme avec le nouveau comportement a venir. On encapsule la suppression du warning pour ce cas seulement.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        # float 32
+        df.loc[:,'datyp']    = 5        # IEEE floating point
+        df.loc[:,'nbits']    = 32
 
     for i in df.index:
         arr           = df.at[i, 'd'].compute()
@@ -147,9 +164,13 @@ def test_5(plugin_test_dir):
     src_df  = fstpy.StandardFileReader(source0).to_pandas()
     df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
 
-    #  R24
-    df.loc[:,'datyp']    = 1        # Floating point
-    df.loc[:,'nbits']    = 24
+    # Suppression d'un future warning de pandas; dans notre cas, on veut conserver le meme comportement
+    # meme avec le nouveau comportement a venir. On encapsule la suppression du warning pour ce cas seulement.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        #  R24
+        df.loc[:,'datyp']    = 1        # Floating point
+        df.loc[:,'nbits']    = 24
 
     for i in df.index:
         arr            = df.at[i, 'd'].compute()
@@ -174,9 +195,13 @@ def test_6(plugin_test_dir):
     src_df  = fstpy.StandardFileReader(source0).to_pandas()
     df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
 
-    #  F12
-    df.loc[:,'datyp']    = 6        # Floating point (special format, 16 bit, reserved for use with the compressor)
-    df.loc[:,'nbits']    = 12
+    # Suppression d'un future warning de pandas; dans notre cas, on veut conserver le meme comportement
+    # meme avec le nouveau comportement a venir. On encapsule la suppression du warning pour ce cas seulement.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        #  F12
+        df.loc[:,'datyp']    = 6        # Floating point (special format, 16 bit, reserved for use with the compressor)
+        df.loc[:,'nbits']    = 12
 
     for i in df.index:
         arr           = df.at[i, 'd'].compute()
@@ -201,9 +226,13 @@ def test_7(plugin_test_dir):
     src_df  = fstpy.StandardFileReader(source0).to_pandas()
     df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
 
-    #  F12
-    df.loc[:,'datyp']    = 134        # Compressed floating point
-    df.loc[:,'nbits']    = 12
+    # Suppression d'un future warning de pandas; dans notre cas, on veut conserver le meme comportement
+    # meme avec le nouveau comportement a venir. On encapsule la suppression du warning pour ce cas seulement.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        #  F12
+        df.loc[:,'datyp']    = 134        # Compressed floating point
+        df.loc[:,'nbits']    = 12
 
     for i in df.index:
         arr           = df.at[i, 'd'].compute()
@@ -217,6 +246,99 @@ def test_7(plugin_test_dir):
 
     # compare results 
     file_to_compare = plugin_test_dir + "UUVVTT5x5_test7_conversion_PY_file2cmp.std"
+    res = fstcomp(results_file, file_to_compare, columns=list_of_columns)
+    fstpy.delete_file(results_file)
+    assert(res)
+
+def test_8(plugin_test_dir):
+    """Test conversion des donnees float32 positives vers int16 tel que requis par le datype et nbits """
+    # open and read source
+    source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+    src_df  = fstpy.StandardFileReader(source0).to_pandas()
+    df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
+
+    # Suppression d'un future warning de pandas; dans notre cas, on veut conserver le meme comportement
+    # meme avec le nouveau comportement a venir. On encapsule la suppression du warning pour ce cas seulement.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        # int32
+        df.loc[:,'datyp']    = 4        # signed integer
+        df.loc[:,'nbits']    = 16
+
+    for i in df.index:
+        arr           = df.at[i, 'd'].compute()
+        arr_filled    = np.full_like(arr,  6.8, dtype=np.float32)
+        df.at[i, 'd'] = arr_filled
+        arr           = df.at[i, 'd']
+
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_8.std"])
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, df).to_fst()
+
+    # compare results
+    file_to_compare = plugin_test_dir + "UUVVTT5x5_test8_conversion_PY_file2cmp.std"
+    res = fstcomp(results_file, file_to_compare, columns=list_of_columns)
+    fstpy.delete_file(results_file)
+    assert(res)
+
+def test_9(plugin_test_dir):
+    """Test conversion des donnees float32 negatives vers int16 tel que requis par le datype et nbits """
+    # open and read source
+    source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+    src_df  = fstpy.StandardFileReader(source0).to_pandas()
+    df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
+
+    # Suppression d'un future warning de pandas; dans notre cas, on veut conserver le meme comportement
+    # meme avec le nouveau comportement a venir. On encapsule la suppression du warning pour ce cas seulement.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        # int32
+        df.loc[:,'datyp']    = 4        # signed integer
+        df.loc[:,'nbits']    = 16
+
+    for i in df.index:
+        arr           = df.at[i, 'd'].compute()
+        arr_filled    = np.full_like(arr,  -6.8, dtype=np.float32)
+        df.at[i, 'd'] = arr_filled
+        arr           = df.at[i, 'd']
+
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_9.std"])
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, df).to_fst()
+
+    # compare results
+    file_to_compare = plugin_test_dir + "UUVVTT5x5_test9_conversion_PY_file2cmp.std"
+    res = fstcomp(results_file, file_to_compare, columns=list_of_columns)
+    fstpy.delete_file(results_file)
+    assert(res)
+
+def test_10(plugin_test_dir):
+    """Test conversion des donnees float64 negative(-1.0) vers uint8 tel que requis par le datype et nbits. Le resultat attendu sera max uint8(255)"""
+    # open and read source
+    source0 = plugin_test_dir + "UUVVTT5x5_fileSrc.std"
+    src_df  = fstpy.StandardFileReader(source0).to_pandas()
+    df      = src_df.loc[(src_df.nomvar == 'TT')].reset_index(drop=True)
+
+    # Suppression d'un future warning de pandas; dans notre cas, on veut conserver le meme comportement
+    # meme avec le nouveau comportement a venir. On encapsule la suppression du warning pour ce cas seulement.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        # int32
+        df.loc[:,'datyp']    = 2        # unsigned integer
+        df.loc[:,'nbits']    = 8
+
+    for i in df.index:
+        arr           = df.at[i, 'd'].compute()
+        arr_filled    = np.full_like(arr,  -1.0, dtype=np.float64)
+        df.at[i, 'd'] = arr_filled
+        arr           = df.at[i, 'd']
+
+    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_10.std"])
+    fstpy.delete_file(results_file)
+    fstpy.StandardFileWriter(results_file, df).to_fst()
+
+    # compare results
+    file_to_compare = plugin_test_dir + "UUVVTT5x5_test10_conversion_PY_file2cmp.std"
     res = fstcomp(results_file, file_to_compare, columns=list_of_columns)
     fstpy.delete_file(results_file)
     assert(res)

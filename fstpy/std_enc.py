@@ -60,7 +60,7 @@ def create_encoded_standard_etiket(label: str, run: str, implementation: str, en
     if ensemble_member == 'None' or ensemble_member is None:
         ensemble_member = ""
     
-    if len(run) == 0:
+    if len(run) == 0 or run == 'None' or run is None:
         run = "__"
 
     run = run[:length_run]

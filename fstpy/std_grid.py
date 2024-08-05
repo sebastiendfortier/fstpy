@@ -2,7 +2,8 @@
 import ctypes
 import logging
 import math
-from typing import Tuple
+from typing import Tuple, List
+from .utils import to_numpy
 
 import numpy as np
 import pandas as pd
@@ -11,6 +12,24 @@ import rpnpy.librmn.proto as pt
 
 from .dataframe import add_path_and_key_columns
 
+def check_grid_equality(input_grid:int, output_grid:int)-> bool:
+    """
+    Compare the parameters of two grids to determine if they are equal, 
+    excluding the 'id' parameter.
+
+    :param input_grid: The original grid to be compared.
+    :type input_grid: int
+    :param output_grid: The grid to compare against the input grid.
+    :type output_grid: int
+    :return: True if the grids are equal, False otherwise.
+    :rtype: bool
+    """
+    in_params = rmn.ezgxprm(input_grid)
+    in_params.pop('id')
+    out_params = rmn.ezgxprm(output_grid)
+    out_params.pop('id')
+
+    return in_params == out_params
 
 def get_df_from_grid(grid_params: dict) -> pd.DataFrame:
     """For grid types Z, Y or U, produces a DataFrame of >>,^^ or ^> fields
@@ -45,12 +64,33 @@ def get_df_from_grid(grid_params: dict) -> pd.DataFrame:
         meta_df = pd.DataFrame(dtype=object)
     return meta_df
 
-
-
 class GridDefinitionError(Exception):
     pass
 
+def create_grid_set(input_grid: int, output_grid: int)-> None:
+    """
+    Defines a grid set by copying definitions from an input grid to an output grid.
+
+    :param input_grid: The input grid from which definitions are copied.
+    :type input_grid: int
+    :param output_grid: The output grid where definitions are defined.
+    :type output_grid: int
+    """
+    rmn.ezdefset(output_grid, input_grid)
+
 def get_grid_definition_params(df):
+    """
+    Extracts grid definition parameters from a given DataFrame and returns a structure containing the infos for the grid.
+
+    This function processes a DataFrame to ensure it meets certain criteria for grid definitions,
+    such as having unique paths and grids, and then extracts relevant parameters like `grtyp`,
+    `ni`, `nj`, and `path`. Depending on the `grtyp` value, it performs different operations
+    to determine the grid ID, including handling special cases for certain grid types.
+
+    :param df: The DataFrame containing grid parameters.
+    :type df: pd.DataFrame
+    """
+    
     if df.empty:
         raise GridDefinitionError('Empty DataFrame!')
 
@@ -73,11 +113,11 @@ def get_grid_definition_params(df):
     path = no_meta_df.path.unique()[0]
 
     grid_id = -1
+    grid_types = ['A', 'B', 'E', 'G', 'L', 'N', 'S', 'U', 'X', 'Y', 'Z', '#']
 
-    if ( (grtyp == "A") or (grtyp == "B") or (grtyp == "E") or
-        (grtyp == "G") or (grtyp == "L") or (grtyp == "N") or
-        (grtyp == "S") or (grtyp == "U") or (grtyp == "X") or
-        (grtyp == "Y") or (grtyp == "Z") or (grtyp == "#")):
+    if grtyp not in grid_types:
+        logging.error(f"{grtyp} Grid type is not supported")
+    else:
 
         cgrtyp = ctypes.c_char_p(grtyp.encode('utf-8'))
 
@@ -133,70 +173,387 @@ def get_grid_definition_params(df):
             ig4 = no_meta_df.ig4.mode().iloc[0]
             grid_id = pt.c_ezqkdef(ni, nj, cgrtyp, ig1, ig2, ig3, ig4, 0)
 
+        # Code necessaire; les fonctions suivantes creent un structure contenant l'information pour la grille.
         try:
             grid_id = rmn.decodeGrid(grid_id)
         except rmn.RMNError:
             grid_id = rmn.ezgxprm(grid_id)
 
-
-    else:
-        logging.error(f"{grtyp} grid type is not supported")
-
     return grid_id
 
-def define_sub_grid_u(start_position, yy):
-    sub_grid_type = "TYPE_Z"
-    sub_grid_ref = "TYPE_E"
+def define_input_grid(grtyp: str, 
+                      source_df: pd.DataFrame, 
+                      meta_df: pd.DataFrame) -> tuple:
+    """
+    Define the input grid based on grid type and metadata.
 
-    grid_ni = yy[start_position]
-    grid_nj = yy[start_position+1]
+    This function sets grid parameters based on the input grid type and metadata.
+    It returns the input grid and, depending on the metadata, additional subgrids.
 
-    xg1 = yy[start_position+6]
-    xg2 = yy[start_position+7]
-    xg3 = yy[start_position+8]
-    xg4 = yy[start_position+9]
+    :param grtyp: The type of the grid to be defined.
+    :type grtyp: str
+    :param source_df: The source DataFrame containing grid parameters.
+    :type source_df: pd.DataFrame
+    :param meta_df: The metadata DataFrame containing additional grid information.
+    :type meta_df: pd.DataFrame
+    :return: A tuple containing the input grid and, depending on the metadata, additional subgrids.
+    :rtype: tuple
+    """
+        
+    if not meta_df.empty:
+        if  ('>>' in meta_df.nomvar.to_list()) and \
+            ('^^' in meta_df.nomvar.to_list()):
+            (ni, nj, grref, 
+             ax, ay, ig1, ig2, ig3, ig4) = (get_grid_parameters_from_positional_records(meta_df))
+            infos_grid = define_grid(grtyp, grref, ni, nj, ig1, ig2, ig3, ig4, ax, ay, None)
+            input_grid,*other = infos_grid
 
-    position_ax = start_position + 10
-    position_ay = position_ax + grid_ni
+            return input_grid,
 
-    next_position = position_ay + grid_nj
+        elif ('^>' in meta_df.nomvar.to_list()):
+            infos_grid = define_u_grid(meta_df, grtyp)
+            if len(infos_grid) != 3:
+                raise GridDefinitionError(f'Problem with definition of grid of type U')
+            
+            input_grid, subgrid1, subgrid2 = infos_grid
+            return input_grid, subgrid1, subgrid2
 
-    lat = yy[position_ax:position_ay]
-    lon = yy[position_ay:next_position]
+    else:
+        ni, nj, ig1, ig2, ig3, ig4 = set_grid_parameters(source_df)
+        infos_grid = define_grid(grtyp,' ', ni, nj, ig1, ig2, ig3, ig4, None, None, None)
 
-    ig1, ig2, ig3, ig4 = rmn.cxgaig(sub_grid_type, xg1, xg2, xg3, xg4)
+        input_grid,*other = infos_grid
 
-    grid_id = pt.c_ezgdef_fmem(grid_ni, grid_nj, sub_grid_type, sub_grid_ref, ig1, ig2, ig3, ig4, lat, lon)
+        return input_grid,
 
-    return grid_id, next_position, grid_ni, grid_nj
+def define_grid(
+        grtyp : str,
+        grref : str,
+        ni    : int,
+        nj    : int,
+        ig1   : int,
+        ig2   : int,
+        ig3   : int,
+        ig4   : int,
+        ax    : np.ndarray,
+        ay    : np.ndarray,
+        tictac: np.ndarray)-> tuple:
+    """
+    Defines a grid based on the provided grid type and parameters.
+
+    This function creates a grid of a specified type (grtyp) with given dimensions and indices.
+    It supports various grid types, including 'A', 'B', 'E', 'G', 'L', 'N', 'S', 'U', 'X', 'Y', 'Z', and '#'.
+    For grid types 'Y', 'Z', and '#', it uses the ezgdef_fmem function from the rmn module to define the grid.
+    For grid type 'U', it creates sub-grids and uses the ezgdef_supergrid function from the rmn module.
+
+    :param grtyp: The grid type, one of 'A', 'B', 'E', 'G', 'L', 'N', 'S', 'U', 'X', 'Y', 'Z', '#'.
+    :type grtyp: str
+    :param grref: The grid reference.
+    :type grref: str
+    :param ni: The number of grid points in the i-direction.
+    :type ni: int
+    :param nj: The number of grid points in the j-direction.
+    :type nj: int
+    :param ig1: The first index for the grid.
+    :type ig1: int
+    :param ig2: The second index for the grid.
+    :type ig2: int
+    :param ig3: The third index for the grid.
+    :type ig3: int
+    :param ig4: The fourth index for the grid.
+    :type ig4: int
+    :param ax: The x-coordinates of the grid points.
+    :type ax: np.ndarray
+    :param ay: The y-coordinates of the grid points.
+    :type ay: np.ndarray
+    :param tictac: The tic-tac array for grid type 'U'.
+    :type tictac: np.ndarray
+    :return: For grid types 'Y', 'Z', '#', returns a tuple containing the grid ID.
+             For grid type 'U', returns a tuple containing the grid ID and the IDs of the sub-grids.
+    :rtype: tuple
+    :raises GridUtilsError: If the grid type is not recognized.
+    """
+
+    grid_types = ['A', 'B', 'E', 'G', 'L', 'N', 'S', 'U', 'X', 'Y', 'Z', '#']
+    grid_id    = -1
+
+    if grtyp not in grid_types:
+        raise GridDefinitionError(f'Grtyp {grtyp} not in {grid_types}')
+
+    if grtyp in ['Y', 'Z', '#']:
+
+        grid_params = {
+            'grtyp': grtyp,
+            'grref': grref,
+            'ni'   : int(ni),
+            'nj'   : int(nj),
+            'ay'   : ay,
+            'ax'   : ax,
+            'ig1'  : int(ig1),
+            'ig2'  : int(ig2),
+            'ig3'  : int(ig3),
+            'ig4'  : int(ig4)}
+        grid_id = rmn.ezgdef_fmem(grid_params)
+        
+        return grid_id,
+
+    elif grtyp == 'U':
+        ni, nj, sub_grid_id_1, sub_grid_id_2 = define_sub_grids_u(tictac)
+
+        vercode     = 1
+        grtyp       = 'U'
+        grref       = ''
+        grid_params = {
+            'grtyp'    : grtyp,
+            'grref'    : grref,
+            'ni'       : int(ni),
+            'nj'       : int(2 * nj),
+            'vercode'  : vercode,
+            'subgridid': (
+                sub_grid_id_1,
+                sub_grid_id_2)}
+        grid_id    = rmn.ezgdef_supergrid(**grid_params)
+
+        return grid_id, sub_grid_id_1, sub_grid_id_2
+
+    else:
+        grid_params = {
+            'grtyp': grtyp,
+            'ni'   : int(ni),
+            'nj'   : int(nj),
+            'ig1'  : int(ig1),
+            'ig2'  : int(ig2),
+            'ig3'  : int(ig3),
+            'ig4'  : int(ig4),
+            'iunit': 0}
+        grid_id = rmn.ezqkdef(grid_params)
+        print(f'\n\n\n\n2 {grid_id=}\n\n\n')
+        return grid_id,
+
+
+def define_u_grid(meta_df: pd.DataFrame, grtyp: str) -> Tuple[int, int, int]:
+    """
+    Defines a U-grid based on the provided metadata DataFrame and grid type.
+
+    This function processes the metadata DataFrame to extract specific information
+    required for defining a U-grid. It then calls the `define_grid` function with
+    the extracted information and the specified grid type. If the grid definition
+    does not result in three elements as expected, it raises a `GridUtilsError`.
+
+    :param meta_df: The metadata DataFrame containing information for defining a U-grid.
+    :type meta_df: pd.DataFrame
+    :param grtyp: The type of the grid to be defined.
+    :type grtyp: str
+    :return: A tuple containing the input grid and two subgrids.
+    :rtype: Tuple[int, int, int]
+    """
+
+    tictac_df            = meta_df.loc[meta_df.nomvar == "^>"].reset_index(drop=True)
+    tictac_df.at[0, 'd'] = to_numpy(tictac_df.at[0, 'd'])
+
+    infos_grid = define_grid(grtyp, '', 0, 0, 0, 0, 0, 0, None, None, tictac_df.at[0, 'd'])
+    if len(infos_grid) != 3:
+        raise GridDefinitionError(f'Problem with definition of grid of type U')
+
+    input_grid, subgrid1, subgrid2 = infos_grid
+    return input_grid, subgrid1, subgrid2
+
+def define_sub_grids_u(tictac: np.ndarray) -> tuple:
+    """
+    Creates two sub-grids based on the input grid parameters and returns their identifiers.
+
+    :param tictac: The input tic-tac grid represented as a numpy array.
+    :type tictac: numpy.ndarray
+    :return: A tuple containing ni and nj parameters and the identifiers of the two sub-grids.
+    :rtype: tuple
+    """
+    start_pos = 5
+    tictac    = tictac.ravel(order='F')
+
+    (ni, nj, 
+     ig1, ig2, ig3, ig4, 
+     ay, ax, next_pos) = (get_grid_parameters_from_tictac_offset(tictac, start_pos))
+    
+    grid_params = {
+        'grtyp': 'Z',
+        'grref': 'E',
+        'ni'   : ni,
+        'nj'   : nj,
+        'ig1'  : ig1,
+        'ig2'  : ig2,
+        'ig3'  : ig3,
+        'ig4'  : ig4,
+        'ay'   : np.array(ay),
+        'ax'   : np.array(ax)}
+
+    # Definition de la 1ere sous-grille
+    sub_grid_id_1 = rmn.ezgdef_fmem(grid_params)
+
+    start_pos = next_pos
+    (ni, nj, ig1, ig2, ig3, ig4, ay, ax, _) = (get_grid_parameters_from_tictac_offset(tictac, start_pos))
+
+    grid_params = {
+        'grtyp': 'Z',
+        'grref': 'E',
+        'ni'   : ni,
+        'nj'   : nj,
+        'ig1'  : ig1,
+        'ig2'  : ig2,
+        'ig3'  : ig3,
+        'ig4'  : ig4,
+        'ay'   : np.array(ay),
+        'ax'   : np.array(ax)}
+
+    # Definition de la 2eme sous-grille
+    sub_grid_id_2 = rmn.ezgdef_fmem(grid_params)
+
+    return ni, nj, sub_grid_id_1, sub_grid_id_2
+
+class GetGridParamError(Exception):
+    pass
+
+def get_grid_parameters_from_tictac_offset(tictac: np.ndarray, start_position: int) -> Tuple[int, int, int, int, int, int, List[int], List[int], int]:
+    """
+    Extracts grid parameters from a tictac array based on a starting position.
+
+    :param tictac: The tictac array from which grid parameters are extracted.
+    :type tictac: np.ndarray
+    :param start_position: The starting position in the tictac array from which to extract grid parameters.
+    :type start_position: int
+    :return: A tuple containing ni, nj, ig1, ig2, ig3, ig4, ax, ay, and the next position in the tictac array.
+    :rtype: Tuple[int, int, int, int, int, int, List[int], List[int], int]
+    """
+
+    ni            = int(tictac[start_position])
+    nj            = int(tictac[start_position + 1])
+
+    # Valeurs des ig1,ig2,ig3 et ig4 a start_postion + 6,+7,+8 et +9
+    encoded_igs   = tictac[start_position + 6:start_position + 10]   
+    sub_grid_ref  = 'E'
+    ig1, ig2, ig3, ig4 = rmn.cxgaig(sub_grid_ref, *encoded_igs)
+
+    position_ax   = start_position + 10
+    position_ay   = position_ax + ni
+    next_position = position_ay + nj
+
+    ax            = tictac[position_ax:position_ay]
+    ay            = tictac[position_ay:next_position]
+
+    return ni, nj, ig1, ig2, ig3, ig4, ay.tolist(), ax.tolist(), next_position
+
+def get_grid_parameters_from_latlon_fields(lat_lon_df: pd.DataFrame) -> tuple:
+    """
+    Extracts grid parameters from dataframe containing latitude and longitude fields.
+
+    :param lat_lon_df: The dataframe containing latitude and longitude fields.
+    :type lat_lon_df: pd.DataFrame
+    :raises GridUtilsError: If either the latitude or longitude dataframe is empty.
+    :return: A tuple containing the grid parameters extracted from the latitude and longitude dataframe.
+    :rtype: tuple
+    """
+    lat_df = lat_lon_df.loc[lat_lon_df.nomvar == "LAT"].reset_index(drop=True)
+    lon_df = lat_lon_df.loc[lat_lon_df.nomvar == "LON"].reset_index(drop=True)
+    if lat_df.empty or lon_df.empty:
+        raise GetGridParamError('Missing LAT and/or LON fields in the dataframe! ')
+    
+    return get_grid_parameters(lat_df, lon_df)
+
+def get_grid_parameters_from_positional_records(meta_df: pd.DataFrame) -> tuple:
+    """
+    Extracts grid parameters from metadata dataframe.
+
+    :param meta_df: The dataframe containing metadata ^^,>>.
+    :type meta_df: pd.DataFrame
+    :raises GridUtilsError: If either of the positional records dataframe is empty.
+    :return: A tuple containing the grid parameters extracted from the positional record dataframes.
+    :rtype: tuple
+    """
+
+    lon_df = meta_df.loc[meta_df.nomvar == ">>"].reset_index(drop=True)
+    lat_df = meta_df.loc[meta_df.nomvar == "^^"].reset_index(drop=True)
+    if lat_df.empty or lon_df.empty:
+        raise GetGridParamError('Positional records missing in the dataframe: ^^ and/or >> !')
+    
+    return get_grid_parameters(lat_df, lon_df)
+
+def get_grid_parameters(lat_df: pd.DataFrame, lon_df: pd.DataFrame) -> tuple:
+    """
+    Extracts grid parameters from latitude and longitude dataframes.
+
+    :param lat_df: The dataframe containing latitude data.
+    :type lat_df: pandas.DataFrame
+    :param lon_df: The dataframe containing longitude data.
+    :type lon_df: pandas.DataFrame
+    :raises GridUtilsError: If either lat_df or lon_df is empty.
+    :return: A tuple containing the number of points in the i-direction (ni), 
+    the number of points in the j-direction (nj), the grid reference type (grref), 
+    the x-coordinate and y-coordinate of the grid origin (ax and ay), and the four grid indices (ig1, ig2, ig3, ig4).
+    :rtype: tuple
+    """
+
+    if lat_df.empty or lon_df.empty:
+        raise GetGridParamError('No data in lat_df or lon_df')
+    lat_df           = lat_df.reset_index(drop=True)
+    lon_df           = lon_df.reset_index(drop=True)
+    nj               = lat_df.iloc[0]['nj']
+    ni               = lon_df.iloc[0]['ni']
+    grref            = lat_df.iloc[0]['grtyp']
+    lat_df.at[0,'d'] = to_numpy(lat_df.at[0,'d'])
+    lon_df.at[0,'d'] = to_numpy(lon_df.at[0,'d'])
+   
+    ay  = lat_df.at[0,'d']
+    ax  = lon_df.at[0,'d']
+    ig1 = lat_df.iloc[0]['ig1']
+    ig2 = lat_df.iloc[0]['ig2']
+    ig3 = lat_df.iloc[0]['ig3']
+    ig4 = lat_df.iloc[0]['ig4']
+
+    return ni, nj, grref, ax, ay, ig1, ig2, ig3, ig4
 
 class GetSubGridsError(Exception):
     pass
 
 def get_subgrids(grid_params: dict):
-    keys = list(grid_params.keys())
-    if 'subgrid' not in keys:
+    """
+    Extracts subgrids from the given grid parameters.
+
+    :param grid_params: A dictionary containing grid parameters. Must include a 'subgrid' key with a list of exactly two subgrids.
+    :type grid_params: dict
+    :raises GetSubGridsError: If the 'subgrid' key is missing or if the list of subgrids does not contain exactly two items.
+    :return: A tuple containing the two subgrids extracted from the grid parameters.
+    :rtype: tuple
+    """
+    if 'subgrid' not in grid_params:
         raise GetSubGridsError('No subgrids found!')
-    else:    
-        if len(grid_params['subgrid']) != 2:
-            raise GetSubGridsError('For U type grid, there should only be 2 subgrids!')
-        gd1 = grid_params['subgrid'][0]
-        gd2 = grid_params['subgrid'][1]
-        return gd1, gd2
+    
+    subgrids = grid_params['subgrid']
+    if len(subgrids) != 2:
+        raise GetSubGridsError('For U type grid, there should only be 2 subgrids!')
+
+    return subgrids[0], subgrids[1]
 
 class Get2DLatLonError(Exception):
     pass
 
-def get_2d_lat_lon_arr(grid_params: dict) -> 'list(Tuple(np.ndarray,np.ndarray))':
+def get_2d_lat_lon_arr(grid_params: dict) -> 'list[Tuple[np.ndarray, np.ndarray]]':
+    """
+    Retrieves a 2D array of latitude and longitude coordinates from the given grid parameters.
+
+    :param grid_params: A dictionary containing grid parameters. Must include a 'subgrid' key with a list of exactly two subgrids, or be a valid grid definition.
+    :type grid_params: dict
+    :raises Get2DLatLonError: If the grid parameters are not a dictionary, if the 'subgrid' key is missing or if the list of subgrids does not contain exactly two items.
+    :return: A list of tuples, where each tuple contains two numpy arrays representing the concatenated latitude and longitude coordinates.
+    :rtype: list[Tuple[np.ndarray, np.ndarray]]
+    """
     if not isinstance(grid_params, dict):
         raise Get2DLatLonError('grid_id must be a valid grid definition as type dict')
 
-    keys = list(grid_params.keys())
-    if 'subgrid' in keys:
-        if len(grid_params['subgrid']) != 2:
+    if 'subgrid' in grid_params:
+        if len(grid_params['subgrid'])!= 2:
             raise Get2DLatLonError('For U type grid, there should only be 2 subgrids!')
-        gd1 = grid_params['subgrid'][0]
-        gd2 = grid_params['subgrid'][1]
+        
+        gd1, gd2 = grid_params['subgrid']
+
         lat1 = rmn.gdll(gd1)['lat']
         lon1 = rmn.gdll(gd1)['lon']
         lat2 = rmn.gdll(gd2)['lat']
@@ -204,10 +561,10 @@ def get_2d_lat_lon_arr(grid_params: dict) -> 'list(Tuple(np.ndarray,np.ndarray))
         lats = np.concatenate([lat1, lat2], axis=1)
         lons = np.concatenate([lon1, lon2], axis=1)
         latlons = (lats,lons)
-
     else:
         g = rmn.gdll(grid_params)
         latlons = (g['lat'], g['lon'])
+
     return latlons
 
 
@@ -476,8 +833,92 @@ def get_index_from_lat_lon(df: pd.DataFrame, lat: list, lon: list) -> pd.DataFra
 
     return pd.DataFrame(dfs)  
 
+def set_grid_parameters(df: pd.DataFrame) -> tuple:
+    """
+    Extracts grid parameters from a dataframe and returns them as a tuple.
 
+    :param df: The dataframe containing the grid parameters.
+    :type df: pd.DataFrame
+    :raises GridUtilsError: If the dataframe is empty.
+    :return: A tuple containing the grid parameters (ni, nj, ig1, ig2, ig3, ig4).
+    :rtype: tuple
+    """
 
+    if df.empty:
+        raise GridDefinitionError('No data in df')
+    ni  = df.iloc[0]['ni']
+    nj  = df.iloc[0]['nj']
+    ig1 = df.iloc[0]['ig1']
+    ig2 = df.iloc[0]['ig2']
+    ig3 = df.iloc[0]['ig3']
+    ig4 = df.iloc[0]['ig4']
+
+    return ni, nj, ig1, ig2, ig3, ig4
+
+def set_new_grid_identifiers(res_df: pd.DataFrame, grtyp: str, 
+                             ni: int, nj: int, ig1: int, ig2: int, ig3: int, ig4: int) -> pd.DataFrame:
+    """
+    Sets new grid identifiers for a DataFrame based on provided grid type and identifiers.
+
+    :param res_df: The DataFrame containing the grid information.
+    :type res_df: pd.DataFrame
+    :param grtyp: The grid type to be set in the DataFrame.
+    :type grtyp: str
+    :param ni: The first dimension of the grid to be set in the DataFrame.
+    :type ni: int
+    :param nj: The second dimension of the grid to be set in the DataFrame.
+    :type nj: int
+    :param ig1: The first identifier to be set in the DataFrame.
+    :type ig1: int
+    :param ig2: The second identifier to be set in the DataFrame.
+    :type ig2: int
+    :param ig3: The third identifier to be set in the DataFrame.
+    :type ig3: int
+    :param ig4: The fourth identifier to be set in the DataFrame.
+    :type ig4: int
+    :return: A DataFrame with updated grid identifiers or an empty DataFrame if no matching rows were found.
+    :rtype: pd.DataFrame
+    """
+
+    other_res_df = res_df.loc[res_df.nomvar != "!!"].reset_index(drop=True)
+    if other_res_df.empty:
+        return pd.DataFrame(dtype=object)
+    shape_list                   = [(ni, nj) for _ in range(len(other_res_df.index))]
+    other_res_df["shape"]        = shape_list
+    other_res_df['ni']           = ni
+    other_res_df['nj']           = nj
+    other_res_df['grtyp']        = grtyp
+    other_res_df['interpolated'] = True
+    other_res_df['ig1']          = ig1
+    other_res_df['ig2']          = ig2
+    other_res_df['ig3']          = ig3
+    other_res_df['ig4']          = ig4
+    other_res_df['grid']         = ''.join([str(ig1), str(ig2)])
+
+    return other_res_df
+
+def set_new_grid_identifiers_for_toctoc(res_df: pd.DataFrame, ig1: int, ig2: int) -> pd.DataFrame:
+    """
+    Sets new grid identifiers for toctoc based on provided identifiers.
+
+    :param res_df: The DataFrame containing the grid information.
+    :type res_df: pd.DataFrame
+    :param ig1: The first identifier to be set in the DataFrame.
+    :type ig1: int
+    :param ig2: The second identifier to be set in the DataFrame.
+    :type ig2: int
+    :return: A DataFrame with updated grid identifiers or an empty DataFrame if no matching rows were found.
+    :rtype: pd.DataFrame
+    """
+
+    toctoc_res_df = res_df.loc[res_df.nomvar == "!!"].reset_index(drop=True)
+    if toctoc_res_df.empty:
+        return pd.DataFrame(dtype=object)
+    toctoc_res_df['ip1']  = ig1
+    toctoc_res_df['ip2']  = ig2
+    toctoc_res_df['grid'] = ''.join([str(ig1), str(ig2)])
+
+    return toctoc_res_df
 
 # def get_df_from_vgrid(vgrid_descriptor: vgd.VGridDescriptor, ip1: int, ip2: int) -> pd.DataFrame:
 #     v = vgrid_descriptor

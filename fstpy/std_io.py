@@ -11,6 +11,7 @@ from ctypes import (POINTER, Structure, c_char_p, c_int, c_int32, c_uint,
 # import ctypes as ct
 # import numpy.ctypeslib as npc
 from typing import Tuple, Type
+
 import numpy as np
 import pandas as pd
 import rpnpy.librmn.all as rmn
@@ -93,7 +94,6 @@ def add_metadata_to_query_results(df, query_result_df, hy_df) -> pd.DataFrame:
 
     return df
 
-
 def process_hy(hy_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
     """Assign HY to every grid with hybrid coordinates except if toctoc is present for the grid; 
        add HY to the dataframe and set its grid.
@@ -113,7 +113,7 @@ def process_hy(hy_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
     hy_df = pd.DataFrame([hy_df.iloc[0].to_dict()])
     
     # Group by 'grid' and apply a function to each group
-    df = df.groupby('grid').apply(lambda group: assign_hy(group, hy_df)).reset_index(drop=True)
+    df = df.groupby('grid', group_keys=True).apply(lambda group: assign_hy(group, hy_df)).reset_index(drop=True)
     
     return df
 
@@ -656,6 +656,8 @@ def get_field_dtype(datyp, nbits):
     elif (datyp in [1, 5, 6, 133, 134]) and (nbits > 32):
         field_dtype = 'float64'
     elif (datyp in [2, 130]):
+        field_dtype = 'uint32'
+    elif (datyp in [4, 132]):
         if nbits > 1:
             field_dtype = 'int32'
         elif nbits == 1:

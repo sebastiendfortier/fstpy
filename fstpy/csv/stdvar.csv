@@ -66,6 +66,8 @@ AW,Flux accumulé de quantité de mouvement en surface (FQ accumulé),Accumulate
 BE,Énergie de convection,Buoyant energy,specificEnergy
 BH,Hauteur de la couche limite ( cas stable ),Top of boundary layer ( stable case ),meter
 BI,Indice de sévérité des orages (SSI),Severe Storm Index,scalar
+BLSN,Présence de poudrerie,Presence of blowing snow,code
+BLSP,Probabilité de poudrerie,Probability of blowing snow,%
 BN,Hauteur de la couche de mélange à Tmin,Height of mixing layer at Tmin,meter
 BOVS,Booleen pour le nuveau de congelation,Boolean for freezing levels,scalar
 BP,Pression au sommet des nuages,Cloud top pressure,hectoPascal
@@ -86,6 +88,7 @@ CD,Epaisseur entre les niveaux de Congélation C2-C1,Thickness between C2-C1 fre
 CF,Nuage Total,Nuage Total,scalar
 CH,Coefficient de transfert xu. champs thermiques,Xu transfer coefficient. thermal fields,meter_per_second
 CI,Ion calcium en solution (CA++),Calcium Ion in Solution (CA++),parts_per_billion
+CIEL,État du ciel (jour/nuit),Sky state (day/night),code
 CINH,energie d''inhibition de la convection,Convective Inhibition,specificEnergy
 CK,Nuages convectifs,Convective clouds,scalar
 CL,Nuages à grande échelle,Large scale clouds,scalar
@@ -96,6 +99,7 @@ CN,Inhibition convective,CONVECTIVE INHIBITION,specificEnergy
 CO,Monoxide de carbone (CO),Carbon Monoxide Gas (CO),parts_per_billion
 CORP,Paramètre de Coriolis,Coriolis parameter,divergence
 CP,Energie potentielle convective disponible,Convective Available Potential Energy,specificEnergy
+CPR,Caractère des précipitations,Character of precipitation,code
 CR,Réflectivité radar composite,Radar Composite Reflectivity,decibelsOfZ
 CS,Nuages à petite échelle,Small Scale Clouds,scalar
 CT,Type nuageux (Codé) (QPF),Cloud Type (Coded) (QPF),scalar
@@ -235,10 +239,14 @@ FP,Probabilité de précipitation prévue,Probability of precipitation forecast,
 FQ,Flux de quantité de mouvement à la surface,Momentum flux at surface,pascal
 FR,Pluie verglaçante (QPF),Freezing rain (QPF),meter
 FR1,Bruine verglacante accumulee (Milbrant and Yau),Accumulated freezing drizzle (Milbrant and Yau),meter
+FR1P,Probabilité de bruine verglaçante,Probability of freezing drizzle,%
 FR2,Pluie verglacante accumulee (Milbrant and Yau),Accumulated freezing rain (Milbrant and Yau),meter
+FR2P,Probabilité de pluie verglaçante,Probability of freezing rain,%
 FRH,hauteur du niveau de congelation,Freezing level height,decameter
 FRO,Nomber de Froude,Froude number,scalar
 FRP,Pression du niveau de congelation,PresSure of the freezing level,hectoPascal
+FRTC,Quantité conditionnelle de précipitations verglaçantes,Conditional freezing precipitation amount,m
+FRTP,Probabilité de précipitations verglaçantes,Probability of freezing precipitation,%
 FS,Flux solaire absorbé à la surface,Solar flux absorbed at surface,watt_per_squareMeter
 FSD,Flux solaire direct vers le bas a la surface (cccmarad),Direct solar downward flux at the surface (cccmarad),watt_per_squareMeter
 FSF,Flux solaire diffus vers le bas a la surface (cccmarad),Diffuse solar downward flux at the surface (cccmarad),watt_per_squareMeter
@@ -248,6 +256,7 @@ FU,Niveau de congélation le plus élevé,Highest freezing level,hundredsOfFeet
 FUP,Niveau de congélation le plus élevé,Highest freezing level,millibar
 FV,Flux de chaleur latente de la surface vers l''atmosphere,Upward surface latent heat flux,watt_per_squareMeter
 FW,Givrage Blanc + Clair,Rime + Clear Icing,scalar
+FZP,Taux d''accrétion de givre due aux embruns verglaçants,Ice accretion rate due to freezing spray,cm/h
 G3,Temperature Radiative,Radiative Temperature,kelvin
 G6,Taux Precipitation-Liquide,Precipitation Rate-Liquid,meter_per_second
 G7,Taux Precipitation-Solide,Precipitation Rate-Solid,meter_per_second
@@ -490,23 +499,29 @@ PC1X,carbone organique primaire 2.5um,primary organic carbon fine(2.5um),microgr
 PC2X,carbone organique primaire 10um,primary organic carbon coarse (10um),microgram_per_cubicMeter
 PD,Période de pointe,Peak Period,second
 PDM,Type de précipitation dominant,Dominant precipitation type,scalar
+PDM2,Type de précipitation secondaire,Secondary precipitation type,code
 PE,Granules de glace (QPF),Ice Pellets (QPF),meter
 PE1,Gresil accumule (Mil-Yau),Accumulated Ice Pellets (Mil-Yau),meter
 PE2,Grele accumulee (Mil-Yau),Accumulated hail (Mil-Yau),meter
 PE2L,Gros grelons accumules (Mil-Yau),Accumulated large hail (Mil-Yau),meter
 PEL,Pression du NE,EL pressure,hectoPascal
+PEP,Probabilité de grésil,Probability of ice pellets,%
+PESC,Quantité conditionnelle de grésil solide,Conditional solid ice pellet amount,m
 PFC,Pression du NCL,LFC pressure,hectoPascal
 PG,Montagne (QPF),Mountain (QPF),millibar
 PH,Hauteur de sigma 1 moins la moyenne,Height of sigma 1 minus the mean,squareMeter_per_secondSquared
 PI,Position longitudinale du pixel GOES,GOES Pixel Longitudinal Position,scalar
+PII,Indice d''intensité des précipitations totales,Total precipitation intensity index,code
 PJ,Position latitudinale du pixel GOES,GOES Pixel Latitudinal Position,scalar
 PL,Précipitations à grande échelle (QPF),Large Scale Precip (QPF),scalar
 PLCL,pression au NCA,LCL pressure,hectoPascal
 PM,Quantité de précipitations (ECMWF),Amount of Precipitation (ECMWF),centimeter
 PN,Pression au niveau de la mer,Sea Level Pressure,millibar
+POP,Probabilité de précipitation,Probability of precipitation,%
 PP,Fonction de Courant,Courant Function,squareMeter_per_second
 PPVU,Pression sur surface d''unités de tourbillon potentiel constantes,Pressure on a surface of constant potential vorticity units,hectoPascal
 PR,Quantité de précipitations,Quantity of Precipitation,meter
+PRC,Quantité conditionnelle de précipitations,Conditional precipitation amount,m
 PS,Conductivité du sol,Soil Conductivity,watt_per_squareMeterKelvin
 PT,Pression au toit du modèle,Pressure at the Top of the Model,millibar
 PU,Parcours du vent,Wind Path,knotHour
@@ -576,7 +591,11 @@ RJ,Facteur de Rejection(Pseudo-analyse ISBA),Rejection Factor(from ISBA pseudo-a
 RMX,Taux de precipitation-precipitation mixte (Mil-Yau),Precipitation rate-Mixed precipitation (Mil-Yau),meter_per_second
 RN,Pluie (QPF),Rain (QPF),meter
 RN1,Bruine liquide accumulee (Mil-Yau),Accumulated liquid drizzle (Mil-Yau),meter
+RN1P,Probabilité de bruine,Probability of drizzle,%
 RN2,Pluie liquide accumulee (Mil-Yau),Accumulated liquid rain (Mil-Yau),meter
+RN2P,Probabilité de pluie,Probability of rain,%
+RNTC,Quantité conditionnelle de précipitations liquides,Conditional liquid precipitation amount,m
+RNTP,Probabilité de précipitations liquides,Probability of liquid precipitation,%
 RO,Radical libre Alkoxyl (RO),Alkoxyl Free Radical (RO),parts_per_billion
 RPE1,Taux de precipitation- gresil (Mil-Yau),Precipitation rate-Ice pellets (Mil-Yau),meter_per_second
 RPE2,Taux de precipitation-grele (Mil-Yau),Precipitation rate-Hail (Mil-Yau),meter_per_second
@@ -634,6 +653,9 @@ SN2,Neige accumulee (Mil-Yau),Accumulated snow (Mil-Yau),meter
 SN3,Neige roulee accumulee (Mil-Yau),Accumulated graupel (Mil-Yau),meter
 SND,Neige fondant totale,Total Unmelted snow,meter
 SNLR,Accumulation de neige avec rapport SLQR,Snow accumulation with SLQR ratio,meter
+SNP,Probabilité de neige,Probability of snow,%
+SNQP,Probabilité de bourrasques de neige,Probability of snow squalls,%
+SNSC,Quantité conditionnelle de neige solide,Conditional solid snow amount,m
 SO,Aérols de suie (soot(c)),Soot Aerosols (soot(c)),parts_per_billion
 SP,Précipitations de petite échelle (QPF),Small Scale Precip (QPF),scalar
 SQ,Période de l''onde,Swell Period,second
@@ -740,6 +762,7 @@ TRS,Totale de gaz de soufre reduit,Total reduced sulphur gas,parts_per_billion
 TS,Température de l''air à la surface,Air Temperature at Ground Level,celsius
 TSO2,Dioxyde de soufre,Sulphur dioxide,microgram_per_kilogram
 TSO4,Sulfate,Sulphate,microgram_per_kilogram
+TSP,Probabilité d''occurrence d''orage,Probability of thunderstorm occurrence,%
 TSS1,sel de mer 2.5um,sea salt fine (2.5um),microgram_per_kilogram
 TSS2,sel de mer 10um,sea salt coarse (10um),microgram_per_kilogram
 TSU1,sulfate 2.5um,sulphate fine (2.5um),microgram_per_kilogram
@@ -807,6 +830,7 @@ UVCP,EPCD (CAPE) utilisant VT de la parcelle la plus instable,Most unstable parc
 UVLI,indice de soulevement de la parcel plus instbl utilisant VT,Lifted index of the most unstable parcel using VT,kelvin
 UVLP,Température virtuelle de la parcelle soulevée pour la parcelle la plus instable,Most unstable parcel lifted parcel virtual temperature,celsius
 UVMX,module du vent maximum sur une periode,Maximum wind modulus over a period,knot
+UVX,Maximum de UV,Maximum of UV,kts
 UZCL,Hauteur du NCA de la parcelle la plus instable,LCL height of most unstable parcel,meter
 UZEL,hauteur du NE de la parcelle la plus instable,Most Unstable Parcel height EL,meter
 UZFC,hauteur du NCL de la parcelle la plus instable,Most Unstable Parcel Height LFC,meter
@@ -824,12 +848,19 @@ VE,Intensité visible (code de 0 a 15),Visible Intensity (code from 0 to 15),sca
 VF,Fraction de végétation,Vegetation Fraction,scalar
 VG,Type de végétation,Vegetation Type,scalar
 VI,Ion vanadium en solution (V+++),Vanadium Ion in Solution (V+++),parts_per_billion
+VI1N,Minimum de VIS1,Minimum of VIS1,m
+VI1X,Maximum de VIS1,Maximum of VIS1,m
+VI2X,Maximum de VIS2,Maximum of VIS2,m
+VI3X,Maximum de VIS3,Maximum of VIS3,m
+VI4N,Minimum de VIS4,Minimum of VIS4,m
+VI4X,Maximum de VIS4,Maximum of VIS4,m
 VIN,Viscosite numerique,Numerical viscosity,pascalSecond
 VIP,Viscosite physique,Physical viscosity,pascalSecond
 VIS,Visibilite,Visibility,kilometer
 VIS1,Visibilite a travers le brouillard liquide (Mil-Yau),Visibility through liquid fog (Mil-Yau),kilometer
 VIS2,Visibilite a travers de la pluie (Mil-Yau),Visibility through rain (Mil-Yau),kilometer
 VIS3,Visibilite a travers de la neige (Mil-Yau),Visibility through snow (Mil-Yau),kilometer
+VIS4,Visibilité dans le brouillard glacé,Visibility through ice fog,m
 VL,Quantité d''eau liquide intégrée verticallement par radar,Radar Derived Vertically Integrated Liquid,kilogram_per_squareMeter
 VLI,indice de soulevement utilisant la temperature virtuelle,Lifted index with virtual temperature,kelvin
 VMASK,Geometrie de grille Arakawa(vmask),Arakawa grid geometry(vmask),scalar
@@ -866,6 +897,7 @@ WD,Direction météorologique du vent,Meteorological Wind Direction,degree
 WE,Mouvement vertical ETA,Vertical Motion ETA,inverseSecond
 WG,Humidité de la surface du sol,Ground Level Moisture,scalar
 WGE,Estimation des rafales de vent (de l''energie cinetique turbulente),Wind gust estimate from turbulent kinetic energy,meter_per_second
+WGEX,Maximum de WGE,Maximum of WGE,m/s
 WGN,Minimum des rafales de vent (de l''energie cinetique turbulente),Wind gust minimum from turbulent kinetic energy,meter_per_second
 WGX,Maximum des rafales de vent (de l''energie cinetique turbulente),Wind gust maximum from turbulent kinetic energy,meter_per_second
 WH,Hauteur de l''onde significative,Significant Wave Height,meter

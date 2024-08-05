@@ -7,9 +7,10 @@ import numpy as np
 import rpnpy.librmn.all as rmn
 from rpnpy.rpndate import RPNDate
 
-from fstpy import DATYP_DICT, STDVAR
+from fstpy import DATYP_DICT, UNITCORRESPONDANCE
 from fstpy.utils import vectorize
 
+import cmcdict
 
 class Interval:
     def __init__(self, ip, low, high, kind) -> None:
@@ -154,19 +155,60 @@ def get_unit_and_description(nomvar):
     >>> get_unit_and_description('TT')
     'Air Temperature' 'celsius'
     """
-    unit = STDVAR.loc[STDVAR['nomvar'] == f'{nomvar}']['unit'].values
-    description = STDVAR.loc[STDVAR['nomvar'] == f'{nomvar}']['description_en'].values
-    if len(description):
-        description = description[0]
-    else:
-        description = ''
-    if len(unit):
-        unit = unit[0]
-    else:
-        unit = 'scalar'
+    unit = get_unit(nomvar)
+    description = get_description(nomvar)
     return unit, description
 
+def get_description(nomvar):
+    """Reads the Standard file dictionnary and gets the description associated with the variable name
+
+    :param nomvar: name of the variable
+    :type nomvar: str
+    :return: description
+    :rtype: str,str
+
+    >>> get_description('TT')
+    'Air Temperature'
+    """
+    description = 'N/A'
+
+    var_infos = cmcdict.get_metvar_metadata(nomvar)
+    if not var_infos:
+        print(f"nomvar: '{nomvar}' not found in operational dictionary. Description set to '{description}'")
+    else:
+        description = var_infos['description_short_en']
+
+    return description
+
+def get_unit(nomvar):
+    """Reads the Standard file dictionnary and gets the unit associated with the variable name
+
+    :param nomvar: name of the variable
+    :type nomvar: str
+    :return: unit name
+    :rtype: str,str
+
+    >>> get_unit('TT')
+    'celsius'
+    """
+    unit = 'scalar'
+
+    var_infos = cmcdict.get_metvar_metadata(nomvar)
+    if not var_infos:
+        print(f"nomvar: '{nomvar}' not found in operational dictionary. Unit set to '{unit}'")
+    else:
+        var_unit = var_infos['units']
+        internal_unit = UNITCORRESPONDANCE.loc[UNITCORRESPONDANCE['label'] == var_unit]['unit'].values
+        if len(internal_unit):
+            unit = internal_unit[0]
+        else:
+            print(f"No fstpy internal unit found for '{var_unit}', unit set to '{unit}'")
+
+    return unit
+
 VGET_UNIT_AND_DESCRIPTION: Final = vectorize(get_unit_and_description, otypes=['str', 'str'])
+VGET_UNIT: Final = vectorize(get_unit, otypes=['str'])
+VGET_DESCRIPTION: Final = vectorize(get_description, otypes=['str'])
 
 # written by Micheal Neish creator of fstd2nc
 def convert_rmndate_to_datetime(date: int) -> 'datetime.datetime|None':

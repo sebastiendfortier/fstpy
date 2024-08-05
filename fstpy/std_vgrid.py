@@ -408,7 +408,7 @@ class VerticalCoord2001(VerticalCoord):
         return shape
 
     def get_px_precision(self):
-        return 32, 5
+        return 16, 134          # Correspond a f16
 
     def compute_pressure(self):
         shape = self.get_array_shape()
@@ -664,11 +664,10 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
             
             # if it's the surface level of a 5005, the vctype should be hybrid 5005
             if vctype == "METER_GROUND_LEVEL" and 5005 in vcode:
-                nomvar_groups = group_df.groupby(['nomvar'])
+                nomvar_groups = group_df.groupby('nomvar')
                 for nomvar,nomvar_df in nomvar_groups:
-                    if len(nomvar_df) == 1 and nomvar_df['level'].values[0] in [1.5,10]:
-                        group_df.loc[group_df.nomvar == nomvar, 'vctype'] = vctype_dict["HYBRID_5005"]
-
+                    group_df.loc[(group_df.nomvar == nomvar) & (group_df.level.isin([1.5, 10])), 'vctype'] = vctype_dict["HYBRID_5005"]
+                       
             df_list.append(group_df)
 
         meta_df["vctype"] = vctype_dict['UNKNOWN']

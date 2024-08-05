@@ -6,6 +6,7 @@ from ci_fstcomp import fstcomp
 from fstpy.dataframe_utils import select_with_meta
 from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
+from fstpy.std_vgrid import VerticalCoordType
 from fstpy.utils import delete_file
 import rpnpy.librmn.all as rmn
 import secrets
@@ -15,6 +16,10 @@ pytestmark = [pytest.mark.std_reader_regtests, pytest.mark.regressions]
 @pytest.fixture
 def plugin_test_dir():
     return TEST_PATH +"ReaderStd/testsFiles/"
+
+@pytest.fixture
+def plugin_test_dir2():
+    return TEST_PATH +"testsFiles/"
 
 def test_1(plugin_test_dir):
     """Test l'option --input avec un fichier qui n'existe pas!"""
@@ -750,3 +755,22 @@ def test_33(plugin_test_dir):
     res = fstcomp(results_file,file_to_compare)
     delete_file(results_file)
     assert(res)
+
+    ####### ATTENTION TEST MANQUANTS 34 a 43 - a ajouter
+    # #####################################################
+
+def test_44(plugin_test_dir2):
+    """Verifier que les niveaux 1.5 m sont bien convertis en HYBRID_5005, fichier avec plusieurs heures d'emission """
+
+     # open and read source
+    source0 = plugin_test_dir2 + "Fichier5005_manyForecastHours.std"
+    src_df0 = StandardFileReader(source0).to_pandas()
+    src_df0 = select_with_meta(src_df0, ['TT', 'GZ'])
+
+    # Suite a la lecture du fichier, les coordonnees 1.5m devraient etre convertis 
+    # en HYBRID 5005 
+    filtered_df = src_df0[(src_df0['nomvar'].isin(['TT', 'GZ'])) & 
+                          (src_df0['vctype'] != VerticalCoordType.HYBRID_5005)]
+    
+    assert filtered_df.empty, "Problem with the values in the vctype column."
+   
