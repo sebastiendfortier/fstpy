@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import setuptools
 from pathlib import Path
+import re
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -16,11 +17,20 @@ def read(filename, encoding='utf-8'):
     return contents
 
 def get_package_version():
-    about = {}
-    with open(Path(__file__).resolve().parent / 'fstpy' / '__init__.py', 'r', encoding='utf-8') as f:
-        exec(f.read(), about)
-    return about['__version__']
-
+    init_py = Path(__file__).resolve().parent / "fstpy" / "__init__.py"
+    version_regex = r"__version__\s*=\s*['\"]([^'\"]*)['\"]"
+    try:
+        with open(init_py, "r", encoding="utf-8") as f:
+            content = f.read()
+            match = re.search(version_regex, content)
+            if match:
+                return match.group(1)
+            else:
+                print("Warning: __version__ not found in __init__.py")
+                return "unknown"
+    except Exception as e:
+        print(f"Error reading version from __init__.py: {e}")
+        return "unknown"
 
 setuptools.setup(
     name="fstpy", # Replace with your own username
