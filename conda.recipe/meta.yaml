@@ -40,7 +40,7 @@ about:
   license: GPL-3.0
   license_family: GPL
   license_file: LICENSE
-  summary: {{ summary }}}
+  summary: {{ summary }}
 
 source:
   path: ../
