@@ -7,15 +7,6 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 
-def read(filename, encoding='utf-8'):
-    """read file contents"""
-
-    fullpath = Path(__file__).resolve().parent / filename
-
-    with fullpath.open() as fh:
-        contents = fh.read().strip()
-    return contents
-
 def get_package_version():
     init_py = Path(__file__).resolve().parent / "fstpy" / "__init__.py"
     version_regex = r"__version__\s*=\s*['\"]([^'\"]*)['\"]"
