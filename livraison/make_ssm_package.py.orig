@@ -4,19 +4,14 @@ import argparse
 import datetime
 import json
 import os
-import sys
 import subprocess
 import tarfile
-from pathlib import Path
-
-sys.path.append(str(__import__('pathlib').Path(__file__).resolve().parent.parent))
-
 
 def main():
     parsed_arg = get_arguments()
     dir_livraison = os.path.dirname(os.path.realpath(__file__))
     root_dir = os.path.dirname(dir_livraison)
-    version = get_version()
+    version = get_version(root_dir)
     plat = "all"
     name = "fstpy"
 
@@ -54,10 +49,11 @@ def main():
         install(pkg_name, dir_livraison, parsed_arg["temp"], name, version)
 
 
-def get_version():
-    import fstpy
-    return fstpy.__version__
-
+def get_version(root_dir):
+    version_file = open(root_dir+"/VERSION","r")
+    version = version_file.readline().strip()
+    version_file.close()
+    return version
 
 def generate_control_json(file_name, name, version, plat):
     control = {

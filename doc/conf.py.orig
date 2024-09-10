@@ -12,11 +12,7 @@
 #
 import os
 import sys
-
-sys.path.append(str(__import__('pathlib').Path(__file__).resolve().parent.parent))
-
-
-# sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 
@@ -26,10 +22,10 @@ project = 'fstpy'
 copyright = '2021, ECCC'
 author = 'Sébastien Fortier'
 
-import fstpy
-version = fstpy.__version__
+# The full version, including alpha/beta/rc tags
+with open('../VERSION', encoding='utf-8') as f:
+    version = f.read()
 release = version
-
 
 
 # -- General configuration ---------------------------------------------------

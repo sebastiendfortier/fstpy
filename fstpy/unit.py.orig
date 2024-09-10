@@ -6,7 +6,7 @@ from fstpy import get_unit_by_name
 from fstpy.std_dec import get_unit_and_description
 
 from .dataframe import add_columns, add_unit_and_description_columns
-from .dataframe_utils import safe_concatenate
+
 
 class UnitConversionError(Exception):
     pass
@@ -273,18 +273,17 @@ def unit_convert(df: pd.DataFrame, to_unit_name='scalar', standard_unit=False) -
     :rtype: pd.DataFrame
     """
     if 'unit' not in df.columns:
-        df  = add_unit_and_description_columns(df)
+        df = add_unit_and_description_columns(df)
 
     meta_df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
     # remove meta data from DataFrame
-    df      = df.loc[~df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
+    df = df.loc[~df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])].reset_index(drop=True)
     
-    res_df  = df.copy(deep=True)
+    res_df = df.copy(deep=True)
     unit_to = get_unit_by_name(to_unit_name)
 
     for row in res_df.itertuples():
         current_unit = row.unit
-
         if (current_unit == to_unit_name):
             continue
         elif (not standard_unit) and ((current_unit == 'scalar') or (to_unit_name == 'scalar')):
@@ -293,21 +292,18 @@ def unit_convert(df: pd.DataFrame, to_unit_name='scalar', standard_unit=False) -
             unit_from = get_unit_by_name(current_unit)
             if standard_unit:
                 to_unit_name, _ = get_unit_and_description(row.nomvar)
-                unit_to         = get_unit_by_name(to_unit_name)
-                converter       = get_converter(unit_from, unit_to, True)
+                unit_to = get_unit_by_name(to_unit_name)
+                converter = get_converter(unit_from, unit_to, True)
             else:
-                converter       = get_converter(unit_from, unit_to)
+                converter = get_converter(unit_from, unit_to)
 
             if not(converter is None):
-                converted_arr                          = converter(row.d)
-                res_df.at[row.Index, 'd']              = converted_arr
-                res_df.at[row.Index, 'unit']           = to_unit_name
+                converted_arr = converter(row.d)
+                res_df.at[row.Index, 'd'] = converted_arr
+                res_df.at[row.Index, 'unit'] = to_unit_name
                 res_df.at[row.Index, 'unit_converted'] = True
-                res_df['unit_converted']               = res_df['unit_converted'].astype('bool')
 
-    # Necessaire de faire ce check pour eviter warning "object-dtype columns with all-bool values ..." si meta_df est vide
-    res_df = safe_concatenate([res_df,meta_df])
-
+    res_df = pd.concat([res_df,meta_df],ignore_index=True)
     if not standard_unit:
         if 'level' not in res_df.columns:
             res_df = add_columns(res_df, columns=['ip_info'])

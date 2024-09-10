@@ -1096,21 +1096,21 @@ def add_ip_info_columns(df: pd.DataFrame):
                                                                                     new_df.loc[mask, 'ip3'])
                 new_df.loc[mask,'ip3_pkind'] = ip3_pkind
             
-            mask = (new_df.surface.isna()) | (new_df.surface == False)
+            mask = new_df.surface.isna()
             if mask.any():
                 _, _, _, _, _, _, _, _, _, surface, *_               = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
                                                                                     new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
                                                                                     new_df.loc[mask, 'ip3'])
                 new_df.loc[mask,'surface'] = surface    
 
-            mask = (new_df.follow_topography.isna()) | (new_df.follow_topography == False)
+            mask = new_df.follow_topography.isna()
             if mask.any():
                 _, _, _, _, _, _, _, _, _, _, follow_topography, *_  = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
                                                                                     new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
                                                                                     new_df.loc[mask, 'ip3'])
                 new_df.loc[mask,'follow_topography'] = follow_topography    
 
-            mask = (new_df.ascending.isna()) | (new_df.ascending == False)
+            mask = new_df.ascending.isna()
             if mask.any():
                 _, _, _, _, _, _, _, _, _, _, _, ascending, _        = VCREATE_IP_INFO(new_df.loc[mask, 'nomvar'], 
                                                                                     new_df.loc[mask, 'ip1'], new_df.loc[mask, 'ip2'],
@@ -1240,8 +1240,7 @@ def reduce_columns(df: pd.DataFrame)-> pd.DataFrame:
     simple_df = reduce_decoded_date_column(simple_df)
     simple_df = reduce_ip_info_columns(simple_df)
 
-    from .dataframe_utils import safe_concatenate
-    new_df = safe_concatenate([meta_df, simple_df])
+    new_df = pd.concat([meta_df, simple_df], ignore_index=True)
 
     # Suppression des colonnes qui ont ete ajoutees autres que unit et etiket_format
     new_df = remove_all_expanded_columns(new_df)

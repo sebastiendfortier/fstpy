@@ -31,36 +31,6 @@ def select_meta(df: pd.DataFrame) -> pd.DataFrame:
         ["!!", "P0", "PT", ">>", "^^", "^>", "HY", "!!SF"])]
     return meta_df
 
-def safe_concatenate(df_list):
-    """
-    Safely concatenate a list of DataFrames, ignoring empty ones and preserving column order.
-
-    :param df: List of pandas DataFrames to concatenate.
-    :return: A single DataFrame containing all non-empty DataFrames from the input list.
-    :raises ValueError: If the input is not a list of DataFrames or if any DataFrame in the list is None.
-    :notes:
-        - Empty DataFrames are filtered out before concatenation.
-        - Column order is preserved from the original DataFrames.
-    """
-    
-    # Check if input is a list
-    if not isinstance(df_list, list):
-        raise ValueError("Input must be a list of DataFrames")
-    
-    # Check if any DataFrame is None
-    if any(df is None for df in df_list):
-        return None
-    
-    # Filter out empty DataFrames
-    non_empty_dfs = [df for df in df_list if not df.empty]
-    
-    # If all DataFrames are empty, return an empty DataFrame with preserved columns
-    if len(non_empty_dfs) == 0:
-        unique_columns = set(col for df in df_list for col in df.columns)
-        return pd.DataFrame(columns=list(unique_columns))     
-    
-    # Concatenate all non-empty DataFrames
-    return pd.concat(non_empty_dfs, ignore_index=True)
 
 def select_with_meta(df: pd.DataFrame, nomvar: list) -> pd.DataFrame:
     """Select fields with accompaning meta data  
@@ -139,8 +109,8 @@ def metadata_cleanup(df: pd.DataFrame, strict_toctoc=True) -> pd.DataFrame:
     # get !!'s strict
     toctoc_fields_df = get_toctoc_fields(df, no_meta_df, hybrid_ips, sigma_ips, pressure_ips, strict_toctoc)
 
-    new_df = safe_concatenate([grid_deformation_fields_df, p0_fields_df,
-                               pt_fields_df, hy_field_df, toctoc_fields_df, no_meta_df])
+    new_df = pd.concat([grid_deformation_fields_df, p0_fields_df,
+                    pt_fields_df, hy_field_df, toctoc_fields_df,no_meta_df], ignore_index=True)
 
     # new_df.sort_index(inplace=True)
     # new_df.reset_index(inplace=True)
@@ -421,9 +391,12 @@ def get_grid_deformation_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame):
         df_list.append(lon_df)
         df_list.append(tictac_df)
 
-    grid_deformation_fields_df = safe_concatenate(df_list)
+    if len(df_list):
+        grid_deformation_fields_df = pd.concat(df_list, ignore_index=True)
 
     grid_deformation_fields_df = grid_deformation_fields_df.drop_duplicates(subset=col_subset, ignore_index=True)
+
+    # grid_deformation_fields_df.sort_index(inplace=True)
 
     return grid_deformation_fields_df
 
@@ -473,24 +446,18 @@ def get_p0_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, hybrid_ips: list, 
         dateo = p0[1]['dateo']
         datev = p0[1]['datev']
 
-        p0_work = p0[1].to_frame().T
-        # Conversion des colonnes a boolean pour eviter warning "object-dtype columns with all-bool values ..."
-        boolean_cols = ['surface', 'ascending', 'follow_topography']
-        p0_work      = convert_cols_to_boolean_dtype(p0_work, boolean_cols)
-
         # get list of ip1 on the same grid at the same time
-        list_ip1_df  = other_df.loc[(other_df.grid==grid)   & 
-                                    (other_df.dateo==dateo) &
-                                    (other_df.datev==datev),"ip1"].values
+        list_ip1_df = other_df.loc[(other_df.grid==grid)   & 
+                                   (other_df.dateo==dateo) &
+                                   (other_df.datev==datev),"ip1"].values
         
         # check if 1.5M or 10M is in the list (hybrid 5005)
         if ip1_1_5M in list_ip1_df or ip1_10M in list_ip1_df:
-            df_list.append(p0_work)
-            if p0_fields_df.empty:
-                p0_fields_df = p0_work
-            else:
-                p0_fields_df = pd.concat([p0_fields_df, p0_work])
+            p0_fields_df= pd.concat([p0_fields_df,p0[1].to_frame().T])
+            df_list.append(p0[1].to_frame().T)
 
+
+    
     # hybrid_grids = set()
     # for ip1 in hybrid_ips:
     #     hybrid_grids.add(no_meta_df.loc[no_meta_df.ip1 == ip1].iloc[0]['grid'])
@@ -515,23 +482,15 @@ def get_p0_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, hybrid_ips: list, 
                                               (toctoc_df.ig1.isin(hy_igs_list))]
             old_toctoc_df = toctoc_df.loc[same_grid & 
                                               ~(toctoc_df.ig1.isin(all_igs_list))]
-
+            
             if not hyb_toctoc_df.empty or not old_toctoc_df.empty:
-                filtered_p0_df = p0_df.loc[(p0_df.grid == grid) & 
-                                           (p0_df.ni   == ni)   & 
-                                           (p0_df.nj   == nj)]
-                # check for emptiness before appending to avoid problem with boolean cols
-                if not filtered_p0_df.empty:
-                    df_list.append(filtered_p0_df)
+                df_list.append(p0_df.loc[(p0_df.grid == grid) & 
+                                         (p0_df.ni == ni) & (p0_df.nj == nj)])
         else:
             # Champs HY present
             if not hy_df.empty:
-                filtered_p0_df = p0_df.loc[(p0_df.grid == grid) & 
-                                           (p0_df.ni   == ni)   & 
-                                           (p0_df.nj   == nj)]
-                # check for emptiness before appending to avoid problem with boolean cols
-                if not filtered_p0_df.empty:
-                    df_list.append(filtered_p0_df)
+                df_list.append(p0_df.loc[(p0_df.grid == grid) & 
+                                        (p0_df.ni == ni) & (p0_df.nj == nj)])
 
     sigma_grids = set()
     for ip1 in sigma_ips:
@@ -540,20 +499,15 @@ def get_p0_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, hybrid_ips: list, 
     for grid in sigma_grids:
         ni = no_meta_df.loc[no_meta_df.grid == grid].ni.unique()[0]
         nj = no_meta_df.loc[no_meta_df.grid == grid].nj.unique()[0]
-        filtered_p0_df = p0_df.loc[(p0_df.grid == grid) & 
-                                   (p0_df.ni   == ni)   & 
-                                   (p0_df.nj   == nj)]
-        # check for emptiness before appending to avoid problem with boolean cols
-        if not filtered_p0_df.empty:
-            df_list.append(filtered_p0_df)
+        df_list.append(p0_df.loc[(p0_df.grid == grid) & (p0_df.ni == ni) & (p0_df.nj == nj)])
 
-    if len(df_list) > 0:
-        p0_fields_df = safe_concatenate(df_list)
+    if len(df_list):
+        p0_fields_df = pd.concat(df_list, ignore_index=True)
 
     p0_fields_df.drop_duplicates(subset=['grtyp', 'nomvar', 'typvar', 'ni', 'nj', 'nk', 'ip1', 'ip2', 'ip3', 'deet',
-                                         'npas', 'nbits', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'], 
-                                    inplace=True, ignore_index=True)
+                                         'npas', 'nbits', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'dateo', 'datyp'], inplace=True, ignore_index=True)
     # p0_fields_df.sort_index(inplace=True)
+
     return p0_fields_df
 
 
@@ -570,13 +524,7 @@ def get_pt_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, sigma_ips: list):
     for grid in list(sigma_grids):
         ni = no_meta_df.loc[no_meta_df.grid == grid].ni.unique()[0]
         nj = no_meta_df.loc[no_meta_df.grid == grid].nj.unique()[0]
-
-        filtered_pt_df = pt_df.loc[(pt_df.grid == grid) & 
-                                   (pt_df.ni   == ni)   & 
-                                   (pt_df.nj   == nj)]
-        # check for emptiness before appending to avoid problem with boolean cols
-        if not filtered_pt_df.empty:
-            df_list.append(filtered_pt_df)
+        df_list.append(pt_df.loc[(pt_df.grid == grid) & (pt_df.ni == ni) & (pt_df.nj == nj)])
 
     if len(df_list):
         pt_fields_df = pd.concat(df_list, ignore_index=True)
@@ -587,64 +535,3 @@ def get_pt_fields(df: pd.DataFrame, no_meta_df: pd.DataFrame, sigma_ips: list):
     # pt_fields_df.sort_index(inplace=True)
 
     return pt_fields_df
-
-def convert_cols_to_boolean_dtype(df: pd.DataFrame, list_of_cols=None) -> pd.DataFrame:
-    """Convert columns to dtype boolean 
-
-    :param df          : the dataFrame from which to convert columns
-    :type df           : pd.DataFrame
-    :param list_of_cols: a list of columns to convert
-    :type list_of_cols : list
-    """ 
-    if list_of_cols is None:
-        bool_cols = ['surface', 'follow_topography', 'ascending', 'masks', 'masked', 'multiple_modifications',
-                     'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data',
-                     'ensemble_extra_info']
-    else:
-        bool_cols = list_of_cols        
-
-    # Ensure all specified columns exist in the DataFrame
-    valid_cols = [col for col in bool_cols if col in df.columns]
-
-    # Conversion des colonnes a boolean pour eviter warning "object-dtype columns with all-bool values ..."
-    for col_name in valid_cols:
-        # Check if the column name is in the list
-        if col_name in df.columns:
-            # print(f'\n\n col_name = {col_name}  {df[[col_name]].dtypes} \n\n')
-            df[[col_name]] = df[[col_name]].applymap(lambda x: x if pd.notna(x) else False)
-            df[[col_name]] = df[[col_name]].astype('bool')
-
-    return df
-
-def check_column_dtype(df: pd.DataFrame, list_of_cols=None) -> None:
-    """Check columns dtype
-
-    :param df          : the dataFrame from which to check columns
-    :type df           : pd.DataFrame
-    :param list_of_cols: a list of columns to check
-    :type list_of_cols : list
-    """ 
-    if list_of_cols is None:
-        bool_cols = ['surface', 'follow_topography', 'ascending', 'masks', 'masked', 'multiple_modifications',
-                     'zapped', 'filtered', 'interpolated', 'unit_converted', 'bounded', 'missing_data',
-                     'ensemble_extra_info']
-    else:
-        bool_cols = list_of_cols        
-
-    # Ensure all specified columns exist in the DataFrame
-    valid_cols = [col for col in bool_cols if col in df.columns]
-    print(f'Colonnes valides:  {valid_cols=}')
-
-    # Verification si les colonnes sont de type object au lieu de boolean
-    for col_name in valid_cols:
-        # Check if the column name is in the list
-        if col_name in df.columns:
-            series = df[col_name]
-
-            if series.dtype == 'object':
-                print(f"Column '{col_name}' has dtype 'object'")
-            elif series.dtype == 'bool':
-                print(f"Column '{col_name}' has dtype 'boolean'")
-            else:
-                print(f"Column '{col_name}' has dtype {series.dtype}")
-

@@ -4,7 +4,7 @@ import pandas as pd
 from .dataframe import add_grid_column, add_path_and_key_columns
 
 from .std_vgrid import VerticalCoordType, get_vertical_coord, set_vertical_coordinate_type
-from .dataframe_utils import metadata_cleanup, safe_concatenate
+from .dataframe_utils import metadata_cleanup
 
 from .utils import initializer
 
@@ -82,8 +82,9 @@ class QuickPressure():
                         if vt_df.empty:
                             continue
                         else:
-                            concat_df = safe_concatenate([P0_PT_df, hy_df, grids_meta_df])
-                            vcoord    = get_vertical_coord(path_df, concat_df, vt_df)
+                            vcoord = get_vertical_coord(path_df, 
+                                                        pd.concat([P0_PT_df, hy_df, grids_meta_df]), 
+                                                        vt_df)
 
                             if self.standard_atmosphere:
                                 px_df = vcoord.pressure_standard_atmosphere()
@@ -93,7 +94,7 @@ class QuickPressure():
                                 df_list.append(px_df)
 
         df_list.append(self.meta_df)
-        res_df = safe_concatenate(df_list)
+        res_df = pd.concat(df_list, ignore_index=True)
         res_df = metadata_cleanup(res_df)
         res_df.drop(['path','key'],axis=1,errors='ignore',inplace=True)
         return res_df

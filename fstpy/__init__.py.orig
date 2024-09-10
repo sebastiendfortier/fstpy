@@ -14,7 +14,14 @@ if sys.version_info[:2] < (3, 6):
     sys.exit("Wrong python version, python>=3.6")
 
 
-__version__ = "2024.08.00"
+def _get_version():
+   try:
+       version = pkg_resources.resource_string('fstpy', 'VERSION').decode('utf-8').strip()
+   except IOError:
+       version = 'unknown'
+   return version
+
+__version__ = _get_version()
 
 
 _LOCK = RLock()

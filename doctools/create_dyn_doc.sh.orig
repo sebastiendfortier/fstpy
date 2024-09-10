@@ -6,7 +6,7 @@ DOC_DIR=${DIR:0:${#DIR}-8}doc
 echo ${DOCDIR}
 
 cd ../
-VERSION=$(grep __version__ fstpy/__init__.py|cut -d"=" -f2)
+VERSION=$(head -n 1 VERSION)
 VERSION_PATH="${VERSION/./}"
 VERSION_PATH="${VERSION_PATH/./\/}"
 cd doc

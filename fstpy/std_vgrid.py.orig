@@ -643,7 +643,6 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
     :rtype: pd.DataFrame
     """
     from .dataframe import add_ip_info_columns, get_meta_fields_exists
-    from .dataframe_utils import convert_cols_to_boolean_dtype, safe_concatenate
     from . import VCTYPES
 
     if 'vctype' not in df.columns:
@@ -675,7 +674,7 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
 
         df_list.append(meta_df)    
 
-        res_df = safe_concatenate(df_list)
+        res_df = pd.concat(df_list, ignore_index=True)
 
         return res_df
     # vctype in columns
@@ -683,18 +682,13 @@ def set_vertical_coordinate_type(df: pd.DataFrame) -> pd.DataFrame:
         if df.loc[df.vctype.isna()].empty:
             return df
         else:
-            # Necessaire pour s'assurer que les colonnes sont bien de type bool (warning)
-            bool_cols = ['surface', 'ascending', 'follow_topography']
-            df = convert_cols_to_boolean_dtype(df, bool_cols)
-
             missing_vctype_df = df.loc[df.vctype.isna()]
             correct_vctype_df = df.loc[~df.vctype.isna()]
             meta_df = df.loc[df.nomvar.isin(["^^", ">>", "^>", "!!", "!!SF", "HY", "P0", "PT"])]
-            missing_vctype_with_meta_df = safe_concatenate([meta_df,missing_vctype_df])
+            missing_vctype_with_meta_df = pd.concat([meta_df,missing_vctype_df], ignore_index=True)
             missing_vctype_with_meta_df = missing_vctype_with_meta_df.drop(columns='vctype')
             new_df = set_vertical_coordinate_type(missing_vctype_with_meta_df)
-            res_df = safe_concatenate([new_df,correct_vctype_df])
-
+            res_df = pd.concat([new_df,correct_vctype_df], ignore_index=True)
             return res_df
 
     
@@ -841,7 +835,6 @@ def vertical_coord_to_dict(vgrid_descriptor: vgd.VGridDescriptor) -> dict:
     vcoord['VERSION'] = vgd.vgd_get(vgrid_descriptor, 'VERSION')
     vcoord['VTBL'] = np.asfortranarray(np.squeeze(vgd.vgd_get(vgrid_descriptor, 'VTBL')))
     return vcoord
-
 # gp = {
 #     'grtyp' : 'Z',
 #     'grref' : 'E',
