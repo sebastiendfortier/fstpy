@@ -41,7 +41,7 @@ setuptools.setup(
         "Operating System :: OS Linux",
     ],
     install_requires=[
-        'pandas>=1.2.4','numpy>=1.19.5','dask>=2021.8.0','fstd2nc-deps >= 0.20200304.0', 'cmcdict >= 1.0.8'
+        'pandas>=1.2.4','numpy>=1.19.5','dask>=2021.8.0','fstd2nc-deps >= 0.20200304.0', 'cmcdict >= 2027.07.22'
     ],
     packages=setuptools.find_packages(exclude='test'),
     include_package_data=True,
