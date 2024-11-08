@@ -145,16 +145,17 @@ KIND_DICT = {
 """
 
 def _read_csv(filename, **kwargs):
-    # try:
-    #     csv_path = pkg_resources.resource_filename('fstpy', f'csv/{filename}')
-    # except KeyError:
-    #     csv_path = None
+    """Read a csv stored as resources of this package.
+
+    Additionnal kwargs are passed to pandas' read_csv.
+    Raises a ValueError is the file is not found.
+    """
     csv_dir = resources.files('fstpy.csv')
     try:
         with resources.as_file(csv_dir / filename) as f:
             return pd.read_csv(f, **kwargs)
     except FileNotFoundError as err:
-        return None
+        raise ValueError(f'File {filename} is not part of the csv resources of fstpy.') from err
 
 
 _stationsfb = _read_csv('stationsfb.csv')
