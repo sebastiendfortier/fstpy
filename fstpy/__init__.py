@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
-import pkg_resources
+import sys
+if sys.version_info < (3, 9):
+    import importlib_resources as resources
+else:
+    import importlib.resources as resources
 import sys
 from pathlib import Path
 from threading import RLock, stack_size
@@ -140,21 +144,25 @@ KIND_DICT = {
 :meta hide-value:
 """
 
-def _get_csv_path(filename):
-  try:
-      csv_path = pkg_resources.resource_filename('fstpy', f'csv/{filename}')
-  except KeyError:
-      csv_path = None
-  return csv_path
+def _read_csv(filename, **kwargs):
+    """Read a csv stored as resources of this package.
 
-_csv_path = _get_csv_path
+    Additionnal kwargs are passed to pandas' read_csv.
+    Raises a ValueError is the file is not found.
+    """
+    csv_dir = resources.files('fstpy.csv')
+    try:
+        with resources.as_file(csv_dir / filename) as f:
+            return pd.read_csv(f, **kwargs)
+    except FileNotFoundError as err:
+        raise ValueError(f'File {filename} is not part of the csv resources of fstpy.') from err
 
 
-_stationsfb = pd.read_csv(_csv_path('stationsfb.csv'))
-_vctypes = pd.read_csv(_csv_path('verticalcoordinatetypes.csv'))
-_unitcorrespondance = pd.read_csv(_csv_path('unitcorrespondance.csv'))
+_stationsfb = _read_csv('stationsfb.csv')
+_vctypes = _read_csv('verticalcoordinatetypes.csv')
+_unitcorrespondance = _read_csv('unitcorrespondance.csv')
 
-_units = pd.read_csv(_csv_path('units.csv'), dtype={
+_units = _read_csv('units.csv', dtype={
     'name': str,
     'symbol': str,
     'expression': str,
@@ -169,9 +177,9 @@ _units = pd.read_csv(_csv_path('units.csv'), dtype={
     'luminousIntensity': 'int32'
 })
 
-# _etikets = pd.read_csv(_csv_path + 'etiket.csv')
-_leveltypes = pd.read_csv(_csv_path('leveltype.csv'))
-_thermoconstants = pd.read_csv(_csv_path('thermo_constants.csv'))
+# _etikets = _read_csv + 'etiket.csv')
+_leveltypes = _read_csv('leveltype.csv')
+_thermoconstants = _read_csv('thermo_constants.csv')
 
 STATIONSFB = _stationsfb  # : :meta hide-value:
 """FB stations table

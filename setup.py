@@ -41,7 +41,8 @@ setuptools.setup(
         "Operating System :: OS Linux",
     ],
     install_requires=[
-        'pandas>=1.2.4','numpy>=1.23.0','dask>=2021.8.0', 'cmcdict >= 2024.07.22'
+        'pandas>=1.2.4','numpy>=1.23.0','dask>=2021.8.0', 'cmcdict >= 2024.07.22',
+        'importlib-resources; python_version<"3.9"',
     ],
     packages=setuptools.find_packages(exclude='test'),
     include_package_data=True,
