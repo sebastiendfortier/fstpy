@@ -1,12 +1,20 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-import rpnpy.librmn.all as rmn
-from rpnpy.rpndate import RPNDate
+from fstpy.rmn_interface import RmnInterface
 
 from fstpy import DATYP_DICT
 
-def create_encoded_standard_etiket(label: str, run: str, implementation: str, ensemble_member: str, etiket_format: str = "", ignore_extended: bool = False, override_pds_label: bool = False) -> str:
+
+def create_encoded_standard_etiket(
+    label: str,
+    run: str,
+    implementation: str,
+    ensemble_member: str,
+    etiket_format: str = "",
+    ignore_extended: bool = False,
+    override_pds_label: bool = False,
+) -> str:
     """Creates a new etiket based on label, run, implementation and ensemble member attributes
 
     :param label: label string
@@ -30,37 +38,37 @@ def create_encoded_standard_etiket(label: str, run: str, implementation: str, en
     if override_pds_label or ignore_extended:
         return label
 
-    if implementation not in ['X','N','P']:
-            implementation = 'X'
+    if implementation not in ["X", "N", "P"]:
+        implementation = "X"
 
-    if implementation != 'X' and len(label) > 6:
+    if implementation != "X" and len(label) > 6:
         raise Exception("LE PDSLABEL EST TROP LONG, LA LONGUEUR ACCEPTEE EST MAXIMUM 6! - '{}'".format(label))
 
     keep_format = False
     if type(etiket_format) == str and etiket_format != "":
-        length = etiket_format.split(',')
+        length = etiket_format.split(",")
         if len(length) == 5:
             length_run = int(length[0])
             length_label = int(length[1])
             length_implementation = int(length[2])
             length_ensemble = int(length[3])
-            keep_format = length[4] == 'K'
-    
+            keep_format = length[4] == "K"
+
     if not keep_format:
         length_run = 2
         length_label = 6
         length_implementation = 1
         length_ensemble = 3
 
-    if (length_run+length_implementation+length_ensemble+length_label) > 12 :
+    if (length_run + length_implementation + length_ensemble + length_label) > 12:
         print("The etiket is too long and might get cut in writer")
 
-    label = label+"____________"
+    label = label + "____________"
 
-    if ensemble_member == 'None' or ensemble_member is None:
+    if ensemble_member == "None" or ensemble_member is None:
         ensemble_member = ""
-    
-    if len(run) == 0 or run == 'None' or run is None:
+
+    if run is None or len(run) == 0 or run == "None":
         run = "__"
 
     run = run[:length_run]
@@ -86,13 +94,13 @@ def create_encoded_etiket(label: str, run: str, implementation: str, ensemble_me
     :return: an etiket composed of supplied parameters
     :rtype: str
     """
-    etiket =  label
+    etiket = label
 
-    if run != 'None':
+    if run != "None":
         etiket = run + label
-    if implementation != 'None':
+    if implementation != "None":
         etiket = etiket + implementation
-    if ensemble_member != 'None':
+    if ensemble_member != "None":
         etiket = etiket + ensemble_member
 
     return etiket
@@ -103,11 +111,11 @@ def create_encoded_dateo(date_of_observation: datetime.datetime) -> int:
 
     :param date_of_observation: date of observation as a datetime object
     :type date_of_observation: datetime.datetime
-    :return: dateo as a RMNDate int 
+    :return: dateo as a RMNDate int
     :rtype: int
     """
 
-    return RPNDate(date_of_observation, dt=0, nstep=0).dateo
+    return RmnInterface.create_rpn_date(date_of_observation, dt=0, nstep=0).dateo
 
 
 def create_encoded_npas_and_ip2(forecast_hour: datetime.timedelta, deet: int) -> tuple:
@@ -121,16 +129,16 @@ def create_encoded_npas_and_ip2(forecast_hour: datetime.timedelta, deet: int) ->
     :rtype: tuple
     """
     # ip2 = 6, deet = 300, np = 72
-    #fhour = 21600
-    #npas = hours/deet
+    # fhour = 21600
+    # npas = hours/deet
     seconds = forecast_hour.total_seconds()
     npas = int(seconds / deet)
-    ip2 = seconds / 3600.
-    ip2_code = create_encoded_ip2(ip2, rmn.KIND_HOURS)
+    ip2 = seconds / 3600.0
+    ip2_code = create_encoded_ip2(ip2, RmnInterface.KIND_HOURS)
     return npas, ip2_code
 
 
-def create_encoded_ip1(level: float, ip1_kind: int,mode:int=rmn.CONVIP_ENCODE) -> int:
+def create_encoded_ip1(level: float, ip1_kind: int, mode: int = RmnInterface.CONVIP_ENCODE) -> int:
     """returns an encoded ip1 from level and kind
 
     :param level: level value
@@ -140,8 +148,8 @@ def create_encoded_ip1(level: float, ip1_kind: int,mode:int=rmn.CONVIP_ENCODE) -
     :return: encoded ip1
     :rtype: int
     """
-  
-    return rmn.convertIp(mode,level,ip1_kind)
+
+    return RmnInterface.convert_ip(mode, level, ip1_kind)
 
 
 def create_encoded_ip2(level: float, ip2_kind: int) -> int:
@@ -154,12 +162,14 @@ def create_encoded_ip2(level: float, ip2_kind: int) -> int:
     :return: encoded ip2
     :rtype: int
     """
-    rp1 = rmn.FLOAT_IP(0, 0, rmn.KIND_ARBITRARY)
-    rp2 = rmn.FLOAT_IP(level, level, ip2_kind)
-    return rmn.EncodeIp(rp1, rp2, rp1)[1]
+    rp1 = RmnInterface.convert_to_float_ip(0, 0, RmnInterface.KIND_ARBITRARY)
+    rp2 = RmnInterface.convert_to_float_ip(level, level, ip2_kind)
+    return RmnInterface.encode_ip(rp1, rp2, rp1)[1]
 
 
-def create_encoded_ips(level: float, ip1_kind: int, ip2_dec: float, ip2_kind: int, ip3_dec: float, ip3_kind: int) -> tuple:
+def create_encoded_ips(
+    level: float, ip1_kind: int, ip2_dec: float, ip2_kind: int, ip3_dec: float, ip3_kind: int
+) -> tuple:
     """Returns encoded ip1,ip2 and ip3 from values and kinds
 
     :param level: level value
@@ -195,50 +205,60 @@ def create_encoded_datyp(data_type_str: str) -> int:
     return new_dict[data_type_str]
 
 
-def modifiers_to_typvar2(zapped: bool, filtered: bool, interpolated: bool, unit_converted: bool, bounded: bool, ensemble_extra_info: bool, multiple_modifications: bool) -> str:
+def modifiers_to_typvar2(
+    zapped: bool,
+    filtered: bool,
+    interpolated: bool,
+    unit_converted: bool,
+    bounded: bool,
+    ensemble_extra_info: bool,
+    multiple_modifications: bool,
+) -> str:
     """Creates the second lette of the typvar from the supplied flags"""
     number_of_modifications = 0
-    typvar2 = ''
+    typvar2 = ""
     if zapped == True:
         number_of_modifications += 1
-        typvar2 = 'Z'
+        typvar2 = "Z"
     if filtered == True:
         number_of_modifications += 1
-        typvar2 = 'F'
+        typvar2 = "F"
     if interpolated == True:
         number_of_modifications += 1
-        typvar2 = 'I'
+        typvar2 = "I"
     if unit_converted == True:
         number_of_modifications += 1
-        typvar2 = 'U'
+        typvar2 = "U"
     if bounded == True:
         number_of_modifications += 1
-        typvar2 = 'B'
+        typvar2 = "B"
     if ensemble_extra_info == True:
         number_of_modifications += 1
-        typvar2 = '!'
+        typvar2 = "!"
     if multiple_modifications == True:
         number_of_modifications += 1
-        typvar2 = 'M'
+        typvar2 = "M"
     if number_of_modifications > 1:
         # more than one modification has been done. Force M
-        typvar2 = 'M'
+        typvar2 = "M"
     return typvar2
+
 
 def encode_ip2_and_ip3_as_time_interval(df):
     for row in df.itertuples():
-        if row.nomvar in ['>>', '^^', '^>', '!!', 'P0', 'PT']:
+        if row.nomvar in [">>", "^^", "^>", "!!", "P0", "PT"]:
             continue
         ip2 = row.ip2
         ip3 = row.ip3
         (ip2, ip3) = one_encode_ip2_and_ip3_as_time_interval(ip2, ip3)
-        df.at[row.Index,'ip2'] = ip2
-        df.at[row.Index,'ip3'] = ip3
-    return df    
+        df.at[row.Index, "ip2"] = ip2
+        df.at[row.Index, "ip3"] = ip3
+    return df
 
-def one_encode_ip2_and_ip3_as_time_interval(ip2,ip3):
-    rp1a = rmn.FLOAT_IP(0., 0., rmn.LEVEL_KIND_PMB)
-    rp2a = rmn.FLOAT_IP( ip2,  ip3, rmn.TIME_KIND_HR)
-    rp3a = rmn.FLOAT_IP( ip2-ip3,  0, rmn.TIME_KIND_HR)
-    (_, ip2, ip3) = rmn.EncodeIp(rp1a, rp2a, rp3a)
+
+def one_encode_ip2_and_ip3_as_time_interval(ip2, ip3):
+    rp1a = RmnInterface.convert_to_float_ip(0.0, 0.0, RmnInterface.LEVEL_KIND_PMB)
+    rp2a = RmnInterface.convert_to_float_ip(ip2, ip3, RmnInterface.TIME_KIND_HR)
+    rp3a = RmnInterface.convert_to_float_ip(ip2 - ip3, 0, RmnInterface.TIME_KIND_HR)
+    (_, ip2, ip3) = RmnInterface.encode_ip(rp1a, rp2a, rp3a)
     return ip2, ip3

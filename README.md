@@ -2,18 +2,17 @@
 
 ## What is it?
 
-Fstpy is a high level interface to rpn's rpnpy python library that
-produces pandas dataframes from CMC standard files. In
-order to promote decoupling, modularization and collaboration, fstpy
-only reads and writes. All other operations and algorithms can be
-independent.
+Fstpy is a high level interface to rpn\'s rpnpy python library that
+produces pandas dataframes from CMC standard files. In order to promote
+decoupling, modularization and collaboration, fstpy only reads and
+writes. All other operations and algorithms can be independent.
 
 ## Fstpy philosophy
 
 The idea of using a dataframe is to have a pythonic way of working with
 standard files without having to know the mechanics of rmnlib. Since
-many people come here with numpy and pandas knowledge, the
-learning curve is much less steep.
+many people come here with numpy, pandas knowledge, the learning curve
+is much less steep.
 
 ## Dataframes
 
@@ -35,40 +34,42 @@ computations.
 
 ## run time packages
 
--   pandas>=1.2.4
--   numpy>=1.19.5
--   dask>=2021.8.0
+-   pandas\>=1.5.1
+-   numpy\>=1.24.4
+-   dask\>=2023.7.1
 
 ## developpement packages
 
--   ci_fstcomp>=1.0.6
--   pandas>=1.2.4
--   numpy>=1.19.5
--   dask>=2021.8.0
--   pytest>=5.3.5
--   Sphinx>=3.4.3
--   sphinx-autodoc-typehints>=1.12.0
--   sphinx-gallery>=0.9.0
--   sphinx-rtd-theme>=1.0.0
--   nbsphinx>=0.8.7
--   ipython>=7.12.0
--   jupyterlab>=3.1.13
--   myst-parser>=0.15.2
+-   ci_fstcomp\>=1.0.9
+-   pandas\>=1.5.1
+-   numpy\>=1.24.4
+-   dask\>=2023.7.1
+-   pytest\>=7.4.0
+-   sphinx\>=5.3.0
+-   sphinx_autodoc_typehints\>=1.21.8
+-   sphinx_gallery\>=0.13.0
+-   sphinx_rtd_theme\>=0.5.1
+-   nbsphinx\>=0.9.2
+-   ipython\>=8.14.0
+-   jupyterlab\>=3.6.5
+-   myst_parser\>=1.0.0
 
-## CMDS Py39
+## CMDS Python environment
 
 This is an ssm package that we use at CMC on the science network and
 that contains a wide variety of packages
 
 ``` bash
-. ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all
+# use CMDS Python environment
+. ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py310_2023.07.28_all
 ```
 
 # Installation
 
 Use the ssm package
 
-    . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/202206/
+    # FSTPY and dependencies 
+    . r.load.dot /fs/ssm/eccc/cmd/cmds/fstpy/bundle/20250300
 
 Use the git repository package: at your own risk ;)
 
@@ -79,12 +80,10 @@ Use the git repository package: at your own risk ;)
 ### Use pre-built developpement environment
 
 ``` bash
-# use CMDS Py39      
-. ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all     
-# get rmn python library      
-. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1-u2.4      
-# get fstpy ssm package
-. ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/fstpy/202206/
+# use CMDS Python environment
+. ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py310_2023.07.28_all
+# FSTPY and dependencies 
+. r.load.dot /fs/ssm/eccc/cmd/cmds/fstpy/bundle/20250300
 ```
 
 ### Use fstpy
@@ -120,17 +119,17 @@ fstpy.StandardFileWriter(dest_path,just_tt_and_uv).to_fst()
 ## Getting the source code
 
 ``` bash
-git clone git@gitlab.science.gc.ca:cmds/fstpy.git
-# create a new branch
-git checkout -b my_change
-# modify the code
-# commit your changes
-# fetch changes
-git fetch
-# merge recent master
-git merge origin/master
-# push your changes
-git push my_change
+git clone git@gitlab.science.gc.ca:cmds/fstpy.git  
+# create a new branch  
+git checkout -b my_change  
+# modify the code  
+# commit your changes  
+# fetch changes  
+git fetch  
+# merge recent master  
+git merge origin/master  
+# push your change  
+git push my_change  
 ```
 
 Then create a merge request on science\'s gitlab
@@ -140,35 +139,71 @@ Then create a merge request on science\'s gitlab
 
 ``` bash
 # From the $project_root directory of the project
-source setup.sh
+source setup.sh  
 ```
 
 ## Testing
 
 ``` bash
-# Use CMDS Py39
-. ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all
-# get rmn python library      
-. r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1-u2.4     
-# From the $project_root/test directory of the project
-python -m pytest -vrf
+# use CMDS Python environment
+. ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py310_2023.07.28_all
+# FSTPY and dependencies 
+. r.load.dot /fs/ssm/eccc/cmd/cmds/fstpy/bundle/20250300
+# get ci_fstcomp 
+. ssmuse-sh -d  /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/202501/00
+# From the $project_root directory of the project
+python -m pytest -vrf  
 ```
 
 ## Building documentation
 
 ``` bash
-# This will build documentation in docs/build and there you will find index.html 
-cd doc
-make clean    
-make doc
+# This will build documentation in docs/build and there you will find index.html  
+cd doc  
+make clean 
+make doc  
+```
+
+# Release
+
+## Update release version number
+
+``` bash
+Update the version number in fstpy/__init__.py 
+```
+
+## Update configuration files
+
+``` bash
+Update the following configuration files:
+
+   * cmds_python_env.txt:  CMDS python environment
+   * ci_fstcomp.txt 
+```
+
+## Build documentation
+
+``` bash
+cd   doc  
+make clean 
+make doc  
+```
+
+## Commit changes
+
+``` bash
+Commit the following files:
+
+* README.md
+* ci_fstcomp.txt
 ```
 
 # Creating the ssm package
 
-From \$PROJECT~ROOT~
-
-    cd ssm
-    ./make_ssm_package.ssh
+``` bash
+cd livraison
+./make_ssm_package.py
+```
 
 # Acknowledgements
 

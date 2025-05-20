@@ -1,9 +1,7 @@
 Creating the ssm package
 ========================
 
-From $PROJECT\ :sub:`ROOT`
+.. code:: bash
 
-::
-
-   cd ssm
-   ./make_ssm_package.ssh
+    cd livraison
+    ./make_ssm_package.py

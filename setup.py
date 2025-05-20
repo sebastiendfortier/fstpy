@@ -23,8 +23,9 @@ def get_package_version():
         print(f"Error reading version from __init__.py: {e}")
         return "unknown"
 
+
 setuptools.setup(
-    name="fstpy", # Replace with your own username
+    name="fstpy",  # Replace with your own username
     version=get_package_version(),
     author="Sebastien Fortier",
     author_email="sebastien.fortier@canada.ca",
@@ -41,13 +42,18 @@ setuptools.setup(
         "Operating System :: OS Linux",
     ],
     install_requires=[
-        'pandas>=1.2.4','numpy>=1.23.0','dask>=2021.8.0', 'cmcdict >= 2024.07.22',
-        'importlib-resources; python_version<"3.9"',
+        "pandas>=1.2.4",
+        "numpy>=1.23.0",
+        "dask>=2021.8.0",
+        "eccc_rpnpy>=2.2.0",
+        "cmcdict >= 2025.3.0",
+        "cf-units >=3.0.0",
+        "setuptools",
     ],
-    packages=setuptools.find_packages(exclude='test'),
+    packages=setuptools.find_packages(exclude="test"),
     include_package_data=True,
-    python_requires='>=3.6',
-    package_data = {
-    'fstpy': ['csv/*'],
-  },
+    python_requires=">=3.8",
+    package_data={
+        "fstpy": ["csv/*"],
+    },
 )

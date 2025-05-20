@@ -1,0 +1,55 @@
+schema_version: 1
+
+package:
+  name: fstpy
+  version: "2025.3.0"
+
+source:
+  path: ../.
+
+build:
+  # Increment build number when you need to rebuild the package without changing its version.
+  # For example, when:
+  # - Updating dependencies without changing package functionality
+  # - Fixing packaging issues (missing files, etc.)
+  # - Making build process changes
+  # Reset to 0 when you update the version number.
+  number: 1
+  script:
+    - python -m pip install . -vv --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - python
+    - pip
+    - setuptools
+    - wheel
+    - hatchling
+  run:
+    - python
+    - setuptools
+    - pandas
+    - dask
+    - cf-units
+    - eccc_rpnpy >=2.2.0
+    - cmcdict >=2025.3.0
+
+tests:
+  - python:
+      imports:
+        - fstpy
+      pip_check: false
+    
+
+about:
+  license: GPL-3.0
+  summary: High level pandas interface to fstd files
+  homepage: "https://gitlab.science.gc.ca/CMDS/fstpy"
+
+
+extra:
+  channels:
+    - fortiers
+    - conda-forge
+    - nodefaults
+  channel_priority: flexible  

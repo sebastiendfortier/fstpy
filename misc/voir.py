@@ -4,167 +4,247 @@ import numpy as np
 import sys
 import logging
 
+
 # Read a 32-bit integer from a buffer
-def read32(b):# -> int:
-    return (b[0]<<24) | (b[1]<<16) | (b[2]<<8) | (b[3]<<0)
+def read32(b):  # -> int:
+    return (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | (b[3] << 0)
+
 
 # Read a 24-bit integer from a buffer
-def read24(b):# -> int:
-    return (b[0]<<16) | (b[1]<<8) | (b[2]<<0)
+def read24(b):  # -> int:
+    return (b[0] << 16) | (b[1] << 8) | (b[2] << 0)
 
 
 # Read a 16-bit integer from a buffer
-def read16(b):# -> int:
-    return (b[0]<<8) | (b[1]<<0)
+def read16(b):  # -> int:
+    return (b[0] << 8) | (b[1] << 0)
 
 
 # Read a 32-bit integer from a stream
-def fread32(f):# -> int:
+def fread32(f):  # -> int:
     b = f.read(4)
     return read32(b)
 
 
 # Read a 32-bit float from a stream
-def  freadfloat(f):# -> float:
+def freadfloat(f):  # -> float:
     x = fread32(f)
     return float(x)
 
-def readchar(dest_bytes,src, n): #4 cas, la cle est {j:sh}
-    for i in range(0,n):#(int i = 0; i < n; i++)
+
+def readchar(dest_bytes, src, n):  # 4 cas, la cle est {j:sh}
+    for i in range(0, n):  # (int i = 0; i < n; i++)
         dest_bytes[i] = 0
         # first byte needed
-        j = ((i*6)//8)
+        j = (i * 6) // 8
         # shift from the beginning
-        sh = (i*6)%8
-        dest_bytes[i] |= (((src[j] << sh)&0xFF) >> 2)
+        sh = (i * 6) % 8
+        dest_bytes[i] |= ((src[j] << sh) & 0xFF) >> 2
         # do we need a second byte?
-        if (sh > 2):
-            dest_bytes[i] |= (src[j+1]>>(10-sh))
+        if sh > 2:
+            dest_bytes[i] |= src[j + 1] >> (10 - sh)
         dest_bytes[i] += 32
 
 
 class FileHeader:
-    file_size=0
-    num_overwrites=0
-    num_extensions=0
-    nchunks=0
-    last_chunk=0
-    max_data_length=0
-    num_erasures=0
-    nrecs=0    
+    file_size = 0
+    num_overwrites = 0
+    num_extensions = 0
+    nchunks = 0
+    last_chunk = 0
+    max_data_length = 0
+    num_erasures = 0
+    nrecs = 0
+
 
 class ChunkHeader:
-    this_chunk_words=0
-    this_chunk=0
-    next_chunk_words=0
-    next_chunk=0
-    nrecs=0
-    checksum=0
+    this_chunk_words = 0
+    this_chunk = 0
+    next_chunk_words = 0
+    next_chunk = 0
+    nrecs = 0
+    checksum = 0
 
-class RecordHeader: 
-    status=0
-    size=0
-    data=0
-    deet=0
-    npak=0
-    ni=0
-    grtyp=''
-    nj=0
-    datyp=0
-    nk=0
-    npas=0
-    ig4=0
-    ig2=0
-    ig1=0
-    ig3=0
-    etiket=''
-    typvar=''
-    nomvar=''
-    ip1=0
-    ip2=0
-    ip3=0
-    dateo=0
-    checksum=0
-    ubc=0
-    swa=0
-    dltf=0
+
+class RecordHeader:
+    status = 0
+    size = 0
+    data = 0
+    deet = 0
+    npak = 0
+    ni = 0
+    grtyp = ""
+    nj = 0
+    datyp = 0
+    nk = 0
+    npas = 0
+    ig4 = 0
+    ig2 = 0
+    ig1 = 0
+    ig3 = 0
+    etiket = ""
+    typvar = ""
+    nomvar = ""
+    ip1 = 0
+    ip2 = 0
+    ip3 = 0
+    dateo = 0
+    checksum = 0
+    ubc = 0
+    swa = 0
+    dltf = 0
+
 
 def print_file_header(h):
-    logging.info("file_size: %d, num_overwrites: %d, num_extensions: %d, nchunks: %d, last_chunk: %x, max_data_length: %d, num_erasures: %d, nrecs: %d"%( h.file_size, h.num_overwrites, h.num_extensions, h.nchunks, h.last_chunk, h.max_data_length, h.num_erasures, h.nrecs))
-    
-def print_chunk_header(h) :
-    logging.info("this_chunk: %x, next_chunk: %x, nrecs: %d, checksum: %x"%( h.this_chunk, h.next_chunk, h.nrecs, h.checksum))
+    logging.info(
+        "file_size: %d, num_overwrites: %d, num_extensions: %d, nchunks: %d, last_chunk: %x, max_data_length: %d, num_erasures: %d, nrecs: %d"
+        % (
+            h.file_size,
+            h.num_overwrites,
+            h.num_extensions,
+            h.nchunks,
+            h.last_chunk,
+            h.max_data_length,
+            h.num_erasures,
+            h.nrecs,
+        )
+    )
 
-def print_record_header (i,h):
-    logging.info("%5d- status: %d, size: %d, data pointer: %x, deet: %d, npak: %d, ni: %d, grtyp: '%c', nj: %d, datyp: %d nk: %d, npas: %d, ig4: %d, ig2: %d, ig1: %d, ig3: %d, etiket: '%s', typvar: '%s', nomvar: '%s', ip1: %d, ip2: %d, ip3: %d, dateo: %d, swa: %d, ubc: %d, dltf: %d"%(i, h.status, h.size, h.data, h.deet, h.npak, h.ni, h.grtyp, h.nj, h.datyp, h.nk, h.npas, h.ig4, h.ig2, h.ig1, h.ig3, h.etiket, h.typvar, h.nomvar, h.ip1, h.ip2, h.ip2, h.dateo,h.swa,h.ubc,h.dltf))
 
-def print_record_header1 (i,h):
-    logging.info("%5d- %-4s %-2s %-12s %8d%8d%6d%10d %19d %9d%10d%9d%9d %3d %2d %c %5d %5d %5d %5d"%(i, h.nomvar,h.typvar,h.etiket,h.ni, h.nj,h.nk,h.dateo,h.ip1,h.ip2,h.ip3, h.deet, h.npas, h.datyp, h.npak, h.grtyp, h.ig1, h.ig2, h.ig3, h.ig4))
+def print_chunk_header(h):
+    logging.info(
+        "this_chunk: %x, next_chunk: %x, nrecs: %d, checksum: %x" % (h.this_chunk, h.next_chunk, h.nrecs, h.checksum)
+    )
 
 
-def read_file_header (f):# -> FileHeader:
+def print_record_header(i, h):
+    logging.info(
+        "%5d- status: %d, size: %d, data pointer: %x, deet: %d, npak: %d, ni: %d, grtyp: '%c', nj: %d, datyp: %d nk: %d, npas: %d, ig4: %d, ig2: %d, ig1: %d, ig3: %d, etiket: '%s', typvar: '%s', nomvar: '%s', ip1: %d, ip2: %d, ip3: %d, dateo: %d, swa: %d, ubc: %d, dltf: %d"
+        % (
+            i,
+            h.status,
+            h.size,
+            h.data,
+            h.deet,
+            h.npak,
+            h.ni,
+            h.grtyp,
+            h.nj,
+            h.datyp,
+            h.nk,
+            h.npas,
+            h.ig4,
+            h.ig2,
+            h.ig1,
+            h.ig3,
+            h.etiket,
+            h.typvar,
+            h.nomvar,
+            h.ip1,
+            h.ip2,
+            h.ip2,
+            h.dateo,
+            h.swa,
+            h.ubc,
+            h.dltf,
+        )
+    )
+
+
+def print_record_header1(i, h):
+    logging.info(
+        "%5d- %-4s %-2s %-12s %8d%8d%6d%10d %19d %9d%10d%9d%9d %3d %2d %c %5d %5d %5d %5d"
+        % (
+            i,
+            h.nomvar,
+            h.typvar,
+            h.etiket,
+            h.ni,
+            h.nj,
+            h.nk,
+            h.dateo,
+            h.ip1,
+            h.ip2,
+            h.ip3,
+            h.deet,
+            h.npas,
+            h.datyp,
+            h.npak,
+            h.grtyp,
+            h.ig1,
+            h.ig2,
+            h.ig3,
+            h.ig4,
+        )
+    )
+
+
+def read_file_header(f):  # -> FileHeader:
     h = FileHeader()
     buf = f.read(208)
     # print(buf)
     buf[0]
-    assert read24(buf[1:])==26  # header length (words) 26
-    assert read32(buf[4:])==0 # address of file header 0
-    assert buf[8:8+4] == b"XDF0" # XDF version
-    assert buf[12:12+4] == b"STDR" # application signature
+    assert read24(buf[1:]) == 26  # header length (words) 26
+    assert read32(buf[4:]) == 0  # address of file header 0
+    assert buf[8 : 8 + 4] == b"XDF0"  # XDF version
+    assert buf[12 : 12 + 4] == b"STDR"  # application signature
     h.file_size = read32(buf[16:]) * 8
     h.num_overwrites = read32(buf[20:])
     h.num_extensions = read32(buf[24:])
     h.nchunks = read32(buf[28:])
     h.last_chunk = read32(buf[32:]) * 8
-#     print(h.file_size,h.num_extensions,h.nchunks,h.last_chunk)
-    assert (read16(buf[40:]) == 16) # # of primary keys
-    assert (read16(buf[42:]) == 9)  # length of primary keys (words)
-    assert (read16(buf[44:]) == 2)  # # of auxiliary keys
-    assert (read16(buf[46:]) == 1)  # length of auxiliary keys (words)
+    #     print(h.file_size,h.num_extensions,h.nchunks,h.last_chunk)
+    assert read16(buf[40:]) == 16  # # of primary keys
+    assert read16(buf[42:]) == 9  # length of primary keys (words)
+    assert read16(buf[44:]) == 2  # # of auxiliary keys
+    assert read16(buf[46:]) == 1  # length of auxiliary keys (words)
     h.num_erasures = read32(buf[48:])
     h.nrecs = read32(buf[52:])
-    assert (read32(buf[56:]) == 0)  # read/write flag
-    assert (read32(buf[60:]) == 0)  # reserved area
+    assert read32(buf[56:]) == 0  # read/write flag
+    assert read32(buf[60:]) == 0  # reserved area
     # print('h.file_size,h.num_extensions,h.nchunks,h.last_chunk,h.num_erasures,h.nrecs')
     # print(h.file_size,h.num_extensions,h.nchunks,h.last_chunk,h.num_erasures,h.nrecs)
-     # Validate primary keys
-    for i in range(0,16):#(int i = 0 i < 16 i++) 
-        ncle = b"SF%02d"%(i+1)
-        offset = 64+i*8
-        #print(buf[offset:offset+4])
-        assert (buf[offset:offset+4] == ncle)  # validate key names
-        assert ((read16(buf[offset+4:])>>3) == 31+i*32)  # validate bit1
-        assert ((read24(buf[offset+5:])&0x7FFFF) == 0x7C000) # validate lcls/tcle
+    # Validate primary keys
+    for i in range(0, 16):  # (int i = 0 i < 16 i++)
+        ncle = b"SF%02d" % (i + 1)
+        offset = 64 + i * 8
+        # print(buf[offset:offset+4])
+        assert buf[offset : offset + 4] == ncle  # validate key names
+        assert (read16(buf[offset + 4 :]) >> 3) == 31 + i * 32  # validate bit1
+        assert (read24(buf[offset + 5 :]) & 0x7FFFF) == 0x7C000  # validate lcls/tcle
     # Validate auxiliary keys
-    for i in range(0,2):#(int i = 0 i < 2 i++) 
-        ncle = b"AXI%01d"%(i+1)
-        offset = 192+i*8
-        assert (buf[offset:offset+4] == ncle)  # validate key names
-        assert ((read16(buf[offset+4:])>>3) == 31+i*32)  # validate bit1
-        assert ((read24(buf[offset+5:])&0x7FFFF) == 0x7C000) # validate lcls/tcle    
-    print_file_header(h)  
+    for i in range(0, 2):  # (int i = 0 i < 2 i++)
+        ncle = b"AXI%01d" % (i + 1)
+        offset = 192 + i * 8
+        assert buf[offset : offset + 4] == ncle  # validate key names
+        assert (read16(buf[offset + 4 :]) >> 3) == 31 + i * 32  # validate bit1
+        assert (read24(buf[offset + 5 :]) & 0x7FFFF) == 0x7C000  # validate lcls/tcle
+    print_file_header(h)
     return h
 
-def read_chunk_header (f):# -> ChunkHeader:
+
+def read_chunk_header(f):  # -> ChunkHeader:
     buf = f.read(32)
-    import binascii 
+    import binascii
+
     # print( [int(i) for i in buf])
-    assert (buf[0] == 0) # idtyp
-    assert (read24(buf[1:]) == 2308)  # Header length (words)
-    h = ChunkHeader()  
+    assert buf[0] == 0  # idtyp
+    assert read24(buf[1:]) == 2308  # Header length (words)
+    h = ChunkHeader()
     h.this_chunk_words = read32(buf[4:])
     h.this_chunk = h.this_chunk_words * 8 - 8
-    assert (read32(buf[8:]) == 0) # reserved1
-    assert (read32(buf[12:]) == 0) # reserved2
+    assert read32(buf[8:]) == 0  # reserved1
+    assert read32(buf[12:]) == 0  # reserved2
     h.next_chunk_words = read32(buf[16:])
     h.next_chunk = h.next_chunk_words * 8
     if h.next_chunk > 0:
-        h.next_chunk -= 8 # Rewind a bit
+        h.next_chunk -= 8  # Rewind a bit
     h.nrecs = read32(buf[20:])
     h.checksum = read32(buf[24:])
-    assert (read32(buf[28:]) == 0)  # reserved3
+    assert read32(buf[28:]) == 0  # reserved3
     print_chunk_header(h)
     return h
+
 
 #    word swa : 32, epce1 : 4, nk : 12, npas1 : 16;
 #    word nj : 16, ni : 16, nbits : 8, typvar : 8, nomvar : 16;
@@ -175,143 +255,141 @@ def read_chunk_header (f):# -> ChunkHeader:
 #    word date : 32, deet : 16, ubc : 16;
 #    word lng : 32;
 
-def read_record_header (f):# -> RecordHeader:
+
+def read_record_header(f):  # -> RecordHeader:
     h = RecordHeader()
     buf = f.read(72)
 
     h.status = buf[0]
 
-    h.size = read24(buf[1:]) #1,2,3
+    h.size = read24(buf[1:])  # 1,2,3
 
-    h.data = read32(buf[4:]) * 8 #4,5,6,7
-    assert (h.data > 8)
+    h.data = read32(buf[4:]) * 8  # 4,5,6,7
+    assert h.data > 8
     h.data -= 8  # rewind a bit to get the proper start of the data
 
-    h.deet = read24(buf[8:])#8,9,10  lenght=16
+    h.deet = read24(buf[8:])  # 8,9,10  lenght=16
 
-    h.npak = buf[11] #lenght=8
+    h.npak = buf[11]  # lenght=8
 
-    h.ni = read24(buf[12:])#12,13,14 lenght=16
+    h.ni = read24(buf[12:])  # 12,13,14 lenght=16
 
-    h.grtyp = buf[15] #lenght=8
+    h.grtyp = buf[15]  # lenght=8
 
-    h.nj = read24(buf[16:])#16,17,18 lenght=16
+    h.nj = read24(buf[16:])  # 16,17,18 lenght=16
 
-    h.datyp = buf[19] #lenght=8
+    h.datyp = buf[19]  # lenght=8
 
-    h.nk = read24(buf[20:])>>4#20,21,22 lenght=12
-    
-    #h.ubc = read24(buf[23:]) #lenght=16
-    #TODO: ubc
+    h.nk = read24(buf[20:]) >> 4  # 20,21,22 lenght=12
 
-    h.npas = (read32(buf[24:])>>6)#24,25,26,27 lenght=8
+    # h.ubc = read24(buf[23:]) #lenght=16
+    # TODO: ubc
 
-    h.ig4 = read24(buf[28:])#28,29,30 lenght=16
+    h.npas = read32(buf[24:]) >> 6  # 24,25,26,27 lenght=8
 
-    h.ig2 = buf[31]*65536 + buf[35]*256 + buf[39] #lenght=16
+    h.ig4 = read24(buf[28:])  # 28,29,30 lenght=16
 
-    h.ig1 = read24(buf[32:])#32,33,34 lenght=16
+    h.ig2 = buf[31] * 65536 + buf[35] * 256 + buf[39]  # lenght=16
 
-    h.ig3 = read24(buf[36:])#36,37,38 lenght=16
+    h.ig1 = read24(buf[32:])  # 32,33,34 lenght=16
 
-    h.etiket = np.empty((12),dtype='ubyte')
-    readchar (h.etiket, buf[40:], 5)#40,41,42,43
-    readchar (h.etiket[5:], buf[44:], 5)#44,45,46,47
-    readchar (h.etiket[10:], buf[48:], 2)#48
-    h.etiket = ''.join(map(chr,h.etiket)).strip()
+    h.ig3 = read24(buf[36:])  # 36,37,38 lenght=16
 
-    h.typvar = np.empty((2),dtype='ubyte')
-    h.typvar[0] = ((buf[49]&0x0F)<<2) + (buf[50]>>6) + 32   #0xdeadbeef 0x0f = 00001111    #0xdeadbeef & 0x0f -> 
-    h.typvar[1] = (buf[50]&0x3F) + 32
-    h.typvar = ''.join(map(chr,h.typvar)).strip()
+    h.etiket = np.empty((12), dtype="ubyte")
+    readchar(h.etiket, buf[40:], 5)  # 40,41,42,43
+    readchar(h.etiket[5:], buf[44:], 5)  # 44,45,46,47
+    readchar(h.etiket[10:], buf[48:], 2)  # 48
+    h.etiket = "".join(map(chr, h.etiket)).strip()
+
+    h.typvar = np.empty((2), dtype="ubyte")
+    h.typvar[0] = ((buf[49] & 0x0F) << 2) + (buf[50] >> 6) + 32  # 0xdeadbeef 0x0f = 00001111    #0xdeadbeef & 0x0f ->
+    h.typvar[1] = (buf[50] & 0x3F) + 32
+    h.typvar = "".join(map(chr, h.typvar)).strip()
     ####################
-    #51 not used?
+    # 51 not used?
     ####################
-    #h.swa = read32(buf[23:])
+    # h.swa = read32(buf[23:])
 
-    h.nomvar = np.empty((4),dtype='ubyte')
-    readchar(h.nomvar,buf[52:], 4) #52,53,54
-    h.nomvar = ''.join(map(chr,h.nomvar)).strip()
-    
+    h.nomvar = np.empty((4), dtype="ubyte")
+    readchar(h.nomvar, buf[52:], 4)  # 52,53,54
+    h.nomvar = "".join(map(chr, h.nomvar)).strip()
+
     ####################
-    #55 not used?
+    # 55 not used?
     ####################
-    #h.dltf = buf[55]>>7
+    # h.dltf = buf[55]>>7
 
-    h.ip1 = read32(buf[56:]) >> 4 #56,57,58,59
+    h.ip1 = read32(buf[56:]) >> 4  # 56,57,58,59
 
-    h.ip2 = read32(buf[60:]) >> 4 #60,61,62,63
+    h.ip2 = read32(buf[60:]) >> 4  # 60,61,62,63
 
-    h.ip3 = read32(buf[64:]) >> 4 #64,65,66,67
+    h.ip3 = read32(buf[64:]) >> 4  # 64,65,66,67
 
-    h.dateo = read32(buf[68:]) #68,69,70,71
+    h.dateo = read32(buf[68:])  # 68,69,70,71
 
     # Checksum
     h.checksum = 0
-    for i in range(0,72,4):#(int i = 0 i < 72 i+= 4) 
-        h.checksum ^= ((buf[i]<<24) | (buf[i+1]<<16) | (buf[i+2]<<8) | buf[i+3])
+    for i in range(0, 72, 4):  # (int i = 0 i < 72 i+= 4)
+        h.checksum ^= (buf[i] << 24) | (buf[i + 1] << 16) | (buf[i + 2] << 8) | buf[i + 3]
 
     # print_record_header1(h)
     return h
 
 
-
-    
-def get_record_headers (filename):# -> []:
+def get_record_headers(filename):  # -> []:
     f = open(filename, "rb")
     fileheader = read_file_header(f)
 
     chunkheaders = []
     rec = 0
     all_recs = []
-    for c in range(0,fileheader.nchunks):#(int c = 0 c < fileheader.nchunks c++) 
+    for c in range(0, fileheader.nchunks):  # (int c = 0 c < fileheader.nchunks c++)
         # chunckheader = ChunkHeader()
         chunckheader = read_chunk_header(f)
         chunkheaders.append(chunckheader)
         checksum = 0
         recordheaders = []
-        for r in range(0,chunckheader.nrecs):#(int r = 0 r < chunkheader.nrecs r++) 
+        for r in range(0, chunckheader.nrecs):  # (int r = 0 r < chunkheader.nrecs r++)
             # h = RecordHeader()
             h = read_record_header(f)
             recordheaders.append(h)
             all_recs.append(h)
             # Skip erased records
-            if (recordheaders[rec].status == 255):
+            if recordheaders[rec].status == 255:
                 continue
             checksum ^= recordheaders[rec].checksum
             rec += 1
         rec = 0
         checksum ^= chunckheader.nrecs
         checksum ^= chunckheader.next_chunk_words
-#         print("chunk %d checksum: 0x%08X   computed checksum: 0x%08X, xor: %08X\n", c, chunkheader.checksum, checksum, chunkheader.checksum ^ checksum)
-        assert (checksum == chunckheader.checksum)
+        #         print("chunk %d checksum: 0x%08X   computed checksum: 0x%08X, xor: %08X\n", c, chunkheader.checksum, checksum, chunkheader.checksum ^ checksum)
+        assert checksum == chunckheader.checksum
         # Go to next chunk
-        f.seek(chunckheader.next_chunk,0)
+        f.seek(chunckheader.next_chunk, 0)
     f.close()
-    return all_recs    
+    return all_recs
+
 
 if __name__ == "__main__":
-    if len(sys.argv)==2:
-        path=sys.argv[1]#'/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std'
+    if len(sys.argv) == 2:
+        path = sys.argv[1]  #'/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std'
     else:
-        logging.critical('please provide a valid file')
+        logging.critical("please provide a valid file")
         sys.exit()
     # print(f'voir on {path}')
 
     h_list = get_record_headers(path)
-    i=0
-    logging.info('       NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s)           IP1       IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4')
+    i = 0
+    logging.info(
+        "       NOMV TV   ETIQUETTE        NI      NJ    NK (DATE-O  h m s)           IP1       IP2       IP3     DEET     NPAS  DTY   G   IG1   IG2   IG3   IG4"
+    )
     for rec in h_list:
-        #print_record_header1(i,rec)
+        # print_record_header1(i,rec)
         i += 1
 
     # import shutil
     # print(shutil.get_terminal_size().lines)
-    #h = get_record_headers('/space/hall5/sitestore/eccc/prod/hubs/gridpt/dbase/prog/glbeta/2021031912_240')
-
-
-
-
+    # h = get_record_headers('/space/hall5/sitestore/eccc/prod/hubs/gridpt/dbase/prog/glbeta/2021031912_240')
 
 
 #     // Read a chunk of data

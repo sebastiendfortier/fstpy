@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
+from typing import Dict, Any
 import datetime
-from typing import Final
+from typing import Final, Dict, List, Tuple, Union, Optional
 from .std_io import decode_ip123
 
 import numpy as np
-import rpnpy.librmn.all as rmn
-from rpnpy.rpndate import RPNDate
+import pandas as pd
 
-from fstpy import DATYP_DICT, UNITCORRESPONDANCE
+from fstpy import DATYP_DICT, INV_DATYP_DICT
+from fstpy.unit_helpers import CMC_TO_CF_UNITS
 from fstpy.utils import vectorize
+from .rmn_interface import RmnInterface
 
 import cmcdict
+
 
 class Interval:
     def __init__(self, ip, low, high, kind) -> None:
@@ -18,31 +21,27 @@ class Interval:
         self.low = low
         self.high = high
         self.kind = kind
-        self.pkind = '' if kind in [-1, 3, 15, 17, 100] else rmn.kindToString(kind).strip()
+        self.pkind = RmnInterface.kind_to_string(kind)
         pass
 
     def delta(self):
         if self.kind not in [0, 2, 4, 21, 10]:
             return None
-        return self.high-self.low
+        return self.high - self.low
 
     def __str__(self):
-        return f'{self.ip}:{self.low}{self.pkind}@{self.high}{self.pkind}'
-    
+        return f"{self.ip}:{self.low}{self.pkind}@{self.high}{self.pkind}"
+
     def __eq__(self, other):
         if other is None:
             return False
-        return (
-            self.ip == other.ip and
-            self.low == other.low and
-            self.high == other.high and
-            self.kind == other.kind
-            )
+        return self.ip == other.ip and self.low == other.low and self.high == other.high and self.kind == other.kind
 
     def __ne__(self, other):
         return not (self == other)
 
-def get_interval(ip1: int, ip2: int, ip3: int, i1: dict, i2: dict, i3: dict) -> 'Interval|None':
+
+def get_interval(ip1: int, ip2: int, ip3: int, i1: dict, i2: dict, i3: dict) -> Union["Interval", None]:
     """Gets interval if exists from ip values
 
     :param ip1: ip1 value
@@ -61,13 +60,15 @@ def get_interval(ip1: int, ip2: int, ip3: int, i1: dict, i2: dict, i3: dict) -> 
     :rtype: Interval
     """
     if ip3 >= 32768:
-        if (ip1 >= 32768) and (i1['kind'] == i3['kind']):
-            return Interval('ip1', i1['v1'], i1['v2'], i1['kind'])
-        elif (ip2 >= 32768) and (i2['kind'] == i3['kind']):
-            return Interval('ip2', i2['v1'], i2['v2'], i2['kind'])
+        if (ip1 >= 32768) and (i1["kind"] == i3["kind"]):
+            return Interval("ip1", i1["v1"], i1["v2"], i1["kind"])
+        elif (ip2 >= 32768) and (i2["kind"] == i3["kind"]):
+            # Intervalle de temps, borne inf a borne sup (v1 = borne sup, v2 = borne_inf)
+            return Interval("ip2", i2["v2"], i2["v1"], i2["kind"])
         else:
             return None
     return None
+
 
 def get_level_sort_order(kind: int) -> bool:
     """returns the level sort order
@@ -78,13 +79,11 @@ def get_level_sort_order(kind: int) -> bool:
     :rtype: bool
     """
     # order = {0:'ascending',1:'descending',2:'descending',4:'ascending',5:'descending',21:'ascending'}
-    order = {0: True, 3: True, 4: True, 21: True, 100: True,
-             1: False, 2: False, 5: False, 6: False, 7: False}
+    order = {0: True, 3: True, 4: True, 21: True, 100: True, 1: False, 2: False, 5: False, 6: False, 7: False}
     if kind in order.keys():
         return order[kind]
 
     return False
-
 
 
 def get_forecast_hour(deet: int, npas: int) -> datetime.timedelta:
@@ -101,22 +100,36 @@ def get_forecast_hour(deet: int, npas: int) -> datetime.timedelta:
         return datetime.timedelta(seconds=int(npas * deet))
     return datetime.timedelta(0)
 
-VCREATE_FORECAST_HOUR: Final = vectorize(get_forecast_hour, otypes=['timedelta64[ns]'])  # ,otypes=['timedelta64[ns]']
+
+VCREATE_FORECAST_HOUR: Final = vectorize(get_forecast_hour, otypes=["timedelta64[ns]"])  # ,otypes=['timedelta64[ns]']
+
 
 def get_data_type_str(datyp: int):
     """gets the data type string from the datyp int
 
     :param datyp: data type int value
     :type datyp: int
-    :return: string eqivalent of the datyp int value
+    :return: string equivalent of the datyp int value
     :rtype: str
     """
     return DATYP_DICT[datyp]
 
-VCREATE_DATA_TYPE_STR: Final = vectorize(get_data_type_str, otypes=['str'])
+
+def get_data_type_value(datyp: str):
+    """gets the data type int from the datyp string
+
+    :param datyp: data type str value
+    :type datyp: str
+    :return: int equivalent of the datyp str value
+    :rtype: int
+    """
+    return INV_DATYP_DICT[datyp]
 
 
-def get_ip_info(nomvar:str, ip1: int, ip2: int, ip3: int):
+VCREATE_DATA_TYPE_STR: Final = vectorize(get_data_type_str, otypes=["str"])
+
+
+def get_ip_info(nomvar: str, ip1: int, ip2: int, ip3: int):
     """gets all relevant level info from the ip1 int value
 
     :param ip1: encoded value stored in ip1
@@ -125,93 +138,261 @@ def get_ip_info(nomvar:str, ip1: int, ip2: int, ip3: int):
     :rtype: float,int,str,bool,bool,bool
     """
     # iii1, iii2, iii3 = rmn.DecodeIp(ip1,ip2,ip3)
-    i1, i2, i3 = decode_ip123(nomvar, ip1, ip2, ip3) 
+    i1, i2, i3 = decode_ip123(nomvar, ip1, ip2, ip3)
     # if nomvar not in ['>>','^^','!!','^>']:
     #     print(nomvar,iii1,i1,iii2,i2,iii3,i3)
 
     #     print(nomvar ,[(iii1.v1,i1['v1']) if (iii1.v1 != i1['v1']) else True, (iii2.v1,i2['v1']) if (iii2.v1 != i2['v1']) else True, (iii3.v1,i3['v1']) if (iii3.v1 != i3['v1']) else True])
 
-    surface = is_surface(i1['kind'], i1['v1'])
+    surface = is_surface(i1["kind"], i1["v1"])
 
-    follow_topography = level_type_follows_topography(i1['kind'])
+    follow_topography = level_type_follows_topography(i1["kind"])
 
-    ascending = get_level_sort_order(i1['kind'])
+    ascending = get_level_sort_order(i1["kind"])
 
-    interval = get_interval(ip1, ip2, ip3, i1, i2, i3)
+    # don't search for interval in fields that use IPs for association with IGs
+    if nomvar in [">>", "^^", "!!", "^>"]:
+        interval = None
+    else:
+        interval = get_interval(ip1, ip2, ip3, i1, i2, i3)
 
-    return i1['v1'], i1['kind'], i1['kinds'], i2['v1'], i2['kind'], i2['kinds'], i3['v1'], i3['kind'], i3['kinds'], surface, follow_topography, ascending, interval
+    return (
+        i1["v1"],
+        i1["kind"],
+        i1["kinds"],
+        i2["v1"],
+        i2["kind"],
+        i2["kinds"],
+        i3["v1"],
+        i3["kind"],
+        i3["kinds"],
+        surface,
+        follow_topography,
+        ascending,
+        interval,
+    )
 
-VCREATE_IP_INFO: Final = vectorize(get_ip_info, otypes=['float32', 'int32', 'str', 'float32', 'int32', 'str', 'float32', 'int32', 'str', 'bool', 'bool', 'bool', 'object'])
+
+VCREATE_IP_INFO: Final = vectorize(
+    get_ip_info,
+    otypes=[
+        "float32",
+        "int32",
+        "str",
+        "float32",
+        "int32",
+        "str",
+        "float32",
+        "int32",
+        "str",
+        "bool",
+        "bool",
+        "bool",
+        "object",
+    ],
+)
 
 
-def get_unit_and_description(nomvar):
+def get_metadata_batch(nomvars, ip1s=None, ip3s=None):
+    """Gets metadata for multiple variables at once using cmcdict's batch method
+
+    :param nomvars: list of variable names
+    :type nomvars: List[str]
+    :param ip1s: list of ip1 values (optional)
+    :type ip1s: List[int]
+    :param ip3s: list of ip3 values (optional)
+    :type ip3s: List[int]
+    :return: list of metadata dictionaries
+    :rtype: List[Dict]
+    """
+    if ip1s is None:
+        ip1s = [None] * len(nomvars)
+    if ip3s is None:
+        ip3s = [None] * len(nomvars)
+
+    # Create list of tuples for batch call
+    var_tuples = list(zip(nomvars, ip1s, ip3s))
+
+    # Get metadata for each variable
+    results = []
+    for nomvar, ip1, ip3 in var_tuples:
+        try:
+            info = cmcdict.get_metvar_metadata(nomvar, ip1=ip1, ip3=ip3)
+            results.append(info if info else None)
+        except Exception:
+            results.append(None)
+
+    return results
+
+
+def get_unit_and_description(nomvar, ip1=None, ip3=None, existing_units=None, existing_descriptions=None):
     """Reads the Standard file dictionnary and gets the unit and description associated with the variable name
 
     :param nomvar: name of the variable
-    :type nomvar: str
+    :type nomvar: str or pd.Series
+    :param ip1: ip1 value (optional)
+    :type ip1: int or pd.Series
+    :param ip3: ip3 value (optional)
+    :type ip3: int or pd.Series
+    :param existing_units: existing unit values to preserve (optional)
+    :type existing_units: pd.Series
+    :param existing_descriptions: existing description values to preserve (optional)
+    :type existing_descriptions: pd.Series
     :return: unit name and description
-    :rtype: str,str
+    :rtype: Tuple[np.ndarray, np.ndarray]
 
     >>> get_unit_and_description('TT')
-    'Air Temperature' 'celsius'
+    array(['celsius']), array(['Air Temperature'])
     """
-    unit = get_unit(nomvar)
-    description = get_description(nomvar)
-    return unit, description
+    if isinstance(nomvar, (pd.Series, list, np.ndarray)):
+        # Convert to list for batch processing
+        nomvars = list(nomvar)
+        ip1s = list(ip1) if ip1 is not None else None
+        ip3s = list(ip3) if ip3 is not None else None
 
-def get_description(nomvar):
+        # Batch processing
+        var_infos = get_metadata_batch(nomvars, ip1s, ip3s)
+        units = []
+        descriptions = []
+
+        for i, info in enumerate(var_infos):
+            # Use existing values if available
+            if existing_units is not None and pd.notna(existing_units.iloc[i]):
+                units.append(existing_units.iloc[i])
+            elif not info:
+                units.append("1")
+            else:
+                var_unit = info["units"]
+                cf_unit = CMC_TO_CF_UNITS.get(var_unit)
+                units.append(cf_unit if cf_unit is not None else "1")
+
+            if existing_descriptions is not None and pd.notna(existing_descriptions.iloc[i]):
+                descriptions.append(existing_descriptions.iloc[i])
+            elif not info:
+                descriptions.append("N/A")
+            else:
+                descriptions.append(info["description_short_en"])
+
+        return np.array(units), np.array(descriptions)
+    else:
+        # Single variable processing
+        var_infos = cmcdict.get_metvar_metadata(nomvar, ip1=ip1, ip3=ip3)
+        if not var_infos:
+            return np.array(["1"]), np.array(["N/A"])
+
+        var_unit = var_infos["units"]
+        cf_unit = CMC_TO_CF_UNITS.get(var_unit)
+        return (np.array([cf_unit if cf_unit is not None else "1"]), np.array([var_infos["description_short_en"]]))
+
+
+def get_description(nomvar, ip1=None, ip3=None):
     """Reads the Standard file dictionnary and gets the description associated with the variable name
 
     :param nomvar: name of the variable
-    :type nomvar: str
+    :type nomvar: str or pd.Series
+    :param ip1: ip1 value (optional)
+    :type ip1: int or pd.Series
+    :param ip3: ip3 value (optional)
+    :type ip3: int or pd.Series
     :return: description
-    :rtype: str,str
+    :rtype: np.ndarray
 
     >>> get_description('TT')
-    'Air Temperature'
+    array(['Air Temperature'])
     """
-    description = 'N/A'
+    if isinstance(nomvar, (pd.Series, list, np.ndarray)):
+        # Convert to list for batch processing
+        nomvars = list(nomvar)
+        ip1s = list(ip1) if ip1 is not None else None
+        ip3s = list(ip3) if ip3 is not None else None
 
-    var_infos = cmcdict.get_metvar_metadata(nomvar)
-    if not var_infos:
-        print(f"nomvar: '{nomvar}' not found in operational dictionary. Description set to '{description}'")
+        # Batch processing
+        var_infos = get_metadata_batch(nomvars, ip1s, ip3s)
+        return np.array([info["description_short_en"] if info else "N/A" for info in var_infos])
     else:
-        description = var_infos['description_short_en']
+        # Single variable processing
+        var_infos = cmcdict.get_metvar_metadata(nomvar, ip1=ip1, ip3=ip3)
+        if not var_infos:
+            print(f"nomvar: '{nomvar}' not found in operational dictionary. Description set to 'N/A'")
+            return np.array(["N/A"])
+        return np.array([var_infos["description_short_en"]])
 
-    return description
 
-def get_unit(nomvar):
+def _all_same_units(var_infos: Dict[str, Dict[str, Any]]) -> bool:
+    units = {subdict["units"] for subdict in var_infos.values()}
+    return len(units) == 1
+
+
+def get_unit(nomvar, ip1=None, ip3=None):
     """Reads the Standard file dictionnary and gets the unit associated with the variable name
 
     :param nomvar: name of the variable
-    :type nomvar: str
+    :type nomvar: str or pd.Series
+    :param ip1: ip1 value (optional)
+    :type ip1: int or pd.Series
+    :param ip3: ip3 value (optional)
+    :type ip3: int or pd.Series
     :return: unit name
-    :rtype: str,str
+    :rtype: np.ndarray
 
     >>> get_unit('TT')
-    'celsius'
+    array(['celsius'])
     """
-    unit = 'scalar'
+    if isinstance(nomvar, (pd.Series, list, np.ndarray)):
+        # Convert to list for batch processing
+        nomvars = list(nomvar)
+        ip1s = list(ip1) if ip1 is not None else None
+        ip3s = list(ip3) if ip3 is not None else None
 
-    var_infos = cmcdict.get_metvar_metadata(nomvar)
-    if not var_infos:
-        print(f"nomvar: '{nomvar}' not found in operational dictionary. Unit set to '{unit}'")
+        # Batch processing
+        var_infos = get_metadata_batch(nomvars, ip1s, ip3s)
+        units = []
+        for info in var_infos:
+            if not info:
+                units.append("1")
+                continue
+
+            var_unit = info["units"]
+            cf_unit = CMC_TO_CF_UNITS.get(var_unit)
+            units.append(cf_unit if cf_unit is not None else "1")
+
+        return np.array(units)
     else:
-        var_unit = var_infos['units']
-        internal_unit = UNITCORRESPONDANCE.loc[UNITCORRESPONDANCE['label'] == var_unit]['unit'].values
-        if len(internal_unit):
-            unit = internal_unit[0]
+        # Single variable processing
+        var_infos = cmcdict.get_metvar_metadata(nomvar, ip1=ip1, ip3=ip3)
+        if not var_infos:
+            print(f"nomvar: '{nomvar}' not found in operational dictionary. Unit set to '1'")
+            return np.array(["1"])
+        # TODO handle when ip1 is required but not provided. Problem with AL when the writer is called and is making sure the variable have the right unit.
+        # ./apps/spooki_run.py "[ReaderStd --input /home/spst900/dataV/humidex/v13.1.x/inputfiles/2016041212_024_004_ens.regpres] >> [Select --fieldName AL,TT --plugin_language CPP] >> [WriterStd --output test.std --plugin_language PYTHON]"
+        if not "nomvar" in var_infos:
+            # we have multiple entry for same nomvar (probably never happening)
+            # use first one to get unit
+            _, first_var_infos = next(iter(var_infos.items()))
+            var_unit = first_var_infos["units"]
+            if not _all_same_units(var_infos):
+                print(
+                    f"problem when getting unit for {nomvar=}, multiple entry with different units for the same nomvar\n{var_infos=}"
+                )
+                print(f"try first entry")
+                print(f"{var_unit=}")
         else:
-            print(f"No fstpy internal unit found for '{var_unit}', unit set to '{unit}'")
+            var_unit = var_infos["units"]
 
-    return unit
+        cf_unit = CMC_TO_CF_UNITS.get(var_unit)
+        if cf_unit is None:
+            print(f"No fstpy internal unit found for '{var_unit}', unit set to '1'")
+            return np.array(["1"])
+        return np.array([cf_unit])
 
-VGET_UNIT_AND_DESCRIPTION: Final = vectorize(get_unit_and_description, otypes=['str', 'str'])
-VGET_UNIT: Final = vectorize(get_unit, otypes=['str'])
-VGET_DESCRIPTION: Final = vectorize(get_description, otypes=['str'])
+
+VGET_UNIT_AND_DESCRIPTION = get_unit_and_description
+VGET_UNIT = get_unit
+VGET_DESCRIPTION = get_description
+
 
 # written by Micheal Neish creator of fstd2nc
-def convert_rmndate_to_datetime(date: int) -> 'datetime.datetime|None':
+def convert_rmndate_to_datetime(date: int) -> Optional[datetime.datetime]:
     """returns a datetime object of the decoded RMNDate int
 
     :param date: RMNDate int value
@@ -222,13 +403,12 @@ def convert_rmndate_to_datetime(date: int) -> 'datetime.datetime|None':
     >>> convert_rmndate_to_datetime(442998800)
     datetime.datetime(2020, 7, 14, 12, 0)
     """
-    dummy_stamps = (0, 10101011)
+    dummy_stamps = (0, 10101011, 101010101)
     if date not in dummy_stamps:
-        return RPNDate(int(date)).toDateTime().replace(tzinfo=None)
+        return RmnInterface.decode_rpn_date(int(date)).replace(tzinfo=None)
     else:
-        return None
+        return np.datetime64("NaT")
 
-VCONVERT_RMNDATE_TO_DATETIME: Final = vectorize(convert_rmndate_to_datetime, otypes=['datetime64'])  # ,otypes=['datetime64']
 
 def is_surface(ip1_kind: int, level: float) -> bool:
     """Return a bool that tell us if the level is a surface level
@@ -243,7 +423,7 @@ def is_surface(ip1_kind: int, level: float) -> bool:
     >>> is_surface(5,0.36116)
     False
     """
-    meter_levels = np.arange(0., 10.5, .5).tolist()
+    meter_levels = np.arange(0.0, 10.5, 0.5).tolist()
     if (ip1_kind == 5) and (level == 1):
         return True
     elif (ip1_kind == 4) and (level in meter_levels):
@@ -300,12 +480,14 @@ def get_grid_identifier(nomvar: str, ip1: int, ip2: int, ig1: int, ig2: int) -> 
     if nomvar in ["^>", ">>", "^^", "!!", "!!SF"]:
         grid = "".join([str(ip1), str(ip2)])
     elif nomvar == "HY":
-        grid = 'None'
+        grid = "None"
     else:
         grid = "".join([str(ig1), str(ig2)])
     return grid
 
-VCREATE_GRID_IDENTIFIER: Final = vectorize(get_grid_identifier, otypes=['str'])
+
+VCREATE_GRID_IDENTIFIER: Final = vectorize(get_grid_identifier, otypes=["str"])
+
 
 def get_parsed_etiket(raw_etiket: str, etiket_format: str = ""):
     """parses the etiket of a standard file to get label, run, implementation and ensemble member if available
@@ -323,24 +505,24 @@ def get_parsed_etiket(raw_etiket: str, etiket_format: str = ""):
     ('_V710_', 'R1', 'N', '')
     """
     import re
+
     label = ""
     run = None
     implementation = None
     ensemble_member = None
 
     if etiket_format != "":
-        idx = etiket_format.split(',')
+        idx = etiket_format.split(",")
         idx_run = int(idx[0])
-        idx_label = int(idx[0])+int(idx[1])
-        idx_implementation = int(idx[0])+int(idx[1])+int(idx[2])
-        idx_ensemble = int(idx[0])+int(idx[1])+int(idx[2])+int(idx[3])
+        idx_label = int(idx[0]) + int(idx[1])
+        idx_implementation = int(idx[0]) + int(idx[1]) + int(idx[2])
+        idx_ensemble = int(idx[0]) + int(idx[1]) + int(idx[2]) + int(idx[3])
 
         run = raw_etiket[:idx_run]
         label = raw_etiket[idx_run:idx_label]
         implementation = raw_etiket[idx_label:idx_implementation]
         ensemble_member = raw_etiket[idx_implementation:idx_ensemble]
         return label, run, implementation, ensemble_member, etiket_format
-
 
     # match_run = "[RGPEAIMWNC_][\\dRLHMEA_]"
     match_run = "\\w{2}"
@@ -357,24 +539,23 @@ def get_parsed_etiket(raw_etiket: str, etiket_format: str = ""):
     match_end = "$"
 
     re_match_run_only = match_run + match_end
-    re_match_cmc_no_ensemble = match_run + \
-        match_main_cmc + match_implementation + match_end
-    re_match_cmc_ensemble_number3 = match_run + match_main_cmc + \
-        match_implementation + match_ensemble_number3 + match_end
-    re_match_cmc_ensemble_number4 = match_run + match_main_cmc + \
-        match_implementation + match_ensemble_number4 + match_end
-    re_match_cmc_ensemble_letter3 = match_run + match_main_cmc + \
-        match_implementation + match_ensemble_letter3 + match_end
-    re_match_cmc_ensemble_letter4 = match_run + match_main_cmc + \
-        match_implementation + match_ensemble_letter4 + match_end
-    re_match_spooki_no_ensemble = match_run + \
-        match_main_spooki + match_implementation + match_end
-    re_match_spooki_ensemble = match_run + match_main_spooki + \
-        match_implementation + match_ensemble_number3 + match_end
-    re_match_spooki_ensemble_all = match_run + match_main_spooki + \
-        match_implementation + match_ensemble_all + match_end
-    re_match_spooki_ensemble_iic = match_run + match_main_spooki + \
-        match_implementation + match_ensemble_iic + match_end
+    re_match_cmc_no_ensemble = match_run + match_main_cmc + match_implementation + match_end
+    re_match_cmc_ensemble_number3 = (
+        match_run + match_main_cmc + match_implementation + match_ensemble_number3 + match_end
+    )
+    re_match_cmc_ensemble_number4 = (
+        match_run + match_main_cmc + match_implementation + match_ensemble_number4 + match_end
+    )
+    re_match_cmc_ensemble_letter3 = (
+        match_run + match_main_cmc + match_implementation + match_ensemble_letter3 + match_end
+    )
+    re_match_cmc_ensemble_letter4 = (
+        match_run + match_main_cmc + match_implementation + match_ensemble_letter4 + match_end
+    )
+    re_match_spooki_no_ensemble = match_run + match_main_spooki + match_implementation + match_end
+    re_match_spooki_ensemble = match_run + match_main_spooki + match_implementation + match_ensemble_number3 + match_end
+    re_match_spooki_ensemble_all = match_run + match_main_spooki + match_implementation + match_ensemble_all + match_end
+    re_match_spooki_ensemble_iic = match_run + match_main_spooki + match_implementation + match_ensemble_iic + match_end
 
     if re.match(re_match_cmc_no_ensemble, raw_etiket):
         etiket_format = "2,5,1,0,D"
@@ -433,12 +614,13 @@ def get_parsed_etiket(raw_etiket: str, etiket_format: str = ""):
         ensemble_member = raw_etiket[9:12]
     else:
         if len(raw_etiket) >= 2:
-            label_len = len(raw_etiket)-2
-            etiket_format = "2,"+str(label_len)+",0,0,D"
+            label_len = len(raw_etiket) - 2
+            etiket_format = "2," + str(label_len) + ",0,0,D"
             run = raw_etiket[:2]
             label = raw_etiket[2:]
         else:
             label = raw_etiket
     return label, run, implementation, ensemble_member, etiket_format
 
-VPARSE_ETIKET: Final = vectorize(get_parsed_etiket, otypes=['str', 'str', 'str', 'str', 'str'])
+
+VPARSE_ETIKET: Final = vectorize(get_parsed_etiket, otypes=["str", "str", "str", "str", "str"])

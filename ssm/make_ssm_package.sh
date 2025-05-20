@@ -4,11 +4,15 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 ROOT_DIR=${DIR:0:${#DIR}-3}
 echo $ROOT_DIR
 cd ${DIR}
-VERSION=$(grep __version__ ${ROOT_DIR}/fstpy/__init__.py|cut -d"=" -f2)
 PLAT=all
+VERSION=$(grep "^__version__ *= *" ${ROOT_DIR}/fstpy/__init__.py | cut -d'"' -f2)
+if [ -z "$VERSION" ]; then
+    echo "Error: Could not find __version__ in $ROOT_DIR/fstpy/__init__.py"
+    exit 1
+fi
+
+VERSION=$(echo "$VERSION" | tr -d '" ' | head -n 1)
 #echo ${VERSION}
-
-
 
 name=fstpy
 PKGNAME=${name}_${VERSION}_${PLAT}

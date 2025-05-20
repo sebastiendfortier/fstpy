@@ -4,7 +4,7 @@ import os
 
 logger = setup_fstpy_logger()
 
-DEFAULT_HOST_NUM = 3
+DEFAULT_HOST_NUM = 5
 HOST_NUM = os.getenv("FSTPY_HOST_NUM", None)
 
 if HOST_NUM is not None:

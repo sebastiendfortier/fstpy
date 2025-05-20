@@ -6,99 +6,106 @@ import datetime
 
 pytestmark = [pytest.mark.std_functions, pytest.mark.unit_tests]
 
+
 @pytest.fixture
 def input_file():
-    return TEST_PATH + '/ReaderStd/testsFiles/source_data_5005.std'
-    
+    return TEST_PATH + "/ReaderStd/testsFiles/source_data_5005.std"
+
+
 @pytest.fixture
 def raw_dict():
     return {
-        'nomvar': 'TT',
-        'typvar': 'P',
-        'etiket': 'R1_V710_N',
-        'ni': 1108,
-        'nj': 1082,
-        'nk': 1,
-        'ip1': 76696048,
-        'ip2': 6,
-        'ip3': 0,
-        'deet': 300,
-        'npas': 72,
-        'nbits': 16,
-        'grtyp': 'Z',
-        'ig1': 33792,
-        'ig2': 77761,
-        'ig3': 1,
-        'ig4': 0,
-        'datev': 443004200,
-        'swa': 41837002,
-        'lng': 333402,
-        'dltf': 0,
-        'ubc': 0,
-        'xtra1': 443004200,
-        'xtra2': 0,
-        'xtra3': 0,
-        'ip1_kind': 4,
-        'dateo': 442998800,
-        'datyp': 134,
-        'key': 659457,
-        'shape': (1108, 1082, 1),
-        }
+        "nomvar": "TT",
+        "typvar": "P",
+        "etiket": "R1_V710_N",
+        "ni": 1108,
+        "nj": 1082,
+        "nk": 1,
+        "ip1": 76696048,
+        "ip2": 6,
+        "ip3": 0,
+        "deet": 300,
+        "npas": 72,
+        "nbits": 16,
+        "grtyp": "Z",
+        "ig1": 33792,
+        "ig2": 77761,
+        "ig3": 1,
+        "ig4": 0,
+        "datev": 443004200,
+        "swa": 41837002,
+        "lng": 333402,
+        "dltf": 0,
+        "ubc": 0,
+        "xtra1": 443004200,
+        "xtra2": 0,
+        "xtra3": 0,
+        "ip1_kind": 4,
+        "dateo": 442998800,
+        "datyp": 134,
+        "key": 659457,
+        "shape": (1108, 1082, 1),
+    }
+
 
 @pytest.fixture
 def file_mod_time():
-    return '446325:47:42'
+    return "446325:47:42"
+
 
 @pytest.fixture
 def full_data_frame(raw_dict):
-
     rec_dict_to_add = {
-        'date_of_observation': datetime.datetime(2020, 7, 14, 12, 0),
-        'level': 1.5,
-        'pkind': 'M',
-        'data_type_str': 'f',
-        'run': 'R1',
-        'implementation': 'N',
-        'ensemble_member': None,
-        'd': None,
-        'date_of_validity': datetime.datetime(2020, 7, 14, 18, 0),
-        'path': '/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std',
-        'surface': True,
-        'follow_topography': True,
-        'dirty': False,
-        'vctype': '',
-        'forecast_hour': 6.0,
-        'label': '_V710_',
-        'fstinl_params': None,
-        'unit_converted': False
-        }
-    final_dict = dict(rec_dict_to_add, **raw_dict)    
-    df = pd.DataFrame(final_dict)   
+        "date_of_observation": datetime.datetime(2020, 7, 14, 12, 0),
+        "level": 1.5,
+        "pkind": "M",
+        "data_type_str": "f",
+        "run": "R1",
+        "implementation": "N",
+        "ensemble_member": None,
+        "d": None,
+        "date_of_validity": datetime.datetime(2020, 7, 14, 18, 0),
+        "path": "/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std",
+        "surface": True,
+        "follow_topography": True,
+        "dirty": False,
+        "vctype": "",
+        "forecast_hour": 6.0,
+        "label": "_V710_",
+        "fstinl_params": None,
+        "unit_converted": False,
+    }
+    final_dict = dict(rec_dict_to_add, **raw_dict)
+    df = pd.DataFrame(final_dict)
     return df
+
 
 @pytest.fixture
 def no_extra_data_frame(raw_dict):
     rec_dict_to_add = {
-        'path': '/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std',
-        'fstinl_params': None,
-        }
-    final_dict = dict(rec_dict_to_add, **raw_dict)    
-    df = pd.DataFrame(final_dict)        
+        "path": "/fs/site4/eccc/cmd/w/sbf000/source_data_5005.std",
+        "fstinl_params": None,
+    }
+    final_dict = dict(rec_dict_to_add, **raw_dict)
+    df = pd.DataFrame(final_dict)
     return df
+
 
 @pytest.fixture
 def raw_load_datad_data_frame(raw_dict):
     rec_dict_to_add = {
-        'd': None,
-        }
-    final_dict = dict(rec_dict_to_add, **raw_dict)    
-    df = pd.DataFrame(final_dict)       
+        "d": None,
+    }
+    final_dict = dict(rec_dict_to_add, **raw_dict)
+    df = pd.DataFrame(final_dict)
     return df
+
 
 @pytest.fixture
 def raw_data_frame(raw_dict):
-    df = pd.DataFrame(raw_dict)    
+    df = pd.DataFrame(raw_dict)
     return df
+
 
 # def test_add_path_and_modification_time(raw_data_frame, input_file, file_mod_time):
 #     assert 'path' not in raw_data_frame.columns
@@ -126,7 +133,6 @@ def raw_data_frame(raw_dict):
 #     df = add_path_and_modification_time(raw_data_frame, input_file, file_mod_time)
 #     assert 'path' in df.columns
 #     assert 'file_modification_time' in df.columns
-
 
 
 # # def test_strip_string_columns(df):

@@ -26,7 +26,7 @@
 
 #     for _,grid_df in grid_groups:
 #         positional_df = grid_df.loc[grid_df.nomvar.isin(['>>','^^'])]
-        
+
 #         counter += 1
 #         if len(grid_groups.size()) > 1:
 #             lat_name = f'rlat{counter}' if not positional_df.empty else f'y{counter}'
@@ -103,14 +103,14 @@
 #     #    attribs = set_attrib(nomvar_df,attribs,'date_of_validity')
 
 #     #attribs = remove_keys(nomvar_df,attribs,['ni','nj','nk','shape','ig1','ig2','ig3','ig4','ip1','ip2','ip3','datyp','dateo','pkind','datev','grid','fstinl_params','d','file_modification_time','ensemble_member','implementation','run','label'])
-    
+
 #     return attribs
 
 
 # def remove_keys(a_dict,keys):
 #     for k in keys:
 #         a_dict.pop(k,None)
-#     return a_dict    
+#     return a_dict
 
 # def set_attrib(nomvar_df,attribs,key):
 #     attribs[key] = np.array(getattr(nomvar_df,key).to_list()) if len(getattr(nomvar_df,key).unique()) > 1 else attribs[key]
@@ -142,7 +142,7 @@
 #     import xarray as xr
 #     if not lat_lon_df.empty:
 #         lati = lat_lon_df.query('nomvar=="^^"').iloc[0]['d'].flatten()
-#     else:    
+#     else:
 #         lati = np.arange(0,shape[1],dtype=np.int32)
 #     attribs = {
 #         'long_name' : 'latitude in rotated pole grid',
@@ -158,7 +158,7 @@
 #         attrs=attribs
 #         )
 #     return lat
-    
+
 # def get_longitude_data_array(lat_lon_df,lon_name,shape):
 #     import xarray as xr
 #     if not lat_lon_df.empty:
@@ -166,7 +166,7 @@
 #         # loni = (loni-163.41278)*-1
 #         loni = lat_lon_df.query('nomvar==">>"').iloc[0]['d'].flatten()
 #     else:
-#         loni = np.arange(0,shape[0],dtype=np.int32) 
+#         loni = np.arange(0,shape[0],dtype=np.int32)
 
 #     attribs = {
 #         'long_name' : 'longitude in rotated pole grid',
@@ -181,12 +181,12 @@
 #         name=lon_name,
 #         attrs=attribs
 #         )
-       
+
 #     return lon
 
 # def get_variable_data_array(df, name, attribs, dim, dim_name, latitudes, lat_name, longitudes, lon_name,timeseries=False):
 #     import xarray as xr
-#     field_dtype = get_field_dtype(df.iloc[0]['datyp'],df.iloc[0]['nbits'])    
+#     field_dtype = get_field_dtype(df.iloc[0]['datyp'],df.iloc[0]['nbits'])
 #     values = da.stack(df['d'].to_list())
 
 #     if not timeseries:
@@ -202,5 +202,5 @@
 #         coords=coordinates,
 #         name=name,
 #         attrs=attribs
-#         )    
-#     return arr_da.astype(field_dtype)     
+#         )
+#     return arr_da.astype(field_dtype)

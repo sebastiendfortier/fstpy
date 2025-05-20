@@ -1,0 +1,2 @@
+   # use CMDS Python environment
+   . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py310_2023.07.28_all

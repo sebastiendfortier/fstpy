@@ -1,24 +1,20 @@
 # -*- coding: utf-8 -*-
 import os
-import sys
-if sys.version_info < (3, 9):
-    import importlib_resources as resources
-else:
-    import importlib.resources as resources
+import pkg_resources
 import sys
 from pathlib import Path
 from threading import RLock, stack_size
-from typing import Final
+from typing import Final, Union, List
 
 import pandas as pd
-import rpnpy.librmn.all as rmn
+from .rmn_interface import RmnInterface
 
 error = 0
-if sys.version_info[:2] < (3, 6):
-    sys.exit("Wrong python version, python>=3.6")
+if sys.version_info[:2] < (3, 8):
+    sys.exit("Wrong python version, python>=3.8")
 
 
-__version__ = "2024.08.00"
+__version__ = "2025.03.00"
 
 
 _LOCK = RLock()
@@ -29,93 +25,79 @@ stack_size(100000000)
 
 def fstpy_log_level_debug():
     """sets log level to debug"""
-    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_DEBUG, setOget=0)
+    RmnInterface.set_log_level(RmnInterface.FSTOPI_MSG_DEBUG)
 
 
 def fstpy_log_level_info():
     """sets log level to info"""
-    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_INFO, setOget=0)
+    RmnInterface.set_log_level(RmnInterface.FSTOPI_MSG_INFO)
 
 
 def fstpy_log_level_warning():
     """sets log level to warning"""
-    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_WARNING, setOget=0)
+    RmnInterface.set_log_level(RmnInterface.FSTOPI_MSG_WARNING)
 
 
 def fstpy_log_level_error():
     """sets log level to error"""
-    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_ERROR, setOget=0)
+    RmnInterface.set_log_level(RmnInterface.FSTOPI_MSG_ERROR)
 
 
 def fstpy_log_level_fatal():
     """sets log level to fatal"""
-    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_FATAL, setOget=0)
+    RmnInterface.set_log_level(RmnInterface.FSTOPI_MSG_FATAL)
 
 
 def fstpy_log_level_catast():
     """sets log level to catast"""
-    rmn.fstopt(rmn.FSTOP_MSGLVL, rmn.FSTOPI_MSG_CATAST, setOget=0)
+    RmnInterface.set_log_level(RmnInterface.FSTOPI_MSG_CATAST)
 
 
-FSTPY_LOG_LEVEL = os.environ.get('FSTPY_LOG_LEVEL')
-fstpy_progress =  os.environ.get('FSTPY_PROGRESS')
+FSTPY_LOG_LEVEL = os.environ.get("FSTPY_LOG_LEVEL")
+fstpy_progress = os.environ.get("FSTPY_PROGRESS")
 FSTPY_PROGRESS = False
 if (not (fstpy_progress is None)) and (fstpy_progress == "True"):
     FSTPY_PROGRESS = True
 
 
-FSTPY_LOG_VALUES = ['DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL']
+FSTPY_LOG_VALUES = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 # if FSTPY_LOG_LEVEL is None:
 #     fstpy_log_level_info()
 # elif FSTPY_LOG_LEVEL not in FSTPY_LOG_VALUES:
 #     logging.error(
 #         f'Acceptable FSTPY_LOG_LEVEL environment variable values are {FSTPY_LOG_VALUES}')
-if not(FSTPY_LOG_LEVEL is None):
-    if FSTPY_LOG_LEVEL == 'DEBUG':
+if not (FSTPY_LOG_LEVEL is None):
+    if FSTPY_LOG_LEVEL == "DEBUG":
         fstpy_log_level_debug()
-    elif FSTPY_LOG_LEVEL == 'INFO':
+    elif FSTPY_LOG_LEVEL == "INFO":
         fstpy_log_level_info()
-    elif FSTPY_LOG_LEVEL == 'WARNING':
+    elif FSTPY_LOG_LEVEL == "WARNING":
         fstpy_log_level_warning()
-    elif FSTPY_LOG_LEVEL == 'ERROR':
+    elif FSTPY_LOG_LEVEL == "ERROR":
         fstpy_log_level_error()
-    elif FSTPY_LOG_LEVEL == 'CRITICAL':
-        fstpy_log_level_catast()    
-
-
-# KIND_ABOVE_SEA = 0
-# KIND_SIGMA     = 1
-# KIND_PRESSURE  = 2
-# KIND_ARBITRARY = 3
-# KIND_ABOVE_GND = 4
-# KIND_HYBRID    = 5
-# KIND_THETA     = 6
-# KIND_HOURS     = 10
-# KIND_SAMPLES   = 15
-# KIND_MTX_IND   = 17
-# KIND_M_PRES    = 21
-# kind    : level_type
-#  0       : m  [metres] (height with respect to sea level)
-#   [pressure in metres]
-
-# '/fs/site3/eccc/ops/cmod/prod/hubs/suites/ops/rdps_20191231/r1/gridpt/prog/hyb/2021021012_*'
+    elif FSTPY_LOG_LEVEL == "CRITICAL":
+        fstpy_log_level_catast()
 
 
 DATYP_DICT = {
-    0: 'X',
-    1: 'R',
-    2: 'I',
-    3: 'C',
-    4: 'S',
-    5: 'E',
-    6: 'F',
-    7: 'A',
-    8: 'Z',
-    130: 'i',
-    132: 's',
-    133: 'e',
-    134: 'f'
+    0: "X",
+    1: "R",
+    2: "I",
+    3: "C",
+    4: "S",
+    5: "E",
+    6: "F",
+    7: "A",
+    8: "Z",
+    129: "r",
+    130: "i",
+    132: "s",
+    133: "e",
+    134: "f",
 }  # : :meta hide-value:
+
+INV_DATYP_DICT = {v: k for k, v in DATYP_DICT.items()}
+
 """data type aliases constant
 
 :return: correspondance betweeen datyp and str version of datyp
@@ -124,18 +106,18 @@ DATYP_DICT = {
 """
 
 KIND_DICT = {
-    -1: '_',
-    0: 'm',  # [metres] (height with respect to sea level)
-    1: 'sg',  # [sigma] (0.0->1.0)
-    2: 'mb',  # [mbars] (pressure in millibars)
-    3: '   ',  # [others] (arbitrary code)
-    4: 'M',  # [metres] (height with respect to ground level)
-    5: 'hy',  # [hybrid] (0.0->1.0)
-    6: 'th',  # [theta]
-    10: 'H',  # [hours]
-    15: '  ',  # [reserved, integer]
-    17: ' ',  # [index X of conversion matrix]
-    21: 'mp'  # [pressure in metres]
+    -1: "_",
+    0: "m",  # [metres] (height with respect to sea level)
+    1: "sg",  # [sigma] (0.0->1.0)
+    2: "mb",  # [mbars] (pressure in millibars)
+    3: "   ",  # [others] (arbitrary code)
+    4: "M",  # [metres] (height with respect to ground level)
+    5: "hy",  # [hybrid] (0.0->1.0)
+    6: "th",  # [theta]
+    10: "H",  # [hours]
+    15: "  ",  # [reserved, integer]
+    17: " ",  # [index X of conversion matrix]
+    21: "mp",  # [pressure in metres]
 }  # : :meta hide-value:
 """kind aliases constant
 
@@ -144,42 +126,23 @@ KIND_DICT = {
 :meta hide-value:
 """
 
-def _read_csv(filename, **kwargs):
-    """Read a csv stored as resources of this package.
 
-    Additionnal kwargs are passed to pandas' read_csv.
-    Raises a ValueError is the file is not found.
-    """
-    csv_dir = resources.files('fstpy.csv')
+def _get_csv_path(filename):
     try:
-        with resources.as_file(csv_dir / filename) as f:
-            return pd.read_csv(f, **kwargs)
-    except FileNotFoundError as err:
-        raise ValueError(f'File {filename} is not part of the csv resources of fstpy.') from err
+        csv_path = pkg_resources.resource_filename("fstpy", f"csv/{filename}")
+    except KeyError:
+        csv_path = None
+    return csv_path
 
 
-_stationsfb = _read_csv('stationsfb.csv')
-_vctypes = _read_csv('verticalcoordinatetypes.csv')
-_unitcorrespondance = _read_csv('unitcorrespondance.csv')
+_csv_path = _get_csv_path
 
-_units = _read_csv('units.csv', dtype={
-    'name': str,
-    'symbol': str,
-    'expression': str,
-    'bias': 'float32',
-    'factor': 'float32',
-    'mass': 'int32',
-    'length': 'int32',
-    'time': 'int32',
-    'electricCurrent': 'int32',
-    'temperature': 'int32',
-    'amountOfSubstance': 'int32',
-    'luminousIntensity': 'int32'
-})
 
-# _etikets = _read_csv + 'etiket.csv')
-_leveltypes = _read_csv('leveltype.csv')
-_thermoconstants = _read_csv('thermo_constants.csv')
+_stationsfb = pd.read_csv(_csv_path("stationsfb.csv"))
+_vctypes = pd.read_csv(_csv_path("verticalcoordinatetypes.csv"))
+
+_leveltypes = pd.read_csv(_csv_path("leveltype.csv"))
+_thermoconstants = pd.read_csv(_csv_path("thermo_constants.csv"))
 
 STATIONSFB = _stationsfb  # : :meta hide-value:
 """FB stations table
@@ -214,76 +177,6 @@ VCTYPES = _vctypes  # : :meta hide-value:
 ...
 
 """
-UNITCORRESPONDANCE = _unitcorrespondance
-"""Units traduction table from cmcdict to fstpy.UNITS
-
-    :return: dataframe
-    :rtype: pd.DataFrame
-    :meta hide-value:
-
->>> fstpy.UNITCORRESPONDANCE
-              label                         unit
-0    '% per volume'     'percent_per_cubicMeter'
-1               '%'                    'percent'
-2              '°C'                    'celsius'
-3         '°C or K'                     'kelvin'
-4           'µg/kg'     'microgram_per_kilogram'
-..              ...                          ...
-187          'W/m²'       'watt_per_squareMeter'
-188          'W/m2'       'watt_per_squareMeter'
-189          'W/M2'       'watt_per_squareMeter'
-190        'mW m-2'  'milliwatt_per_squareMeter'
-191     'W m⁻¹ K⁻¹'        'thermalConductivity'
-
-[192 rows x 2 columns]
-
-"""
-UNITS = _units  # : :meta hide-value:
-"""Units table for conversions
-
-:return: dataframe
-:rtype: pd.DataFrame
-:meta hide-value:
-
->>> fstpy.UNITS
-                       name      symbol               expression  bias        factor  mass  length  time  electricCurrent  temperature  amountOfSubstance  luminousIntensity
-0                  kilogram          kg                       kg   0.0  1.000000e+00     1       0     0                0            0                  0                  0
-1     kilogram_per_kilogram       kg/kg                    kg/kg   0.0  1.000000e+00     0       0     0                0            0                  0                  0
-2             gram_per_gram         g/g                    kg/kg   0.0  1.000000e+00     0       0     0                0            0                  0                  0
-3         gram_per_kilogram        g/kg                    kg/kg   0.0  1.000000e-03     0       0     0                0            0                  0                  0
-4         kilogram_per_gram        kg/g                    kg/kg   0.0  1.000000e+03     0       0     0                0            0                  0                  0
-..                      ...         ...                      ...   ...           ...   ...     ...   ...              ...          ...                ...                ...
-153                radiance   W/(m2·sr)         W·m^(-2)·sr^(-1)   0.0  1.000000e+00     1       0    -3                0            0                  0                  0
-154  catalyticConcentration      kat/m3               kat·m^(-3)   0.0  1.000000e+00     0      -3    -1                0            0                  1                  0
-155       pascal_per_second        Pa/s          N·m^(-2)·s^(-1)   0.0  1.000000e+00     1      -1    -3                0            0                  0                  0
-156     millimeter_per_hour        mm/h                 m·s^(-1)   0.0  2.777778e-07     0       1    -1                0            0                  0                  0
-157  potentialVorticityUnit  Km2/(kg·s)  K·m^(2)·(kg^(-1)·s(-1))   0.0  1.000000e+00    -1       2    -1                0            1                  0                  0
-
-[158 rows x 12 columns]
-
-"""
-# ETIKETS = _etikets #: :meta hide-value:
-# """Etikets table
-
-# :return: dataframe
-# :rtype: pd.DataFrame
-# :meta hide-value:
-# >>> fstpy.ETIKETS
-#                 plugin_name   etiket
-# 0             AbsoluteValue   ABSVAL
-# 1        AddElementsByPoint   ADDEPT
-# 2     AddElementsVertically   ADDEVY
-# 3             AddToElements   ADDTOE
-# 4                AirDensity   AIRDEN
-# ..                      ...      ...
-# 81          WindDeformation  WINDDEF
-# 82              WindModulus   WNDMOD
-# 83  WindModulusAndDirection   WNDMAD
-# 84       WindTurbulenceDVSI   WNDVSI
-# 85        WindVerticalShear   WNDVSH
-
-# [86 rows x 2 columns]
-# """
 LEVELTYPES = _leveltypes  # : :meta hide-value:
 """Level type table
 
@@ -327,35 +220,35 @@ THERMO_CONSTANTS = _thermoconstants
 """
 
 
-def get_constant_row_by_name(df: pd.DataFrame, df_name: str, index: str, name: str) -> pd.Series:
-    row = df.loc[df[index] == name]
-    if len(row.index):
-        return row
-    # else:
-    #    logger.warning('get_constant_row_by_name - %s - no %s found by that name'%(name,df_name))
-        #logger.error('get_constant_row_by_name - available %s are:'%df_name)
-        # logger.error(pprint.pformat(sorted(df[index].to_list())))
-    return pd.Series(dtype=object)
+def get_constant_row_by_name(df: pd.DataFrame, col_name: str, index_name: str, name: str) -> pd.Series:
+    """Get a row from a constant dataframe by name
 
-
-def get_unit_by_name(name: str) -> pd.Series:
-    unit = get_constant_row_by_name(UNITS, 'unit', 'name', name)
-    if len(unit.index):
-        return unit
+    :param df: constant dataframe
+    :type df: pd.DataFrame
+    :param col_name: column name
+    :type col_name: str
+    :param index_name: index name
+    :type index_name: str
+    :param name: name to search for
+    :type name: str
+    :return: row from constant dataframe
+    :rtype: pd.Series
+    """
+    df = df.copy(deep=True)
+    df.set_index(index_name, inplace=True)
+    if name in df.index:
+        return df.loc[name, col_name]
     else:
-        return get_constant_row_by_name(UNITS, 'unit', 'name', 'scalar')
-
-
-# def get_etikey_by_name(name: str) -> pd.Series:
-#     return get_constant_row_by_name(ETIKETS, 'etiket', 'plugin_name', name)
+        return pd.Series(dtype=object)
 
 
 def get_constant_by_name(name: str) -> pd.Series:
-    return get_constant_row_by_name(THERMO_CONSTANTS, 'value', 'name', name)
+    return get_constant_row_by_name(THERMO_CONSTANTS, "value", "name", name)
 
 
 def get_column_value_from_row(row, column):
     return row[column].values[0]
+
 
 # def init_dask(num_cpus:int=None):
 #     """Create a dask client that works on one machine and that has
@@ -375,7 +268,30 @@ def get_column_value_from_row(row, column):
 #     # We store the connection in the client variable, but we shouldn't need that variable anymore.
 #     _ = dask.distributed.Client(cluster)
 
-BASE_COLUMNS = ['nomvar', 'typvar', 'etiket', 'ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'datyp', 'nbits', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4', 'datev', 'grid', 'd']
+BASE_COLUMNS = [
+    "nomvar",
+    "typvar",
+    "etiket",
+    "ni",
+    "nj",
+    "nk",
+    "dateo",
+    "ip1",
+    "ip2",
+    "ip3",
+    "deet",
+    "npas",
+    "datyp",
+    "nbits",
+    "grtyp",
+    "ig1",
+    "ig2",
+    "ig3",
+    "ig4",
+    "datev",
+    "grid",
+    "d",
+]
 
 
 from . import *
@@ -394,5 +310,5 @@ from .std_io import *
 from .std_reader import *
 from .std_vgrid import *
 from .std_writer import *
-from .unit import *
+from .unit_helpers import *
 from .utils import *

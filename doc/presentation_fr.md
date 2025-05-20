@@ -5,8 +5,13 @@ zoom: "75"
 title: "Fstpy fr"
 ---
 
-## Présentation Fstpy
-Sébastien Fortier 2021
+# fstpy
+
+Une interface Python pour le format de fichier FSTD.
+
+## Introduction
+
+fstpy est un package Python qui fournit une interface pour le format de fichier FSTD utilisé par Environnement et Changement climatique Canada (ECCC) pour stocker des données météorologiques.
 
 ---
 

@@ -8,24 +8,26 @@ from fstpy.std_reader import StandardFileReader
 from fstpy.std_writer import StandardFileWriter
 from fstpy.std_vgrid import VerticalCoordType
 from fstpy.utils import delete_file
-import rpnpy.librmn.all as rmn
 import secrets
 
 pytestmark = [pytest.mark.std_reader_regtests, pytest.mark.regressions]
 
+
 @pytest.fixture
 def plugin_test_dir():
-    return TEST_PATH +"ReaderStd/testsFiles/"
+    return TEST_PATH + "ReaderStd/testsFiles/"
+
 
 @pytest.fixture
 def plugin_test_dir2():
-    return TEST_PATH +"testsFiles/"
+    return TEST_PATH + "testsFiles/"
+
 
 def test_1(plugin_test_dir):
     """Test l'option --input avec un fichier qui n'existe pas!"""
     # open and read source
     source0 = plugin_test_dir + "UUVV5x5_fileSrc_.std"
-    with pytest.raises(rmn.FSTDError):
+    with pytest.raises(Exception):
         _ = StandardFileReader(source0).to_pandas()
 
 
@@ -35,22 +37,22 @@ def test_2(plugin_test_dir):
     source0 = plugin_test_dir + "regdiag_2012061300_012_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    #compute ReaderStd
-    src_df0 = select_with_meta(src_df0,["UU","VV","T6"])
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,T6] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    # compute ReaderStd
+    src_df0 = select_with_meta(src_df0, ["UU", "VV", "T6"])
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,T6] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_2.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_2.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "UU_VV_T6_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_3(plugin_test_dir):
@@ -59,18 +61,18 @@ def test_3(plugin_test_dir):
     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_3.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_3.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "UUVV5x5_fileSrc.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.001)
+    # compare results
+    res = fstcomp(results_file, file_to_compare, e_max=0.001)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_5(plugin_test_dir):
@@ -78,10 +80,10 @@ def test_5(plugin_test_dir):
     # open and read source
     source0 = plugin_test_dir + "input_big_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_5.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_5.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -89,10 +91,11 @@ def test_5(plugin_test_dir):
     # open and read comparison file
     file_to_compare = plugin_test_dir + "input_big_fileSrc.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=0.13)#,e_c_cor=0.001)
+    # compare results
+    res = fstcomp(results_file, file_to_compare, e_max=0.13)  # ,e_c_cor=0.001)
     delete_file(results_file)
-    assert(res)
+    assert res
+
 
 def test_6(plugin_test_dir):
     """Test read write sigma12000 pressure"""
@@ -100,24 +103,23 @@ def test_6(plugin_test_dir):
     source0 = plugin_test_dir + "input_model"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = select(src_df0,'nomvar in ["UU","VV","TT"]')
-    df = select_with_meta(src_df0,["UU","VV","TT"])
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,TT] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    df = select_with_meta(src_df0, ["UU", "VV", "TT"])
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [Select --fieldName UU,VV,TT] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_6.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_6.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, df).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "sigma12000_pressure_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_7(plugin_test_dir):
@@ -126,20 +128,20 @@ def test_7(plugin_test_dir):
     source0 = plugin_test_dir + "input_big_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --noMetadata --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --noMetadata --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_7.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_7.std"])
     delete_file(results_file)
-    StandardFileWriter(results_file, src_df0,no_meta=True).to_fst()
+    StandardFileWriter(results_file, src_df0, no_meta=True).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "input_big_noMeta_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 # def test_8(plugin_test_dir):
@@ -172,23 +174,22 @@ def test_9(plugin_test_dir):
     source0 = plugin_test_dir + "tt_stg_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_9.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_9.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "tt_stg_fileSrc.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_10(plugin_test_dir):
@@ -197,25 +198,24 @@ def test_10(plugin_test_dir):
     source0 = plugin_test_dir + "UUVV5x5_fileSrc.std"
     source1 = plugin_test_dir + "windChill_file2cmp.std"
     source2 = plugin_test_dir + "windModulus_file2cmp.std"
-    src_df0 = StandardFileReader([source0,source1,source2]).to_pandas()
+    src_df0 = StandardFileReader([source0, source1, source2]).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --ignoreExtended --input {sources[0]} {sources[1]} {sources[2]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    # [ReaderStd --ignoreExtended --input {sources[0]} {sources[1]} {sources[2]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_10.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_10.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "stdPlusstd_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_11(plugin_test_dir):
@@ -224,23 +224,22 @@ def test_11(plugin_test_dir):
     source0 = plugin_test_dir + "ip3.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_11.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_11.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "ip3.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare,e_max=.13)
+    # compare results
+    res = fstcomp(results_file, file_to_compare, e_max=0.13)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_12(plugin_test_dir):
@@ -249,23 +248,22 @@ def test_12(plugin_test_dir):
     source0 = plugin_test_dir + "UUVV93423264_hyb_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_12.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_12.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "UUVV93423264_hyb_fileSrc.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_13(plugin_test_dir):
@@ -274,13 +272,12 @@ def test_13(plugin_test_dir):
     source0 = plugin_test_dir + "2hy.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --noUnitConversion]
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --noUnitConversion]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_13.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_13.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
@@ -298,23 +295,22 @@ def test_14(plugin_test_dir):
     source0 = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PZ.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #['[ReaderStd --ignoreExtended --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]']
-    src_df0.loc[:, 'typvar'] = 'P'
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_14.std"])
+    # ['[ReaderStd --ignoreExtended --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]']
+    src_df0.loc[:, "typvar"] = "P"
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_14.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "NEW/typvar_pz_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_15(plugin_test_dir):
@@ -323,23 +319,22 @@ def test_15(plugin_test_dir):
     source0 = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PU.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-    src_df0.loc[:, 'typvar'] = 'P'
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_15.std"])
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    src_df0.loc[:, "typvar"] = "P"
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_15.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "NEW/typvar_pu_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_16(plugin_test_dir):
@@ -348,23 +343,22 @@ def test_16(plugin_test_dir):
     source0 = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PI.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-    src_df0.loc[:, 'typvar'] = 'P'
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_16.std"])
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    src_df0.loc[:, "typvar"] = "P"
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_16.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "NEW/typvar_pi_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_17(plugin_test_dir):
@@ -373,23 +367,22 @@ def test_17(plugin_test_dir):
     source0 = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PF.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-    src_df0.loc[:, 'typvar'] = 'P'
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_17.std"])
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    src_df0.loc[:, "typvar"] = "P"
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_17.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "NEW/typvar_pf_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_18(plugin_test_dir):
@@ -398,24 +391,23 @@ def test_18(plugin_test_dir):
     source0 = plugin_test_dir + "UUVVTT5x5x2_fileSrc_PM.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
-    src_df0.loc[:, 'typvar'] = 'P'
+    # [ReaderStd --ignoreExtended --input {sources[0]}] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    src_df0.loc[:, "typvar"] = "P"
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_18.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_18.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "NEW/typvar_pm_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_19(plugin_test_dir):
@@ -424,24 +416,24 @@ def test_19(plugin_test_dir):
     source0 = plugin_test_dir + "mb_plus_hybrid_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    src_df0['etiket'] = '33K80___X'
+    src_df0["etiket"] = "33K80___X"
 
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path}]
+    # [ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path}]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_19.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_19.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "mb_plus_hybrid_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_20(plugin_test_dir):
@@ -450,26 +442,25 @@ def test_20(plugin_test_dir):
     source0 = plugin_test_dir + "mb_plus_hybrid_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    src_df0 = select_with_meta(src_df0,['FN'])
-    src_df0.loc[:,'etiket'] = '33K80___X'
+    src_df0 = select_with_meta(src_df0, ["FN"])
+    src_df0.loc[:, "etiket"] = "33K80___X"
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --input {sources[0]}] >> [Select --fieldName FN] >> [WriterStd --output {destination_path}]
+    # [ReaderStd --input {sources[0]}] >> [Select --fieldName FN] >> [WriterStd --output {destination_path}]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_20.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_20.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "read_write_hy2_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_21(plugin_test_dir):
@@ -478,25 +469,25 @@ def test_21(plugin_test_dir):
     source0 = plugin_test_dir + "mb_plus_hybrid_fileSrc.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    src_df0 = select_with_meta(src_df0,['PR'])
-    #compute ReaderStd
+    src_df0 = select_with_meta(src_df0, ["PR"])
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --input {sources[0]}] >> [Select --fieldName PR] >> [WriterStd --output {destination_path} --ignoreExtended]
+    # [ReaderStd --input {sources[0]}] >> [Select --fieldName PR] >> [WriterStd --output {destination_path} --ignoreExtended]
 
-    src_df0.loc[:,'etiket'] = 'K80'
+    src_df0.loc[:, "etiket"] = "K80"
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_21.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_21.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "read_write_hy3_file2cmp.std+20210517"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_22(plugin_test_dir):
@@ -505,22 +496,22 @@ def test_22(plugin_test_dir):
     source0 = plugin_test_dir + "pt_with_hybrid.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path}]
+    # [ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path}]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_22.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_22.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "read_write_pt_when_no_sigma_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_23(plugin_test_dir):
@@ -529,25 +520,25 @@ def test_23(plugin_test_dir):
     source0 = plugin_test_dir + "kt_ai_hybrid.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    src_df0.loc[src_df0.nomvar == 'AI','nomvar'] = 'PT'
+    src_df0.loc[src_df0.nomvar == "AI", "nomvar"] = "PT"
     # src_df0 = select_zap(src_df0,'nomvar=="AI"',nomvar='PT')
 
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --input {sources[0]}] >> [ZapSmart --fieldNameFrom AI --fieldNameTo PT] >> [WriterStd --output {destination_path}]
+    # [ReaderStd --input {sources[0]}] >> [ZapSmart --fieldNameFrom AI --fieldNameTo PT] >> [WriterStd --output {destination_path}]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_23.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_23.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "read_write_pt_when_no_sigma_file2cmp.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 # def test_25(plugin_test_dir):
@@ -575,28 +566,27 @@ def test_23(plugin_test_dir):
 
 
 def test_26(plugin_test_dir):
-    """Test la lecture d'un fichier pilot """
+    """Test la lecture d'un fichier pilot"""
     # open and read source
     source0 = plugin_test_dir + "2015040800_030_piloteta"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path} ]
+    # [ReaderStd --input {sources[0]}] >> [WriterStd --output {destination_path} ]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_26.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_26.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "2015040800_030_piloteta"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_28(plugin_test_dir):
@@ -605,25 +595,24 @@ def test_28(plugin_test_dir):
     source0 = plugin_test_dir + "UUVV5x5_+fileSrc.std"
     source1 = plugin_test_dir + "wind+Chill_file2cmp.std"
     source2 = plugin_test_dir + "windModulus_file2cmp.std"
-    src_df0 = StandardFileReader([source0,source1,source2]).to_pandas()
+    src_df0 = StandardFileReader([source0, source1, source2]).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #[ReaderStd --input {sources[0]} {sources[1]} {sources[2]} --ignoreExtended] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
+    # [ReaderStd --input {sources[0]} {sources[1]} {sources[2]} --ignoreExtended] >> [WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE]
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_28.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_28.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "stdPlusstd_file2cmp.std"
 
-    #compare results
+    # compare results
     res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_29(plugin_test_dir):
@@ -632,24 +621,23 @@ def test_29(plugin_test_dir):
     source0 = plugin_test_dir + "missingData.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-
-    #compute ReaderStd
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #['[ReaderStd --input {sources[0]} --ignoreExtended] >> ', '[WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE --flagMissingData]']
+    # ['[ReaderStd --input {sources[0]} --ignoreExtended] >> ', '[WriterStd --output {destination_path} --ignoreExtended --IP1EncodingStyle OLDSTYLE --flagMissingData]']
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_29.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_29.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "resulttest_29.std+20210712"
 
-    #compare results
+    # compare results
     # toctoc is present in cmp file, disable strick meta
-    res = fstcomp(results_file,file_to_compare)
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_30(plugin_test_dir):
@@ -659,15 +647,15 @@ def test_30(plugin_test_dir):
     src_df0 = StandardFileReader(source0).to_pandas()
 
     for row in src_df0.itertuples():
-        src_df0.at[row.Index,'etiket'] = ''.join(['E16_0_0_',row.etiket[-4:]])
+        src_df0.at[row.Index, "etiket"] = "".join(["E16_0_0_", row.etiket[-4:]])
 
-    src_df0.loc[src_df0.nomvar.isin(['>>','^^']),'etiket'] = 'ER______X'
-    #compute ReaderStd
+    src_df0.loc[src_df0.nomvar.isin([">>", "^^"]), "etiket"] = "ER______X"
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #['[ReaderStd --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
+    # ['[ReaderStd --input {sources[0]}] >> ', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_30.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_30.std"])
     delete_file(results_file)
 
     StandardFileWriter(results_file, src_df0).to_fst()
@@ -675,35 +663,57 @@ def test_30(plugin_test_dir):
     # open and read comparison file
     file_to_compare = plugin_test_dir + "resulttest_30.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_31(plugin_test_dir):
     """Test lecture fichiers contenant des masques"""
     # open and read source
     source0 = plugin_test_dir + "data_with_mask.std"
-    src_df0 = StandardFileReader(source0,decode_metadata=True).to_pandas()
+    src_df0 = StandardFileReader(source0, decode_metadata=True).to_pandas()
 
-    #['[ReaderStd --input {sources[0]}] >> ', '[Select --forecastHour 24] >>', '[WriterStd --output {destination_path}]']
-    src_df0 = src_df0.loc[(src_df0.dateo==442080800) & (src_df0.deet==300) & (src_df0.npas==288)]
-    src_df0.loc[:,'etiket']='RU210RKFX'
-    src_df0.loc[:,'ip2'] = 24
+    # ['[ReaderStd --input {sources[0]}] >> ', '[Select --forecastHour 24] >>', '[WriterStd --output {destination_path}]']
+    src_df0 = src_df0.loc[(src_df0.dateo == 442080800) & (src_df0.deet == 300) & (src_df0.npas == 288)]
+    src_df0.loc[:, "etiket"] = "RU210RKFX"
+    src_df0.loc[:, "ip2"] = 24
     # print(src_df0[['nomvar','typvar','etiket','ni','nj','nk','dateo','ip1','ip2','ip3','deet','npas','datyp','nbits','grtyp','ig1','ig2','ig3','ig4']].to_string())
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_31.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_31.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0, rewrite=True).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "resulttest_31.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare,columns=['nomvar', 'typvar', 'etiket','ni', 'nj', 'nk', 'dateo', 'ip1', 'ip2', 'ip3', 'deet', 'npas', 'grtyp', 'ig1', 'ig2', 'ig3', 'ig4'])
+    # compare results
+    res = fstcomp(
+        results_file,
+        file_to_compare,
+        columns=[
+            "nomvar",
+            "typvar",
+            "etiket",
+            "ni",
+            "nj",
+            "nk",
+            "dateo",
+            "ip1",
+            "ip2",
+            "ip3",
+            "deet",
+            "npas",
+            "grtyp",
+            "ig1",
+            "ig2",
+            "ig3",
+            "ig4",
+        ],
+    )
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_32(plugin_test_dir):
@@ -712,25 +722,25 @@ def test_32(plugin_test_dir):
     source0 = plugin_test_dir + "ens_data_exclamation.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    src_df0 = select_with_meta(src_df0,["WGEX"])
+    src_df0 = select_with_meta(src_df0, ["WGEX"])
 
-    src_df0.loc[src_df0.nomvar.isin(['>>','^^']),'etiket'] = 'ER______X'
-    #compute ReaderStd
+    src_df0.loc[src_df0.nomvar.isin([">>", "^^"]), "etiket"] = "ER______X"
+    # compute ReaderStd
     # df = ReaderStd(src_df0)
-    #['[ReaderStd --input {sources[0]}] >>', '[Select --fieldName WGEX] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
+    # ['[ReaderStd --input {sources[0]}] >>', '[Select --fieldName WGEX] >>', '[WriterStd --output {destination_path} --IP1EncodingStyle OLDSTYLE]']
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_32.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_32.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "resulttest_32.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
 
 def test_33(plugin_test_dir):
@@ -739,38 +749,37 @@ def test_33(plugin_test_dir):
     source0 = plugin_test_dir + "resulttest_33.std"
     src_df0 = StandardFileReader(source0).to_pandas()
 
-    #compute ReaderStd
+    # compute ReaderStd
     # src_df0 = ReaderStd(src_df0)
-    #['[ReaderStd --input {sources[0]}]>>', '[WriterStd --output {destination_path}]']
+    # ['[ReaderStd --input {sources[0]}]>>', '[WriterStd --output {destination_path}]']
 
-    #write the result
-    results_file = ''.join([TMP_PATH, secrets.token_hex(16), "test_read_reg_33.std"])
+    # write the result
+    results_file = "".join([TMP_PATH, secrets.token_hex(16), "test_read_reg_33.std"])
     delete_file(results_file)
     StandardFileWriter(results_file, src_df0).to_fst()
 
     # open and read comparison file
     file_to_compare = plugin_test_dir + "resulttest_33.std"
 
-    #compare results
-    res = fstcomp(results_file,file_to_compare)
+    # compare results
+    res = fstcomp(results_file, file_to_compare)
     delete_file(results_file)
-    assert(res)
+    assert res
 
     ####### ATTENTION TEST MANQUANTS 34 a 43 - a ajouter
     # #####################################################
 
-def test_44(plugin_test_dir2):
-    """Verifier que les niveaux 1.5 m sont bien convertis en HYBRID_5005, fichier avec plusieurs heures d'emission """
 
-     # open and read source
+def test_44(plugin_test_dir2):
+    """Verifier que les niveaux 1.5 m sont bien convertis en HYBRID_5005, fichier avec plusieurs heures d'emission"""
+
+    # open and read source
     source0 = plugin_test_dir2 + "Fichier5005_manyForecastHours.std"
     src_df0 = StandardFileReader(source0).to_pandas()
-    src_df0 = select_with_meta(src_df0, ['TT', 'GZ'])
+    src_df0 = select_with_meta(src_df0, ["TT", "GZ"])
 
-    # Suite a la lecture du fichier, les coordonnees 1.5m devraient etre convertis 
-    # en HYBRID 5005 
-    filtered_df = src_df0[(src_df0['nomvar'].isin(['TT', 'GZ'])) & 
-                          (src_df0['vctype'] != VerticalCoordType.HYBRID_5005)]
-    
+    # Suite a la lecture du fichier, les coordonnees 1.5m devraient etre convertis
+    # en HYBRID 5005
+    filtered_df = src_df0[(src_df0["nomvar"].isin(["TT", "GZ"])) & (src_df0["vctype"] != VerticalCoordType.HYBRID_5005)]
+
     assert filtered_df.empty, "Problem with the values in the vctype column."
-   

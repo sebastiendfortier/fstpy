@@ -1,0 +1,2 @@
+   # get ci_fstcomp 
+   . ssmuse-sh -d  /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/202503/00

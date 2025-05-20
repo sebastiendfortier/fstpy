@@ -23,7 +23,7 @@ Documentation
 * :doc:`install`
 * :doc:`usage`
 * :doc:`contributing`
-* :doc:`ssm`
+* :doc:`livraison`
 
 .. toctree::
    :maxdepth: 1
@@ -34,7 +34,7 @@ Documentation
    install
    usage
    contributing
-   ssm
+   livraison
 
 **Modules**
 
@@ -97,6 +97,8 @@ Documentation
 
 **Misc**
 
+* :doc:`dataframe_columns`
+* :doc:`reduction_colonnes`
 * :doc:`presentation_en`
 * :doc:`presentation_fr`
 * :doc:`caveats`
@@ -109,6 +111,8 @@ Documentation
    :hidden:
    :caption: Misc
 
+   dataframe_columns
+   reduction_colonnes
    presentation_en.md
    presentation_fr.md
    caveats

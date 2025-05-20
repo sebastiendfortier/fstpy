@@ -17,22 +17,24 @@ stages:
   - ssm_package
   - deploy
   - keep_ssm_package
+  - cascade
+
+workflow:
+  rules:
+    # This rule will allow all push events (including all branches and tags), trigger events (token), web events (manual pipeline), API and pipeline (multi-project pipelines).
+    - if: '$CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "trigger" || $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "pipeline"'
 
 
 # default:
 # when 'default' becomes supported, uncomment the above line, delete this line, and indent the before_script part.
 before_script:
-  - export ORDENV_SITE_PROFILE=20230929
-  - export ORDENV_COMM_PROFILE=eccc/20231121
-  - export ORDENV_GROUP_PROFILE=eccc/cmc/1.16.0
-  - . /fs/ssm/main/env/ordenv-boot-20231110.sh
-  - export EC_ATOMIC_PROFILE_VERSION=1.34.0
-  - . $ARMNLIB_SHARE/check_profile_1.1.0
+  - . /fs/ssm/eccc/mrd/ordenv/20240916/profile/ord
   - . r.load.dot eccc/mrd/rpn/MIG/ENV/rpnpy/2.2.0 eccc/mrd/rpn/code-tools/ENV/cdt-1.6.6/SCIENCE/inteloneapi-2022.1.2
   - . r.load.dot eccc/mrd/rpn/libs/20230906 eccc/cmd/cmda/libs/20230906/inteloneapi-2022.1.2
+  - . r.load.dot cmo/cmoi/base/20240405
   - . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py310_2023.07.28_all
-  - . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/1.0.9
-  - . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/cmcdict/202407/00
+  - . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/202501/00
+  - . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/cmcdict/202503/00
 
 run_unittest:
   stage: run_unittest
@@ -71,8 +73,9 @@ install_doc:
 
 install_latest_doc:
   stage: install_doc
-  only:
-      - master
+  rules:
+    # only on master
+    - if: '$CI_COMMIT_BRANCH == "master"'
   script:
     - cd doc/_build/html
     - cdir=`pwd`
@@ -97,26 +100,41 @@ ssm_package:
 
 deploy:
   stage: deploy
+  rules:
+    # only on master
+    - if: '$CI_COMMIT_BRANCH == "master"'
   script:
     - cd ${deploy_dir_prefix}
     - rm -f latest
     - ln -s ${CI_PIPELINE_ID} latest
-  only:
-    - master
 
 remove_ssm:
   stage: deploy
+  rules:
+    # on all branch other than master
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: never
   script:
     - rm -r ${deploy_dir_prefix}
-  except:
-    - master
 
 keep_ssm_package:
   stage: keep_ssm_package
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^r-\d+\.\d+\.\d+/'
   script:
     - cd livraison
     - cp *.ssm ${ssm_dir_prefix}/
     - echo "Your package is here ${ssm_dir_prefix}"
-  only:
-    - /^r-\d+\.\d+\.\d+/
 
+cascade:
+  stage: cascade
+  rules:
+    # only on master
+    - if: '$CI_COMMIT_BRANCH == "master"'
+  variables:
+    FSTPY_TRIGGER: ${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
+  inherit:
+    variables: false # do not send all the global variables to the triggered pipeline
+  trigger:
+    project: cmdw-spooki/spookipy
+    branch: master

@@ -64,10 +64,6 @@ The following functions and constants are available through ``fstpy.``
       :noindex:
       :members:
 
-   .. automodule:: fstpy.unit    
-      :noindex:
-      :members:
-
    .. automodule:: fstpy.utils       
       :noindex:
       :members:

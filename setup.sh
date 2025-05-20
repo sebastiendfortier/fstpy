@@ -36,16 +36,20 @@ message(){
    true
 }
 
-print_and_do(){
-   message $@
-   eval $@
-}
 
-use_fstpy_deps(){
-    # fstpy uses low-level python binding for
-    # librmn functions provided by rpnpy
-    print_and_do . r.load.dot eccc/mrd/rpn/MIG/ENV/migdep/5.1.1 eccc/mrd/rpn/MIG/ENV/rpnpy/2.1-u2.4
-    print_and_do . ssmuse-sh -d /fs/ssm/eccc/cmd/cmds/apps/ci_fstcomp/1.0.8
+use_fstpy_deps() {
+    # Les fichiers ci_fstcomp.txt, cmds_python_env.txt et fstpy_env.txt contiennent les packages necessaires a sourcer 
+    local filenames=("cmds_python_env.txt" "fstpy_env.txt" "ci_fstcomp.txt")
+    
+    for filename in "${filenames[@]}"; do
+        message "Processing $filename"
+        
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            if [[ $line =~ ^[[:space:]]*\..* ]]; then
+                eval "$line"
+            fi
+        done < "$filename"
+    done
 }
 
 use_fstpy

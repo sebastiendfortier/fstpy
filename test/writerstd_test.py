@@ -6,9 +6,11 @@ import secrets
 
 pytestmark = [pytest.mark.std_writer_regtests, pytest.mark.regressions]
 
+
 @pytest.fixture
 def plugin_test_dir():
-    return TEST_PATH +"WriterStd/testsFiles/"
+    return TEST_PATH + "WriterStd/testsFiles/"
+
 
 ##### ajouter un test
 ##### tester des nans a l'ecriture
@@ -17,7 +19,7 @@ def plugin_test_dir():
 # def test_dump():
 #     pass
 # def test_regtest_1():
-    # pass
+# pass
 #     """Tester l'option --output avec un path qui n'existe pas!"""
 #     # open and read source
 #     source0 = plugin_test_dir + "inputFile.std"
