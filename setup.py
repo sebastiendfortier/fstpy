@@ -45,6 +45,7 @@ setuptools.setup(
         "pandas>=1.2.4",
         "numpy>=1.23.0",
         "dask>=2021.8.0",
+        "eccc_rpnpy>=2.2.0",
         "cmcdict >= 2025.3.0",
         "cf-units >=3.0.0",
         'importlib-resources; python_version<"3.9"',
