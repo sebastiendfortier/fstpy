@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
-import pkg_resources
 import sys
+if sys.version_info < (3, 9):
+    import importlib_resources as resources
+else:
+    import importlib.resources as resources
 from pathlib import Path
 from threading import RLock, stack_size
 from typing import Final, Union, List
@@ -129,7 +132,9 @@ KIND_DICT = {
 
 def _get_csv_path(filename):
     try:
-        csv_path = pkg_resources.resource_filename("fstpy", f"csv/{filename}")
+        csv_dir = resources.files("fstpy.csv")
+        with resources.as_file(csv_dir / filename) as csv_path:
+            return csv_path
     except KeyError:
         csv_path = None
     return csv_path
