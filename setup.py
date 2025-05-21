@@ -48,7 +48,7 @@ setuptools.setup(
         "eccc_rpnpy>=2.2.0",
         "cmcdict >= 2025.3.0",
         "cf-units >=3.0.0",
-        "setuptools",
+        'importlib-resources; python_version<"3.9"',
     ],
     packages=setuptools.find_packages(exclude="test"),
     include_package_data=True,
